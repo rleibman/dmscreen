@@ -25,6 +25,18 @@ import java.net.URL
 
 opaque type PlayerCharacterId = Long
 
+object PlayerCharacterId {
+
+  def apply(playerCharacterId: Long): PlayerCharacterId = playerCharacterId
+
+  extension (playerCharacterId: PlayerCharacterId) {
+
+    def value: Long = playerCharacterId
+
+  }
+
+}
+
 case class PlayerCharacterHeader(id: PlayerCharacterId)
 
 sealed trait ImportSource
@@ -43,7 +55,24 @@ case class Traits(
 
 case class Race(name: String)
 
-case class CharacterClass(name: String)
+opaque type CharacterClassId = Long
+
+object CharacterClassId {
+
+  def apply(characterClassId: Long): CharacterClassId = characterClassId
+
+  extension (characterClassId: CharacterClassId) {
+
+    def value: Long = characterClassId
+
+  }
+
+}
+
+case class CharacterClass(
+  characterClassId: CharacterClassId,
+  name:             String
+)
 
 case class Subclass(name: String)
 

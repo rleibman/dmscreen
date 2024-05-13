@@ -23,6 +23,18 @@ package dmscreen.dnd5e
 
 opaque type MonsterId = Long
 
+object MonsterId {
+
+  def apply(monsterId: Long): MonsterId = monsterId
+
+  extension (monsterId: MonsterId) {
+
+    def value: Long = monsterId
+
+  }
+
+}
+
 enum MonsterType {
 
   case Aberration

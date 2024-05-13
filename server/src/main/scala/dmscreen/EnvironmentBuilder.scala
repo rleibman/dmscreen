@@ -19,17 +19,19 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package dmscreen
 
+import dmscreen.dnd5e.DND5eGameService
 import zio.*
 
-type DND5eEnvironment = DND5eGameService
+type DMScreenEnvironment = DND5eGameService & ConfigurationService
 
 object EnvironmentBuilder {
 
   def live =
-    ZLayer.make[DND5eEnvironment](
-      DND5eGameService.db
+    ZLayer.make[DMScreenEnvironment](
+      DND5eGameService.db,
+      ConfigurationService.live
     )
 
 }

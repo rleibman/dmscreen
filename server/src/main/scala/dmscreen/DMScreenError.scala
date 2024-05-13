@@ -21,10 +21,10 @@
 
 package dmscreen
 
-case class DMScreenError(
-  message: String,
-  cause:   Option[Throwable]
-) extends Exception(message, cause.orNull) {
+class DMScreenError(
+  val msg:   String,
+  val cause: Option[Throwable]
+) extends Exception(msg, cause.orNull) {
 
   def this(message: String) = this(message, None)
 

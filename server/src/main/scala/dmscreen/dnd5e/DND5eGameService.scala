@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{DMScreenError, GameService}
+import dmscreen.{DMScreenEnvironment, DMScreenError, GameService}
 
 import java.net.URL
 import zio.*
@@ -60,25 +60,27 @@ case class Source(
 
 trait DND5eGameService extends GameService {
 
-  def campaign(campaignId: CampaignId): ZIO[DND5eEnvironment, DMScreenError, Campaign]
+  def campaigns: ZIO[DMScreenEnvironment, DMScreenError, List[CampaignHeader]]
 
-  def playerCharacters(campaignId: CampaignId): ZIO[DND5eEnvironment, DMScreenError, List[PlayerCharacter]]
+  def campaign(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Campaign]
 
-  def nonPlayerCharacters(campaignId: CampaignId): ZIO[DND5eEnvironment, DMScreenError, List[NonPlayerCharacter]]
+  def playerCharacters(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, List[PlayerCharacter]]
+
+  def nonPlayerCharacters(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, List[NonPlayerCharacter]]
 
   // Stuff that's generic to all campaigns
 
-  def bestiary(search: MonsterSearch): ZIO[DND5eEnvironment, DMScreenError, List[Monster]]
+  def bestiary(search: MonsterSearch): ZIO[DMScreenEnvironment, DMScreenError, List[Monster]]
 
-  def sources: ZIO[DND5eEnvironment, DMScreenError, List[Source]]
+  def sources: ZIO[DMScreenEnvironment, DMScreenError, List[Source]]
 
-  def classes: ZIO[DND5eEnvironment, DMScreenError, List[CharacterClass]]
+  def classes: ZIO[DMScreenEnvironment, DMScreenError, List[CharacterClass]]
 
-  def races: ZIO[DND5eEnvironment, DMScreenError, List[Race]]
+  def races: ZIO[DMScreenEnvironment, DMScreenError, List[Race]]
 
-  def backgrounds: ZIO[DND5eEnvironment, DMScreenError, List[Background]]
+  def backgrounds: ZIO[DMScreenEnvironment, DMScreenError, List[Background]]
 
-  def subClasses(characterClass: CharacterClass): ZIO[DND5eEnvironment, DMScreenError, List[Subclass]]
+  def subClasses(characterClass: CharacterClassId): ZIO[DMScreenEnvironment, DMScreenError, List[Subclass]]
 
 }
 
@@ -90,29 +92,31 @@ trait EncounterRunner {
 
 object DND5eGameService {
 
-  def db: ULayer[DND5eEnvironment] =
+  def db: ULayer[DND5eGameService] =
     ZLayer.succeed(
       new DND5eGameService() {
-        override def campaign(campaignId: CampaignId): ZIO[DND5eEnvironment, DMScreenError, Campaign] = ???
+        override def campaigns: ZIO[DMScreenEnvironment, DMScreenError, List[CampaignHeader]] = ???
+
+        override def campaign(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Campaign] = ???
 
         override def playerCharacters(campaignId: CampaignId)
-          : ZIO[DND5eEnvironment, DMScreenError, List[PlayerCharacter]] = ???
+          : ZIO[DMScreenEnvironment, DMScreenError, List[PlayerCharacter]] = ???
 
         override def nonPlayerCharacters(campaignId: CampaignId)
-          : ZIO[DND5eEnvironment, DMScreenError, List[NonPlayerCharacter]] = ???
+          : ZIO[DMScreenEnvironment, DMScreenError, List[NonPlayerCharacter]] = ???
 
-        override def bestiary(search: MonsterSearch): ZIO[DND5eEnvironment, DMScreenError, List[Monster]] = ???
+        override def bestiary(search: MonsterSearch): ZIO[DMScreenEnvironment, DMScreenError, List[Monster]] = ???
 
-        override def sources: ZIO[DND5eEnvironment, DMScreenError, List[Source]] = ???
+        override def sources: ZIO[DMScreenEnvironment, DMScreenError, List[Source]] = ???
 
-        override def classes: ZIO[DND5eEnvironment, DMScreenError, List[CharacterClass]] = ???
+        override def classes: ZIO[DMScreenEnvironment, DMScreenError, List[CharacterClass]] = ???
 
-        override def races: ZIO[DND5eEnvironment, DMScreenError, List[Race]] = ???
+        override def races: ZIO[DMScreenEnvironment, DMScreenError, List[Race]] = ???
 
-        override def backgrounds: ZIO[DND5eEnvironment, DMScreenError, List[Background]] = ???
+        override def backgrounds: ZIO[DMScreenEnvironment, DMScreenError, List[Background]] = ???
 
-        override def subClasses(characterClass: CharacterClass): ZIO[DND5eEnvironment, DMScreenError, List[Subclass]] =
-          ???
+        override def subClasses(characterClass: CharacterClassId)
+          : ZIO[DMScreenEnvironment, DMScreenError, List[Subclass]] = ???
       }
     )
 

@@ -21,32 +21,33 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.DMScreenError
+import dmscreen.{DMScreenEnvironment, DMScreenError}
 
 import java.net.URL
 import zio.*
 
 trait DND5eImporter[CampaignLink, PlayerCharacterLink, EncounterLink, MonsterLink] {
 
-  def importCampaign(campaignLink: CampaignLink): ZIO[DND5eEnvironment, DMScreenError, Campaign]
+  def importCampaign(campaignLink: CampaignLink): ZIO[DMScreenEnvironment, DMScreenError, Campaign]
 
   def importPlayerCharacter(playerCharacterLink: PlayerCharacterLink)
-    : ZIO[DND5eEnvironment, DMScreenError, PlayerCharacter]
+    : ZIO[DMScreenEnvironment, DMScreenError, PlayerCharacter]
 
-  def importEncounter(encounterLink: EncounterLink): ZIO[DND5eEnvironment, DMScreenError, Encounter]
+  def importEncounter(encounterLink: EncounterLink): ZIO[DMScreenEnvironment, DMScreenError, Encounter]
 
-  def importMonster(monsterLink: MonsterLink): ZIO[DND5eEnvironment, DMScreenError, Monster]
+  def importMonster(monsterLink: MonsterLink): ZIO[DMScreenEnvironment, DMScreenError, Monster]
 
 }
 
 class DNDBeyondImporter extends DND5eImporter[URL, URL, URL, URL] {
 
-  override def importCampaign(campaignLink: URL) = ???
+  override def importCampaign(campaignLink: URL): ZIO[DMScreenEnvironment, DMScreenError, Campaign] = ???
 
-  override def importPlayerCharacter(playerCharacterLink: URL) = ???
+  override def importPlayerCharacter(playerCharacterLink: URL)
+    : ZIO[DMScreenEnvironment, DMScreenError, PlayerCharacter] = ???
 
-  override def importEncounter(encounterLink: URL) = ???
+  override def importEncounter(encounterLink: URL): ZIO[DMScreenEnvironment, DMScreenError, Encounter] = ???
 
-  override def importMonster(monsterLink: URL) = ???
+  override def importMonster(monsterLink: URL): ZIO[DMScreenEnvironment, DMScreenError, Monster] = ???
 
 }

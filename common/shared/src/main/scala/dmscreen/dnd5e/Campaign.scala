@@ -23,6 +23,18 @@ package dmscreen.dnd5e
 
 opaque type CampaignId = Long
 
+object CampaignId {
+
+  def apply(campaignId: Long): CampaignId = campaignId
+
+  extension (campaignId: CampaignId) {
+
+    def value: Long = campaignId
+
+  }
+
+}
+
 case class CampaignHeader(
   id:   CampaignId,
   name: String
