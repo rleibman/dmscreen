@@ -53,9 +53,9 @@ val testContainerVersion = "0.41.3"
 lazy val commonSettings = Seq(
   organization := "net.leibman",
   scalaVersion := "3.4.1",
-  startYear        := Some(2020),
+  startYear        := Some(2024),
   organizationName := "Roberto Leibman",
-  headerLicense := Some(HeaderLicense.ALv2("2020", "Roberto Leibman", HeaderLicenseStyle.Detailed)),
+  headerLicense := Some(HeaderLicense.MIT("2024", "Roberto Leibman", HeaderLicenseStyle.Detailed)),
   resolvers += Resolver.mavenLocal,
   scalacOptions ++= scala3Opts
 )
@@ -162,7 +162,7 @@ lazy val debianSettings =
 ////////////////////////////////////////////////////////////////////////////////////
 // Web
 val scalajsReactVersion = "2.1.1"
-val reactVersion = "17.0.0"
+val reactVersion = "18.3.0"
 
 lazy val reactNpmDeps: Project => Project =
   _.settings(
@@ -171,17 +171,17 @@ lazy val reactNpmDeps: Project => Project =
       "@types/react-dom"  -> reactVersion,
       "react"             -> reactVersion,
       "@types/react"      -> reactVersion,
-      "csstype"           -> "2.6.11",
-      "@types/prop-types" -> "15.7.3",
-      "semantic-ui-react" -> "2.0.3"
+      "csstype"           -> "3.1.3",
+      "@types/prop-types" -> "15.7.12",
+      "semantic-ui-react" -> "2.1.5"
     )
   )
 
 lazy val bundlerSettings: Project => Project =
   _.enablePlugins(ScalaJSBundlerPlugin)
   .settings(
-      startWebpackDevServer / version := "3.1.10",
-      webpack / version               := "4.28.3",
+      startWebpackDevServer / version := "5.0.4",
+      webpack / version               := "5.91.0",
 //      Compile / fastOptJS / webpackExtraArgs += "--mode=development",
       Compile / fastOptJS / webpackDevServerExtraArgs += "--mode=development",
       Compile / fastOptJS / artifactPath := ((Compile / fastOptJS / crossTarget).value /
@@ -300,7 +300,7 @@ lazy val commonWeb: Project => Project =
       //      ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13)
     ),
     organizationName := "Roberto Leibman",
-    startYear        := Some(2020),
+    startYear        := Some(2024),
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
     Compile / unmanagedSourceDirectories := Seq((Compile / scalaSource).value),
     Test / unmanagedSourceDirectories    := Seq((Test / scalaSource).value),
