@@ -60,64 +60,32 @@ case class Source(
 
 trait DND5eGameService extends GameService {
 
-  def campaigns: ZIO[DMScreenEnvironment, DMScreenError, List[CampaignHeader]]
+  def campaigns: ZIO[DMScreenEnvironment, DMScreenError, Seq[CampaignHeader]]
 
-  def campaign(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Campaign]
+  def campaign(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Option[Campaign]]
 
-  def playerCharacters(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, List[PlayerCharacter]]
+  def playerCharacters(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Seq[PlayerCharacter]]
 
-  def nonPlayerCharacters(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, List[NonPlayerCharacter]]
+  def nonPlayerCharacters(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Seq[NonPlayerCharacter]]
 
   // Stuff that's generic to all campaigns
 
-  def bestiary(search: MonsterSearch): ZIO[DMScreenEnvironment, DMScreenError, List[Monster]]
+  def bestiary(search: MonsterSearch): ZIO[DMScreenEnvironment, DMScreenError, Seq[Monster]]
 
-  def sources: ZIO[DMScreenEnvironment, DMScreenError, List[Source]]
+  def sources: ZIO[DMScreenEnvironment, DMScreenError, Seq[Source]]
 
-  def classes: ZIO[DMScreenEnvironment, DMScreenError, List[CharacterClass]]
+  def classes: ZIO[DMScreenEnvironment, DMScreenError, Seq[CharacterClass]]
 
-  def races: ZIO[DMScreenEnvironment, DMScreenError, List[Race]]
+  def races: ZIO[DMScreenEnvironment, DMScreenError, Seq[Race]]
 
-  def backgrounds: ZIO[DMScreenEnvironment, DMScreenError, List[Background]]
+  def backgrounds: ZIO[DMScreenEnvironment, DMScreenError, Seq[Background]]
 
-  def subClasses(characterClass: CharacterClassId): ZIO[DMScreenEnvironment, DMScreenError, List[Subclass]]
+  def subClasses(characterClass: CharacterClassId): ZIO[DMScreenEnvironment, DMScreenError, Seq[Subclass]]
 
 }
 
 trait EncounterRunner {
 
   def encounter: Encounter
-
-}
-
-object DND5eGameService {
-
-  def db: ULayer[DND5eGameService] =
-    ZLayer.succeed(
-      new DND5eGameService() {
-        override def campaigns: ZIO[DMScreenEnvironment, DMScreenError, List[CampaignHeader]] = ???
-
-        override def campaign(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Campaign] = ???
-
-        override def playerCharacters(campaignId: CampaignId)
-          : ZIO[DMScreenEnvironment, DMScreenError, List[PlayerCharacter]] = ???
-
-        override def nonPlayerCharacters(campaignId: CampaignId)
-          : ZIO[DMScreenEnvironment, DMScreenError, List[NonPlayerCharacter]] = ???
-
-        override def bestiary(search: MonsterSearch): ZIO[DMScreenEnvironment, DMScreenError, List[Monster]] = ???
-
-        override def sources: ZIO[DMScreenEnvironment, DMScreenError, List[Source]] = ???
-
-        override def classes: ZIO[DMScreenEnvironment, DMScreenError, List[CharacterClass]] = ???
-
-        override def races: ZIO[DMScreenEnvironment, DMScreenError, List[Race]] = ???
-
-        override def backgrounds: ZIO[DMScreenEnvironment, DMScreenError, List[Background]] = ???
-
-        override def subClasses(characterClass: CharacterClassId)
-          : ZIO[DMScreenEnvironment, DMScreenError, List[Subclass]] = ???
-      }
-    )
 
 }

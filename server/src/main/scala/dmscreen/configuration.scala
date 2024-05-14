@@ -1,6 +1,7 @@
 package dmscreen
 
 import com.typesafe.config.{Config as TypesafeConfig, ConfigFactory}
+import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import zio.*
 import zio.config.magnolia.DeriveConfig
 import zio.config.typesafe.TypesafeConfigProvider
@@ -42,7 +43,22 @@ object AppConfig {
 
 case class AppConfig(
   dmscreen: DMScreenConfiguration = DMScreenConfiguration()
-)
+) {
+
+  def dataSource = {
+    val dsConfig = HikariConfig()
+    dsConfig.setDriverClassName(dmscreen.dataSource.driver)
+    dsConfig.setJdbcUrl(dmscreen.dataSource.url)
+    dsConfig.setUsername(dmscreen.dataSource.user)
+    dsConfig.setPassword(dmscreen.dataSource.password)
+    dsConfig.setMaximumPoolSize(dmscreen.dataSource.maximumPoolSize)
+    dsConfig.setMinimumIdle(dmscreen.dataSource.minimumIdle)
+    dsConfig.setConnectionTimeout(dmscreen.dataSource.connectionTimeoutMins * 60 * 1000)
+
+    HikariDataSource(dsConfig)
+  }
+
+}
 
 trait ConfigurationService {
 

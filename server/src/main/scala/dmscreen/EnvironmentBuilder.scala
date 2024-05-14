@@ -21,7 +21,7 @@
 
 package dmscreen
 
-import dmscreen.dnd5e.DND5eGameService
+import dmscreen.dnd5e.{DND5eGameService, QuillDND5eGameService, RepositoryError}
 import zio.*
 
 type DMScreenEnvironment = DND5eGameService & ConfigurationService
@@ -29,9 +29,19 @@ type DMScreenEnvironment = DND5eGameService & ConfigurationService
 object EnvironmentBuilder {
 
   def live =
-    ZLayer.make[DMScreenEnvironment](
-      DND5eGameService.db,
-      ConfigurationService.live
-    )
+    ZLayer
+      .make[DMScreenEnvironment](
+        ConfigurationService.live,
+        QuillDND5eGameService.db
+      ).orDie
+
+  def withContainer = {
+    ZLayer
+      .make[DMScreenEnvironment](
+        DMScreenContainer.containerLayer,
+        ConfigurationService.live >>> DMScreenContainer.configLayer,
+        QuillDND5eGameService.db
+      ).orDie
+  }
 
 }

@@ -23,7 +23,7 @@ object DND5eAPI {
 
   case class Queries(
     campaigns:           ZIO[DMScreenEnvironment, DMScreenError, Seq[CampaignHeader]],
-    campaign:            CampaignId => ZIO[DMScreenEnvironment, DMScreenError, Campaign],
+    campaign:            CampaignId => ZIO[DMScreenEnvironment, DMScreenError, Option[Campaign]],
     playerCharacters:    CampaignId => ZIO[DMScreenEnvironment, DMScreenError, Seq[PlayerCharacter]],
     nonPlayerCharacters: CampaignId => ZIO[DMScreenEnvironment, DMScreenError, Seq[NonPlayerCharacter]],
     bestiary:            MonsterSearch => ZIO[DMScreenEnvironment, DMScreenError, Seq[Monster]],

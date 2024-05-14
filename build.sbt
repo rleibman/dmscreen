@@ -128,19 +128,19 @@ lazy val server = project
       "com.github.ghostdogpr"       %% "caliban-tapir"         % calibanVersion withSources (),
       "com.softwaremill.sttp.tapir" %% "tapir-zio-http-server" % tapirVersion withSources (),
       "com.github.ghostdogpr"       %% "caliban-zio-http"      % calibanVersion withSources (),
-      "com.github.ghostdogpr"       %% "caliban-quick"         % calibanVersion withSources(),
+      "com.github.ghostdogpr"       %% "caliban-quick"         % calibanVersion withSources (),
       "dev.zio"                     %% "zio-http"              % zioHttpVersion withSources (),
       "com.github.jwt-scala"        %% "jwt-circe"             % "10.0.1" withSources (),
       "dev.zio"                     %% "zio-json"              % zioJsonVersion withSources (),
       // Other random utilities
-      ("com.github.pathikrit" %% "better-files"    % "3.9.2" withSources ()).cross(CrossVersion.for3Use2_13),
-      "com.github.daddykotex" %% "courier"         % "3.2.0" withSources (),
-      "ch.qos.logback"         % "logback-classic" % "1.5.6" withSources (),
-      "commons-codec"          % "commons-codec"   % "1.17.0",
+      ("com.github.pathikrit" %% "better-files"               % "3.9.2" withSources ()).cross(CrossVersion.for3Use2_13),
+      "com.github.daddykotex" %% "courier"                    % "3.2.0" withSources (),
+      "ch.qos.logback"         % "logback-classic"            % "1.5.6" withSources (),
+      "commons-codec"          % "commons-codec"              % "1.17.0",
+      "com.dimafeng"          %% "testcontainers-scala-mysql" % testContainerVersion withSources (),
       // Testing
-      "dev.zio"      %% "zio-test"                   % zioVersion           % "test" withSources (),
-      "dev.zio"      %% "zio-test-sbt"               % zioVersion           % "test" withSources (),
-      "com.dimafeng" %% "testcontainers-scala-mysql" % testContainerVersion % "test" withSources ()
+      "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
+      "dev.zio" %% "zio-test-sbt" % zioVersion % "test" withSources ()
     )
   )
 
