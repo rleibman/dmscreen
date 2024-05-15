@@ -197,7 +197,7 @@ lazy val bundlerSettings: Project => Project =
       Compile / fullOptJS / webpackDevServerExtraArgs += "--mode=production",
       Compile / fullOptJS / artifactPath := ((Compile / fullOptJS / crossTarget).value /
         ((fullOptJS / moduleName).value + "-opt.js")),
-      useYarn                                   := true,
+      useYarn                                   := false,
       run / fork                                := true,
       Global / scalaJSStage                     := FastOptStage,
       Compile / scalaJSUseMainModuleInitializer := true,
@@ -213,7 +213,7 @@ lazy val stLib = project
   .settings(
     name                            := "dmscreen-stLib",
     scalaVersion                    := "3.4.1",
-    useYarn                         := true,
+    useYarn                         := false,
     stOutputPackage                 := "net.leibman.dmscreen",
     stFlavour                       := Flavour.ScalajsReact,
     stReactEnableTreeShaking        := Selection.All,
