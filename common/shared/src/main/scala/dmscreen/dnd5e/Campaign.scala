@@ -21,9 +21,14 @@
 
 package dmscreen.dnd5e
 
+import dmscreen.UserId
+import dmscreen.dnd5e.GameSystem.dnd5e
+
 opaque type CampaignId = Long
 
 object CampaignId {
+
+  val empty: CampaignId = CampaignId(-1)
 
   def apply(campaignId: Long): CampaignId = campaignId
 
@@ -35,12 +40,30 @@ object CampaignId {
 
 }
 
+enum GameSystem {
+
+  case dnd5e, pathfinder2e, starTrekAdventures
+
+}
+
 case class CampaignHeader(
-  id:   CampaignId,
-  name: String
+  id:         CampaignId,
+  dm:         UserId,
+  name:       String,
+  gameSystem: GameSystem = dnd5e
 )
 
-case class CampaignInfo()
+case class Scene(
+  name:       String,
+  notes:      String,
+  npcs:       List[NonPlayerCharacterId] = List.empty,
+  encounters: List[EncounterId] = List.empty
+)
+
+case class CampaignInfo(
+  notes:  String,
+  scenes: List[Scene] = List.empty
+)
 
 case class Campaign(
   header: CampaignHeader,

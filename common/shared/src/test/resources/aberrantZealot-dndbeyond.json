@@ -1,0 +1,150 @@
+{
+  "stats": null,
+  "accessType": 3,
+  "data": {
+    "collectionUserId": 0,
+    "isReleased": true,
+    "url": "https://www.dndbeyond.com/monsters/3805736-aberrant-zealot",
+    "conditionImmunitiesHtml": "<a class=\"tooltip-hover condition-tooltip\" href=\"/compendium/rules/basic-rules/appendix-a-conditions#Blinded\" aria-haspopup=\"true\" data-tooltip-href=\"/conditions/1-tooltip\" data-tooltip-json-href=\"/conditions/1/tooltip-json\">Blinded</a>, <a class=\"tooltip-hover condition-tooltip\" href=\"/compendium/rules/basic-rules/appendix-a-conditions#Charmed\" aria-haspopup=\"true\" data-tooltip-href=\"/conditions/2-tooltip\" data-tooltip-json-href=\"/conditions/2/tooltip-json\">Charmed</a>, <a class=\"tooltip-hover condition-tooltip\" href=\"/compendium/rules/basic-rules/appendix-a-conditions#Frightened\" aria-haspopup=\"true\" data-tooltip-href=\"/conditions/5-tooltip\" data-tooltip-json-href=\"/conditions/5/tooltip-json\">Frightened</a>, <a class=\"tooltip-hover condition-tooltip\" href=\"/compendium/rules/basic-rules/appendix-a-conditions#Grappled\" aria-haspopup=\"true\" data-tooltip-href=\"/conditions/6-tooltip\" data-tooltip-json-href=\"/conditions/6/tooltip-json\">Grappled</a>, <a class=\"tooltip-hover condition-tooltip\" href=\"/compendium/rules/basic-rules/appendix-a-conditions#Restrained\" aria-haspopup=\"true\" data-tooltip-href=\"/conditions/13-tooltip\" data-tooltip-json-href=\"/conditions/13/tooltip-json\">Restrained</a>",
+    "sensesHtml": "<a class=\"tooltip-hover sense-tooltip\" href=\"/compendium/rules/basic-rules/monsters#Darkvision\" aria-haspopup=\"true\" data-tooltip-href=\"/senses/2-tooltip\" data-tooltip-json-href=\"/senses/2/tooltip-json\">Darkvision</a> 60 ft., <a class=\"tooltip-hover sense-tooltip\" href=\"/compendium/rules/basic-rules/monsters#Truesight\" aria-haspopup=\"true\" data-tooltip-href=\"/senses/4-tooltip\" data-tooltip-json-href=\"/senses/4/tooltip-json\">Truesight</a> 10 ft.",
+    "skillsHtml": "<a class=\"tooltip-hover skill-tooltip\" href=\"/compendium/rules/basic-rules/using-ability-scores#Perception\" aria-haspopup=\"true\" data-tooltip-href=\"/skills/14-tooltip\" data-tooltip-json-href=\"/skills/14/tooltip-json\">Perception</a> <span data-dicenotation=\"1d20+5\" data-rolltype=\"check\" data-rollaction=\"Perception\">+5</span>",
+    "stats": [
+      {
+        "statId": 1,
+        "name": null,
+        "value": 15
+      },
+      {
+        "statId": 2,
+        "name": null,
+        "value": 18
+      },
+      {
+        "statId": 3,
+        "name": null,
+        "value": 12
+      },
+      {
+        "statId": 4,
+        "name": null,
+        "value": 13
+      },
+      {
+        "statId": 5,
+        "name": null,
+        "value": 8
+      },
+      {
+        "statId": 6,
+        "name": null,
+        "value": 19
+      }
+    ],
+    "senses": [
+      {
+        "senseId": 2,
+        "notes": "60 ft."
+      },
+      {
+        "senseId": 4,
+        "notes": "10 ft."
+      }
+    ],
+    "savingThrows": [
+      {
+        "statId": 2,
+        "bonusModifier": null
+      },
+      {
+        "statId": 6,
+        "bonusModifier": null
+      }
+    ],
+    "skills": [
+      {
+        "skillId": 14,
+        "value": 5,
+        "additionalBonus": null
+      }
+    ],
+    "languages": [
+      {
+        "languageId": 1,
+        "notes": ""
+      },
+      {
+        "languageId": 12,
+        "notes": ""
+      }
+    ],
+    "hitPointDice": {
+      "diceCount": 17,
+      "diceValue": 8,
+      "diceMultiplier": 0,
+      "fixedValue": 17,
+      "diceString": "17d8 + 17"
+    },
+    "swarm": null,
+    "movements": [
+      {
+        "movementId": 1,
+        "speed": 30,
+        "notes": null
+      }
+    ],
+    "homebrewStatus": 0,
+    "id": 3805736,
+    "entityTypeId": 779871897,
+    "name": "Aberrant Zealot",
+    "alignmentId": 23,
+    "sizeId": 4,
+    "typeId": 1,
+    "armorClass": 16,
+    "armorClassDescription": "(studded leather armor)",
+    "averageHitPoints": 93,
+    "passivePerception": 15,
+    "isHomebrew": false,
+    "challengeRatingId": 12,
+    "sourceId": 113,
+    "sourcePageNumber": 203,
+    "isLegendary": false,
+    "isMythic": false,
+    "hasLair": false,
+    "avatarUrl": "https://www.dndbeyond.com/avatars/36576/550/638291908470775757.jpeg",
+    "largeAvatarUrl": "https://www.dndbeyond.com/avatars/thumbnails/36576/553/400/547/638291908477327963.png",
+    "basicAvatarUrl": "https://www.dndbeyond.com.com/avatars/36576/552/638291908474987991.png",
+    "version": null,
+    "subTypes": [],
+    "environments": [],
+    "tags": [],
+    "sources": [
+      {
+        "sourceId": 113,
+        "pageNumber": 203,
+        "sourceType": 1
+      }
+    ],
+    "damageAdjustments": [
+      12
+    ],
+    "conditionImmunities": [
+      1,
+      2,
+      5,
+      6,
+      13
+    ],
+    "specialTraitsDescription": "<p><em><strong>Aberrant Form.</strong></em> The zealot exudes the chaos of the Far Realm. Any non-Aberration creature that starts its turn within 5 feet of the zealot must succeed on a DC 15 Wisdom saving throw or take 7 <span data-dicenotation=\"2d6\" data-rolltype=\"damage\" data-rollaction=\"Aberrant Form\" data-rolldamagetype=\"psychic\">(2d6)</span> psychic damage.</p>\n<p><em><strong>Weirdly Pliable.</strong></em> The zealot, along with any equipment it is wearing or carrying, is unnaturally flexible. The zealot can move through any space as narrow as 1 inch without squeezing.</p>",
+    "actionsDescription": "<p><em><strong>Multiattack.</strong></em> The zealot makes one Psychic Rend attack and two Shortsword attacks.</p>\n<p><em><strong>Psychic Rend.</strong> Melee or Ranged Spell Attack:</em> <span data-dicenotation=\"1d20+7\" data-rolltype=\"spell\" data-rollaction=\"Psychic Rend\">+7</span> to hit, reach 15 ft. or range 120 ft., one target. <em>Hit:</em> 14 <span data-dicenotation=\"3d6+4\" data-rolltype=\"damage\" data-rollaction=\"Psychic Rend\" data-rolldamagetype=\"psychic\">(3d6 + 4)</span> psychic damage, and the target must succeed on a DC 15 Wisdom saving throw or have the <a class=\"tooltip-hover condition-tooltip\" href=\"/compendium/rules/basic-rules/appendix-a-conditions#Stunned\" aria-haspopup=\"true\" data-tooltip-href=\"/conditions/14-tooltip\" data-tooltip-json-href=\"/conditions/14/tooltip-json\">stunned</a> condition until the start of the zealot’s next turn.</p>\n<p><em><strong>Shortsword.</strong> Melee Weapon Attack:</em> <span data-dicenotation=\"1d20+7\" data-rolltype=\"to hit\" data-rollaction=\"Shortsword\">+7</span> to hit, reach 15 ft., one target. <em>Hit:</em> 7 <span data-dicenotation=\"1d6+4\" data-rolltype=\"damage\" data-rollaction=\"Shortsword\" data-rolldamagetype=\"piercing\">(1d6 + 4)</span> piercing damage plus 7 <span data-dicenotation=\"2d6\" data-rolltype=\"damage\" data-rollaction=\"Shortsword\" data-rolldamagetype=\"psychic\">(2d6)</span> psychic damage.</p>\n<p><em><strong>Spellcasting (Psionics).</strong></em> The zealot casts one of the following spells, requiring no components and using Charisma as the spellcasting ability (spell save DC 15):</p>\n<p>At will: <a class=\"tooltip-hover spell-tooltip\" href=\"/spells/detect-thoughts\" aria-haspopup=\"true\" data-tooltip-href=\"/spells/2067-tooltip\" data-tooltip-json-href=\"/spells/2067/tooltip-json\">detect thoughts</a>, <a class=\"tooltip-hover spell-tooltip\" href=\"/spells/minor-illusion\" aria-haspopup=\"true\" data-tooltip-href=\"/spells/2191-tooltip\" data-tooltip-json-href=\"/spells/2191/tooltip-json\">minor illusion</a></p>\n<p>1/day each: <a class=\"tooltip-hover spell-tooltip\" href=\"/spells/arcane-gate\" aria-haspopup=\"true\" data-tooltip-href=\"/spells/2358-tooltip\" data-tooltip-json-href=\"/spells/2358/tooltip-json\">arcane gate</a>, <a class=\"tooltip-hover spell-tooltip\" href=\"/spells/hunger-of-hadar\" aria-haspopup=\"true\" data-tooltip-href=\"/spells/2339-tooltip\" data-tooltip-json-href=\"/spells/2339/tooltip-json\">hunger of Hadar</a></p>",
+    "reactionsDescription": "",
+    "legendaryActionsDescription": "",
+    "mythicActionsDescription": "",
+    "bonusActionsDescription": "<p><em><strong>Void Warp <span data-dicenotation=\"1d6\" data-rolltype=\"recharge\" data-rollaction=\"Void Warp\">(Recharge 5–6)</span>.</strong></em> The zealot teleports, along with any equipment it is wearing or carrying, to an unoccupied space it can see within 120 feet of itself, leaving a churning void in the space it left. Immediately after it teleports, each creature within 30 feet of the void other than the zealot must make a DC 15 Strength saving throw. On a failed save, a creature takes 18 <span data-dicenotation=\"4d8\" data-rolltype=\"damage\" data-rollaction=\"Void Warp\" data-rolldamagetype=\"force\">(4d8)</span> force damage and is pulled to the unoccupied space closest to the void. On a successful save, the creature takes half as much damage only. The void then disappears.</p>",
+    "characteristicsDescription": "<p>Aberrant zealots are cultists who have reached out to the powers of the Far Realm—only for something to reach back. Steeped in strange energy, aberrant zealots borrow their vicious might from the monstrous entities that inhabit that fell plane.</p>",
+    "lairDescription": "",
+    "languageDescription": null,
+    "languageNote": "",
+    "hideCr": false,
+    "isLegacy": false
+  }
+}

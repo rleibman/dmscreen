@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Roberto Leibman
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package dmscreen
 
 import com.dimafeng.testcontainers.*
@@ -78,7 +99,7 @@ object DMScreenContainer {
 
   val containerLayer: ZLayer[Any, RepositoryError, DMScreenContainer] = ZLayer.fromZIO((for {
     _ <- ZIO.logDebug("Creating container")
-    newContainer <- ZIO.succeed {
+    newContainer <- ZIO.attemptBlocking {
       val c = MySQLContainer()
       c.container.start()
       c
@@ -121,11 +142,13 @@ object DMScreenContainer {
         baseConfig <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
       } yield {
         val newConfig: AppConfig = baseConfig.copy(dmscreen =
-          baseConfig.dmscreen.copy(dataSource =
-            baseConfig.dmscreen.dataSource.copy(
-              url = s"${container.container.getJdbcUrl}?logger=com.mysql.cj.log.Slf4JLogger&profileSQL=true&serverTimezone=UTC&useLegacyDatetimeCode=false",
-              user = container.container.getUsername.nn,
-              password = container.container.getPassword.nn
+          baseConfig.dmscreen.copy(db =
+            baseConfig.dmscreen.db.copy(
+              dataSource = baseConfig.dmscreen.db.dataSource.copy(
+                url = s"${container.container.getJdbcUrl}?logger=com.mysql.cj.log.Slf4JLogger&profileSQL=true&serverTimezone=UTC&useLegacyDatetimeCode=false",
+                user = container.container.getUsername.nn,
+                password = container.container.getPassword.nn
+              )
             )
           )
         )

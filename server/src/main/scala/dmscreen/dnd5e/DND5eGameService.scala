@@ -22,9 +22,8 @@
 package dmscreen.dnd5e
 
 import dmscreen.{DMScreenEnvironment, DMScreenError, GameService}
-
-import java.net.URL
 import zio.*
+import zio.json.ast.Json
 
 enum OrderDirection {
 
@@ -64,9 +63,25 @@ trait DND5eGameService extends GameService {
 
   def campaign(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Option[Campaign]]
 
+  def insert(
+    campaignHeader: CampaignHeader,
+    info:           Json
+  ): ZIO[DMScreenEnvironment, DMScreenError, CampaignId]
+
+  def applyOperation(
+    campaignId: CampaignId,
+    operation:  Operation
+  ): ZIO[DMScreenEnvironment, DMScreenError, Unit]
+
+  def delete(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Unit]
+
   def playerCharacters(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Seq[PlayerCharacter]]
 
   def nonPlayerCharacters(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Seq[NonPlayerCharacter]]
+
+  def encounters(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Seq[EncounterHeader]]
+
+  def encounter(encounterId: EncounterId): ZIO[DMScreenEnvironment, DMScreenError, Seq[Encounter]]
 
   // Stuff that's generic to all campaigns
 

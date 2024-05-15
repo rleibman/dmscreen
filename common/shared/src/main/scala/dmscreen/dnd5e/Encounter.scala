@@ -74,6 +74,18 @@ case class PlayerCharacterEncounterEntity(
 
 opaque type EncounterId = Long
 
+object EncounterId {
+
+  def apply(encounterId: Long): EncounterId = encounterId
+
+  extension (encounterId: EncounterId) {
+
+    def value: Long = encounterId
+
+  }
+
+}
+
 enum EncounterDifficulty {
 
   case Easy
@@ -83,10 +95,18 @@ enum EncounterDifficulty {
 
 }
 
-case class Encounter(
-  id:         EncounterId,
-  name:       String,
+case class EncounterHeader(
+  id:   EncounterId,
+  name: String
+)
+
+case class EncounterInfo(
   entities:   List[EncounterEntity],
   difficulty: EncounterDifficulty,
   xp:         Int
+)
+
+case class Encounter(
+  header: EncounterHeader,
+  info:   EncounterInfo
 )

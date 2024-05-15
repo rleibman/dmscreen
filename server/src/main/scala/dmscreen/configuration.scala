@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Roberto Leibman
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package dmscreen
 
 import com.typesafe.config.{Config as TypesafeConfig, ConfigFactory}
@@ -14,20 +35,24 @@ case class ConfigurationError(
 ) extends DMScreenError(msg, cause)
 
 case class DataSourceConfig(
-  driver:                String = "",
-  url:                   String = "",
-  user:                  String = "",
-  password:              String = "",
-  maximumPoolSize:       Int = 10,
+  driver:                String,
+  url:                   String,
+  user:                  String,
+  password:              String,
+  maximumPoolSize:       Int = 20,
   minimumIdle:           Int = 1000,
   connectionTimeoutMins: Long = 5
 )
 
+case class DatabaseConfig(
+  dataSource: DataSourceConfig
+) {}
+
 case class DMScreenConfiguration(
-  host:             String = "0.0.0.0",
-  port:             Int = 8188,
-  dataSource:       DataSourceConfig = DataSourceConfig(),
-  staticContentDir: String = "/Volumes/Personal/projects/dmscreen/debugDist"
+  db:               DatabaseConfig,
+  host:             String,
+  port:             Int,
+  staticContentDir: String
 )
 
 object AppConfig {
@@ -42,18 +67,18 @@ object AppConfig {
 }
 
 case class AppConfig(
-  dmscreen: DMScreenConfiguration = DMScreenConfiguration()
+  dmscreen: DMScreenConfiguration
 ) {
 
-  def dataSource = {
+  def dataSource: HikariDataSource = {
     val dsConfig = HikariConfig()
-    dsConfig.setDriverClassName(dmscreen.dataSource.driver)
-    dsConfig.setJdbcUrl(dmscreen.dataSource.url)
-    dsConfig.setUsername(dmscreen.dataSource.user)
-    dsConfig.setPassword(dmscreen.dataSource.password)
-    dsConfig.setMaximumPoolSize(dmscreen.dataSource.maximumPoolSize)
-    dsConfig.setMinimumIdle(dmscreen.dataSource.minimumIdle)
-    dsConfig.setConnectionTimeout(dmscreen.dataSource.connectionTimeoutMins * 60 * 1000)
+    dsConfig.setDriverClassName(dmscreen.db.dataSource.driver)
+    dsConfig.setJdbcUrl(dmscreen.db.dataSource.url)
+    dsConfig.setUsername(dmscreen.db.dataSource.user)
+    dsConfig.setPassword(dmscreen.db.dataSource.password)
+    dsConfig.setMaximumPoolSize(dmscreen.db.dataSource.maximumPoolSize)
+    dsConfig.setMinimumIdle(dmscreen.db.dataSource.minimumIdle)
+    dsConfig.setConnectionTimeout(dmscreen.db.dataSource.connectionTimeoutMins * 60 * 1000)
 
     HikariDataSource(dsConfig)
   }

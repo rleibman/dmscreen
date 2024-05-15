@@ -23,6 +23,16 @@ package dmscreen.dnd5e
 
 opaque type MonsterId = Long
 
+enum Sense(val name: String) {
+
+  case sight extends Sense("Sight")
+  case blindsight extends Sense("Blindsight")
+  case darkvision extends Sense("Darkvision")
+  case tremorsense extends Sense("Tremorsense")
+  case truesight extends Sense("Truesight")
+
+}
+
 object MonsterId {
 
   def apply(monsterId: Long): MonsterId = monsterId
@@ -83,12 +93,13 @@ case class MonsterInfo(
   climbingSpeed:  Option[Int],
   flyingSpeed:    Option[Int],
   swimmingSpeed:  Option[Int],
-  abilities:      List[Ability],
-  languages:      String,
+  abilities:      Seq[Ability],
+  languages:      Seq[String],
   challenge:      String,
   traits:         String,
-  actions:        String,
-  reactions:      String
+  actions:        Seq[String],
+  reactions:      String,
+  senses:         Seq[Sense]
 )
 
 case class MonsterHeader(id: MonsterId)

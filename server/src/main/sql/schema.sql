@@ -1,4 +1,4 @@
-CREATE TABLE `user`
+CREATE TABLE `dmscreenUser`
 (
     `id`             int(11)    NOT NULL AUTO_INCREMENT,
     `hashedPassword` text NULL,
@@ -15,48 +15,55 @@ CREATE TABLE `user`
 create table campaign
 (
     `id`   int(11)    NOT NULL AUTO_INCREMENT,
+    dm     int(11) not null,
     `name` text NOT NULL,
-    info   json not null
+    info   json not null,
+    gameSystem enum('dnd5e', 'pathfinder2e', 'starTrekAdventures') not null,
+    key    campaign_dm (dm),
+    constraint campaign_dm foreign key (dm) references `dmscreenUser` (id),
+    PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
-create table player_character
+create table playerCharacter
 (
     `id`   int(11)    NOT NULL AUTO_INCREMENT,
     `name` text NOT NULL,
-    info   json not null
+    info   json not null,
+    PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
-create table player_character_campaign
+create table playerCharacterCampaign
 (
-    player_character_id int(11) not null,
-    campaign_id         int(11) not null,
-    key                 player_character_campaign_player_character (player_character_id),
-    constraint player_character_campaign_player_character foreign key (player_character_id) references `player_character` (id),
-    key                 player_character_campaign_campaign (campaign_id),
-    constraint player_character_campaign_campaign foreign key (campaign_id) references `campaign` (id),
-    PRIMARY KEY (player_character_id, campaign_id)
+    playerCharacterId int(11) not null,
+    campaignId        int(11) not null,
+    key               player_character_campaign_player_character (playerCharacterId),
+    constraint player_character_campaign_player_character foreign key (playerCharacterId) references `playerCharacter` (id),
+    key               player_character_campaign_campaign (campaignId),
+    constraint player_character_campaign_campaign foreign key (campaignId) references `campaign` (id),
+    PRIMARY KEY (playerCharacterId, campaignId)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
-create table non_player_character
+create table nonPlayerCharacter
 (
     `id`   int(11)    NOT NULL AUTO_INCREMENT,
     `name` text NOT NULL,
-    info   json not null
+    info   json not null,
+    PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
-create table non_player_character_campaign
+create table nonPlayerCharacterCampaign
 (
-    non_player_character_id int(11) not null,
-    campaign_id             int(11) not null,
-    key                     non_player_character_campaign_non_player_character (non_player_character_id),
-    constraint non_player_character_campaign_non_player_character foreign key (non_player_character_id) references `non_player_character` (id),
-    key                     non_player_character_campaign_campaign (campaign_id),
-    constraint non_player_character_campaign_campaign foreign key (campaign_id) references `campaign` (id),
-    PRIMARY KEY (non_player_character_id, campaign_id)
+    nonPlayerCharacterId int(11) not null,
+    campaignId           int(11) not null,
+    key                  non_player_character_campaign_non_player_character (nonPlayerCharacterId),
+    constraint non_player_character_campaign_non_player_character foreign key (nonPlayerCharacterId) references `nonPlayerCharacter` (id),
+    key                  non_player_character_campaign_campaign (campaignId),
+    constraint non_player_character_campaign_campaign foreign key (campaignId) references `campaign` (id),
+    PRIMARY KEY (nonPlayerCharacterId, campaignId)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -64,7 +71,8 @@ create table monster
 (
     `id`   int(11)    NOT NULL AUTO_INCREMENT,
     `name` text NOT NULL,
-    info   json not null
+    info   json not null,
+    PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -72,7 +80,8 @@ create table source
 (
     `id`   int(11)    NOT NULL AUTO_INCREMENT,
     `name` text NOT NULL,
-    info   json not null
+    info   json not null,
+    PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -80,15 +89,17 @@ create table race
 (
     `id`   int(11)    NOT NULL AUTO_INCREMENT,
     `name` text NOT NULL,
-    info   json not null
+    info   json not null,
+    PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
-create table character_class
+create table characterClass
 (
     `id`   int(11)    NOT NULL AUTO_INCREMENT,
     `name` text NOT NULL,
-    info   json not null
+    info   json not null,
+    PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -96,16 +107,20 @@ create table background
 (
     `id`   int(11)    NOT NULL AUTO_INCREMENT,
     `name` text NOT NULL,
-    info   json not null
+    info   json not null,
+    PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
 create table subclass
 (
-    `id`     int(11)    NOT NULL AUTO_INCREMENT,
-    class_id int(11) not null foreign key references `character_class` (id),
-    `name`   text NOT NULL,
-    info     json not null
+    `id`    int(11)    NOT NULL AUTO_INCREMENT,
+    classId int(11) not null,
+    `name`  text NOT NULL,
+    info    json not null,
+    PRIMARY KEY (`id`),
+    key     subclass_character_class (classId),
+    constraint subclass_character_class foreign key (classId) references `characterClass` (id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 

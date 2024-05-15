@@ -35,7 +35,7 @@ lazy val scala3Opts = Seq(
   //  "-explain",
   "-Yexplicit-nulls", // Make reference types non-nullable. Nullable types can be expressed with unions: e.g. String|Null.
   "-Xmax-inlines",
-  "64",
+  "128",
   "-Yretain-trees" // Retain trees for debugging.
 )
 
@@ -83,14 +83,18 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio"      % zioVersion withSources (),
-      "dev.zio" %% "zio-json" % "0.6.2" withSources ()
+      "dev.zio"   %% "zio"            % zioVersion withSources (),
+      "dev.zio"   %% "zio-json"       % "0.6.2" withSources (),
+      "io.megl"   %% "zio-json-extra" % "0.6.2" withSources (),
+      "org.gnieh" %% "diffson-core"   % "4.6.0" withSources ()
     )
   )
   .jsSettings(
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio"      % zioVersion withSources (),
-      "dev.zio" %%% "zio-json" % "0.6.2" withSources ()
+      "dev.zio" %%% "zio"            % zioVersion withSources (),
+      "dev.zio" %%% "zio-json"       % "0.6.2" withSources (),
+      "io.megl" %%% "zio-json-extra" % "0.6.2" withSources (),
+      "org.gnieh" %%% "diffson-core" % "4.6.0" withSources ()
     )
   )
 
@@ -175,7 +179,8 @@ lazy val reactNpmDeps: Project => Project =
       "@types/react"      -> reactVersion,
       "csstype"           -> "3.1.3",
       "@types/prop-types" -> "15.7.12",
-      "semantic-ui-react" -> "2.1.5"
+      "semantic-ui-react" -> "2.1.5",
+      "react-chartjs-2"   -> "5.2.0"
     )
   )
 

@@ -19,56 +19,49 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package dmscreen
 
-case class StatBlock()
+import zio.json.JsonCodec
+import zio.json.ast.Json
 
-opaque type NonPlayerCharacterId = Long
+// An attempt to abstract everything so that we can use the same code for all games.
 
-object NonPlayerCharacterId {
+opaque type EntityId = Long
 
-  def apply(value: Long): NonPlayerCharacterId = value
+case class EntityType(
+  name: String
+)
 
-  extension (npcId: NonPlayerCharacterId) {
+case class EntityHeader(
+  id:         EntityId,
+  entityType: EntityType,
+  name:       String
+)
 
-    def value: Long = npcId
+case class Entity(entityHeader: EntityHeader) {}
 
-  }
+enum EntityValueType {
+
+  case Id, String, Number, Boolean, Array, Object
 
 }
 
-case class NonPlayerCharacterInfo(
-  name:           String,
-  gender:         String,
-  race:           Race,
-  characterClass: CharacterClass,
-  level:          Int,
-  age:            Int,
-  background:     Background,
-  occupation:     String,
-  personality:    String,
-  ideal:          String,
-  bond:           String,
-  flaw:           String,
-  characteristic: String,
-  speech:         String,
-  hobby:          String,
-  fear:           String,
-  currently:      String,
-  nickname:       String,
-  weapon:         String,
-  rumor:          String,
-  raisedBy:       String,
-  parent1:        String,
-  parent2:        String,
-  siblingCount:   Int,
-  childhood:      String,
-  children:       String,
-  spouse:         String,
-  monster:        Monster
+case class EntityMetadata(
+  entityType: EntityType,
+  name:       String,
+  path:       String,
+  isOptional: Boolean,
+  valueType:  EntityValueType
 )
 
-case class NonPlayerCharacter(
-  id:   NonPlayerCharacterId,
-  info: NonPlayerCharacterInfo
-)
+trait EntityValue[+Type] {
+
+  def value: Type
+
+}
+
+case class StringValue(value: String) extends EntityValue[String] {}
+case class NumberValue(value: Number) extends EntityValue[Number] {}
+case class BooleanValue(value: Boolean) extends EntityValue[Boolean] {}
+case class ObjectValue[Type: JsonCodec](value: Type) extends EntityValue[Type] {}
+case class ArrayValue[Type](value: Seq[Type]) extends EntityValue[Seq[Type]] {}
