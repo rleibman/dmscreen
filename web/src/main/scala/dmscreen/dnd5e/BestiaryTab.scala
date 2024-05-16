@@ -22,5 +22,54 @@
 package dmscreen.dnd5e
 
 import dmscreen.DMScreenTab
+import japgolly.scalajs.react.ScalaComponent
+import japgolly.scalajs.react.component.Scala.Unmounted
+import japgolly.scalajs.react.vdom.html_<^.<
 
-case class BestiaryTab() extends DMScreenTab
+object BestiaryTab extends DMScreenTab {
+
+  case class State(monsters: Seq[MonsterHeader] = Seq.empty, currentPage:Int = 0)
+
+  class Backend($: BackendScope[Unit, State]) {
+    def render(s: State) = {
+      <.div(
+        s.monsters.map { m =>
+          <.div(
+            m.name,
+          m.ac,
+            m.cr,
+            m.monsterType,
+            m.biome,
+            m.size,
+            m.hp,
+            m.xp
+
+
+
+        }
+
+
+
+
+      )
+    }
+  }
+  private val component = ScalaComponent
+    .builder[Unit]("router")
+    .initialState {
+      State()
+    }
+    .renderBackend[Backend]
+    .componentDidMount(
+      //_.backend.refresh(initial = true)()
+      $ =>
+        Callback.empty
+    )
+    .componentWillUnmount($ =>
+      //TODO close down streams here
+      Callback.empty
+    )
+    .build
+
+  def apply(monsters: Seq[MonsterHeader], currentPage: Int): Unmounted[Unit, State, Backend] = component()
+}

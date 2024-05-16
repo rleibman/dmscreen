@@ -20,13 +20,13 @@ object StorageSpec extends ZIOSpecDefault {
           campaign  <- service.campaign(campaigns.head.id)
           newCampaignId <- service.insert(
             CampaignHeader(CampaignId.empty, testUser, "Test Campaign 2"),
-            CampaignInfo(notes = "This are some notes").toJsonAST.getOrElse(Json.Null)
+            CampaignInfo(notes = "These are some notes").toJsonAST.getOrElse(Json.Null)
           )
           newCampaigns     <- service.campaigns
           afterNewCampaign <- service.campaign(newCampaignId)
           _ <- service.applyOperation(
             campaignId = newCampaignId,
-            operation = Replace(JsonPath(""), Json.Str("This are some updated notes"))
+            operation = Replace(JsonPath("$.notes"), Json.Str("These are some updated notes"))
           )
           updatedCampaigns <- service.campaigns
           updatedCampaign  <- service.campaign(newCampaignId)
@@ -41,7 +41,7 @@ object StorageSpec extends ZIOSpecDefault {
           newCampaigns.length == campaigns.length + 1,
           afterNewCampaign.isDefined,
           updatedCampaigns.length == newCampaigns.length,
-          updatedCampaign.map(_.info.notes).contains("This are some updated notes"),
+          updatedCampaign.map(_.info.notes).contains("These are some updated notes"),
           deletedCampaigns.length == updatedCampaigns.length - 1,
           deletedCampaign.isEmpty
         )

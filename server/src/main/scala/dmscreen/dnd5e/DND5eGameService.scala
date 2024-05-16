@@ -73,7 +73,7 @@ trait DND5eGameService extends GameService {
     operation:  Operation
   ): ZIO[DMScreenEnvironment, DMScreenError, Unit]
 
-  def delete(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Unit]
+  def delete(campaignId: CampaignId, softDelete: Boolean = true): ZIO[DMScreenEnvironment, DMScreenError, Unit]
 
   def playerCharacters(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Seq[PlayerCharacter]]
 

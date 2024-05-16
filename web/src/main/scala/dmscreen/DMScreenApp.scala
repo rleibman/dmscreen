@@ -19,38 +19,23 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package dmscreen
 
-import dmscreen.DMScreenTab
-import japgolly.scalajs.react.ScalaComponent
-import japgolly.scalajs.react.component.Scala.Unmounted
-import japgolly.scalajs.react.vdom.html_<^.<
+import org.scalajs.dom
 
-object EncounterTab extends DMScreenTab {
+import scala.scalajs.js.annotation.JSExport
 
-  class Backend($: BackendScope[Unit, State]) {
-  def render(s: State) = {
-    <.div()
+
+import scala.scalajs.js.annotation.JSExport
+
+object DMScreenApp {
+
+  @JSExport
+  def main(args: Array[String]): Unit = {
+    val component = Content()
+    component.renderIntoDOM(dom.document.getElementById("content"))
+    ()
+
   }
-}
 
-
-  private val component = ScalaComponent
-    .builder[Unit]("router")
-    .initialState {
-      State()
-    }
-    .renderBackend[Backend]
-    .componentDidMount(
-      //_.backend.refresh(initial = true)()
-      $ =>
-        Callback.empty
-    )
-    .componentWillUnmount($ =>
-      //TODO close down streams here
-      Callback.empty
-    )
-    .build
-
-  def apply(): Unmounted[Unit, State, Backend] = component()
 }

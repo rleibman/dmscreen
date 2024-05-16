@@ -22,5 +22,37 @@
 package dmscreen.dnd5e
 
 import dmscreen.dnd5e.Monster
+import japgolly.scalajs.react.ScalaComponent
+import japgolly.scalajs.react.component.Scala.Unmounted
+import japgolly.scalajs.react.vdom.html_<^.<
 
-class StatBlock(monster: Monster) {}
+object StatBlock {
+  case class State()
+
+  class Backend($: BackendScope[Unit, State]) {
+    def render(s: State) = {
+      <.div()
+    }
+  }
+
+
+  private val component = ScalaComponent
+    .builder[Unit]("router")
+    .initialState {
+      State()
+    }
+    .renderBackend[Backend]
+    .componentDidMount(
+      //_.backend.refresh(initial = true)()
+      $ =>
+        Callback.empty
+    )
+    .componentWillUnmount($ =>
+      //TODO close down streams here
+      Callback.empty
+    )
+    .build
+
+  def apply(monster: Monster): Unmounted[Unit, State, Backend] = component()
+
+}

@@ -28,7 +28,7 @@ opaque type CampaignId = Long
 
 object CampaignId {
 
-  val empty: CampaignId = CampaignId(-1)
+  val empty: CampaignId = CampaignId(0)
 
   def apply(campaignId: Long): CampaignId = campaignId
 
@@ -55,6 +55,7 @@ case class CampaignHeader(
 
 case class Scene(
   name:       String,
+  isActive:   Boolean,
   notes:      String,
   npcs:       List[NonPlayerCharacterId] = List.empty,
   encounters: List[EncounterId] = List.empty

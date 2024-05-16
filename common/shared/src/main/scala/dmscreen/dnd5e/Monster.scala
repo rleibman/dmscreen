@@ -81,13 +81,6 @@ enum Biome {
 }
 
 case class MonsterInfo(
-  monsterType:    MonsterType,
-  biome:          Biome,
-  alignment:      Alignment,
-  cr:             Double,
-  xp:             Int,
-  ac:             Int,
-  hp:             Int,
   walkingSpeed:   Option[Int],
   burrowingSpeed: Option[Int],
   climbingSpeed:  Option[Int],
@@ -102,7 +95,18 @@ case class MonsterInfo(
   senses:         Seq[Sense]
 )
 
-case class MonsterHeader(id: MonsterId)
+case class MonsterHeader(
+  id:          MonsterId,
+  name:        String,
+  monsterType: MonsterType,
+  biome:       Biome,
+  alignment:   Alignment,
+  cr:          Double,
+  xp:          Int,
+  ac:          Int,
+  hp:          Int,
+  size:        CreatureSize
+)
 
 case class Monster(
   header: MonsterHeader,

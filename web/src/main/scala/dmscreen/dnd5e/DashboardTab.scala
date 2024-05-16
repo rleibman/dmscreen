@@ -22,5 +22,81 @@
 package dmscreen.dnd5e
 
 import dmscreen.DMScreenTab
+import japgolly.scalajs.react.ScalaComponent
+import japgolly.scalajs.react.component.Scala.Unmounted
+import japgolly.scalajs.react.vdom.html_<^.<
+import net.leibman.dmscreen.reactChartjs2.components.Radar
 
-case class DashboardTab() extends DMScreenTab
+object DashboardTab extends DMScreenTab {
+
+  case class State(
+    campaign: Option[Campaign] = None,
+    pcs:      Seq[PlayerCharacter] = Seq.empty,
+    scenes:   Seq[Scene] = Seq.empty
+  )
+
+  class Backend($ : BackendScope[Unit, State]) {
+
+    def render(s: State) = {
+      s.campaign.map { campaign =>
+
+        val abilityScores = s.pcs.map { pc =>
+          pc.info.abilities
+
+        }
+
+        val passiveScores = s.pcs.map { pc =>
+          // TODO calculate passive scores
+        }
+
+        val proficiencies = s.pcs.map { pc =>
+          // TODO calculate proficiencies (skills)
+        }
+
+        <.div(
+          <.div("Ability Score Radar"),
+          Radar(abilityScores),
+          <.div("Passive Score Radar"),
+          Radar(passiveScores),
+          <.div("Proficiency Radar"),
+          Radar(proficiencies),
+          Radar(),
+          <.div("Campaign Notes"),
+          campaign.info.notes,
+          <.div("Scene Notes"),
+          campaign.info.scenes.find(_.isActive).orElse(campaign.info.scenes.headOption).map { scene =>
+            <.div(
+              if (scene.isActive) "Current Scene" else "First Scene",
+              scene.name,
+              scene.notes
+            )
+          }
+        )
+      }
+    }
+
+  }
+
+  private val component = ScalaComponent
+    .builder[Unit]("router")
+    .initialState {
+      State()
+    }
+    .renderBackend[Backend]
+    .componentDidMount(
+      // _.backend.refresh(initial = true)()
+      $ => Callback.empty
+    )
+    .componentWillUnmount($ =>
+      // TODO close down streams here
+      Callback.empty
+    )
+    .build
+
+  def apply(
+    campaign: Campaign,
+    pcs:      Seq[PlayerCharacter],
+    scenes:   Seq[Scene]
+  ): Unmounted[Unit, State, Backend] = component()
+
+}

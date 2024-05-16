@@ -22,17 +22,15 @@
 package dmscreen.dnd5e
 
 import dmscreen.DMScreenTab
-import japgolly.scalajs.react.ScalaComponent
-import japgolly.scalajs.react.component.Scala.Unmounted
-import japgolly.scalajs.react.vdom.html_<^.<
 
-object EncounterTab extends DMScreenTab {
+object SceneTab extends DMScreenTab {
+  case class State(scenes: Seq[Scene] = Seq.empty)
 
   class Backend($: BackendScope[Unit, State]) {
-  def render(s: State) = {
-    <.div()
+    def render(s: State) = {
+      <.div()
+    }
   }
-}
 
 
   private val component = ScalaComponent
@@ -52,5 +50,6 @@ object EncounterTab extends DMScreenTab {
     )
     .build
 
-  def apply(): Unmounted[Unit, State, Backend] = component()
+  def apply(scenes: Seq[Scene]): Unmounted[Unit, State, Backend] = component()
+
 }

@@ -34,11 +34,11 @@ import javax.sql.DataSource
 object QuillDND5eGameService {
 
   private case class CampaignRow(
-    id:       Long,
-    name:     String,
-    dm:       Long,
-    gameType: String,
-    info:     Json
+    id:         Long,
+    name:       String,
+    dm:         Long,
+    gameSystem: String,
+    info:       Json
   ) {
 
     def toCampaign: Campaign = {
@@ -83,8 +83,17 @@ object QuillDND5eGameService {
 
         override def campaigns: ZIO[DMScreenEnvironment, DMScreenError, Seq[CampaignHeader]] =
           ctx
-            .run(qCampaigns.map(a => (a.id, a.dm, a.name)))
-            .map(_.map(t => CampaignHeader(id = CampaignId(t._1), dm = UserId(t._2), name = t._3)))
+            .run(qCampaigns.map(a => (a.id, a.dm, a.name, a.gameSystem)))
+            .map(
+              _.map(t =>
+                CampaignHeader(
+                  id = CampaignId(t._1),
+                  dm = UserId(t._2),
+                  name = t._3,
+                  gameSystem = GameSystem.valueOf(t._4)
+                )
+              )
+            )
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
 
@@ -120,16 +129,101 @@ object QuillDND5eGameService {
           : ZIO[DMScreenEnvironment, DMScreenError, Seq[Subclass]] = ???
 
         override def insert(
-          campaignHeader: CampaignHeader,
-          info:           Json
-        ): ZIO[DMScreenEnvironment, DMScreenError, CampaignId] = ???
+          header: CampaignHeader,
+          info:   Json
+        ): ZIO[DMScreenEnvironment, DMScreenError, CampaignId] = {
+          ctx
+            .run(
+              qCampaigns
+                .insertValue(
+                  lift(
+                    CampaignRow(
+                      id = CampaignId.empty.value,
+                      name = header.name,
+                      dm = header.dm.value,
+                      gameSystem = header.gameSystem.toString,
+                      info = info
+                    )
+                  )
+                )
+                .returningGenerated(_.id)
+            )
+            .map(CampaignId.apply)
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+
+        }
+
+        val jsonInsert: Quoted[(Json, String, Json) => Json] = quote {
+          (
+            doc:   Json,
+            path:  String,
+            value: Json
+          ) => sql"JSON_INSERT($doc, $path, $value)".as[Json]
+        }
+        val jsonReplace: Quoted[(Json, String, Json) => Json] = quote {
+          (
+            doc:   Json,
+            path:  String,
+            value: Json
+          ) => sql"JSON_REPLACE($doc, $path, $value)".as[Json]
+        }
+        val jsonRemove: Quoted[(Json, String) => Json] = quote {
+          (
+            doc:  Json,
+            path: String
+          ) => sql"JSON_REMOVE($doc, $path)".as[Json]
+        }
 
         override def applyOperation(
           campaignId: CampaignId,
           operation:  Operation
-        ): ZIO[DMScreenEnvironment, DMScreenError, Unit] = ???
+        ): ZIO[DMScreenEnvironment, DMScreenError, Unit] = {
+          // UPDATE t SET json_col = JSON_SET(json_col, '$.name', 'Knut') WHERE id = 123
 
-        override def delete(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Unit] = ???
+          (operation match {
+            case Add(path, value) =>
+              ctx
+                .run(
+                  qCampaigns
+                    .filter(_.id == lift(campaignId.value)).update(a =>
+                      a.info -> jsonInsert(a.info, lift(path.value), lift(value))
+                    )
+                )
+            case Remove(path) =>
+              ctx
+                .run(
+                  qCampaigns
+                    .filter(_.id == lift(campaignId.value)).update(a => a.info -> jsonRemove(a.info, lift(path.value)))
+                )
+            case Replace(path, value) =>
+              ctx
+                .run(
+                  qCampaigns
+                    .filter(_.id == lift(campaignId.value)).update(a =>
+                      a.info -> jsonReplace(a.info, lift(path.value), lift(value))
+                    )
+                )
+            case Move(from, path) => ??? // Currently Not supported, but probably just read, then a delete followed by an insert
+            case Copy(from, path)  => ??? // Currently Not supported, but probably just a read followed by an insert
+            case Test(path, value) => ??? // Currently Not supported
+          }).unit
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+
+        }
+
+        override def delete(
+          campaignId: CampaignId,
+          softDelete: Boolean
+        ): ZIO[DMScreenEnvironment, DMScreenError, Unit] = {
+          // TODO implement soft deletes
+          ctx
+            .run(qCampaigns.filter(_.id == lift(campaignId.value)).delete)
+            .unit
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+        }
       }
     }
 

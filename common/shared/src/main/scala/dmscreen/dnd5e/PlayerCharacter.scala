@@ -76,7 +76,7 @@ case class CharacterClass(
 
 case class Subclass(name: String)
 
-case class Feat()
+case class Feat(name: String)
 
 case class Lifestyle()
 
@@ -87,18 +87,28 @@ enum Alignment {
 
 }
 
-enum AbilityType(name: String) {
+enum AbilityType(
+  name:    String,
+  short:   String,
+  shorter: String
+) {
 
-  case Strength extends AbilityType("Strength")
-  case Dexterity extends AbilityType("Dexterity")
-  case Constitution extends AbilityType("Constitution")
-  case Intelligence extends AbilityType("Intelligence")
-  case Wisdom extends AbilityType("Wisdom")
-  case Charisma extends AbilityType("Charisma")
+  case Strength extends AbilityType("Strength", "Str", "S")
+  case Dexterity extends AbilityType("Dexterity", "Dex", "D")
+  case Constitution extends AbilityType("Constitution", "Con", "C")
+  case Intelligence extends AbilityType("Intelligence", "Int", "I")
+  case Wisdom extends AbilityType("Wisdom", "Wis", "W")
+  case Charisma extends AbilityType("Charisma", "Cha", "Ch")
 
 }
 
-case class Ability(abilityType: AbilityType)
+case class Ability(
+  abilityType: AbilityType,
+  value:       Int,
+  bonus:       Int,
+  tempValue:   Option[Int],
+  tempBonus:   Option[Int]
+)
 
 case class Background(name: String)
 
@@ -138,7 +148,7 @@ case class Wallet(
   cp: Long
 )
 
-enum Size {
+enum CreatureSize {
 
   case Tiny, Small, Medium, Large, Huge, Gargantuan
 
@@ -152,7 +162,7 @@ case class PhysicalCharacteristics(
   skin:   String,
   height: String,
   weight: Int,
-  size:   Size
+  size:   CreatureSize
 )
 
 case class PlayerCharacterInfo(
@@ -184,6 +194,7 @@ case class PlayerCharacterInfo(
   adjustmentXp:            String,
   spellSlots:              List[SpellSlot],
   pactMagic:               List[SpellSlot],
+  langugaes:               List[String],
   options:                 Options,
   choices:                 Choices,
   actions:                 Actions,

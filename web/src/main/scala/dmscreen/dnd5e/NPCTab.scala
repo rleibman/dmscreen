@@ -23,4 +23,33 @@ package dmscreen.dnd5e
 
 import dmscreen.DMScreenTab
 
-case class NPCTab() extends DMScreenTab
+object NPCTab extends DMScreenTab {
+  case class State(npcs: Seq[NonPlayerCharacter] = Seq.empty)
+
+  class Backend($: BackendScope[Unit, State]) {
+    def render(s: State) = {
+      <.div()
+    }
+  }
+
+
+  private val component = ScalaComponent
+    .builder[Unit]("router")
+    .initialState {
+      State()
+    }
+    .renderBackend[Backend]
+    .componentDidMount(
+      //_.backend.refresh(initial = true)()
+      $ =>
+        Callback.empty
+    )
+    .componentWillUnmount($ =>
+      //TODO close down streams here
+      Callback.empty
+    )
+    .build
+
+  def apply(npcs: Seq[NonPlayerCharacter]): Unmounted[Unit, State, Backend] = component()
+
+}

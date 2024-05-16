@@ -23,4 +23,58 @@ package dmscreen.dnd5e
 
 import dmscreen.DMScreenTab
 
-case class PlayersTab() extends DMScreenTab
+object PlayersTab extends DMScreenTab {
+
+  case class State(pcs: Seq[PlayerCharacter] = Seq.empty)
+
+  class Backend($ : BackendScope[Unit, State]) {
+
+    def render(s: State) = {
+      <.div(
+        s.pcs.map { pc =>
+          <.div(
+            pc.info.name,
+            pc.info.alignment,
+            pc.info.race.name,
+            pc.info.faith,
+            pc.info.classes.map(c => s"${c.name}: ${c.subclass} (l ${c.level})"),
+            mkString(", "),
+            pc.info.abilities.map(a => <.div(^.className = "shortAbility", s"${a.abilityType.short}${a.value}")),
+            <.div(^.className = "hitPoints", s"${pc.info.baseHitPoints}"),
+            pc.info.armorClass,
+            pc.info.background,
+            pc.info.conditions,
+            pc.info.deathSaves,
+            pc.info.feats.map(f => s"${f.name}"),
+            pc.info.inspiration,
+            pc.info.modifiers,
+            pc.info.notes,
+            pc.info.languages.mkString(","),
+            pc.info.traits
+          )
+
+        }
+      )
+    }
+
+  }
+
+  private val component = ScalaComponent
+    .builder[Unit]("router")
+    .initialState {
+      State()
+    }
+    .renderBackend[Backend]
+    .componentDidMount(
+      // _.backend.refresh(initial = true)()
+      $ => Callback.empty
+    )
+    .componentWillUnmount($ =>
+      // TODO close down streams here
+      Callback.empty
+    )
+    .build
+
+  def apply(pcs: Seq[PlayerCharacter]): Unmounted[Unit, State, Backend] = component()
+
+}

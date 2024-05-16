@@ -22,6 +22,7 @@
 package dmscreen
 
 import com.dimafeng.testcontainers.*
+import org.testcontainers.utility.DockerImageName
 import com.mysql.cj.jdbc.MysqlDataSource
 import com.typesafe.config
 import com.typesafe.config.ConfigFactory
@@ -34,6 +35,8 @@ import zio.{IO, ZIO, ZLayer}
 import java.sql.SQLException
 import javax.sql.DataSource
 import scala.io.Source
+
+import scala.jdk.CollectionConverters.*
 
 trait DMScreenContainer {
 
@@ -100,7 +103,8 @@ object DMScreenContainer {
   val containerLayer: ZLayer[Any, RepositoryError, DMScreenContainer] = ZLayer.fromZIO((for {
     _ <- ZIO.logDebug("Creating container")
     newContainer <- ZIO.attemptBlocking {
-      val c = MySQLContainer()
+      val c = MySQLContainer(mysqlImageVersion = DockerImageName.parse("mysql:8.0.36").nn)
+      c.container.setPortBindings(List("3306:3306").asJava)
       c.container.start()
       c
     }
