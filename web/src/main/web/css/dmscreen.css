@@ -1,0 +1,791 @@
+
+:game {
+    --a: #1d2731;
+    --b: #235789;
+    --c: #ffcb05;
+    --d: #1d2731;
+    --e: #f2f2f2;
+}
+
+:nomad {
+    --a: #f4f1ea;
+    --b: #c9b6a2;
+    --c: #903b3b;
+    --d: #39693c;
+    --e: #293622;
+}
+
+:gamer {
+    --a: #331f49ff;
+    --b: #000000ff;
+    --c: #ff962cff;
+    --d: #ec6b00ff;
+    --e: #ab0000ff;
+}
+
+:cold-evening {
+    --a: #fbfae6ff;
+    --b: #d9e0e7ff;
+    --c: #a99b92ff;
+    --d: #c2c0dbff;
+    --e: #65585eff;
+}
+
+:branding-colours {
+    --a: #f9f9f9ff;
+    --b: #e5dae4ff;
+    --c: #c8c5ccff;
+    --d: #cad4d1ff;
+    --e: #6d6876ff;
+}
+
+:dmakDent {
+    --a: #f49b45ff;
+    --b: #0d3c5cff;
+    --c: #96939cff;
+    --d: #d0ba9aff;
+    --e: #a89a88ff;
+}
+
+:root {
+    --gamer-a: #331f49ff;
+    --gamer-b: #000000ff;
+    --gamer-c: #ff962cff;
+    --gamer-d: #ec6b00ff;
+    --gamer-e: #ab0000ff;
+
+    --domino-height: 120px;
+    --domino-width: 60px;
+    --domino-jugado-height: 60px;
+    --domino-jugado-width: 30px;
+
+    --player-name-color: #59228C;
+    --header-color: #59228C;
+    --player-name-border: #59228C;
+    --player-name-canPlay-background: #59228C;
+
+    --header-background: #CDAFEA;
+    --player-name-background: #CDAFEA;
+    --player-name-canPlay-color: #CDAFEA;
+    --player-name-canPlay-border: #CDAFEA;
+
+    --chat-background: #EAAFCB;
+    --lobby-border: #EAAFCB;
+
+    --chat-color: #666666;
+    --chat-h1-color: #8C2255;
+    --chat-border: #BB5C8A;
+    --chat-message-border: #BB5C8A;
+
+    --juegoStatus-color: #AFEAB0;
+    --fichasEnJuegoName-color: #AFEAB0;
+
+    --fichasEnJuego-background: #228B22;
+    --fichasEnJuego-border: #006400;
+
+    --users-table-border: #CCCCCC;
+
+    --domino-selected-border: #FFA500;
+    --domino-fichaGanadora-border: #FF8C00;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100%;
+
+    font-family: 'Jura', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    font-family: 'Jura', sans-serif;
+}
+
+h2 {
+    font-family: 'Jura', sans-serif;
+}
+
+h3 {
+    font-family: 'Jura', sans-serif;
+}
+
+h4 {
+    font-family: 'Jura', sans-serif;
+}
+
+.lobbyActions {
+    display: flex;
+}
+
+.lobbyActions button {
+    height: 7em;
+    width: 10em;
+}
+
+.innerContent {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 4fr minmax(200px, 1fr);
+    grid-template-rows: auto 1fr;
+}
+
+.header {
+    grid-area: header;
+    grid-column-start: 1;
+    grid-column-end: span 2;
+    grid-row-start: 1;
+    grid-row-end: span 1;
+    color: var(--header-color);
+    background-color: var(--header-background);
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.header .headerMenu {
+    grid-column-start: 1;
+    text-align: left;
+}
+
+.header .user {
+    grid-column-start: 2;
+    align-self: center;
+    justify-self: right;
+    margin-right: 30px;
+}
+
+.ui.menu .ui.dropdown .menu > .item {
+    background-color: var(--header-background);
+    color: var(--header-color);
+}
+
+.menuBurger i.dropdown.icon {
+    display: none;
+}
+
+.ui.text.menu .item {
+    background-color: var(--header-background);
+    color: var(--header-color);
+}
+
+.ui.menu .ui.dropdown .menu>.item {
+    background-color: var(--header-background);
+    color: var(--header-color);
+}
+
+.ui.menu .item {
+    background-color: var(--header-background);
+    color: var(--header-color);
+}
+
+.ui.menu {
+    background-color: var(--header-background);
+}
+
+.chat h1 {
+    color: var(--chat-h1-color);
+}
+
+.chat {
+    color: var(--chat-color);
+    background-color: var(--chat-background);
+    border: 5px solid var(--chat-border);
+    border-radius: 20px;
+    grid-column-start: 2;
+    grid-column-end: span 1;
+    grid-row-start: 2;
+    grid-row-end: span 1;
+    margin: 4px;
+    text-align: center;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(2em, auto) 1fr minmax(8em, auto);
+}
+
+.chat .title {
+    grid-row-start: 1;
+    grid-row-end: span 1;
+    padding: 5px;
+    margin: 5px;
+}
+
+.chat .messages {
+    border: 1px solid var(--chat-message-border);
+    grid-row-start: 2;
+    grid-row-end: span 1;
+    padding: 0;
+    margin: 4px;
+    overflow-y: scroll;
+    max-height: calc(100vh - 250px);
+}
+
+.chat .sendMessage {
+    grid-row-start: 3;
+    grid-row-end: span 1;
+    padding: 5px;
+    margin: 5px;
+}
+
+.chat .sendMessage textArea {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.chat .receivedMessage {
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr auto;
+    text-align: left;
+    padding: 4px;
+}
+
+.chat .receivedMessage .sentBy {
+    font-weight: bold;
+    font-size: larger;
+}
+
+.chat .receivedMessage .sentAt {
+    text-align: right;
+}
+
+.chat .receivedMessage .messageText {
+    grid-column-end: span 2;
+    font-size: smaller;
+}
+
+.lobby {
+    grid-column-start: 1;
+    grid-column-end: span 1;
+    grid-row-start: 2;
+    grid-row-end: span 1;
+    padding: 5px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+}
+
+.lobbyCol1 {
+    border-right-color: var(--lobby-border);
+    border-right-width: 2px;
+    border-right-style: solid;
+    grid-column-start: 1;
+    grid-column-end: span 1;
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+.lobbyCol2 {
+    grid-column-start: 2;
+    grid-column-end: span 1;
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+.playersTable table {
+    border: 1px solid var(--users-table-border);
+}
+
+.playersTable td {
+    padding: 4px;
+    border: 1px solid var(--users-table-border);
+}
+
+.ui.menu .item > i.icon {
+    display: none;
+}
+
+.gameTable {
+    display: grid;
+    grid-template-columns: 2fr 2fr 2fr;
+    grid-template-rows: minmax(calc(var(--domino-height) + 2em), auto) calc(var(--domino-width) * 7) minmax(calc(var(--domino-height) + 2em), auto);
+}
+
+.jugador0 {
+    grid-column-start: 2;
+    grid-column-end: span 2;
+    grid-row-start: 3;
+    grid-row-end: span 1;
+    display: grid;
+    grid-template-rows: calc(1em + 30px) minmax(2em, 3em) auto;
+    grid-template-columns: minmax(calc(calc(var(--domino-width) + 4) * 7), 1fr) 1fr;
+}
+
+.jugador1 {
+    grid-column-start: 3;
+    grid-column-end: span 1;
+    grid-row-start: 2;
+    grid-row-end: span 1;
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.statusBar0 {
+    grid-column-end: span 2;
+
+    height: calc(1em + 30px);
+    display: inline-block;
+    width: 100%;
+}
+
+
+.playerName {
+    color: var(--player-name-color);
+    background-color: var(--player-name-background);
+    border: 3px solid var(--player-name-border);
+    border-radius: 10px;
+    padding: 10px;
+    display: inline-block;
+}
+
+.playerName.canPlay {
+    color: var(--player-name-canPlay-color);
+    background-color: var(--player-name-canPlay-background);
+    border: 3px solid var(--player-name-canPlay-border);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.userStatus {
+    font-style: italic;
+    display: inline-block;
+    margin: 1em;
+}
+
+.statusBar1 {
+    width: calc(1em + 30px);
+    height: 100%;
+    display: inline-block;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+}
+
+.jugadorActionBar {
+    grid-column-end: span 2;
+    margin: 5px;
+}
+
+.fichasEnJuego {
+    grid-column-start: 2;
+    grid-column-end: span 1;
+    grid-row-start: 2;
+    grid-row-end: span 1;
+
+    display: grid;
+    grid-template-rows: 2em auto auto;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+
+    margin: 10px;
+    border: 10px solid var(--fichasEnJuego-border);
+    border-radius: 20px;
+    background-color: var(--fichasEnJuego-background);
+    min-width: calc(var(--domino-width) * 6);
+    min-height: calc(var(--domino-height) + 10em);
+
+    align-self: center;
+    justify-self: center;
+}
+
+.juegoStatus {
+    grid-column-end: span 4;
+    color: var(--juegoStatus-color);
+    font-style: italic;
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+}
+
+.triunfan {
+    display: block;
+    padding: 3px;
+    text-align: center;
+}
+
+.juegoStatusString {
+    padding: 3px;
+    display: block;
+    justify-self: center;
+    align-self: center;
+}
+
+.fichasEnJuegoName {
+    align-self: end;
+    text-align: center;
+    color: var(--fichasEnJuegoName-color);
+    padding: 2px;
+    grid-row-start: 2;
+}
+
+.dominoEnJuego {
+    height: var(--domino-height);
+    align-self: start;
+    justify-self: center;
+    padding: 4px;
+    grid-row-start: 3;
+}
+
+.domino0Container {
+    display: inline-grid;
+    height: var(--domino-height);
+    width: var(--domino-width);
+    padding: 2px;
+    grid-template-columns: auto;
+    grid-template-rows: auto;
+}
+
+.domino0 {
+    vertical-align: middle;
+    text-align: center;
+    height: var(--domino-height);
+    width: var(--domino-width);
+    padding: 3px;
+    margin: 0;
+    grid-row-start: 1;
+    grid-column-start: 1;
+}
+
+.domino0Container .domino0FlipAction {
+    grid-row-start: 1;
+    grid-column-start: 1;
+    padding: 0;
+    margin: 0;
+    opacity: 0;
+    align-self: end;
+    justify-self: center;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.domino0Container:hover .domino0FlipAction {
+    opacity: 1;
+}
+
+.domino0Container .domino0MoveRightAction {
+    grid-row-start: 1;
+    grid-column-start: 1;
+    padding: 0;
+    margin: 0;
+    opacity: 0;
+    align-self: end;
+    justify-self: end;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.domino0Container:hover .domino0MoveRightAction {
+    opacity: 1;
+}
+
+.domino0Container .domino0MoveLeftAction {
+    grid-row-start: 1;
+    grid-column-start: 1;
+    padding: 0;
+    margin: 0;
+    opacity: 0;
+    align-self: end;
+    justify-self: start;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.domino0Container:hover .domino0MoveLeftAction {
+    opacity: 1;
+}
+
+.domino0.selected {
+    border: 3px solid var(--domino-selected-border);
+    padding: 0;
+    border-radius: 10px;
+}
+
+.domino0 img {
+    height: var(--domino-height);
+    width: var(--domino-width);
+}
+
+.dominoJugado0Container {
+    display: inline-block;
+    margin: 1px;
+    height: var(--domino-jugado-height);
+    width: var(--domino-jugado-width);
+}
+
+.dominoJugado0 {
+    vertical-align: middle;
+    text-align: center;
+    height: var(--domino-jugado-height);
+    width: var(--domino-jugado-width);
+    padding: 1px;
+}
+
+.fichas0 {
+    padding: 2px;
+    display: inline-flex;
+    grid-column-start: 1;
+}
+
+.filas0 {
+    padding: 2px;
+    grid-column-start: 2;
+
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.filaFichas0 {
+    white-space: nowrap;
+    padding: 1px;
+}
+
+.domino1Container {
+    padding: 2px;
+    height: var(--domino-width);
+    width: var(--domino-height);
+}
+
+.domino1 {
+    transform: translateX(var(--domino-height)) rotate(90deg);
+    transform-origin: top left;
+    vertical-align: middle;
+    text-align: center;
+    height: var(--domino-height);
+    width: var(--domino-width);
+    padding: 3px;
+    margin: 0;
+}
+
+.dominoJugado1Container {
+    padding: 2px;
+    height: var(--domino-jugado-width);
+    width: var(--domino-jugado-height);
+}
+
+.dominoJugado1 {
+    transform: translateX(var(--domino-jugado-height)) rotate(90deg);
+    transform-origin: top left;
+    vertical-align: middle;
+    text-align: center;
+    height: var(--domino-jugado-height);
+    width: var(--domino-jugado-width);
+    padding: 1px;
+}
+
+.fichas1 {
+    padding: 2px;
+}
+
+.filas1 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+}
+
+.filaFichas1 {
+    padding: 5px;
+    white-space: nowrap;
+}
+
+.domino2Container {
+    display: inline-block;
+    height: var(--domino-height);
+    width: var(--domino-width);
+    padding: 2px;
+}
+
+.domino2 {
+    vertical-align: middle;
+    text-align: center;
+    height: var(--domino-height);
+    width: var(--domino-width);
+    padding: 3px;
+    margin: 0;
+}
+
+.domino2 img {
+    height: var(--domino-height);
+    width: var(--domino-width);
+}
+
+.dominoJugado2Container {
+    display: inline-block;
+    height: var(--domino-jugado-height);
+    width: var(--domino-jugado-width);
+}
+
+.dominoJugado2 {
+    vertical-align: middle;
+    text-align: center;
+    height: var(--domino-jugado-height);
+    width: var(--domino-jugado-width);
+    padding: 1px;
+}
+
+.jugador2 {
+    grid-column-start: 1;
+    grid-column-end: span 2;
+    grid-row-start: 1;
+    grid-row-end: span 1;
+    display: grid;
+    grid-template-rows: auto calc(1em + 30px);
+    grid-template-columns: 1fr minmax(calc(calc(var(--domino-width) + 4) * 7), 1fr);
+}
+
+.statusBar2 {
+    grid-row-start: 2;
+    grid-column-start: 1;
+    grid-column-end: span 2;
+
+    height: calc(1em + 30px);
+    display: inline-flex;
+    flex-flow: row-reverse;
+    align-items: center;
+    justify-content: end;
+    width: 100%;
+}
+
+.fichas2 {
+    padding: 2px;
+    display: inline-flex;
+    grid-column-start: 2;
+    grid-column-end: span 1;
+    grid-row-start: 1;
+    justify-self: end;
+}
+
+.filas2 {
+    padding: 2px;
+    grid-column-start: 1;
+    grid-column-end: span 1;
+    grid-row-start: 1;
+
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    justify-self: end;
+}
+
+.filaFichas2 {
+    white-space: nowrap;
+    padding: 1px 10px;
+}
+
+.jugador3 {
+    grid-column-start: 1;
+    grid-column-end: span 1;
+    grid-row-start: 2;
+    grid-row-end: span 1;
+
+    display: grid;
+    grid-template-columns: auto auto calc(1em + 30px);
+    grid-template-rows: auto;
+}
+
+.statusBar3 {
+    grid-column-start: 3;
+    grid-column-end: span 1;
+    width: calc(1em + 30px);
+    height: 100%;
+    display: inline-block;
+    writing-mode: vertical-rl;
+}
+
+.domino3Container {
+    padding: 2px;
+    height: var(--domino-width);
+    width: var(--domino-height);
+}
+
+.domino3 {
+    transform: translateX(var(--domino-height)) rotate(90deg);
+    transform-origin: top left;
+    vertical-align: middle;
+    text-align: center;
+    height: var(--domino-height);
+    width: var(--domino-width);
+    padding: 3px;
+    margin: 0;
+}
+
+.dominoJugado3Container {
+    padding: 2px;
+    height: var(--domino-jugado-width);
+    width: var(--domino-jugado-height);
+}
+
+.fichaGanadora {
+    border: 1px solid var(--domino-fichaGanadora-border);
+}
+
+.dominoJugado3 {
+    transform: translateX(var(--domino-jugado-height)) rotate(90deg);
+    transform-origin: top left;
+    vertical-align: middle;
+    text-align: center;
+    height: var(--domino-jugado-height);
+    width: var(--domino-jugado-width);
+    padding: 1px;
+}
+
+.fichas3 {
+    padding: 2px;
+    grid-column-start: 2;
+    grid-column-end: span 1;
+    grid-row-start: 1;
+    justify-self: end;
+}
+
+.filas3 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    justify-self: end;
+    grid-column-start: 1;
+    grid-column-end: span 1;
+    grid-row-start: 1;
+}
+
+.filaFichas3 {
+    padding: 5px;
+    white-space: nowrap;
+}
+
+.hoyo {
+    border-radius: 100px;
+    border: 2px solid red;
+    background: white;
+    color: black;
+    padding: 1px 5px;
+    margin: 1px;
+    display: inline-block;
+}
+
+.triunfoNum {
+    display: inline-block;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+.triunfoDropdown {
+    padding-right: 20px;
+}
+
+.ui.dropdown.triunfoDropdown>.text {
+    display: none;
+}
+
+tr.cuentasSelf {
+    background-color: #f7cbbd;
+}
+
+b {
+    color: brown;
+}
