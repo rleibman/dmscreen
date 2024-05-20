@@ -33,7 +33,7 @@ lazy val scala3Opts = Seq(
   "-deprecation", // Emit warning and location for usages of deprecated APIs.
   //  "-explain-types", // Explain type errors in more detail.
   //  "-explain",
-  "-Yexplicit-nulls", // Make reference types non-nullable. Nullable types can be expressed with unions: e.g. String|Null.
+ "-Yexplicit-nulls", // Make reference types non-nullable. Nullable types can be expressed with unions: e.g. String|Null.
   "-Xmax-inlines",
   "128",
   "-Yretain-trees" // Retain trees for debugging.
@@ -197,7 +197,7 @@ lazy val bundlerSettings: Project => Project =
       Compile / fullOptJS / webpackDevServerExtraArgs += "--mode=production",
       Compile / fullOptJS / artifactPath := ((Compile / fullOptJS / crossTarget).value /
         ((fullOptJS / moduleName).value + "-opt.js")),
-      useYarn                                   := false,
+      useYarn                                   := true,
       run / fork                                := true,
       Global / scalaJSStage                     := FastOptStage,
       Compile / scalaJSUseMainModuleInitializer := true,
@@ -213,10 +213,12 @@ lazy val stLib = project
   .settings(
     name                            := "dmscreen-stLib",
     scalaVersion                    := "3.4.1",
-    useYarn                         := false,
+    useYarn                         := true,
     stOutputPackage                 := "net.leibman.dmscreen",
     stFlavour                       := Flavour.ScalajsReact,
     stReactEnableTreeShaking        := Selection.All,
+    stQuiet                         := true,
+    // stEnableLongApplyMethod         := true, // can't use this because it breaks scala 3
     scalaJSUseMainModuleInitializer := true,
     /* disabled because it somehow triggers many warnings */
     scalaJSLinkerConfig ~= (_.withSourceMap(false)),

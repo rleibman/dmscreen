@@ -22,39 +22,25 @@
 package dmscreen.dnd5e
 
 import dmscreen.DMScreenTab
+import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
+import japgolly.scalajs.react.component.Scala.Unmounted
+import japgolly.scalajs.react.vdom.html_<^.*
 
-object PlayersTab extends DMScreenTab {
+object NPCPage extends DMScreenTab {
 
-  case class State(pcs: Seq[PlayerCharacter] = Seq.empty)
+  case class State()
 
   class Backend($ : BackendScope[Unit, State]) {
 
     def render(s: State) = {
-      <.div(
-        s.pcs.map { pc =>
-          <.div(
-            pc.info.name,
-            pc.info.alignment,
-            pc.info.race.name,
-            pc.info.faith,
-            pc.info.classes.map(c => s"${c.name}: ${c.subclass} (l ${c.level})"),
-            mkString(", "),
-            pc.info.abilities.map(a => <.div(^.className = "shortAbility", s"${a.abilityType.short}${a.value}")),
-            <.div(^.className = "hitPoints", s"${pc.info.baseHitPoints}"),
-            pc.info.armorClass,
-            pc.info.background,
-            pc.info.conditions,
-            pc.info.deathSaves,
-            pc.info.feats.map(f => s"${f.name}"),
-            pc.info.inspiration,
-            pc.info.modifiers,
-            pc.info.notes,
-            pc.info.languages.mkString(","),
-            pc.info.traits
-          )
-
+      DMScreenState.ctx.consume { dmScreenState =>
+        dmScreenState.campaignState.fold {
+          <.div("Campaign Loading")
+        } { (campaignState: DND5eCampaignState) =>
+          val campaign = campaignState.campaign
+          <.div()
         }
-      )
+      }
     }
 
   }
@@ -75,6 +61,8 @@ object PlayersTab extends DMScreenTab {
     )
     .build
 
-  def apply(pcs: Seq[PlayerCharacter]): Unmounted[Unit, State, Backend] = component()
+  def apply(
+//             npcs: Seq[NonPlayerCharacter]
+  ): Unmounted[Unit, State, Backend] = component()
 
 }

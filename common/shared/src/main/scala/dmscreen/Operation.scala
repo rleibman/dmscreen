@@ -19,38 +19,44 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package dmscreen
 
-import dmscreen.DMScreenTab
-import japgolly.scalajs.react.ScalaComponent
-import japgolly.scalajs.react.component.Scala.Unmounted
-import japgolly.scalajs.react.vdom.html_<^.<
+import dmscreen.dnd5e.JsonPath
+import zio.json.ast.Json
 
-object EncounterTab extends DMScreenTab {
+enum EventType {
 
-  class Backend($: BackendScope[Unit, State]) {
-  def render(s: State) = {
-    <.div()
-  }
+  case add, copy, move, remove, replace, test
+
 }
 
+case class JsonPath(value: String)
 
-  private val component = ScalaComponent
-    .builder[Unit]("router")
-    .initialState {
-      State()
-    }
-    .renderBackend[Backend]
-    .componentDidMount(
-      //_.backend.refresh(initial = true)()
-      $ =>
-        Callback.empty
-    )
-    .componentWillUnmount($ =>
-      //TODO close down streams here
-      Callback.empty
-    )
-    .build
+sealed trait Operation
 
-  def apply(): Unmounted[Unit, State, Backend] = component()
-}
+case class Add(
+  path:  JsonPath,
+  value: Json
+) extends Operation
+
+case class Copy(
+  from: JsonPath,
+  to:   JsonPath
+) extends Operation
+
+case class Move(
+  from: JsonPath,
+  to:   JsonPath
+) extends Operation
+
+case class Remove(path: JsonPath) extends Operation
+
+case class Replace(
+  path:  JsonPath,
+  value: Json
+) extends Operation
+
+case class Test(
+  path:  JsonPath,
+  value: Json
+) extends Operation

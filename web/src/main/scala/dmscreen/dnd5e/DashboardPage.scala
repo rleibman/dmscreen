@@ -22,12 +22,15 @@
 package dmscreen.dnd5e
 
 import dmscreen.DMScreenTab
-import japgolly.scalajs.react.ScalaComponent
+import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Unmounted
-import japgolly.scalajs.react.vdom.html_<^.<
+import japgolly.scalajs.react.vdom.html_<^.*
+import net.leibman.dmscreen.chartJs.distTypesIndexMod.ChartData
 import net.leibman.dmscreen.reactChartjs2.components.Radar
+import net.leibman.dmscreen.reactChartjs2.reactChartjs2Strings.radar
+import net.leibman.dmscreen.chartJs.distTypesIndexMod.DefaultDataPoint
 
-object DashboardTab extends DMScreenTab {
+object DashboardPage extends DMScreenTab {
 
   case class State(
     campaign: Option[Campaign] = None,
@@ -38,40 +41,44 @@ object DashboardTab extends DMScreenTab {
   class Backend($ : BackendScope[Unit, State]) {
 
     def render(s: State) = {
-      s.campaign.map { campaign =>
+      DMScreenState.ctx.consume { dmScreenState =>
+        dmScreenState.campaignState.fold {
+          <.div("Campaign Loading")
+        } { (campaignState: DND5eCampaignState) =>
+          val campaign = campaignState.campaign
 
-        val abilityScores = s.pcs.map { pc =>
-          pc.info.abilities
+          val abilityScores: ChartData[radar, DefaultDataPoint[radar], Any] = ??? // = s.pcs.map { pc =>
+          //          pc.info.abilities
+          //
+          //        }
 
+          val passiveScores: ChartData[radar, DefaultDataPoint[radar], Any] = ??? // = s.pcs.map  { pc =>
+          //          // TODO calculate passive scores
+          //        }
+
+          val proficiencies: ChartData[radar, DefaultDataPoint[radar], Any] = ??? // = s.pcs.map { pc =>
+          //          // TODO calculate proficiencies (skills)
+          //        }
+
+          <.div(
+            <.div("Ability Score Radar"),
+            Radar(abilityScores),
+            <.div("Passive Score Radar"),
+            Radar(passiveScores),
+            <.div("Proficiency Radar"),
+            Radar(proficiencies),
+            <.div("Campaign Notes"),
+            campaign.info.notes,
+            <.div("Scene Notes"),
+            campaign.info.scenes.find(_.isActive).orElse(campaign.info.scenes.headOption).map { scene =>
+              <.div(
+                if (scene.isActive) "Current Scene" else "First Scene",
+                scene.name,
+                scene.notes
+              )
+            }
+          )
         }
-
-        val passiveScores = s.pcs.map { pc =>
-          // TODO calculate passive scores
-        }
-
-        val proficiencies = s.pcs.map { pc =>
-          // TODO calculate proficiencies (skills)
-        }
-
-        <.div(
-          <.div("Ability Score Radar"),
-          Radar(abilityScores),
-          <.div("Passive Score Radar"),
-          Radar(passiveScores),
-          <.div("Proficiency Radar"),
-          Radar(proficiencies),
-          Radar(),
-          <.div("Campaign Notes"),
-          campaign.info.notes,
-          <.div("Scene Notes"),
-          campaign.info.scenes.find(_.isActive).orElse(campaign.info.scenes.headOption).map { scene =>
-            <.div(
-              if (scene.isActive) "Current Scene" else "First Scene",
-              scene.name,
-              scene.notes
-            )
-          }
-        )
       }
     }
 
@@ -94,9 +101,9 @@ object DashboardTab extends DMScreenTab {
     .build
 
   def apply(
-    campaign: Campaign,
-    pcs:      Seq[PlayerCharacter],
-    scenes:   Seq[Scene]
+//    campaign: Campaign,
+//    pcs:      Seq[PlayerCharacter],
+//    scenes:   Seq[Scene]
   ): Unmounted[Unit, State, Backend] = component()
 
 }

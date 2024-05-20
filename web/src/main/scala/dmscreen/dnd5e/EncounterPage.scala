@@ -21,19 +21,27 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.dnd5e.Monster
+import dmscreen.DMScreenTab
 import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.<
 
-object StatBlock {
+object EncounterPage extends DMScreenTab {
 
   case class State()
 
   class Backend($ : BackendScope[Unit, State]) {
 
     def render(s: State) = {
-      <.div()
+      DMScreenState.ctx.consume { dmScreenState =>
+        dmScreenState.campaignState.fold {
+          <.div("Campaign Loading")
+        } { (campaignState: DND5eCampaignState) =>
+          val campaign = campaignState.campaign
+          <.div()
+        }
+      }
+
     }
 
   }
@@ -54,6 +62,6 @@ object StatBlock {
     )
     .build
 
-  def apply(monster: Monster): Unmounted[Unit, State, Backend] = component()
+  def apply(): Unmounted[Unit, State, Backend] = component()
 
 }

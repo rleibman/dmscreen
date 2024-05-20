@@ -25,7 +25,6 @@ import org.scalajs.dom
 
 import scala.scalajs.js.annotation.JSExport
 
-
 import scala.scalajs.js.annotation.JSExport
 
 object DMScreenApp {

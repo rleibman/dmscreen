@@ -25,50 +25,13 @@ import caliban.*
 import caliban.schema.*
 import caliban.schema.ArgBuilder.auto.*
 import caliban.schema.Schema.auto.*
-import dmscreen.{DMScreenEnvironment, DMScreenError, UserId}
+import dmscreen.{Add, Copy, DMScreenError, DMScreenServerEnvironment, Move, Remove, Replace, Test, UserId}
 import zio.*
 import zio.json.*
 import zio.json.ast.Json
 import zio.stream.*
 
 import java.net.URL
-
-enum EventType {
-
-  case add, copy, move, remove, replace, test
-
-}
-
-case class JsonPath(value: String)
-
-sealed trait Operation
-
-case class Add(
-  path:  JsonPath,
-  value: Json
-) extends Operation
-
-case class Copy(
-  from: JsonPath,
-  to:   JsonPath
-) extends Operation
-
-case class Move(
-  from: JsonPath,
-  to:   JsonPath
-) extends Operation
-
-case class Remove(path: JsonPath) extends Operation
-
-case class Replace(
-  path:  JsonPath,
-  value: Json
-) extends Operation
-
-case class Test(
-  path:  JsonPath,
-  value: Json
-) extends Operation
 
 object DND5eAPI {
 
@@ -102,43 +65,56 @@ object DND5eAPI {
   private given ArgBuilder[Test] = ArgBuilder.gen[Test]
 
   case class Queries(
-    campaigns:           ZIO[DMScreenEnvironment, DMScreenError, Seq[CampaignHeader]],
-    campaign:            CampaignId => ZIO[DMScreenEnvironment, DMScreenError, Option[Campaign]],
-    playerCharacters:    CampaignId => ZIO[DMScreenEnvironment, DMScreenError, Seq[PlayerCharacter]],
-    nonPlayerCharacters: CampaignId => ZIO[DMScreenEnvironment, DMScreenError, Seq[NonPlayerCharacter]],
-    encounters:          CampaignId => ZIO[DMScreenEnvironment, DMScreenError, Seq[EncounterHeader]],
-    encounter:           EncounterId => ZIO[DMScreenEnvironment, DMScreenError, Seq[Encounter]],
-    bestiary:            MonsterSearch => ZIO[DMScreenEnvironment, DMScreenError, Seq[Monster]],
-    sources:             ZIO[DMScreenEnvironment, DMScreenError, Seq[Source]],
-    classes:             ZIO[DMScreenEnvironment, DMScreenError, Seq[CharacterClass]],
-    races:               ZIO[DMScreenEnvironment, DMScreenError, Seq[Race]],
-    backgrounds:         ZIO[DMScreenEnvironment, DMScreenError, Seq[Background]],
-    subclasses:          CharacterClassId => ZIO[DMScreenEnvironment, DMScreenError, Seq[Subclass]]
+    campaigns: ZIO[DND5eGameService[DND5eGameService[DMScreenServerEnvironment]], DMScreenError, Seq[CampaignHeader]],
+    campaign:  CampaignId => ZIO[DND5eGameService[DMScreenServerEnvironment], DMScreenError, Option[Campaign]],
+    playerCharacters: CampaignId => ZIO[DND5eGameService[DMScreenServerEnvironment], DMScreenError, Seq[
+      PlayerCharacter
+    ]],
+    nonPlayerCharacters: CampaignId => ZIO[DND5eGameService[DMScreenServerEnvironment], DMScreenError, Seq[
+      NonPlayerCharacter
+    ]],
+    encounters:  CampaignId => ZIO[DND5eGameService[DMScreenServerEnvironment], DMScreenError, Seq[EncounterHeader]],
+    encounter:   EncounterId => ZIO[DND5eGameService[DMScreenServerEnvironment], DMScreenError, Seq[Encounter]],
+    bestiary:    MonsterSearch => ZIO[DND5eGameService[DMScreenServerEnvironment], DMScreenError, Seq[Monster]],
+    sources:     ZIO[DND5eGameService[DMScreenServerEnvironment], DMScreenError, Seq[Source]],
+    classes:     ZIO[DND5eGameService[DMScreenServerEnvironment], DMScreenError, Seq[CharacterClass]],
+    races:       ZIO[DND5eGameService[DMScreenServerEnvironment], DMScreenError, Seq[Race]],
+    backgrounds: ZIO[DND5eGameService[DMScreenServerEnvironment], DMScreenError, Seq[Background]],
+    subclasses:  CharacterClassId => ZIO[DND5eGameService[DMScreenServerEnvironment], DMScreenError, Seq[Subclass]]
   )
-  case class Mutations(event: Operation => ZIO[DMScreenEnvironment, DMScreenError, Boolean])
+  case class Mutations(event: Operation => ZIO[DND5eGameService[DMScreenServerEnvironment], DMScreenError, Boolean])
   case class Subscriptions(
-    operationStream: OperationStreamArgs => ZStream[DMScreenEnvironment, DMScreenError, Operation]
+    operationStream: OperationStreamArgs => ZStream[DND5eGameService[
+      DMScreenServerEnvironment
+    ], DMScreenError, Operation]
   )
 
-  lazy val api: GraphQL[DMScreenEnvironment] = graphQL[DMScreenEnvironment, Queries, Mutations, Subscriptions](
-    RootResolver(
-      Queries(
-        campaigns = ZIO.serviceWithZIO[DND5eGameService](_.campaigns),
-        campaign = campaignId => ZIO.serviceWithZIO[DND5eGameService](_.campaign(campaignId)),
-        playerCharacters = campaignId => ZIO.serviceWithZIO[DND5eGameService](_.playerCharacters(campaignId)),
-        nonPlayerCharacters = campaignId => ZIO.serviceWithZIO[DND5eGameService](_.nonPlayerCharacters(campaignId)),
-        encounters = campaignId => ZIO.serviceWithZIO[DND5eGameService](_.encounters(campaignId)),
-        encounter = encounterId => ZIO.serviceWithZIO[DND5eGameService](_.encounter(encounterId)),
-        bestiary = search => ZIO.serviceWithZIO[DND5eGameService](_.bestiary(search)),
-        sources = ZIO.serviceWithZIO[DND5eGameService](_.sources),
-        classes = ZIO.serviceWithZIO[DND5eGameService](_.classes),
-        races = ZIO.serviceWithZIO[DND5eGameService](_.races),
-        backgrounds = ZIO.serviceWithZIO[DND5eGameService](_.backgrounds),
-        subclasses = characterClassId => ZIO.serviceWithZIO[DND5eGameService](_.subClasses(characterClassId))
-      ),
-      Mutations(event = event => ???),
-      Subscriptions(operationStream = operationStreamArgs => ???)
+  lazy val api: GraphQL[DND5eGameService[DMScreenServerEnvironment]] =
+    graphQL[DND5eGameService[DMScreenServerEnvironment], Queries, Mutations, Subscriptions](
+      RootResolver(
+        Queries(
+          campaigns = ZIO.serviceWithZIO[DND5eGameService[DMScreenServerEnvironment]](_.campaigns),
+          campaign =
+            campaignId => ZIO.serviceWithZIO[DND5eGameService[DMScreenServerEnvironment]](_.campaign(campaignId)),
+          playerCharacters = campaignId =>
+            ZIO.serviceWithZIO[DND5eGameService[DMScreenServerEnvironment]](_.playerCharacters(campaignId)),
+          nonPlayerCharacters = campaignId =>
+            ZIO.serviceWithZIO[DND5eGameService[DMScreenServerEnvironment]](_.nonPlayerCharacters(campaignId)),
+          encounters =
+            campaignId => ZIO.serviceWithZIO[DND5eGameService[DMScreenServerEnvironment]](_.encounters(campaignId)),
+          encounter =
+            encounterId => ZIO.serviceWithZIO[DND5eGameService[DMScreenServerEnvironment]](_.encounter(encounterId)),
+          bestiary = search => ZIO.serviceWithZIO[DND5eGameService[DMScreenServerEnvironment]](_.bestiary(search)),
+          sources = ZIO.serviceWithZIO[DND5eGameService[DMScreenServerEnvironment]](_.sources),
+          classes = ZIO.serviceWithZIO[DND5eGameService[DMScreenServerEnvironment]](_.classes),
+          races = ZIO.serviceWithZIO[DND5eGameService[DMScreenServerEnvironment]](_.races),
+          backgrounds = ZIO.serviceWithZIO[DND5eGameService[DMScreenServerEnvironment]](_.backgrounds),
+          subclasses = characterClassId =>
+            ZIO.serviceWithZIO[DND5eGameService[DMScreenServerEnvironment]](_.subClasses(characterClassId))
+        ),
+        Mutations(event = event => ???),
+        Subscriptions(operationStream = operationStreamArgs => ???)
+      )
     )
-  )
 
 }

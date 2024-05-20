@@ -33,29 +33,54 @@ import java.util.UUID
 
 object Content {
 
-  case class State()
+  private val connectionId = UUID.randomUUID().toString
 
-  class Backend($: BackendScope[Unit, State]) {
+  case class State(dmScreenState: DMScreenState)
+
+  class Backend($ : BackendScope[Unit, State]) {
+
     def render(s: State) = {
-      <.div(AppRouter())
+      DMScreenState.ctx.provide(s.dmScreenState) {
+        <.div(^.key := "contentDiv", ^.height := 100.pct, Confirm.render(), Toast.render(), AppRouter.router())
+      }
     }
+
   }
 
+  def refresh(initial: Boolean): Callback = {
+    val ajax = for {
+      oldState <- $.state.asAsyncCallback
+
+      // TODO use asyncCalibanCall to get all the pieces of data needed to create a new global state
+    } yield $.modState { s =>
+      import scala.language.unsafeNulls
+      val copy = if (initial) {
+        s.copy()
+      } else {
+        s
+      }
+
+      copy.copy()
+    }
+    for {
+      _ <- Callback.log(
+        if (initial) "Initializing Content Component" else "Refreshing Content Component"
+      )
+      modedState <- ajax.completeWith(_.get)
+    } yield modedState
+  }
 
   private val component = ScalaComponent
     .builder[Unit]("content")
     .initialState {
-      State()
+      // Get from window.sessionStorage anything that we may need later to fill in the state.
+      State(dmScreenState = DMScreenState())
     }
     .renderBackend[Backend]
-    .componentDidMount(
-      //_.backend.refresh(initial = true)()
-      $ =>
-        Callback.empty
-    )
+    .componentDidMount(_.backend.refresh(initial = true)())
     .componentWillUnmount($ =>
-      //TODO close down streams here
-      Callback.empty
+      Callback.log("Closing down operationStream") >>
+        $.state.dmScreenState.operationStream.fold(Callback.empty)(_.close())
     )
     .build
 

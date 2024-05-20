@@ -1,6 +1,6 @@
 package dmscreen.dnd5e
 
-import dmscreen.{EnvironmentBuilder, UserId}
+import dmscreen.{EnvironmentBuilder, JsonPath, Replace, UserId}
 import zio.*
 import zio.test.*
 import zio.json.*

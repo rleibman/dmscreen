@@ -22,17 +22,40 @@
 package dmscreen.dnd5e
 
 import dmscreen.DMScreenTab
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.component.Scala.Unmounted
+import japgolly.scalajs.react.vdom.html_<^.*
 
-object SceneTab extends DMScreenTab {
-  case class State(scenes: Seq[Scene] = Seq.empty)
+object BestiaryPage extends DMScreenTab {
 
-  class Backend($: BackendScope[Unit, State]) {
+  case class State(
+    monsters:    Seq[MonsterHeader] = Seq.empty,
+    currentPage: Int = 0
+  )
+
+  class Backend($ : BackendScope[Unit, State]) {
+
     def render(s: State) = {
-      <.div()
+      DMScreenState.ctx.consume { dmScreenState =>
+        <.div(
+          s.monsters.map { m =>
+            <.div(
+              m.name,
+              m.ac,
+              m.cr,
+              m.monsterType.toString,
+              m.biome.toString,
+              m.size.toString,
+              m.hp,
+              m.xp
+            )
+
+          }.toVdomArray
+        )
+      }
     }
+
   }
-
-
   private val component = ScalaComponent
     .builder[Unit]("router")
     .initialState {
@@ -40,16 +63,18 @@ object SceneTab extends DMScreenTab {
     }
     .renderBackend[Backend]
     .componentDidMount(
-      //_.backend.refresh(initial = true)()
-      $ =>
-        Callback.empty
+      // _.backend.refresh(initial = true)()
+      $ => Callback.empty
     )
     .componentWillUnmount($ =>
-      //TODO close down streams here
+      // TODO close down streams here
       Callback.empty
     )
     .build
 
-  def apply(scenes: Seq[Scene]): Unmounted[Unit, State, Backend] = component()
+  def apply(
+//    monsters:    Seq[MonsterHeader],
+//    currentPage: Int
+  ): Unmounted[Unit, State, Backend] = component()
 
 }

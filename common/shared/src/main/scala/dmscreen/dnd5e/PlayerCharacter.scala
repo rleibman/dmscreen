@@ -71,7 +71,9 @@ object CharacterClassId {
 
 case class CharacterClass(
   characterClassId: CharacterClassId,
-  name:             String
+  name:             String,
+  subclass:         Subclass,
+  level:            Int
 )
 
 case class Subclass(name: String)
@@ -88,9 +90,9 @@ enum Alignment {
 }
 
 enum AbilityType(
-  name:    String,
-  short:   String,
-  shorter: String
+  val name:    String,
+  val short:   String,
+  val shorter: String
 ) {
 
   case Strength extends AbilityType("Strength", "Str", "S")
@@ -121,7 +123,10 @@ enum Condition {
 
 }
 
-case class DeathSave()
+case class DeathSave(
+  fails:     Int,
+  successes: Int
+)
 
 case class SpellSlot()
 
@@ -194,7 +199,7 @@ case class PlayerCharacterInfo(
   adjustmentXp:            String,
   spellSlots:              List[SpellSlot],
   pactMagic:               List[SpellSlot],
-  langugaes:               List[String],
+  languages:               List[String],
   options:                 Options,
   choices:                 Choices,
   actions:                 Actions,

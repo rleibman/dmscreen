@@ -29,10 +29,10 @@ import java.util.concurrent.TimeUnit
 
 object DMScreen extends ZIOApp {
 
-  override type Environment = DMScreenEnvironment
+  override type Environment = DMScreenServerEnvironment
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
-  override def bootstrap: ULayer[DMScreenEnvironment] = EnvironmentBuilder.live
+  override def bootstrap: ULayer[DMScreenServerEnvironment] = EnvironmentBuilder.live
 
   private val defaultRouteZio: ZIO[ConfigurationService, ConfigurationError, Routes[ConfigurationService, Throwable]] =
     for {
@@ -76,10 +76,12 @@ object DMScreen extends ZIOApp {
     _             <- ZIO.log("Initializing Routes")
     defaultRoutes <- defaultRouteZio
     start         <- Clock.currentTime(TimeUnit.MILLISECONDS)
-  } yield (defaultRoutes ++ StaticRoutes.authRoute)
+  } yield (StaticRoutes.unauthRoute /*Move this to after there's a user*/ ++
+    StaticRoutes.authRoute ++
+    defaultRoutes)
     .handleError(mapError).toHttpApp
 
-  override def run: ZIO[DMScreenEnvironment & ZIOAppArgs & Scope, Throwable, ExitCode] = {
+  override def run: ZIO[DMScreenServerEnvironment & ZIOAppArgs & Scope, Throwable, ExitCode] = {
     // Configure thread count using CLI
     for {
       config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
@@ -95,7 +97,7 @@ object DMScreen extends ZIOApp {
           .serve(app)
           .zipLeft(ZIO.logInfo(s"Server Started on ${config.dmscreen.port}"))
           .tapErrorCause(ZIO.logErrorCause(s"Server on port ${config.dmscreen.port} has unexpectedly stopped", _))
-          .provideSome[DMScreenEnvironment](serverConfig, Server.live)
+          .provideSome[DMScreenServerEnvironment](serverConfig, Server.live)
           .foldCauseZIO(
             cause => ZIO.logErrorCause("err when booting server", cause).exitCode,
             _ => ZIO.logError("app quit unexpectedly...").exitCode

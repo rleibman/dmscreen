@@ -23,14 +23,15 @@ package dmscreen.routes
 
 import caliban.*
 import caliban.schema.GenericSchema
-import dmscreen.DMScreenEnvironment
+import dmscreen.DMScreenServerEnvironment
 import dmscreen.dnd5e.{DND5eAPI, DND5eGameService}
 import zio.IO
 import zio.http.*
 
 object DND5eRoutes {
 
-  lazy val interpreter: IO[Throwable, GraphQLInterpreter[DMScreenEnvironment, CalibanError]] = DND5eAPI.api.interpreter
+  lazy val interpreter: IO[Throwable, GraphQLInterpreter[DMScreenServerEnvironment, CalibanError]] =
+    DND5eAPI.api.interpreter
 
   lazy val route =
     for {

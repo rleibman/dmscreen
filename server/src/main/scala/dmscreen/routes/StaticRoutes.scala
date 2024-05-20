@@ -22,6 +22,7 @@
 package dmscreen.routes
 
 import dmscreen.ConfigurationService
+import dmscreen.routes.StaticRoutes.file
 import zio.http.*
 import zio.*
 import zio.http.codec.HttpCodec.NotFound
@@ -57,6 +58,15 @@ object StaticRoutes {
       case null => ZIO.fail(Exception(s"HttpError.InternalServerError(Could not find file $fileName))"))
     }
   }
+  private def file(
+    fileName: String
+  ): IO[Exception, java.io.File] = {
+    JPaths.get(fileName) match {
+      case path: java.nio.file.Path if !Files.exists(path) => ZIO.fail(Exception(s"NotFound($fileName)"))
+      case path: java.nio.file.Path                        => ZIO.succeed(path.toFile.nn)
+      case null => ZIO.fail(Exception(s"HttpError.InternalServerError(Could not find file $fileName))"))
+    }
+  }
 
   val unauthRoute: Routes[ConfigurationService, Throwable] = Routes(
     Method.GET / "loginForm" -> handler { (request: Request) =>
@@ -68,17 +78,19 @@ object StaticRoutes {
         } yield file
       }
     }.flatten,
-    Method.ANY / "unauth" / string("somethingElse") -> handler {
+    Method.ANY / "unauth" / trailing -> handler {
       (
-        somethingElse: String,
-        request:       Request
+        path:    Path,
+        request: Request
       ) =>
+        val somethingElse = path.toString
+
         if (authNotRequired(somethingElse)) {
           Handler.fromFileZIO {
             for {
               config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
               staticContentDir = config.dmscreen.staticContentDir
-              file <- file(s"$staticContentDir/$somethingElse", request)
+              file <- file(s"$staticContentDir/$somethingElse")
             } yield file
           }
         } else {
@@ -98,12 +110,14 @@ object StaticRoutes {
           } yield file
         }
       }.flatten,
-      Method.GET / string("somethingElse") -> handler {
+      Method.GET / trailing -> handler {
         (
-          somethingElse: String,
-          request:       Request
+          path:    Path,
+          request: Request
         ) =>
           Handler.fromFileZIO {
+            val somethingElse = path.toString
+
             if (somethingElse == "/") {
               for {
                 config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)

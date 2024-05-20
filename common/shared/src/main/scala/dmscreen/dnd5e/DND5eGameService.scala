@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{DMScreenEnvironment, DMScreenError, GameService}
+import dmscreen.{DMScreenError, GameService, Operation}
 import zio.*
 import zio.json.ast.Json
 
@@ -57,45 +57,48 @@ case class Source(
   url:      String
 )
 
-trait DND5eGameService extends GameService {
+trait DND5eGameService[Environment] extends GameService {
 
-  def campaigns: ZIO[DMScreenEnvironment, DMScreenError, Seq[CampaignHeader]]
+  def campaigns: ZIO[Environment, DMScreenError, Seq[CampaignHeader]]
 
-  def campaign(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Option[Campaign]]
+  def campaign(campaignId: CampaignId): ZIO[Environment, DMScreenError, Option[Campaign]]
 
   def insert(
     campaignHeader: CampaignHeader,
     info:           Json
-  ): ZIO[DMScreenEnvironment, DMScreenError, CampaignId]
+  ): ZIO[Environment, DMScreenError, CampaignId]
 
-  def applyOperation(
+  def applyOperation[IDType](
+    id:        IDType,
+    operation: Operation
+  ): ZIO[Environment, DMScreenError, Unit]
+
+  def delete(
     campaignId: CampaignId,
-    operation:  Operation
-  ): ZIO[DMScreenEnvironment, DMScreenError, Unit]
+    softDelete: Boolean = true
+  ): ZIO[Environment, DMScreenError, Unit]
 
-  def delete(campaignId: CampaignId, softDelete: Boolean = true): ZIO[DMScreenEnvironment, DMScreenError, Unit]
+  def playerCharacters(campaignId: CampaignId): ZIO[Environment, DMScreenError, Seq[PlayerCharacter]]
 
-  def playerCharacters(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Seq[PlayerCharacter]]
+  def nonPlayerCharacters(campaignId: CampaignId): ZIO[Environment, DMScreenError, Seq[NonPlayerCharacter]]
 
-  def nonPlayerCharacters(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Seq[NonPlayerCharacter]]
+  def encounters(campaignId: CampaignId): ZIO[Environment, DMScreenError, Seq[EncounterHeader]]
 
-  def encounters(campaignId: CampaignId): ZIO[DMScreenEnvironment, DMScreenError, Seq[EncounterHeader]]
-
-  def encounter(encounterId: EncounterId): ZIO[DMScreenEnvironment, DMScreenError, Seq[Encounter]]
+  def encounter(encounterId: EncounterId): ZIO[Environment, DMScreenError, Seq[Encounter]]
 
   // Stuff that's generic to all campaigns
 
-  def bestiary(search: MonsterSearch): ZIO[DMScreenEnvironment, DMScreenError, Seq[Monster]]
+  def bestiary(search: MonsterSearch): ZIO[Environment, DMScreenError, Seq[Monster]]
 
-  def sources: ZIO[DMScreenEnvironment, DMScreenError, Seq[Source]]
+  def sources: ZIO[Environment, DMScreenError, Seq[Source]]
 
-  def classes: ZIO[DMScreenEnvironment, DMScreenError, Seq[CharacterClass]]
+  def classes: ZIO[Environment, DMScreenError, Seq[CharacterClass]]
 
-  def races: ZIO[DMScreenEnvironment, DMScreenError, Seq[Race]]
+  def races: ZIO[Environment, DMScreenError, Seq[Race]]
 
-  def backgrounds: ZIO[DMScreenEnvironment, DMScreenError, Seq[Background]]
+  def backgrounds: ZIO[Environment, DMScreenError, Seq[Background]]
 
-  def subClasses(characterClass: CharacterClassId): ZIO[DMScreenEnvironment, DMScreenError, Seq[Subclass]]
+  def subClasses(characterClass: CharacterClassId): ZIO[Environment, DMScreenError, Seq[Subclass]]
 
 }
 
