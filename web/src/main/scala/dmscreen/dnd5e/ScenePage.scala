@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.DMScreenTab
+import dmscreen.{DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -36,7 +36,7 @@ object ScenePage extends DMScreenTab {
       DMScreenState.ctx.consume { dmScreenState =>
         dmScreenState.campaignState.fold {
           <.div("Campaign Loading")
-        } { (campaignState: DND5eCampaignState) =>
+        } { case campaignState: DND5eCampaignState =>
           val campaign = campaignState.campaign
           <.div()
         }

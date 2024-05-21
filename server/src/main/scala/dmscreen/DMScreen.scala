@@ -29,10 +29,10 @@ import java.util.concurrent.TimeUnit
 
 object DMScreen extends ZIOApp {
 
-  override type Environment = DMScreenServerEnvironment
+  override type Environment = DMScreenServerEnvironment & ConfigurationService
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
-  override def bootstrap: ULayer[DMScreenServerEnvironment] = EnvironmentBuilder.live
+  override def bootstrap: ULayer[DMScreenServerEnvironment & ConfigurationService] = EnvironmentBuilder.live
 
   private val defaultRouteZio: ZIO[ConfigurationService, ConfigurationError, Routes[ConfigurationService, Throwable]] =
     for {
@@ -81,7 +81,7 @@ object DMScreen extends ZIOApp {
     defaultRoutes)
     .handleError(mapError).toHttpApp
 
-  override def run: ZIO[DMScreenServerEnvironment & ZIOAppArgs & Scope, Throwable, ExitCode] = {
+  override def run: ZIO[Environment & ZIOAppArgs & Scope, Throwable, ExitCode] = {
     // Configure thread count using CLI
     for {
       config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
@@ -97,7 +97,7 @@ object DMScreen extends ZIOApp {
           .serve(app)
           .zipLeft(ZIO.logInfo(s"Server Started on ${config.dmscreen.port}"))
           .tapErrorCause(ZIO.logErrorCause(s"Server on port ${config.dmscreen.port} has unexpectedly stopped", _))
-          .provideSome[DMScreenServerEnvironment](serverConfig, Server.live)
+          .provideSome[Environment](serverConfig, Server.live)
           .foldCauseZIO(
             cause => ZIO.logErrorCause("err when booting server", cause).exitCode,
             _ => ZIO.logError("app quit unexpectedly...").exitCode

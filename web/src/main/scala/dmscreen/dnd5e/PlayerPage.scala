@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.DMScreenTab
+import dmscreen.{DMScreenState, DMScreenTab}
 import dmscreen.dnd5e.NPCPage.State
 import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Unmounted
@@ -37,33 +37,33 @@ object PlayerPage extends DMScreenTab {
       DMScreenState.ctx.consume { dmScreenState =>
         dmScreenState.campaignState.fold {
           <.div("Campaign Loading")
-        } { (campaignState: DND5eCampaignState) =>
+        } { case campaignState: DND5eCampaignState =>
           val campaign = campaignState.campaign
-        <.div(
-          campaignState.pcs.map { pc =>
-            <.div(
-              pc.info.name,
-              pc.info.alignment.toString,
-              pc.info.race.name,
-              pc.info.faith,
-              pc.info.classes.map(c => s"${c.name}: ${c.subclass.name} (l ${c.level})").mkString(", "),
-              pc.info.abilities
-                .map(a => <.div(^.className := "shortAbility", s"${a.abilityType.short}${a.value}")).toVdomArray,
-              <.div(^.className := "hitPoints", s"${pc.info.baseHitPoints}"),
-              pc.info.armorClass,
-              pc.info.background.name,
-              pc.info.conditions.map(_.toString).mkString(", "),
-              pc.info.deathSaves.successes,
-              pc.info.feats.map(f => s"${f.name}").mkString(", "),
-              pc.info.inspiration.toString,
-              pc.info.modifiers.toString,
-              pc.info.notes,
-              pc.info.languages.mkString(","),
-              pc.info.traits.toString
-            )
+          <.div(
+            campaignState.pcs.map { pc =>
+              <.div(
+                pc.info.name,
+                pc.info.alignment.toString,
+                pc.info.race.name,
+                pc.info.faith,
+                pc.info.classes.map(c => s"${c.name}: ${c.subclass.name} (l ${c.level})").mkString(", "),
+                pc.info.abilities
+                  .map(a => <.div(^.className := "shortAbility", s"${a.abilityType.short}${a.value}")).toVdomArray,
+                <.div(^.className := "hitPoints", s"${pc.info.baseHitPoints}"),
+                pc.info.armorClass,
+                pc.info.background.name,
+                pc.info.conditions.map(_.toString).mkString(", "),
+                pc.info.deathSaves.successes,
+                pc.info.feats.map(f => s"${f.name}").mkString(", "),
+                pc.info.inspiration.toString,
+                pc.info.modifiers.toString,
+                pc.info.notes,
+                pc.info.languages.mkString(","),
+                pc.info.traits.toString
+              )
 
-          }.toVdomArray
-        )
+            }.toVdomArray
+          )
         }
       }
     }

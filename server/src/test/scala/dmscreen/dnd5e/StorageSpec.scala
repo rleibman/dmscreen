@@ -25,7 +25,7 @@ object StorageSpec extends ZIOSpecDefault {
           newCampaigns     <- service.campaigns
           afterNewCampaign <- service.campaign(newCampaignId)
           _ <- service.applyOperation(
-            campaignId = newCampaignId,
+            id = newCampaignId,
             operation = Replace(JsonPath("$.notes"), Json.Str("These are some updated notes"))
           )
           updatedCampaigns <- service.campaigns

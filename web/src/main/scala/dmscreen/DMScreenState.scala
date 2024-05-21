@@ -1,5 +1,10 @@
 package dmscreen
 
+import caliban.client.scalajs.WebSocketHandler
+import japgolly.scalajs.react.React.Context
+import japgolly.scalajs.react.{Callback, React}
+import org.scalajs.dom.window
+
 trait CampaignState
 
 case class DMScreenState(

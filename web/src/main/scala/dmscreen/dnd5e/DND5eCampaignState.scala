@@ -4,7 +4,7 @@ import dmscreen.CampaignState
 
 case class DND5eCampaignState(
   campaign:   Campaign,
-  pcs:        Seq[CharacterPlayer] = Seq.empty,
-  npcs:       Seq[NonCharacterPlayer] = Seq.empty,
+  pcs:        Seq[PlayerCharacter] = Seq.empty,
+  npcs:       Seq[NonPlayerCharacter] = Seq.empty,
   encounters: Seq[Encounter] = Seq.empty
 ) extends CampaignState

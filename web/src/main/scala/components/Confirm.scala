@@ -18,7 +18,7 @@ package components
 
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{BackendScope, Callback, Ref, ScalaComponent}
-import net.leibman.chuti.semanticUiReact.components.{Confirm => SuiConfirm}
+import net.leibman.dmscreen.semanticUiReact.components.Confirm as SuiConfirm
 
 object Confirm {
 

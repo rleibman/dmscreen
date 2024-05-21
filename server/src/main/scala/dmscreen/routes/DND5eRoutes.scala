@@ -30,8 +30,7 @@ import zio.http.*
 
 object DND5eRoutes {
 
-  lazy val interpreter: IO[Throwable, GraphQLInterpreter[DMScreenServerEnvironment, CalibanError]] =
-    DND5eAPI.api.interpreter
+  lazy private val interpreter = DND5eAPI.api.interpreter
 
   lazy val route =
     for {

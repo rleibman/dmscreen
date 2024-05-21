@@ -16,20 +16,18 @@
 
 package caliban.client.scalajs
 
-import _root_.util.Config
+import dmscreen.ClientConfiguration
 import caliban.client.CalibanClientError.{DecodingError, ServerError}
 import caliban.client.Operations.{IsOperation, RootSubscription}
-import caliban.client.{GraphQLRequest, GraphQLResponse, SelectionBuilder}
-import io.circe.generic.auto.*
-import io.circe.parser.*
-import io.circe.syntax.*
-import io.circe.{Decoder, Error, Json}
+import caliban.client.*
 import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.{AsyncCallback, Callback}
 import org.scalajs.dom.WebSocket
 import sttp.capabilities
 import sttp.client3.*
 import zio.*
+import zio.json.*
+import zio.json.ast.*
 
 import java.net.URI
 import java.time.Instant
@@ -43,9 +41,23 @@ trait WebSocketHandler {
 
 }
 
+given JsonDecoder[caliban.client.__Value] = ???
+given JsonDecoder[caliban.client.__Value.__ObjectValue] = ???
+given JsonDecoder[GraphQLResponseError.Location] = JsonDecoder.derived[GraphQLResponseError.Location]
+given JsonDecoder[GraphQLResponseError] = JsonDecoder.derived[GraphQLResponseError]
+given JsonDecoder[GraphQLResponse] = JsonDecoder.derived[GraphQLResponse]
+given JsonDecoder[GraphQLRequest] = JsonDecoder.derived[GraphQLRequest]
+
+given JsonEncoder[caliban.client.__Value] = ???
+given JsonEncoder[caliban.client.__Value.__ObjectValue] = ???
+given JsonEncoder[GraphQLResponseError.Location] = JsonEncoder.derived[GraphQLResponseError.Location]
+given JsonEncoder[GraphQLResponseError] = JsonEncoder.derived[GraphQLResponseError]
+given JsonEncoder[GraphQLResponse] = JsonEncoder.derived[GraphQLResponse]
+given JsonEncoder[GraphQLRequest] = JsonEncoder.derived[GraphQLRequest]
+
 trait ScalaJSClientAdapter extends TimerSupport {
 
-  val serverUri = uri"http://${Config.chutiHost}/api/game"
+  val serverUri = uri"http://${ClientConfiguration.config.host}/api/game"
   given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
 
   def asyncCalibanCall[Origin, A](
@@ -63,17 +75,18 @@ trait ScalaJSClientAdapter extends TimerSupport {
       })
   }
 
-  def asyncCalibanCallThroughJsonOpt[Origin, A: Decoder](
+  def asyncCalibanCallThroughJsonOpt[Origin, A: JsonDecoder](
     selectionBuilder: SelectionBuilder[Origin, Option[Json]]
   )(using ev:         IsOperation[Origin]
   ): AsyncCallback[Option[A]] =
     asyncCalibanCall[Origin, Option[Json]](selectionBuilder).map { jsonOpt =>
       import scala.language.unsafeNulls
-      val decoder = summon[Decoder[A]]
-      jsonOpt.map(decoder.decodeJson) match {
+      val decoder = summon[JsonDecoder[A]]
+
+      jsonOpt.map(decoder.fromJsonAST) match {
         case Some(Right(value)) => Some(value)
         case Some(Left(error)) =>
-          Callback.throwException(error).runNow()
+          Callback.throwException(new Exception(error)).runNow()
           None
         case None => None
       }
@@ -105,7 +118,7 @@ trait ScalaJSClientAdapter extends TimerSupport {
       }
   }
 
-  def calibanCallThroughJsonOpt[Origin, A: Decoder](
+  def calibanCallThroughJsonOpt[Origin, A: JsonDecoder](
     selectionBuilder: SelectionBuilder[Origin, Option[Json]],
     callback:         Option[A] => Callback
   )(using ev:         IsOperation[Origin]
@@ -115,8 +128,8 @@ trait ScalaJSClientAdapter extends TimerSupport {
       {
         case Some(json) =>
           import scala.language.unsafeNulls
-          val decoder = summon[Decoder[A]]
-          decoder.decodeJson(json) match {
+          val decoder = summon[JsonDecoder[A]]
+          decoder.fromJsonAST(json) match {
             case Right(obj) => callback(Option(obj))
             case Left(error) =>
               Callback.log(s"3 Error: $error") // TODO handle error responses better
@@ -125,7 +138,7 @@ trait ScalaJSClientAdapter extends TimerSupport {
       }
     )
 
-  def calibanCallThroughJson[Origin, A: Decoder](
+  def calibanCallThroughJson[Origin, A: JsonDecoder](
     selectionBuilder: SelectionBuilder[Origin, Json],
     callback:         A => Callback
   )(using ev:         IsOperation[Origin]
@@ -134,8 +147,8 @@ trait ScalaJSClientAdapter extends TimerSupport {
       selectionBuilder,
       { json =>
         import scala.language.unsafeNulls
-        val decoder = summon[Decoder[A]]
-        decoder.decodeJson(json) match {
+        val decoder = summon[JsonDecoder[A]]
+        decoder.fromJsonAST(json) match {
           case Right(obj) => callback(obj)
           case Left(error) =>
             Callback.log(s"4 Error: $error") // TODO handle error responses better
@@ -150,6 +163,9 @@ trait ScalaJSClientAdapter extends TimerSupport {
     id:      Option[String] = None,
     payload: Option[Json] = None
   )
+
+  given JsonDecoder[GQLOperationMessage] = JsonDecoder.derived[GQLOperationMessage]
+  given JsonEncoder[GQLOperationMessage] = JsonEncoder.derived[GQLOperationMessage]
 
   object GQLOperationMessage {
 
@@ -170,10 +186,9 @@ trait ScalaJSClientAdapter extends TimerSupport {
   }
 
   import scala.language.unsafeNulls
-  lazy private[caliban] val graphQLDecoder = summon[Decoder[GraphQLResponse]]
 
   // TODO we will replace this with some zio thing as soon as I figure out how, maybe replace all callbacks to zios?
-  def makeWebSocketClient[A: Decoder](
+  def makeWebSocketClient[A: JsonDecoder](
     uriOrSocket:      Either[URI, WebSocket],
     query:            SelectionBuilder[RootSubscription, A],
     operationId:      String,
@@ -220,7 +235,7 @@ trait ScalaJSClientAdapter extends TimerSupport {
         GQLOperationMessage(GQL_CONNECTION_INIT, Option(operationId), connectionParams)
 
       def GQLStart(query: GraphQLRequest): GQLOperationMessage =
-        GQLOperationMessage(GQL_START, Option(operationId), payload = Option(query.asJson))
+        GQLOperationMessage(GQL_START, Option(operationId), payload = query.toJsonAST.toOption)
 
       def GQLStop(): GQLOperationMessage = GQLOperationMessage(GQL_STOP, Option(operationId))
 
@@ -249,14 +264,13 @@ trait ScalaJSClientAdapter extends TimerSupport {
         if (!connectionState.closed) {
           val sendMe = GQLConnectionInit()
           println(s"Sending: $sendMe")
-          socket.send(sendMe.asJson.noSpaces)
+          socket.send(sendMe.toJson)
         } else println("Connection is already closed")
       }
 
       socket.onmessage = { (e: org.scalajs.dom.MessageEvent) =>
         val strMsg = e.data.toString
-        val msg: Either[Error, GQLOperationMessage] =
-          decode[GQLOperationMessage](strMsg)
+        val msg: Either[String, GQLOperationMessage] = strMsg.fromJson[GQLOperationMessage]
 //      println(s"Received: $strMsg")
         msg match {
           case Right(GQLOperationMessage(GQL_COMPLETE, id, payload)) =>
@@ -279,7 +293,7 @@ trait ScalaJSClientAdapter extends TimerSupport {
             } else onReconnected(id.getOrElse(""), payload).runNow()
             val sendMe = GQLStart(graphql)
             println(s"Sending: $sendMe")
-            socket.send(sendMe.asJson.noSpaces)
+            socket.send(sendMe.toJson)
           case Right(GQLOperationMessage(GQL_CONNECTION_ERROR, id, payload)) =>
             // if this is part of the initial connection, there's nothing to do, we could't connect and that's that.
             onServerError(id.getOrElse(""), payload).runNow()
@@ -325,10 +339,10 @@ trait ScalaJSClientAdapter extends TimerSupport {
               val res = for {
                 payload <- payloadOpt.toRight(DecodingError("No payload"))
                 parsed <-
-                  graphQLDecoder
-                    .decodeJson(payload)
+                  payload
+                    .as[GraphQLResponse]
                     .left
-                    .map(ex => DecodingError("Json deserialization error", Some(ex)))
+                    .map(ex => DecodingError(s"Json deserialization error: $ex"))
                 data <-
                   if (parsed.errors.nonEmpty) Left(ServerError(parsed.errors))
                   else Right(parsed.data)
@@ -356,8 +370,7 @@ trait ScalaJSClientAdapter extends TimerSupport {
           case Right(GQLOperationMessage(typ, id, payload)) =>
             println(s"Unknown server operation! $typ $payload $id")
           case Left(error) =>
-            onClientError(error)
-            error.printStackTrace()
+            onClientError(DecodingError(error))
         }
       }
       socket.onerror = { (e: org.scalajs.dom.Event) =>
@@ -379,8 +392,8 @@ trait ScalaJSClientAdapter extends TimerSupport {
           Callback.log(s"Closing socket: $query") >> Callback {
             connectionState = connectionState.copy(closed = true)
             connectionState.kaIntervalOpt.foreach(id => org.scalajs.dom.window.clearInterval(id))
-            socket.send(GQLStop().asJson.noSpaces)
-            socket.send(GQLConnectionTerminate().asJson.noSpaces)
+            socket.send(GQLStop().toJson)
+            socket.send(GQLConnectionTerminate().toJson)
             socket.close()
           }
         } else

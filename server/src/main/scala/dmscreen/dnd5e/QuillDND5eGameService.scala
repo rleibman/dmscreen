@@ -22,6 +22,14 @@
 package dmscreen.dnd5e
 
 import dmscreen.*
+import io.getquill.extras.*
+import io.getquill.jdbczio.Quill
+import io.getquill.{query as qquery, *}
+import zio.*
+import zio.json.*
+import zio.json.ast.Json
+
+import javax.sql.DataSource
 
 object QuillDND5eGameService {
 
@@ -45,11 +53,11 @@ object QuillDND5eGameService {
 
   }
 
-  def db: ZLayer[ConfigurationService, ConfigurationError, DND5eGameService[DMScreenServerEnvironment]] =
+  def db: ZLayer[ConfigurationService, ConfigurationError, DND5eGameService] =
     ZLayer.fromZIO {
       for {
         config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
-      } yield new DND5eGameService[DMScreenServerEnvironment]() {
+      } yield new DND5eGameService() {
 
         private object ctx extends MysqlZioJdbcContext(MysqlEscape)
 
@@ -73,7 +81,7 @@ object QuillDND5eGameService {
             querySchema[CampaignRow]("campaign")
           }
 
-        override def campaigns: ZIO[DMScreenServerEnvironment, DMScreenError, Seq[CampaignHeader]] =
+        override def campaigns: ZIO[Any, DMScreenError, Seq[CampaignHeader]] =
           ctx
             .run(qCampaigns.map(a => (a.id, a.dm, a.name, a.gameSystem)))
             .map(
@@ -89,42 +97,37 @@ object QuillDND5eGameService {
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
 
-        override def campaign(campaignId: CampaignId): ZIO[DMScreenServerEnvironment, DMScreenError, Option[Campaign]] =
+        override def campaign(campaignId: CampaignId): ZIO[Any, DMScreenError, Option[Campaign]] =
           ctx
             .run(qCampaigns.filter(_.id == lift(campaignId.value)))
             .map(_.headOption.map(_.toCampaign))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
 
-        override def playerCharacters(campaignId: CampaignId)
-          : ZIO[DMScreenServerEnvironment, DMScreenError, Seq[PlayerCharacter]] = ???
+        override def playerCharacters(campaignId: CampaignId): ZIO[Any, DMScreenError, Seq[PlayerCharacter]] = ???
 
-        override def nonPlayerCharacters(campaignId: CampaignId)
-          : ZIO[DMScreenServerEnvironment, DMScreenError, Seq[NonPlayerCharacter]] = ???
+        override def nonPlayerCharacters(campaignId: CampaignId): ZIO[Any, DMScreenError, Seq[NonPlayerCharacter]] = ???
 
-        override def encounters(campaignId: CampaignId)
-          : ZIO[DMScreenServerEnvironment, DMScreenError, Seq[EncounterHeader]] = ???
+        override def encounters(campaignId: CampaignId): ZIO[Any, DMScreenError, Seq[EncounterHeader]] = ???
 
-        override def encounter(encounterId: EncounterId)
-          : ZIO[DMScreenServerEnvironment, DMScreenError, Seq[Encounter]] = ???
+        override def encounter(encounterId: EncounterId): ZIO[Any, DMScreenError, Seq[Encounter]] = ???
 
-        override def bestiary(search: MonsterSearch): ZIO[DMScreenServerEnvironment, DMScreenError, Seq[Monster]] = ???
+        override def bestiary(search: MonsterSearch): ZIO[Any, DMScreenError, Seq[Monster]] = ???
 
-        override def sources: ZIO[DMScreenServerEnvironment, DMScreenError, Seq[Source]] = ???
+        override def sources: ZIO[Any, DMScreenError, Seq[Source]] = ???
 
-        override def classes: ZIO[DMScreenServerEnvironment, DMScreenError, Seq[CharacterClass]] = ???
+        override def classes: ZIO[Any, DMScreenError, Seq[CharacterClass]] = ???
 
-        override def races: ZIO[DMScreenServerEnvironment, DMScreenError, Seq[Race]] = ???
+        override def races: ZIO[Any, DMScreenError, Seq[Race]] = ???
 
-        override def backgrounds: ZIO[DMScreenServerEnvironment, DMScreenError, Seq[Background]] = ???
+        override def backgrounds: ZIO[Any, DMScreenError, Seq[Background]] = ???
 
-        override def subClasses(characterClass: CharacterClassId)
-          : ZIO[DMScreenServerEnvironment, DMScreenError, Seq[Subclass]] = ???
+        override def subClasses(characterClass: CharacterClassId): ZIO[Any, DMScreenError, Seq[Subclass]] = ???
 
         override def insert(
           header: CampaignHeader,
           info:   Json
-        ): ZIO[DMScreenServerEnvironment, DMScreenError, CampaignId] = {
+        ): ZIO[Any, DMScreenError, CampaignId] = {
           ctx
             .run(
               qCampaigns
@@ -170,17 +173,17 @@ object QuillDND5eGameService {
 
         override def applyOperation[IDType](
           id:        IDType,
-          operation: Operation
-        ) =
-          id match {
-            case id: CampaignId => applyOperation(campaignId, operation)
-            case _ => ZIO.fail(DMScreenError("Can't apply operation to an id $id"))
-          }
+          operation: DMScreenOperation
+        ) = ???
+//          id match {
+//            case CampaignId(_) => applyOperation(id, operation)
+//            case _ => ZIO.fail(DMScreenError("Can't apply operation to an id $id"))
+//          }
 
         def applyOperation(
           campaignId: CampaignId,
-          operation:  Operation
-        ): ZIO[DMScreenServerEnvironment, DMScreenError, Unit] = {
+          operation:  DMScreenOperation
+        ): ZIO[Any, DMScreenError, Unit] = {
           // UPDATE t SET json_col = JSON_SET(json_col, '$.name', 'Knut') WHERE id = 123
           (operation match {
             case Add(path, value) =>
@@ -217,7 +220,7 @@ object QuillDND5eGameService {
         override def delete(
           campaignId: CampaignId,
           softDelete: Boolean
-        ): ZIO[DMScreenServerEnvironment, DMScreenError, Unit] = {
+        ): ZIO[Any, DMScreenError, Unit] = {
           // TODO implement soft deletes
           ctx
             .run(qCampaigns.filter(_.id == lift(campaignId.value)).delete)

@@ -21,6 +21,7 @@
 
 package dmscreen
 
+import components.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.extra.TimerSupport
@@ -45,29 +46,29 @@ object Content {
       }
     }
 
-  }
+    def refresh(initial: Boolean): Callback = {
+      val ajax = for {
+        oldState <- $.state.asAsyncCallback
 
-  def refresh(initial: Boolean): Callback = {
-    val ajax = for {
-      oldState <- $.state.asAsyncCallback
+        // TODO use asyncCalibanCall to get all the pieces of data needed to create a new global state
+      } yield $.modState { s =>
+        import scala.language.unsafeNulls
+        val copy = if (initial) {
+          s.copy()
+        } else {
+          s
+        }
 
-      // TODO use asyncCalibanCall to get all the pieces of data needed to create a new global state
-    } yield $.modState { s =>
-      import scala.language.unsafeNulls
-      val copy = if (initial) {
-        s.copy()
-      } else {
-        s
+        copy.copy()
       }
-
-      copy.copy()
+      for {
+        _ <- Callback.log(
+          if (initial) "Initializing Content Component" else "Refreshing Content Component"
+        )
+        modedState <- ajax.completeWith(_.get)
+      } yield modedState
     }
-    for {
-      _ <- Callback.log(
-        if (initial) "Initializing Content Component" else "Refreshing Content Component"
-      )
-      modedState <- ajax.completeWith(_.get)
-    } yield modedState
+
   }
 
   private val component = ScalaComponent
@@ -77,7 +78,7 @@ object Content {
       State(dmScreenState = DMScreenState())
     }
     .renderBackend[Backend]
-    .componentDidMount(_.backend.refresh(initial = true)())
+    .componentDidMount(_.backend.refresh(initial = true))
     .componentWillUnmount($ =>
       Callback.log("Closing down operationStream") >>
         $.state.dmScreenState.operationStream.fold(Callback.empty)(_.close())

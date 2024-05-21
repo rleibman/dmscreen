@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.DMScreenTab
+import dmscreen.{DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*

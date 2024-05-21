@@ -21,7 +21,6 @@
 
 package dmscreen
 
-import dmscreen.dnd5e.JsonPath
 import zio.json.ast.Json
 
 enum EventType {
@@ -32,31 +31,31 @@ enum EventType {
 
 case class JsonPath(value: String)
 
-sealed trait Operation
+sealed trait DMScreenOperation
 
 case class Add(
   path:  JsonPath,
   value: Json
-) extends Operation
+) extends DMScreenOperation
 
 case class Copy(
   from: JsonPath,
   to:   JsonPath
-) extends Operation
+) extends DMScreenOperation
 
 case class Move(
   from: JsonPath,
   to:   JsonPath
-) extends Operation
+) extends DMScreenOperation
 
-case class Remove(path: JsonPath) extends Operation
+case class Remove(path: JsonPath) extends DMScreenOperation
 
 case class Replace(
   path:  JsonPath,
   value: Json
-) extends Operation
+) extends DMScreenOperation
 
 case class Test(
   path:  JsonPath,
   value: Json
-) extends Operation
+) extends DMScreenOperation

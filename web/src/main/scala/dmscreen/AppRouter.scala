@@ -29,10 +29,10 @@ import japgolly.scalajs.react.*
 import net.leibman.dmscreen.std.*
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
-import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticWIDTHS
 import net.leibman.dmscreen.semanticUiReact.distCommonjsCollectionsMenuMenuItemMod.MenuItemProps
 import dmscreen.dnd5e.*
 import org.scalajs.dom.HTMLAnchorElement
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticWIDTHS
 
 object AppRouter {
 
