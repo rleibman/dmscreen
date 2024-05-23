@@ -19,33 +19,23 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.routes
+package dmscreen
 
-import caliban.*
-import caliban.schema.GenericSchema
-import dmscreen.DMScreenServerEnvironment
-import dmscreen.dnd5e.{DND5eAPI, DND5eGameService}
 import zio.{IO, ZIO}
-import zio.http.*
+import zio.json.ast.Json
+import zio.json.{JsonDecoder, JsonEncoder}
 
-object DND5eRoutes {
+trait HasId[Id] {
 
-  lazy private val interpreter = DND5eAPI.api.interpreter
+  def id: Id
 
-  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment, Nothing]] =
-    for {
-      interpreter <- interpreter
-    } yield {
-      Routes(
-        Method.ANY / "api" / "dnd5e" ->
-          QuickAdapter(interpreter).handlers.api,
-        Method.ANY / "api" / "dnd5e" / "graphiql" ->
-          GraphiQLHandler.handler(apiPath = "/api/dnd5e", graphiqlPath = "/api/dnd5e/graphiql"),
-        Method.GET / "api" / "dnd5e" / "schema" ->
-          Handler.fromBody(Body.fromCharSequence(DND5eAPI.api.render)),
-        Method.POST / "api" / "dnd5e" / "upload" ->
-          QuickAdapter(interpreter).handlers.upload
-      )
-    }
+}
+
+trait DMScreenEntity[Id, Header <: HasId[Id], Info: JsonEncoder: JsonDecoder] {
+
+  def header:   Header
+  def jsonInfo: Json
+  final def id = header.id
+  final def info: Either[DMScreenError, Info] = jsonInfo.as[Info].left.map(DMScreenError(_))
 
 }

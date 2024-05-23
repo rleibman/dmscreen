@@ -21,7 +21,7 @@
 
 package dmscreen
 
-import dmscreen.routes.StaticRoutes
+import dmscreen.routes.*
 import zio.*
 import zio.http.*
 
@@ -75,8 +75,10 @@ object DMScreen extends ZIOApp {
   val zapp: RIO[Environment, HttpApp[Environment]] = for {
     _             <- ZIO.log("Initializing Routes")
     defaultRoutes <- defaultRouteZio
+    dnd5eRoute    <- DND5eRoutes.route
     start         <- Clock.currentTime(TimeUnit.MILLISECONDS)
-  } yield (StaticRoutes.unauthRoute /*Move this to after there's a user*/ ++
+  } yield (dnd5eRoute ++
+    StaticRoutes.unauthRoute /*Move this to after there's a user*/ ++
     StaticRoutes.authRoute ++
     defaultRoutes)
     .handleError(mapError).toHttpApp

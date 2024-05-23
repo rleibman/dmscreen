@@ -41,25 +41,28 @@ object PlayerPage extends DMScreenTab {
           val campaign = campaignState.campaign
           <.div(
             campaignState.pcs.map { pc =>
+              val info = pc.info.toOption.get // Should never fail
+
               <.div(
-                pc.info.name,
-                pc.info.alignment.toString,
-                pc.info.race.name,
-                pc.info.faith,
-                pc.info.classes.map(c => s"${c.name}: ${c.subclass.name} (l ${c.level})").mkString(", "),
-                pc.info.abilities
+                pc.header.name,
+                pc.header.playerName,
+                info.alignment.toString,
+                info.race.name,
+                info.faith,
+                info.classes.map(c => s"${c.name}: ${c.subclass.name} (l ${c.level})").mkString(", "),
+                info.abilities
                   .map(a => <.div(^.className := "shortAbility", s"${a.abilityType.short}${a.value}")).toVdomArray,
-                <.div(^.className := "hitPoints", s"${pc.info.baseHitPoints}"),
-                pc.info.armorClass,
-                pc.info.background.name,
-                pc.info.conditions.map(_.toString).mkString(", "),
-                pc.info.deathSaves.successes,
-                pc.info.feats.map(f => s"${f.name}").mkString(", "),
-                pc.info.inspiration.toString,
-                pc.info.modifiers.toString,
-                pc.info.notes,
-                pc.info.languages.mkString(","),
-                pc.info.traits.toString
+                <.div(^.className := "hitPoints", s"${info.baseHitPoints}"),
+                info.armorClass,
+                info.background.name,
+                info.conditions.map(_.toString).mkString(", "),
+                info.deathSaves.successes,
+                info.feats.map(f => s"${f.name}").mkString(", "),
+                info.inspiration.toString,
+                info.modifiers.toString,
+                info.notes,
+                info.languages.mkString(","),
+                info.traits.toString
               )
 
             }.toVdomArray

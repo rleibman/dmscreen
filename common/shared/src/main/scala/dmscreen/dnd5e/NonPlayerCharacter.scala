@@ -21,6 +21,10 @@
 
 package dmscreen.dnd5e
 
+import dmscreen.*
+import zio.json.*
+import zio.json.ast.Json
+
 case class StatBlock()
 
 opaque type NonPlayerCharacterId = Long
@@ -37,8 +41,13 @@ object NonPlayerCharacterId {
 
 }
 
+case class NonPlayerCharacterHeader(
+  id:         NonPlayerCharacterId,
+  campaignId: CampaignId,
+  name:       String
+) extends HasId[NonPlayerCharacterId]
+
 case class NonPlayerCharacterInfo(
-  name:           String,
   gender:         String,
   race:           Race,
   characterClass: CharacterClass,
@@ -65,10 +74,10 @@ case class NonPlayerCharacterInfo(
   childhood:      String,
   children:       String,
   spouse:         String,
-  monster:        Monster
+  monster:        MonsterId
 )
 
 case class NonPlayerCharacter(
-  id:   NonPlayerCharacterId,
-  info: NonPlayerCharacterInfo
-)
+  header:   NonPlayerCharacterHeader,
+  jsonInfo: Json
+) extends DMScreenEntity[NonPlayerCharacterId, NonPlayerCharacterHeader, NonPlayerCharacterInfo]

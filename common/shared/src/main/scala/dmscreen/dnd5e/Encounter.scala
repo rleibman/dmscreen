@@ -21,6 +21,9 @@
 
 package dmscreen.dnd5e
 
+import dmscreen.{DMScreenEntity, HasId}
+import zio.json.ast.Json
+
 sealed abstract class EncounterEntity(
 ) {
 
@@ -43,7 +46,7 @@ sealed abstract class EncounterEntity(
 }
 
 case class MonsterEncounterEntity(
-  monster:                    Monster,
+  monsterHeader:              MonsterHeader,
   override val notes:         String,
   override val concentration: Boolean,
   override val hide:          Boolean,
@@ -53,12 +56,12 @@ case class MonsterEncounterEntity(
   override val conditions:    List[Condition]
 ) extends EncounterEntity() {
 
-  override val name: String = ???
+  override val name: String = monsterHeader.name
 
 }
 
 case class PlayerCharacterEncounterEntity(
-  playerCharacter:            PlayerCharacter,
+  playerCharacterHeader:      PlayerCharacterHeader,
   override val notes:         String,
   override val concentration: Boolean,
   override val hide:          Boolean,
@@ -68,7 +71,7 @@ case class PlayerCharacterEncounterEntity(
   override val conditions:    List[Condition]
 ) extends EncounterEntity() {
 
-  override val name: String = playerCharacter.info.name
+  override val name: String = playerCharacterHeader.name
 
 }
 
@@ -96,9 +99,10 @@ enum EncounterDifficulty {
 }
 
 case class EncounterHeader(
-  id:   EncounterId,
-  name: String
-)
+  id:         EncounterId,
+  campaignId: CampaignId,
+  name:       String
+) extends HasId[EncounterId]
 
 case class EncounterInfo(
   entities:   List[EncounterEntity],
@@ -107,6 +111,6 @@ case class EncounterInfo(
 )
 
 case class Encounter(
-  header: EncounterHeader,
-  info:   EncounterInfo
-)
+  header:   EncounterHeader,
+  jsonInfo: Json
+) extends DMScreenEntity[EncounterId, EncounterHeader, EncounterInfo]

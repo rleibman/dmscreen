@@ -1,0 +1,478 @@
+schema {
+  query: Queries
+  mutation: Mutations
+  subscription: Subscriptions
+}
+scalar Long
+
+union DMScreenOperation = Add | Copy | Move | Remove | Replace | Test
+
+union EncounterEntity = MonsterEncounterEntity | PlayerCharacterEncounterEntity
+
+union ImportSource = DNDBeyondImportSource
+
+enum AbilityType {
+  Charisma
+  Constitution
+  Dexterity
+  Intelligence
+  Strength
+  Wisdom
+}
+
+enum Alignment {
+  ChaoticEvil
+  ChaoticGood
+  ChaoticNeutral
+  LawfulEvil
+  LawfulGood
+  LawfulNeutral
+  NeutralEvil
+  NeutralGood
+  TrueNeutral
+}
+
+enum Biome {
+  Arctic
+  Coastal
+  Desert
+  Forest
+  Grassland
+  Hill
+  Mountain
+  Swamp
+  Underdark
+  Underwater
+  Urban
+}
+
+enum Condition {
+  Blinded
+  Charmed
+  Deafened
+  Frightened
+  Grappled
+  Incapacitated
+  Invisible
+  Paralyzed
+  Petrified
+  Poisoned
+  Prone
+  Restrained
+  Stunned
+  Unconscious
+}
+
+enum CreatureSize {
+  Gargantuan
+  Huge
+  Large
+  Medium
+  Small
+  Tiny
+}
+
+enum EncounterDifficulty {
+  Deadly
+  Easy
+  Hard
+  Medium
+}
+
+enum GameSystem {
+  dnd5e
+  pathfinder2e
+  starTrekAdventures
+}
+
+enum MonsterSearchOrder {
+  alignment
+  challengeRating
+  environment
+  monsterType
+  name
+  size
+  source
+}
+
+enum MonsterType {
+  Aberration
+  Beast
+  Celestial
+  Construct
+  Dragon
+  Elemental
+  Fey
+  Fiend
+  Giant
+  Humanoid
+  Monstrosity
+  Ooze
+  Plant
+  Undead
+}
+
+enum OrderDirection {
+  asc
+  desc
+}
+
+enum Sense {
+  blindsight
+  darkvision
+  sight
+  tremorsense
+  truesight
+}
+
+input SourceInput {
+  name: String!
+  nickName: String!
+  url: String!
+}
+
+type Ability {
+  abilityType: AbilityType!
+  value: Int!
+  bonus: Int!
+  tempValue: Int
+  tempBonus: Int
+}
+
+type Actions {
+  str: String!
+}
+
+type Add {
+  path: JsonPath!
+  value: String!
+}
+
+type Background {
+  name: String!
+}
+
+type Campaign {
+  header: CampaignHeader!
+  info: CampaignInfo!
+}
+
+type CampaignHeader {
+  id: Long!
+  dm: Long!
+  name: String!
+  gameSystem: GameSystem!
+}
+
+type CampaignInfo {
+  notes: String!
+  scenes: [Scene!]!
+}
+
+type CharacterClass {
+  characterClassId: Long!
+  name: String!
+  subclass: Subclass!
+  level: Int!
+}
+
+type Choices {
+  str: String!
+}
+
+type Copy {
+  from: JsonPath!
+  to: JsonPath!
+}
+
+type Creature {
+  name: String!
+  creatureType: Long!
+}
+
+type DNDBeyondImportSource {
+  url: String!
+}
+
+type DeathSave {
+  fails: Int!
+  successes: Int!
+}
+
+type Encounter {
+  header: EncounterHeader!
+  info: EncounterInfo!
+}
+
+type EncounterHeader {
+  id: Long!
+  name: String!
+}
+
+type EncounterInfo {
+  entities: [EncounterEntity!]!
+  difficulty: EncounterDifficulty!
+  xp: Int!
+}
+
+type Feat {
+  name: String!
+}
+
+type InventoryItem {
+  name: String!
+}
+
+type JsonPath {
+  value: String!
+}
+
+type Lifestyle {
+  str: String!
+}
+
+type Modifiers {
+  str: String!
+}
+
+type Monster {
+  header: MonsterHeader!
+  info: MonsterInfo!
+}
+
+type MonsterEncounterEntity {
+  monster: Monster!
+  notes: String!
+  concentration: Boolean!
+  hide: Boolean!
+  hp: Int!
+  ac: Int!
+  initiative: Int!
+  conditions: [Condition!]!
+}
+
+type MonsterHeader {
+  id: Long!
+  name: String!
+  monsterType: MonsterType!
+  biome: Biome!
+  alignment: Alignment!
+  cr: Float!
+  xp: Int!
+  ac: Int!
+  hp: Int!
+  size: CreatureSize!
+}
+
+type MonsterInfo {
+  walkingSpeed: Int
+  burrowingSpeed: Int
+  climbingSpeed: Int
+  flyingSpeed: Int
+  swimmingSpeed: Int
+  abilities: [Ability!]!
+  languages: [String!]!
+  challenge: String!
+  traits: String!
+  actions: [String!]!
+  reactions: String!
+  senses: [Sense!]!
+}
+
+type Move {
+  from: JsonPath!
+  to: JsonPath!
+}
+
+type Mutations {
+  event: Boolean
+}
+
+type NonPlayerCharacter {
+  id: Long!
+  info: NonPlayerCharacterInfo!
+}
+
+type NonPlayerCharacterInfo {
+  name: String!
+  gender: String!
+  race: Race!
+  characterClass: CharacterClass!
+  level: Int!
+  age: Int!
+  background: Background!
+  occupation: String!
+  personality: String!
+  ideal: String!
+  bond: String!
+  flaw: String!
+  characteristic: String!
+  speech: String!
+  hobby: String!
+  fear: String!
+  currently: String!
+  nickname: String!
+  weapon: String!
+  rumor: String!
+  raisedBy: String!
+  parent1: String!
+  parent2: String!
+  siblingCount: Int!
+  childhood: String!
+  children: String!
+  spouse: String!
+  monster: Monster!
+}
+
+type Options {
+  str: String!
+}
+
+type PhysicalCharacteristics {
+  gender: String!
+  age: Int!
+  hair: String!
+  eyes: String!
+  skin: String!
+  height: String!
+  weight: Int!
+  size: CreatureSize!
+}
+
+type PlayerCharacter {
+  header: PlayerCharacterHeader!
+  info: PlayerCharacterInfo!
+}
+
+type PlayerCharacterEncounterEntity {
+  playerCharacter: PlayerCharacter!
+  notes: String!
+  concentration: Boolean!
+  hide: Boolean!
+  hp: Int!
+  ac: Int!
+  initiative: Int!
+  conditions: [Condition!]!
+}
+
+type PlayerCharacterHeader {
+  id: Long!
+}
+
+type PlayerCharacterInfo {
+  id: Long!
+  source: ImportSource!
+  name: String!
+  physicalCharacteristics: PhysicalCharacteristics!
+  faith: String!
+  inspiration: Boolean!
+  baseHitPoints: Int!
+  bonusHitPoints: String!
+  overrideHitPoints: String!
+  removedHitPoints: Int!
+  temporaryHitPoints: Int!
+  currentXp: Int!
+  armorClass: Int!
+  alignment: Alignment!
+  lifestyle: Lifestyle!
+  abilities: [Ability!]!
+  background: Background!
+  race: Race!
+  traits: Traits!
+  inventory: [InventoryItem!]!
+  wallet: Wallet!
+  classes: [CharacterClass!]!
+  feats: [Feat!]!
+  conditions: [Condition!]!
+  deathSaves: DeathSave!
+  adjustmentXp: String!
+  spellSlots: [SpellSlot!]!
+  pactMagic: [SpellSlot!]!
+  languages: [String!]!
+  options: Options!
+  choices: Choices!
+  actions: Actions!
+  modifiers: Modifiers!
+  classSpells: [Spell!]!
+  creatures: [Creature!]!
+  notes: String!
+}
+
+type Queries {
+  campaigns: [CampaignHeader!]
+  campaign(value: Long!): Campaign
+  playerCharacters(value: Long!): [PlayerCharacter!]
+  nonPlayerCharacters(value: Long!): [NonPlayerCharacter!]
+  encounters(value: Long!): [EncounterHeader!]
+  encounter(value: Long!): [Encounter!]
+  bestiary(name: String, challengeRating: Float, size: String, alignment: String, environment: String, monsterType: MonsterType, source: SourceInput, order: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): [Monster!]
+  sources: [Source!]
+  classes: [CharacterClass!]
+  races: [Race!]
+  backgrounds: [Background!]
+  subclasses(value: Long!): [Subclass!]
+}
+
+type Race {
+  name: String!
+}
+
+type Remove {
+  path: JsonPath!
+}
+
+type Replace {
+  path: JsonPath!
+  value: String!
+}
+
+type Scene {
+  name: String!
+  isActive: Boolean!
+  notes: String!
+  npcs: [Long!]!
+  encounters: [Long!]!
+}
+
+type Source {
+  name: String!
+  nickName: String!
+  url: String!
+}
+
+type Spell {
+  str: String!
+}
+
+type SpellSlot {
+  str: String!
+}
+
+type Subclass {
+  name: String!
+}
+
+type Subscriptions {
+  operationStream: DMScreenOperation
+}
+
+type Test {
+  path: JsonPath!
+  value: String!
+}
+
+type Traits {
+  personalityTraits: String!
+  ideals: String!
+  bonds: String!
+  flaws: String!
+  appearance: String!
+}
+
+type Wallet {
+  pp: Long!
+  gp: Long!
+  ep: Long!
+  sp: Long!
+  cp: Long!
+}

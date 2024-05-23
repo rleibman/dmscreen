@@ -50,18 +50,22 @@ object DND5eAPI {
 
   private given Schema[Any, UserId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, CampaignId] = Schema.longSchema.contramap(_.value)
-  private given Schema[Any, CharacterClassId] = Schema.longSchema.contramap(_.value)
+  private given Schema[Any, CharacterClassId] = Schema.stringSchema.contramap(_.value)
   private given Schema[Any, MonsterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, PlayerCharacterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, NonPlayerCharacterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, EncounterId] = Schema.longSchema.contramap(_.value)
+  private given Schema[Any, SourceId] = Schema.stringSchema.contramap(_.value)
   private given Schema[Any, URL] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, DMScreenOperation] = Schema.gen[Any, DMScreenOperation]
+  private given Schema[Any, Source] = Schema.gen[Any, Source]
+  private given Schema[Any, MonsterSearch] = Schema.gen[Any, MonsterSearch]
   private given Schema[Any, Json] = Schema.stringSchema.contramap(_.toString)
 
   private given ArgBuilder[PlayerCharacterId] = ArgBuilder.long.map(PlayerCharacterId.apply)
   private given ArgBuilder[NonPlayerCharacterId] = ArgBuilder.long.map(NonPlayerCharacterId.apply)
-  private given ArgBuilder[CharacterClassId] = ArgBuilder.long.map(CharacterClassId.apply)
+  private given ArgBuilder[CharacterClassId] = ArgBuilder.string.map(CharacterClassId.apply)
+  private given ArgBuilder[SourceId] = ArgBuilder.string.map(SourceId.apply)
   private given ArgBuilder[CampaignId] = ArgBuilder.long.map(CampaignId.apply)
   private given ArgBuilder[EncounterId] = ArgBuilder.long.map(EncounterId.apply)
   private given ArgBuilder[OperationStreamArgs] = ArgBuilder.gen[OperationStreamArgs]
@@ -74,6 +78,7 @@ object DND5eAPI {
   private given ArgBuilder[Remove] = ArgBuilder.gen[Remove]
   private given ArgBuilder[Replace] = ArgBuilder.gen[Replace]
   private given ArgBuilder[Test] = ArgBuilder.gen[Test]
+  private given ArgBuilder[MonsterSearch] = ArgBuilder.gen[MonsterSearch]
 
   case class Queries(
     campaigns: ZIO[DND5eGameService, DMScreenError, Seq[CampaignHeader]],

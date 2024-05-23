@@ -36,3 +36,9 @@ Come chat with us on [![Badge-Discord]][Link-Discord].
 [Badge-Stage]: https://img.shields.io/badge/Project%20Stage-Concept-red.svg
 [Link-Stage-Page]: https://github.com/zio/zio/wiki/Project-Stages
 
+# graphql schema generation
+http://localhost:8079/api/dnd5e/schema
+
+# Client code generation
+calibanGenClient /home/rleibman/projects/dmscreen/server/src/main/graphql/schema.gql /home/rleibman/projects/dmscreen/web/src/main/scala/caliban/client/scalajs/DND5eClient.scala --genview true
+

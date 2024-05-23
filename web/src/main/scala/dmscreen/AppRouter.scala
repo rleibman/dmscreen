@@ -44,7 +44,10 @@ object AppRouter {
 
       def renderMenu = {
         Menu.Menu
-          .fluid(true).vertical(true).tabular(true)(
+          .fluid(true)
+          .vertical(true)
+          .tabular(true)
+          .className("mainMenu")(
             Menu.Item
               .active(resolution.page == AppPage.home)
               .onClick {
@@ -128,13 +131,16 @@ object AppRouter {
           )
 
       }
-
-      <.div(
-        Grid(
-          Grid.Column().width(SemanticWIDTHS.`4`)(renderMenu),
-          Grid.Column().width(SemanticWIDTHS.`12`)(resolution.render())
+      Grid
+        .className("mainMenu")(
+          Grid
+            .Column()
+            .className("mainMenu")
+            .width(SemanticWIDTHS.`2`)(renderMenu),
+          Grid
+            .Column()
+            .width(SemanticWIDTHS.`14`)(resolution.render())
         )
-      )
     }
   }
 
@@ -159,7 +165,6 @@ object AppRouter {
       trimSlashes
         | staticRoute("#home", AppPage.home) ~> renderR(_ => HomePage())
         | staticRoute(root, AppPage.dashboard) ~> renderR(_ => DashboardPage())
-        | staticRoute("#dashboard", AppPage.dashboard) ~> renderR(_ => DashboardPage())
         | staticRoute("#player", AppPage.player) ~> renderR(_ => PlayerPage())
         | staticRoute("#encounter", AppPage.encounter) ~> renderR(_ => EncounterPage())
         | staticRoute("#npc", AppPage.npc) ~> renderR(_ => NPCPage())

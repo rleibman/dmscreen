@@ -42,7 +42,13 @@ object Content {
 
     def render(s: State) = {
       DMScreenState.ctx.provide(s.dmScreenState) {
-        <.div(^.key := "contentDiv", ^.height := 100.pct, Confirm.render(), Toast.render(), AppRouter.router())
+        <.div(
+          ^.key    := "contentDiv",
+          ^.height := 100.pct,
+          Confirm.render(),
+          Toast.render(),
+          AppRouter.router()
+        )
       }
     }
 
@@ -80,8 +86,9 @@ object Content {
     .renderBackend[Backend]
     .componentDidMount(_.backend.refresh(initial = true))
     .componentWillUnmount($ =>
-      Callback.log("Closing down operationStream") >>
-        $.state.dmScreenState.operationStream.fold(Callback.empty)(_.close())
+      Callback.log("Closing down operationStream")
+//        >>
+//        $.state.dmScreenState.operationStream.fold(Callback.empty)(_.close())
     )
     .build
 

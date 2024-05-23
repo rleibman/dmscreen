@@ -8,8 +8,7 @@
 #-J-XX:-UseGCOverheadLimit
 #-J-XX:MaxMetaspaceSize=1024m
 # effectively adds GC to Perm space
-#-J-XX:+CMSClassUnloadingEnabled
 # must be enabled for CMSClassUnloadingEnabled to work
-#-J-XX:+UseConcMarkSweepGC
--mem 4048
+-J-Xmx4G
+-J-Xss1024M
 -J-XX:+UseG1GC

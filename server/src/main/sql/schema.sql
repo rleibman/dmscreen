@@ -14,12 +14,12 @@ CREATE TABLE `dmscreenUser`
 
 create table campaign
 (
-    `id`   int(11)    NOT NULL AUTO_INCREMENT,
-    dm     int(11) not null,
-    `name` text NOT NULL,
-    info   json not null,
+    `id`       int(11)    NOT NULL AUTO_INCREMENT,
+    dm         int(11) not null,
+    `name`     text NOT NULL,
+    info       json not null,
     gameSystem enum('dnd5e', 'pathfinder2e', 'starTrekAdventures') not null,
-    key    campaign_dm (dm),
+    key        campaign_dm (dm),
     constraint campaign_dm foreign key (dm) references `dmscreenUser` (id),
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
@@ -27,45 +27,30 @@ create table campaign
 
 create table playerCharacter
 (
-    `id`   int(11)    NOT NULL AUTO_INCREMENT,
-    `name` text NOT NULL,
-    info   json not null,
-    PRIMARY KEY (`id`)
+    `id`         int(11)    NOT NULL AUTO_INCREMENT,
+    campaignId   int(11) not null,
+    `name`       text NOT NULL,
+    `playerName` text NULL, -- TODO change to foreign key to user
+    info         json not null,
+    PRIMARY KEY (`id`),
+    key          player_character_campaign (campaignId),
+    constraint player_character_campaign foreign key (campaignId) references `campaign` (id),
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
-create table playerCharacterCampaign
-(
-    playerCharacterId int(11) not null,
-    campaignId        int(11) not null,
-    key               player_character_campaign_player_character (playerCharacterId),
-    constraint player_character_campaign_player_character foreign key (playerCharacterId) references `playerCharacter` (id),
-    key               player_character_campaign_campaign (campaignId),
-    constraint player_character_campaign_campaign foreign key (campaignId) references `campaign` (id),
-    PRIMARY KEY (playerCharacterId, campaignId)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8;
 
 create table nonPlayerCharacter
 (
-    `id`   int(11)    NOT NULL AUTO_INCREMENT,
-    `name` text NOT NULL,
-    info   json not null,
-    PRIMARY KEY (`id`)
+    `id`       int(11)    NOT NULL AUTO_INCREMENT,
+    campaignId int(11) not null,
+    `name`     text NOT NULL,
+    info       json not null,
+    PRIMARY KEY (`id`),
+    key        non_player_character_campaign (campaignId),
+    constraint non_player_character_campaign foreign key (campaignId) references `campaign` (id),
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
-create table nonPlayerCharacterCampaign
-(
-    nonPlayerCharacterId int(11) not null,
-    campaignId           int(11) not null,
-    key                  non_player_character_campaign_non_player_character (nonPlayerCharacterId),
-    constraint non_player_character_campaign_non_player_character foreign key (nonPlayerCharacterId) references `nonPlayerCharacter` (id),
-    key                  non_player_character_campaign_campaign (campaignId),
-    constraint non_player_character_campaign_campaign foreign key (campaignId) references `campaign` (id),
-    PRIMARY KEY (nonPlayerCharacterId, campaignId)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8;
 
 create table monster
 (

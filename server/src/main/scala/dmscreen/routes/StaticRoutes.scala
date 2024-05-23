@@ -116,9 +116,9 @@ object StaticRoutes {
           request: Request
         ) =>
           Handler.fromFileZIO {
-            val somethingElse = path.toString
+            val somethingElse = path.toString.trim.nn
 
-            if (somethingElse == "/") {
+            if (somethingElse == "/" || somethingElse.isEmpty) {
               for {
                 config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
                 staticContentDir = config.dmscreen.staticContentDir

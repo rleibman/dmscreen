@@ -21,6 +21,8 @@
 
 package dmscreen
 
+import scala.language.unsafeNulls
+
 class DMScreenError(
   val msg:   String,
   val cause: Option[Throwable]

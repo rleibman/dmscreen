@@ -21,7 +21,10 @@
 
 package dmscreen.dnd5e
 
-import java.net.URL
+import dmscreen.{DMScreenEntity, HasId}
+import zio.json.ast.Json
+
+import java.net.{URI, URL}
 
 opaque type PlayerCharacterId = Long
 
@@ -37,12 +40,17 @@ object PlayerCharacterId {
 
 }
 
-case class PlayerCharacterHeader(id: PlayerCharacterId)
+final case class PlayerCharacterHeader(
+  id:         PlayerCharacterId,
+  campaignId: CampaignId,
+  name:       String,
+  playerName: Option[String]
+) extends HasId[PlayerCharacterId]
 
 sealed trait ImportSource
 
-case class DNDBeyondImportSource(
-  url: URL
+sealed case class DNDBeyondImportSource(
+  uri: URI
 ) extends ImportSource
 
 case class Traits(
@@ -55,32 +63,60 @@ case class Traits(
 
 case class Race(name: String)
 
-opaque type CharacterClassId = Long
+opaque type CharacterClassId = String
 
 object CharacterClassId {
 
-  def apply(characterClassId: Long): CharacterClassId = characterClassId
+  def apply(characterClassId: String): CharacterClassId = characterClassId
 
   extension (characterClassId: CharacterClassId) {
 
-    def value: Long = characterClassId
+    def value: String = characterClassId
 
   }
 
 }
 
 case class CharacterClass(
-  characterClassId: CharacterClassId,
-  name:             String,
-  subclass:         Subclass,
-  level:            Int
+  id:      CharacterClassId,
+  hitDice: String
+)
+
+opaque type SourceId = String
+
+object SourceId {
+
+  def apply(sourceId: String): SourceId = sourceId
+
+  extension (sourceId: SourceId) {
+
+    def value: String = sourceId
+
+  }
+
+}
+
+case class Source(
+  name: String,
+  id:   SourceId,
+  url:  Option[String]
+)
+
+case class PlayerCharacterClass(
+  name:     CharacterClassId,
+  subclass: Subclass,
+  level:    Int
 )
 
 case class Subclass(name: String)
 
 case class Feat(name: String)
 
-case class Lifestyle()
+enum Lifestyle {
+
+  case wretched, squalid, poor, modest, comfortable, wealthy, aristocratic
+
+}
 
 enum Alignment {
 
@@ -128,17 +164,15 @@ case class DeathSave(
   successes: Int
 )
 
-case class SpellSlot()
+case class SpellSlot(str: String)
 
-case class Options()
+case class Options(str: String)
 
-case class Choices()
+case class Choices(str: String)
 
-case class Actions()
+case class Actions(str: String)
 
-case class Modifiers()
-
-case class Spell()
+case class Modifiers(str: String)
 
 case class Creature(
   name:         String,
@@ -173,7 +207,6 @@ case class PhysicalCharacteristics(
 case class PlayerCharacterInfo(
   id:                      Long,
   source:                  ImportSource,
-  name:                    String,
   physicalCharacteristics: PhysicalCharacteristics,
   faith:                   String,
   inspiration:             Boolean,
@@ -192,7 +225,7 @@ case class PlayerCharacterInfo(
   traits:                  Traits,
   inventory:               List[InventoryItem],
   wallet:                  Wallet,
-  classes:                 List[CharacterClass],
+  classes:                 List[PlayerCharacterClass],
   feats:                   List[Feat],
   conditions:              List[Condition],
   deathSaves:              DeathSave,
@@ -204,12 +237,13 @@ case class PlayerCharacterInfo(
   choices:                 Choices,
   actions:                 Actions,
   modifiers:               Modifiers,
-  classSpells:             List[Spell],
+  classSpells:             List[SpellId],
   creatures:               List[Creature],
-  notes:                   String
+  notes:                   String,
+  senses:                  Seq[SenseRange]
 )
 
 case class PlayerCharacter(
-  header: PlayerCharacterHeader,
-  info:   PlayerCharacterInfo
-)
+  header:   PlayerCharacterHeader,
+  jsonInfo: Json
+) extends DMScreenEntity[PlayerCharacterId, PlayerCharacterHeader, PlayerCharacterInfo]

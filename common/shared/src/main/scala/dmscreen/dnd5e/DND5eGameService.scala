@@ -25,6 +25,8 @@ import dmscreen.{DMScreenError, DMScreenOperation, GameService}
 import zio.*
 import zio.json.ast.Json
 
+import scala.reflect.ClassTag
+
 enum OrderDirection {
 
   case asc, desc
@@ -51,54 +53,92 @@ case class MonsterSearch(
   pageSize:        Int = 25
 )
 
-case class Source(
-  name:     String,
-  nickName: String,
-  url:      String
-)
-
 trait DND5eGameService extends GameService {
 
-  def campaigns: ZIO[Any, DMScreenError, Seq[CampaignHeader]]
+  def campaigns: IO[DMScreenError, Seq[CampaignHeader]]
 
-  def campaign(campaignId: CampaignId): ZIO[Any, DMScreenError, Option[Campaign]]
+  def campaign(campaignId: CampaignId): IO[DMScreenError, Option[Campaign]]
 
-  def insert(
-    campaignHeader: CampaignHeader,
-    info:           Json
-  ): ZIO[Any, DMScreenError, CampaignId]
-
-  def applyOperation[IDType](
+  def applyOperation[IDType: ClassTag](
     id:        IDType,
     operation: DMScreenOperation
-  ): ZIO[Any, DMScreenError, Unit]
+  )(using ev:  ClassTag[IDType]
+  ): IO[DMScreenError, Unit]
 
   def delete(
     campaignId: CampaignId,
     softDelete: Boolean = true
-  ): ZIO[Any, DMScreenError, Unit]
+  ): IO[DMScreenError, Unit]
 
-  def playerCharacters(campaignId: CampaignId): ZIO[Any, DMScreenError, Seq[PlayerCharacter]]
+  def playerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[PlayerCharacter]]
 
-  def nonPlayerCharacters(campaignId: CampaignId): ZIO[Any, DMScreenError, Seq[NonPlayerCharacter]]
+  def nonPlayerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[NonPlayerCharacter]]
 
-  def encounters(campaignId: CampaignId): ZIO[Any, DMScreenError, Seq[EncounterHeader]]
+  def encounters(campaignId: CampaignId): IO[DMScreenError, Seq[EncounterHeader]]
 
-  def encounter(encounterId: EncounterId): ZIO[Any, DMScreenError, Seq[Encounter]]
+  def encounter(encounterId: EncounterId): IO[DMScreenError, Seq[Encounter]]
 
   // Stuff that's generic to all campaigns
 
-  def bestiary(search: MonsterSearch): ZIO[Any, DMScreenError, Seq[Monster]]
+  def bestiary(search: MonsterSearch): IO[DMScreenError, Seq[Monster]]
 
-  def sources: ZIO[Any, DMScreenError, Seq[Source]]
+  def sources: IO[DMScreenError, Seq[Source]]
 
-  def classes: ZIO[Any, DMScreenError, Seq[CharacterClass]]
+  def classes: IO[DMScreenError, Seq[CharacterClass]]
 
-  def races: ZIO[Any, DMScreenError, Seq[Race]]
+  def races: IO[DMScreenError, Seq[Race]]
 
-  def backgrounds: ZIO[Any, DMScreenError, Seq[Background]]
+  def backgrounds: IO[DMScreenError, Seq[Background]]
 
-  def subClasses(characterClass: CharacterClassId): ZIO[Any, DMScreenError, Seq[Subclass]]
+  def subClasses(characterClass: CharacterClassId): IO[DMScreenError, Seq[Subclass]]
+
+  def spells: IO[DMScreenError, Seq[Spell]]
+
+  def insert(
+    campaignHeader: CampaignHeader,
+    info:           Json
+  ): IO[DMScreenError, CampaignId]
+  def insert(
+    playerCharacterHeader: PlayerCharacterHeader,
+    info:                  Json
+  ): IO[DMScreenError, PlayerCharacterId]
+  def insert(
+    nonPlayerCharacterHeader: NonPlayerCharacterHeader,
+    info:                     Json
+  ): IO[DMScreenError, NonPlayerCharacterId]
+  def insert(
+    monsterHeader: MonsterHeader,
+    info:          Json
+  ): IO[DMScreenError, MonsterId]
+  def insert(
+    spellHeader: SpellHeader,
+    info:        Json
+  ): IO[DMScreenError, SpellId]
+  def insert(
+    encounterHeader: EncounterHeader,
+    info:            Json
+  ): IO[DMScreenError, EncounterId]
+
+  def deletePlayerCharacter(
+    playerCharacterId: PlayerCharacterId,
+    softDelete:        Boolean = false
+  ): IO[DMScreenError, Unit]
+  def deleteNonPlayerCharacter(
+    nonPlayerCharacterId: NonPlayerCharacterId,
+    softDelete:           Boolean = false
+  ): IO[DMScreenError, Unit]
+  def deleteMonster(
+    monsterId:  MonsterId,
+    softDelete: Boolean = false
+  ): IO[DMScreenError, Unit]
+  def deleteSpell(
+    spellId:    SpellId,
+    softDelete: Boolean = false
+  ): IO[DMScreenError, Unit]
+  def deleteEncounter(
+    encounterId: EncounterId,
+    softDelete:  Boolean = false
+  ): IO[DMScreenError, Unit]
 
 }
 

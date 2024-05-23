@@ -25,10 +25,13 @@ import dmscreen.{DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
-import net.leibman.dmscreen.chartJs.distTypesIndexMod.ChartData
-import net.leibman.dmscreen.reactChartjs2.components.Radar
-import net.leibman.dmscreen.reactChartjs2.reactChartjs2Strings.radar
-import net.leibman.dmscreen.chartJs.distTypesIndexMod.DefaultDataPoint
+import net.leibman.dmscreen.reactSvgRadarChart.anon.Color
+import net.leibman.dmscreen.reactSvgRadarChart.components.ReactSvgRadarChart
+import net.leibman.dmscreen.reactSvgRadarChart.mod.{ChartData, ChartOptionsProps, ChartProps}
+import org.scalablytyped.runtime.StringDictionary
+
+import scala.scalajs.js
+import scala.scalajs.js.JSConverters.*
 
 object DashboardPage extends DMScreenTab {
 
@@ -38,46 +41,62 @@ object DashboardPage extends DMScreenTab {
     scenes:   Seq[Scene] = Seq.empty
   )
 
+  val radarColors = js.Array(
+    "#ff0000",
+    "#00ff00",
+    "#0000ff",
+    "#ffff00",
+    "#ff00ff",
+    "#00ffff",
+    "#880000",
+    "#008800",
+    "#000088",
+    "#888800",
+    "#880088",
+    "#008888"
+  )
+
   class Backend($ : BackendScope[Unit, State]) {
 
     def render(s: State) = {
       DMScreenState.ctx.consume { dmScreenState =>
-        dmScreenState.campaignState.fold {
-          <.div("Campaign Loading")
-        } { case campaignState: DND5eCampaignState =>
-          val campaign = campaignState.campaign
+        {
+          dmScreenState.campaignState.fold {
+            <.div("Campaign Loading")
+          } { case campaignState: DND5eCampaignState =>
+            val campaign = campaignState.campaign
+            val campaignInfo = campaign.info.toOption.get
 
-          val abilityScores: ChartData[radar, DefaultDataPoint[radar], Any] = ??? // = s.pcs.map { pc =>
-          //          pc.info.abilities
-          //
-          //        }
+            val abilityScores = Array(
+              ChartData(StringDictionary[Double]("a" -> 1, "b" -> 5), Color(radarColors(0))),
+              ChartData(StringDictionary[Double]("a" -> 2, "b" -> 4), Color(radarColors(1)))
+            ).toJSArray
 
-          val passiveScores: ChartData[radar, DefaultDataPoint[radar], Any] = ??? // = s.pcs.map  { pc =>
-          //          // TODO calculate passive scores
-          //        }
-
-          val proficiencies: ChartData[radar, DefaultDataPoint[radar], Any] = ??? // = s.pcs.map { pc =>
-          //          // TODO calculate proficiencies (skills)
-          //        }
-
-          <.div(
-            <.div("Ability Score Radar"),
-            Radar(abilityScores),
-            <.div("Passive Score Radar"),
-            Radar(passiveScores),
-            <.div("Proficiency Radar"),
-            Radar(proficiencies),
-            <.div("Campaign Notes"),
-            campaign.info.notes,
-            <.div("Scene Notes"),
-            campaign.info.scenes.find(_.isActive).orElse(campaign.info.scenes.headOption).map { scene =>
-              <.div(
-                if (scene.isActive) "Current Scene" else "First Scene",
-                scene.name,
-                scene.notes
-              )
-            }
-          )
+            <.div(
+              <.div("Ability Score Radar"),
+              ReactSvgRadarChart
+                .withProps(
+                  ChartProps(
+                    data = abilityScores,
+                    captions = StringDictionary[String]("player1-k" -> "player1-v", "player2-k" -> "player2-v"),
+                    size = 450
+                  )
+                ),
+              //            <.div("Passive Score Radar"),
+              //            Radar(passiveScores),
+              //            <.div("Proficiency Radar"),
+              //            Radar(proficiencies)
+              <.div("Campaign Notes"),
+              campaignInfo.notes,
+              <.div("Scene Notes"),
+              campaignInfo.scenes
+                .find(_.isActive).orElse(campaignInfo.scenes.headOption).map { scene =>
+                  <.div(if (scene.isActive) "Current Scene" else "First Scene", scene.name, scene.notes)
+                }.toVdomArray
+            )
+          }
+//              )
+//            }
         }
       }
     }

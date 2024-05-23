@@ -9,8 +9,10 @@ lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time o
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
+lazy val SCALA = "3.5.0-RC1"
 Global / onChangedBuildSource := ReloadOnSourceChanges
-scalaVersion                  := "3.4.1"
+scalaVersion                  := SCALA
+Global / scalaVersion         := SCALA
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Shared settings
@@ -33,7 +35,7 @@ lazy val scala3Opts = Seq(
   "-deprecation", // Emit warning and location for usages of deprecated APIs.
   //  "-explain-types", // Explain type errors in more detail.
   //  "-explain",
- "-Yexplicit-nulls", // Make reference types non-nullable. Nullable types can be expressed with unions: e.g. String|Null.
+  "-Yexplicit-nulls", // Make reference types non-nullable. Nullable types can be expressed with unions: e.g. String|Null.
   "-Xmax-inlines",
   "128",
   "-Yretain-trees" // Retain trees for debugging.
@@ -45,16 +47,15 @@ enablePlugins(
 
 val calibanVersion = "2.6.0"
 val zioVersion = "2.1.1"
-val quillVersion = "4.8.4"
+val quillVersion = "4.8.5"
 val zioHttpVersion = "3.0.0-RC6"
 val zioConfigVersion = "4.0.2"
 val zioJsonVersion = "0.6.2"
 val testContainerVersion = "0.41.3"
-val tapirVersion = "1.10.6"
+val tapirVersion = "1.10.7"
 
 lazy val commonSettings = Seq(
   organization     := "net.leibman",
-  scalaVersion     := "3.4.1",
   startYear        := Some(2024),
   organizationName := "Roberto Leibman",
   headerLicense    := Some(HeaderLicense.MIT("2024", "Roberto Leibman", HeaderLicenseStyle.Detailed)),
@@ -74,7 +75,6 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     BuildInfoPlugin
   )
   .settings(
-    scalaVersion     := "3.4.1",
     name             := "dmscreen-common",
     buildInfoPackage := "dmscreen"
   )
@@ -108,7 +108,8 @@ lazy val server = project
     DebianDeployPlugin,
     JavaServerAppPackaging,
     SystemloaderPlugin,
-    SystemdPlugin
+    SystemdPlugin,
+    CalibanPlugin
   )
   .settings(debianSettings, commonSettings)
   .dependsOn(commonJVM)
@@ -121,12 +122,13 @@ lazy val server = project
       "io.getquill" %% "quill-jdbc-zio"       % quillVersion withSources (),
       // ZIO
       "dev.zio"                     %% "zio"                   % zioVersion withSources (),
+      "dev.zio"                     %% "zio-nio"               % "2.0.2" withSources (),
       "dev.zio"                     %% "zio-cache"             % "0.2.3" withSources (),
       "dev.zio"                     %% "zio-config"            % zioConfigVersion withSources (),
       "dev.zio"                     %% "zio-config-derivation" % zioConfigVersion withSources (),
       "dev.zio"                     %% "zio-config-magnolia"   % zioConfigVersion withSources (),
       "dev.zio"                     %% "zio-config-typesafe"   % zioConfigVersion withSources (),
-      "dev.zio"                     %% "zio-logging-slf4j"     % "2.2.3" withSources (),
+      "dev.zio"                     %% "zio-logging-slf4j"     % "2.2.4" withSources (),
       "dev.zio"                     %% "izumi-reflect"         % "2.3.9" withSources (),
       "com.github.ghostdogpr"       %% "caliban"               % calibanVersion withSources (),
       "com.github.ghostdogpr"       %% "caliban-tapir"         % calibanVersion withSources (),
@@ -168,19 +170,19 @@ lazy val debianSettings =
 ////////////////////////////////////////////////////////////////////////////////////
 // Web
 val scalajsReactVersion = "2.1.1"
-val reactVersion = "18.3.0"
+val reactVersion = "^18.0.0"
 
 lazy val reactNpmDeps: Project => Project =
   _.settings(
     Compile / npmDependencies ++= Seq(
-      "react-dom"         -> reactVersion,
-      "@types/react-dom"  -> reactVersion,
-      "react"             -> reactVersion,
-      "@types/react"      -> reactVersion,
-      "csstype"           -> "3.1.3",
-      "@types/prop-types" -> "15.7.12",
-      "semantic-ui-react" -> "2.1.5",
-      "react-chartjs-2"   -> "5.2.0"
+      "react-dom"                    -> reactVersion,
+      "@types/react-dom"             -> reactVersion,
+      "react"                        -> reactVersion,
+      "@types/react"                 -> reactVersion,
+      "csstype"                      -> "^3.0.0",
+      "@types/prop-types"            -> "^15.0.0",
+      "semantic-ui-react"            -> "^2.0.0",
+      "@types/react-svg-radar-chart" -> "^1.0.0"
     )
   )
 
@@ -211,13 +213,12 @@ lazy val stLib = project
   .enablePlugins(ScalablyTypedConverterGenSourcePlugin)
   .configure(reactNpmDeps)
   .settings(
-    name                            := "dmscreen-stLib",
-    scalaVersion                    := "3.4.1",
-    useYarn                         := true,
-    stOutputPackage                 := "net.leibman.dmscreen",
-    stFlavour                       := Flavour.ScalajsReact,
-    stReactEnableTreeShaking        := Selection.All,
-    stQuiet                         := true,
+    name                     := "dmscreen-stLib",
+    useYarn                  := true,
+    stOutputPackage          := "net.leibman.dmscreen",
+    stFlavour                := Flavour.ScalajsReact,
+    stReactEnableTreeShaking := Selection.All,
+    stQuiet                  := true,
     // stEnableLongApplyMethod         := true, // can't use this because it breaks scala 3
     scalaJSUseMainModuleInitializer := true,
     /* disabled because it somehow triggers many warnings */
@@ -296,7 +297,7 @@ lazy val commonWeb: Project => Project =
 //      "commons-io" % "commons-io" % "2.15.1" withSources(),
       "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
       "dev.zio" %%% "zio"                             % zioVersion withSources (),
-      "com.softwaremill.sttp.client3" %%% "core"      % "3.9.6" withSources (),
+      "com.softwaremill.sttp.client3" %%% "core"      % "3.9.7" withSources (),
       "io.github.cquiroz" %%% "scala-java-time"       % "2.5.0" withSources (),
       "io.github.cquiroz" %%% "scala-java-time-tzdb"  % "2.5.0" withSources (),
       "org.scala-js" %%% "scalajs-dom"                % "2.8.0" withSources (),

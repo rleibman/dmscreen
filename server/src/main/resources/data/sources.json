@@ -1,0 +1,94 @@
+[
+  {
+    "name": "Player's Handbook",
+    "id": "PHB"
+  },
+  {
+    "name": "Monster Manual",
+    "id": "MM"
+  },
+  {
+    "name": "Dungeon Master's Guide",
+    "id": "DMG"
+  },
+  {
+    "name": "Sword Coast Adventurer's Guide",
+    "id": "SCAG"
+  },
+  {
+    "name": "Xanathar's Guide to Everything",
+    "id": "XGTE"
+  },
+  {
+    "name": "Volo's Guide to Monsters",
+    "id": "VGM"
+  },
+  {
+    "name": "Mordenkainen's Tome of Foes",
+    "id": "MTF"
+  },
+  {
+    "name": "Tasha's Cauldron of Everything",
+    "id": "TCE"
+  },
+  {
+    "name": "Guildmasters' Guide to Ravnica",
+    "id": "GGTR"
+  },
+  {
+    "name": "Mythic Odysseys of Theros",
+    "id": "MOT"
+  },
+  {
+    "name": "Explorer's Guide to Wildemount",
+    "id": "EGTW"
+  },
+  {
+    "name": "Acquisitions Incorporated",
+    "id": "AI"
+  },
+  {
+    "name": "Icewind Dale: Rime of the Frostmaiden",
+    "id": "IDRotF"
+  },
+  {
+    "name": "Van Richten's Guide to Ravenloft",
+    "id": "VRGR"
+  },
+  {
+    "name": "The Wild Beyond the Witchlight",
+    "id": "WBtW"
+  },
+  {
+    "name": "Strixhaven: A Curriculum of Chaos",
+    "id": "SACoC"
+  },
+  {
+    "name": "Fizban's Treasury of Dragons",
+    "id": "FTOD"
+  },
+  {
+    "name": "Mordenkainen Presents: Monsters of the Multiverse",
+    "id": "MPMotM"
+  },
+  {
+    "name": "Journeys Through the Radiant Citadel",
+    "id": "JttRC"
+  },
+  {
+    "name": "Spelljammer: Adventures in Space",
+    "id": "SAiS"
+  },
+  {
+    "name": "Dragonlance: Shadow of the Dragon Queen",
+    "id": "DSotDQ"
+  },
+  {
+    "name": "Planescape",
+    "id": "PS"
+  },
+  {
+    "name": "Eberron: Rising from the Last War",
+    "id": "ERftLW"
+  }
+]

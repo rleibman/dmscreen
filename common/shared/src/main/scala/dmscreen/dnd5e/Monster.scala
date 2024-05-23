@@ -21,6 +21,9 @@
 
 package dmscreen.dnd5e
 
+import dmscreen.*
+import zio.json.ast.Json
+
 opaque type MonsterId = Long
 
 enum Sense(val name: String) {
@@ -32,6 +35,11 @@ enum Sense(val name: String) {
   case truesight extends Sense("Truesight")
 
 }
+
+case class SenseRange(
+  sense: Sense,
+  range: Int
+)
 
 object MonsterId {
 
@@ -92,23 +100,23 @@ case class MonsterInfo(
   traits:         String,
   actions:        Seq[String],
   reactions:      String,
-  senses:         Seq[Sense]
+  senses:         Seq[SenseRange]
 )
 
 case class MonsterHeader(
   id:          MonsterId,
   name:        String,
   monsterType: MonsterType,
-  biome:       Biome,
-  alignment:   Alignment,
+  biome:       Option[Biome],
+  alignment:   Option[Alignment],
   cr:          Double,
   xp:          Int,
   ac:          Int,
   hp:          Int,
   size:        CreatureSize
-)
+) extends HasId[MonsterId]
 
 case class Monster(
-  header: MonsterHeader,
-  info:   MonsterInfo
-)
+  header:   MonsterHeader,
+  jsonInfo: Json
+) extends DMScreenEntity[MonsterId, MonsterHeader, MonsterInfo]

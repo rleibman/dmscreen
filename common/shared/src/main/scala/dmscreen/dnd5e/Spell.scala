@@ -19,33 +19,44 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.routes
+package dmscreen.dnd5e
 
-import caliban.*
-import caliban.schema.GenericSchema
-import dmscreen.DMScreenServerEnvironment
-import dmscreen.dnd5e.{DND5eAPI, DND5eGameService}
-import zio.{IO, ZIO}
-import zio.http.*
+import dmscreen.*
+import zio.json.ast.Json
 
-object DND5eRoutes {
+opaque type SpellId = Long
 
-  lazy private val interpreter = DND5eAPI.api.interpreter
+object SpellId {
 
-  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment, Nothing]] =
-    for {
-      interpreter <- interpreter
-    } yield {
-      Routes(
-        Method.ANY / "api" / "dnd5e" ->
-          QuickAdapter(interpreter).handlers.api,
-        Method.ANY / "api" / "dnd5e" / "graphiql" ->
-          GraphiQLHandler.handler(apiPath = "/api/dnd5e", graphiqlPath = "/api/dnd5e/graphiql"),
-        Method.GET / "api" / "dnd5e" / "schema" ->
-          Handler.fromBody(Body.fromCharSequence(DND5eAPI.api.render)),
-        Method.POST / "api" / "dnd5e" / "upload" ->
-          QuickAdapter(interpreter).handlers.upload
-      )
-    }
+  def apply(spellId: Long): SpellId = spellId
+
+  extension (spellId: SpellId) {
+
+    def value: Long = spellId
+
+  }
 
 }
+
+case class SpellHeader(
+  id:   SpellId,
+  name: String
+) extends HasId[SpellId]
+
+case class SpellInfo(
+  level:          Int,
+  school:         String,
+  castingTime:    String,
+  range:          String,
+  components:     String,
+  duration:       String,
+  description:    String,
+  atHigherLevels: Option[String],
+  classes:        List[CharacterClassId],
+  source:         Source
+)
+
+case class Spell(
+  header:   SpellHeader,
+  jsonInfo: Json
+) extends DMScreenEntity[SpellId, SpellHeader, SpellInfo]

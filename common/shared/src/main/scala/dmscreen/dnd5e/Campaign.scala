@@ -21,8 +21,9 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.UserId
+import dmscreen.*
 import dmscreen.dnd5e.GameSystem.dnd5e
+import zio.json.ast.Json
 
 opaque type CampaignId = Long
 
@@ -51,7 +52,7 @@ case class CampaignHeader(
   dm:         UserId,
   name:       String,
   gameSystem: GameSystem = dnd5e
-)
+) extends HasId[CampaignId]
 
 case class Scene(
   name:       String,
@@ -67,6 +68,6 @@ case class CampaignInfo(
 )
 
 case class Campaign(
-  header: CampaignHeader,
-  info:   CampaignInfo
-)
+  override val header:   CampaignHeader,
+  override val jsonInfo: Json
+) extends DMScreenEntity[CampaignId, CampaignHeader, CampaignInfo]
