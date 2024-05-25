@@ -21,11 +21,11 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.CampaignState
+import dmscreen.{Campaign, CampaignState}
 
 case class DND5eCampaignState(
-  campaign:   Campaign,
-  pcs:        Seq[PlayerCharacter] = Seq.empty,
-  npcs:       Seq[NonPlayerCharacter] = Seq.empty,
-  encounters: Seq[Encounter] = Seq.empty
+  campaign:   DND5eCampaign,
+  pcs:        List[PlayerCharacter] = List.empty,
+  npcs:       List[NonPlayerCharacter] = List.empty,
+  encounters: List[Encounter] = List.empty
 ) extends CampaignState

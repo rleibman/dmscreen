@@ -34,7 +34,7 @@ create table playerCharacter
     info         json not null,
     PRIMARY KEY (`id`),
     key          player_character_campaign (campaignId),
-    constraint player_character_campaign foreign key (campaignId) references `campaign` (id),
+    constraint player_character_campaign foreign key (campaignId) references `campaign` (id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -47,7 +47,7 @@ create table nonPlayerCharacter
     info       json not null,
     PRIMARY KEY (`id`),
     key        non_player_character_campaign (campaignId),
-    constraint non_player_character_campaign foreign key (campaignId) references `campaign` (id),
+    constraint non_player_character_campaign foreign key (campaignId) references `campaign` (id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 

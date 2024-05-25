@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{DMScreenError, DMScreenOperation, GameService}
+import dmscreen.*
 import zio.*
 import zio.json.ast.Json
 
@@ -57,16 +57,17 @@ trait DND5eGameService extends GameService {
 
   def campaigns: IO[DMScreenError, Seq[CampaignHeader]]
 
-  def campaign(campaignId: CampaignId): IO[DMScreenError, Option[Campaign]]
+  def campaign(campaignId: CampaignId): IO[DMScreenError, Option[DND5eCampaign]]
 
-  def applyOperation[IDType: ClassTag](
-    id:        IDType,
-    operation: DMScreenOperation
-  )(using ev:  ClassTag[IDType]
+  def applyOperations[IDType](
+    entityType: EntityType,
+    id:         IDType,
+    operations: DMScreenOperation*
   ): IO[DMScreenError, Unit]
 
-  def delete(
-    campaignId: CampaignId,
+  def deleteEntity[IDType](
+    entityType: EntityType,
+    id:         IDType,
     softDelete: Boolean = true
   ): IO[DMScreenError, Unit]
 
@@ -118,27 +119,6 @@ trait DND5eGameService extends GameService {
     encounterHeader: EncounterHeader,
     info:            Json
   ): IO[DMScreenError, EncounterId]
-
-  def deletePlayerCharacter(
-    playerCharacterId: PlayerCharacterId,
-    softDelete:        Boolean = false
-  ): IO[DMScreenError, Unit]
-  def deleteNonPlayerCharacter(
-    nonPlayerCharacterId: NonPlayerCharacterId,
-    softDelete:           Boolean = false
-  ): IO[DMScreenError, Unit]
-  def deleteMonster(
-    monsterId:  MonsterId,
-    softDelete: Boolean = false
-  ): IO[DMScreenError, Unit]
-  def deleteSpell(
-    spellId:    SpellId,
-    softDelete: Boolean = false
-  ): IO[DMScreenError, Unit]
-  def deleteEncounter(
-    encounterId: EncounterId,
-    softDelete:  Boolean = false
-  ): IO[DMScreenError, Unit]
 
 }
 

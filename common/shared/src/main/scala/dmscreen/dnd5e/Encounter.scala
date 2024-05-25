@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{DMScreenEntity, HasId}
+import dmscreen.{CampaignId, DMScreenEntity, EntityType, HasId}
 import zio.json.ast.Json
 
 sealed abstract class EncounterEntity(
@@ -113,4 +113,8 @@ case class EncounterInfo(
 case class Encounter(
   header:   EncounterHeader,
   jsonInfo: Json
-) extends DMScreenEntity[EncounterId, EncounterHeader, EncounterInfo]
+) extends DMScreenEntity[EncounterId, EncounterHeader, EncounterInfo] {
+
+  override def entityType: EntityType = DND5eEntityType.encounter
+
+}

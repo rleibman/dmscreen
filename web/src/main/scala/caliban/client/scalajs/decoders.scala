@@ -19,55 +19,20 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package caliban.client.scalajs
 
-import dmscreen.*
-import dmscreen.dnd5e.GameSystem.dnd5e
+import caliban.client.CalibanClientError.DecodingError
+import caliban.client.__Value.__ObjectValue
+import caliban.client.{ScalarDecoder, __Value}
+import com.github.plokhotnyuk.jsoniter_scala.core.JsonWriter
 import zio.json.ast.Json
+import zio.json.*
 
-opaque type CampaignId = Long
+import com.github.plokhotnyuk.jsoniter_scala
+import com.github.plokhotnyuk.jsoniter_scala.core.*
 
-object CampaignId {
-
-  val empty: CampaignId = CampaignId(0)
-
-  def apply(campaignId: Long): CampaignId = campaignId
-
-  extension (campaignId: CampaignId) {
-
-    def value: Long = campaignId
-
-  }
-
+given ScalarDecoder[Json] = {
+  case input: __ObjectValue =>
+    writeToString(input).fromJson[Json].left.map(DecodingError(_))
+  case _ => Left(DecodingError("Expected an object"))
 }
-
-enum GameSystem {
-
-  case dnd5e, pathfinder2e, starTrekAdventures
-
-}
-
-case class CampaignHeader(
-  id:         CampaignId,
-  dm:         UserId,
-  name:       String,
-  gameSystem: GameSystem = dnd5e
-) extends HasId[CampaignId]
-
-case class Scene(
-  name:       String,
-  isActive:   Boolean,
-  notes:      String,
-  npcs:       List[NonPlayerCharacterId] = List.empty,
-  encounters: List[EncounterId] = List.empty
-)
-
-case class CampaignInfo(
-  notes:  String,
-  scenes: List[Scene] = List.empty
-)
-
-case class Campaign(
-  override val header:   CampaignHeader,
-  override val jsonInfo: Json
-) extends DMScreenEntity[CampaignId, CampaignHeader, CampaignInfo]

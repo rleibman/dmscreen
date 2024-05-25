@@ -82,9 +82,9 @@ given JsonEncoder[GraphQLResponseError] = JsonEncoder.derived[GraphQLResponseErr
 given JsonEncoder[GraphQLResponse] = JsonEncoder.derived[GraphQLResponse]
 given JsonEncoder[GraphQLRequest] = JsonEncoder.derived[GraphQLRequest]
 
-trait ScalaJSClientAdapter extends TimerSupport {
+object ScalaJSClientAdapter extends TimerSupport {
 
-  val serverUri = uri"http://${ClientConfiguration.config.host}/api/game"
+  val serverUri = uri"http://${ClientConfiguration.config.host}/api/dnd5e"
 
   given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
 
@@ -97,10 +97,12 @@ trait ScalaJSClientAdapter extends TimerSupport {
     import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
     AsyncCallback
       .fromFuture(request.send(backend))
-      .map(_.body match {
-        case Left(exception) => throw exception
-        case Right(value)    => value
-      })
+      .map { s =>
+        s.body match {
+          case Left(exception) => throw exception
+          case Right(value)    => value
+        }
+      }
   }
 
   def asyncCalibanCallThroughJsonOpt[Origin, A: JsonDecoder](
@@ -109,6 +111,7 @@ trait ScalaJSClientAdapter extends TimerSupport {
   ): AsyncCallback[Option[A]] =
     asyncCalibanCall[Origin, Option[Json]](selectionBuilder).map { jsonOpt =>
       import scala.language.unsafeNulls
+
       val decoder = summon[JsonDecoder[A]]
 
       jsonOpt.map(decoder.fromJsonAST) match {

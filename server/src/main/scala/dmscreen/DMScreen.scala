@@ -32,7 +32,7 @@ object DMScreen extends ZIOApp {
   override type Environment = DMScreenServerEnvironment & ConfigurationService
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
-  override def bootstrap: ULayer[DMScreenServerEnvironment & ConfigurationService] = EnvironmentBuilder.live
+  override def bootstrap: ULayer[DMScreenServerEnvironment & ConfigurationService] = EnvironmentBuilder.withContainer
 
   private val defaultRouteZio: ZIO[ConfigurationService, ConfigurationError, Routes[ConfigurationService, Throwable]] =
     for {
@@ -47,27 +47,30 @@ object DMScreen extends ZIOApp {
           ZIO.attempt(Response.notFound(path.toString))
     })
 
-  def mapError(e: Cause[Throwable]): Response = {
-    mapError(e.squash)
-  }
-
-  def mapError(e: Throwable): Response = {
+  def mapError(e: Cause[Throwable]): UIO[Response] = {
     lazy val contentTypeJson: Headers = Headers(Header.ContentType(MediaType.application.json).untyped)
-    e match {
+    e.squash match {
       case e: DMScreenError =>
         val body =
           s"""{
             "exceptionMessage": ${e.getMessage},
             "stackTrace": [${e.getStackTrace.nn.map(s => s"\"${s.toString}\"").mkString(",")}]
           }"""
-        Response.apply(body = Body.fromString(body), status = Status.BadGateway, headers = contentTypeJson)
+
+        ZIO.logError(body) *>
+          ZIO.succeed(
+            Response.apply(body = Body.fromString(body), status = Status.BadGateway, headers = contentTypeJson)
+          )
       case e =>
         val body =
           s"""{
             "exceptionMessage": ${e.getMessage},
             "stackTrace": [${e.getStackTrace.nn.map(s => s"\"${s.toString}\"").mkString(",")}]
           }"""
-        Response.apply(body = Body.fromString(body), status = Status.InternalServerError, headers = contentTypeJson)
+        ZIO.logError(body) *>
+          ZIO.succeed(
+            Response.apply(body = Body.fromString(body), status = Status.InternalServerError, headers = contentTypeJson)
+          )
 
     }
   }
@@ -81,7 +84,7 @@ object DMScreen extends ZIOApp {
     StaticRoutes.unauthRoute /*Move this to after there's a user*/ ++
     StaticRoutes.authRoute ++
     defaultRoutes)
-    .handleError(mapError).toHttpApp
+    .handleErrorCauseZIO(mapError).toHttpApp
 
   override def run: ZIO[Environment & ZIOAppArgs & Scope, Throwable, ExitCode] = {
     // Configure thread count using CLI

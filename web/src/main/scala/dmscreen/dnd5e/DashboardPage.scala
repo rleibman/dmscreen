@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{DMScreenState, DMScreenTab}
+import dmscreen.{Campaign, DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -36,7 +36,7 @@ import scala.scalajs.js.JSConverters.*
 object DashboardPage extends DMScreenTab {
 
   case class State(
-    campaign: Option[Campaign] = None,
+    campaign: Option[DND5eCampaign] = None,
     pcs:      Seq[PlayerCharacter] = Seq.empty,
     scenes:   Seq[Scene] = Seq.empty
   )
@@ -65,38 +65,38 @@ object DashboardPage extends DMScreenTab {
             <.div("Campaign Loading")
           } { case campaignState: DND5eCampaignState =>
             val campaign = campaignState.campaign
-            val campaignInfo = campaign.info.toOption.get
-
-            val abilityScores = Array(
-              ChartData(StringDictionary[Double]("a" -> 1, "b" -> 5), Color(radarColors(0))),
-              ChartData(StringDictionary[Double]("a" -> 2, "b" -> 4), Color(radarColors(1)))
-            ).toJSArray
-
+//            val abilityScores = Array(
+//              ChartData(StringDictionary[Double]("a" -> 1, "b" -> 5), Color(radarColors(0))),
+//              ChartData(StringDictionary[Double]("a" -> 2, "b" -> 4), Color(radarColors(1)))
+//            ).toJSArray
+//
             <.div(
               <.div("Ability Score Radar"),
               ReactSvgRadarChart
                 .withProps(
                   ChartProps(
-                    data = abilityScores,
+                    data = Array.empty[ChartData].toJSArray, // abilityScores,
                     captions = StringDictionary[String]("player1-k" -> "player1-v", "player2-k" -> "player2-v"),
-                    size = 450
+                    size = 200
                   )
                 ),
-              //            <.div("Passive Score Radar"),
-              //            Radar(passiveScores),
-              //            <.div("Proficiency Radar"),
-              //            Radar(proficiencies)
-              <.div("Campaign Notes"),
-              campaignInfo.notes,
-              <.div("Scene Notes"),
-              campaignInfo.scenes
-                .find(_.isActive).orElse(campaignInfo.scenes.headOption).map { scene =>
-                  <.div(if (scene.isActive) "Current Scene" else "First Scene", scene.name, scene.notes)
-                }.toVdomArray
+              <.div("Passive Score Radar"),
+//              //            Radar(passiveScores),
+              <.div("Proficiency Radar"),
+//              //            Radar(proficiencies)
+
+              campaign.info.fold(
+                _ => EmptyVdom,
+                campaignInfo =>
+                  <.div(<.div("Campaign Notes"), campaignInfo.notes, <.div("Scenes"), campaignInfo.scenes.mkString(","))
+              )
+              //              <.div("Scene Notes"),
+//              campaignInfo.scenes
+//                .find(_.isActive).orElse(campaignInfo.scenes.headOption).map { scene =>
+//                  <.div(if (scene.isActive) "Current Scene" else "First Scene", scene.name, scene.notes)
+//                }.toVdomArray
             )
           }
-//              )
-//            }
         }
       }
     }

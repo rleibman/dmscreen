@@ -21,7 +21,20 @@
 
 package dmscreen
 
+import caliban.client.scalajs.DND5eClient.{
+  CampaignHeader as CalibanCampaignHeader,
+  DND5eCampaign as CalibanDND5eCampaign,
+  GameSystem as CalibanGameSystem,
+  PlayerCharacter as CalibanPlayerCharacter,
+  PlayerCharacterHeader as CalibanPlayerCharacterHeader,
+  Queries
+}
+import caliban.ScalaJSClientAdapter.*
+import caliban.client.CalibanClientError.DecodingError
+import caliban.client.Operations.RootQuery
+import caliban.client.{ScalarDecoder, SelectionBuilder}
 import components.*
+import dmscreen.dnd5e.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.extra.TimerSupport
@@ -31,6 +44,8 @@ import org.scalajs.dom.{Event, window}
 
 import java.net.URI
 import java.util.UUID
+import zio.json.*
+import zio.json.ast.Json
 
 object Content {
 
@@ -53,25 +68,124 @@ object Content {
     }
 
     def refresh(initial: Boolean): Callback = {
+
       val ajax = for {
         oldState <- $.state.asAsyncCallback
+        currentCampaignId <- AsyncCallback.pure {
+          val strId: String | Null = window.sessionStorage.getItem("currentCampaignId")
+          window.console.log("Current campaign id from session storage: " + strId)
+          if (strId == null || strId.isEmpty)
+            Some(CampaignId(1)) // Change this, we'll need to load campaigns from the server and select the first one
+          else
+            Some(CampaignId(strId.toInt))
+        }
+        // Store the current campaign Id in the session storage for next time
+        _ <- AsyncCallback.pure(window.sessionStorage.setItem("currentCampaignId", currentCampaignId.value.toString))
+        _ <- Callback.log("Loading campaign data from server...").asAsyncCallback
+        campaign <- currentCampaignId.fold(AsyncCallback.pure(None: Option[(DND5eCampaign, List[PlayerCharacter])])) {
+          id =>
+            // TODO move the sb declarations to common code
+            val campaignSB: SelectionBuilder[CalibanDND5eCampaign, DND5eCampaign] = (CalibanDND5eCampaign.header(
+              CalibanCampaignHeader.id ~ CalibanCampaignHeader.name ~ CalibanCampaignHeader.dm ~ CalibanCampaignHeader.gameSystem
+            ) ~ CalibanDND5eCampaign.jsonInfo).mapEither {
+              (
+                id:       Long,
+                name:     String,
+                dm:       Long,
+                system:   CalibanGameSystem,
+                jsonInfo: Json
+              ) =>
+                jsonInfo.toJsonAST.fold(
+                  e => Left(DecodingError(e)),
+                  { infoJson =>
+                    Right(
+                      DND5eCampaign(
+                        CampaignHeader(CampaignId(id), UserId(dm), name, GameSystem.valueOf(system.value)),
+                        infoJson
+                      )
+                    )
+                  }
+                )
+            }
+            val playerCharacterSB: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
+              (CalibanPlayerCharacter.header(
+                CalibanPlayerCharacterHeader.campaignId ~
+                  CalibanPlayerCharacterHeader.id ~
+                  CalibanPlayerCharacterHeader.name ~
+                  CalibanPlayerCharacterHeader.playerName
+              ) ~ CalibanPlayerCharacter.jsonInfo).mapEither {
+                (
+                  campaignId: Long,
+                  pcId:       Long,
+                  name:       String,
+                  playerName: Option[String],
+                  info:       Json
+                ) =>
+                  info.toJsonAST.fold(
+                    e => Left(DecodingError(e)),
+                    infoJson =>
+                      Right(
+                        PlayerCharacter(
+                          PlayerCharacterHeader(
+                            id = PlayerCharacterId(pcId),
+                            campaignId = CampaignId(campaignId),
+                            name = name,
+                            playerName = playerName
+                          ),
+                          infoJson
+                        )
+                      )
+                  )
+              }
+
+            val totalSB =
+              (Queries.campaign(id.value)(campaignSB) ~ Queries.playerCharacters(id.value)(playerCharacterSB)).map {
+                (
+                  cOpt,
+                  pcsOpt
+                ) =>
+                  for {
+                    c   <- cOpt
+                    pcs <- pcsOpt
+                  } yield (c, pcs)
+              }
+            asyncCalibanCall(totalSB)
+        }
+        _ <- Callback.log(s"Campaign data (${campaign.fold("")(_._1.header.name)}) loaded from server").asAsyncCallback
 
         // TODO use asyncCalibanCall to get all the pieces of data needed to create a new global state
       } yield $.modState { s =>
         import scala.language.unsafeNulls
         val copy = if (initial) {
+          // Special stuff needs to be done on initalization:
+          // - Create the userStream and connect to it
+          // - Set all methods that will be used by users of DMState to update pieces of the state, think of these as application level methods
+          // - Set the global User
           s.copy()
         } else {
           s
         }
 
-        copy.copy()
+        val newCampaignState = campaign.map(
+          (
+            c,
+            pcs
+          ) =>
+            s.dmScreenState.campaignState.fold(
+              // Completely brand new
+              DND5eCampaignState(c, pcs)
+            ) { case oldCampaignState: DND5eCampaignState =>
+              oldCampaignState.copy(campaign = c, pcs = pcs)
+            }
+        )
+
+        copy.copy(dmScreenState = s.dmScreenState.copy(campaignState = newCampaignState))
       }
       for {
         _ <- Callback.log(
           if (initial) "Initializing Content Component" else "Refreshing Content Component"
         )
-        modedState <- ajax.completeWith(_.get)
+        modedState <- ajax.completeWith(a => a.get)
       } yield modedState
     }
 

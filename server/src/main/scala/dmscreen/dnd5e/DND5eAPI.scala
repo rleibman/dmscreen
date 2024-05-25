@@ -22,21 +22,14 @@
 package dmscreen.dnd5e
 
 import caliban.*
+import caliban.CalibanError.ExecutionError
+import caliban.introspection.adt.__Type
 import caliban.schema.*
 import caliban.schema.ArgBuilder.auto.*
 import caliban.schema.Schema.auto.*
-import dmscreen.{
-  Add,
-  Copy,
-  DMScreenError,
-  DMScreenOperation,
-  DMScreenServerEnvironment,
-  Move,
-  Remove,
-  Replace,
-  Test,
-  UserId
-}
+import caliban.schema.Types.makeScalar
+import caliban.interop.zio.*
+import dmscreen.*
 import zio.*
 import zio.json.*
 import zio.json.ast.Json
@@ -46,7 +39,11 @@ import java.net.URL
 
 object DND5eAPI {
 
-  case class OperationStreamArgs()
+  case class OperationsArgs(
+    entityType: DND5eEntityType,
+    id:         Long,
+    operations: Seq[Json]
+  )
 
   private given Schema[Any, UserId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, CampaignId] = Schema.longSchema.contramap(_.value)
@@ -60,7 +57,19 @@ object DND5eAPI {
   private given Schema[Any, DMScreenOperation] = Schema.gen[Any, DMScreenOperation]
   private given Schema[Any, Source] = Schema.gen[Any, Source]
   private given Schema[Any, MonsterSearch] = Schema.gen[Any, MonsterSearch]
-  private given Schema[Any, Json] = Schema.stringSchema.contramap(_.toString)
+  private given Schema[Any, Json] =
+    new Schema[Any, Json] {
+      override def toType(
+        isInput:        Boolean,
+        isSubscription: Boolean
+      ): __Type = makeScalar("Json")
+      override def resolve(value: Json): Step[Any] =
+        Step.fromEither {
+          val res = value.as[ResponseValue].left.map(Exception(_))
+          res
+        }
+    }
+  private given ArgBuilder[Json] = (input: InputValue) => input.toJsonAST.left.map(ExecutionError(_))
 
   private given ArgBuilder[PlayerCharacterId] = ArgBuilder.long.map(PlayerCharacterId.apply)
   private given ArgBuilder[NonPlayerCharacterId] = ArgBuilder.long.map(NonPlayerCharacterId.apply)
@@ -68,10 +77,7 @@ object DND5eAPI {
   private given ArgBuilder[SourceId] = ArgBuilder.string.map(SourceId.apply)
   private given ArgBuilder[CampaignId] = ArgBuilder.long.map(CampaignId.apply)
   private given ArgBuilder[EncounterId] = ArgBuilder.long.map(EncounterId.apply)
-  private given ArgBuilder[OperationStreamArgs] = ArgBuilder.gen[OperationStreamArgs]
   private given ArgBuilder[DMScreenOperation] = ArgBuilder.gen[DMScreenOperation]
-  private given ArgBuilder[Json] =
-    ArgBuilder.string.map(s => s.fromJson[Json].getOrElse(throw new Exception(s"Invalid json: $s")))
   private given ArgBuilder[Add] = ArgBuilder.gen[Add]
   private given ArgBuilder[Copy] = ArgBuilder.gen[Copy]
   private given ArgBuilder[Move] = ArgBuilder.gen[Move]
@@ -79,10 +85,11 @@ object DND5eAPI {
   private given ArgBuilder[Replace] = ArgBuilder.gen[Replace]
   private given ArgBuilder[Test] = ArgBuilder.gen[Test]
   private given ArgBuilder[MonsterSearch] = ArgBuilder.gen[MonsterSearch]
+  private given ArgBuilder[OperationsArgs] = ArgBuilder.gen[OperationsArgs]
 
   case class Queries(
     campaigns: ZIO[DND5eGameService, DMScreenError, Seq[CampaignHeader]],
-    campaign:  CampaignId => ZIO[DND5eGameService, DMScreenError, Option[Campaign]],
+    campaign:  CampaignId => ZIO[DND5eGameService, DMScreenError, Option[DND5eCampaign]],
     playerCharacters: CampaignId => ZIO[DND5eGameService, DMScreenError, Seq[
       PlayerCharacter
     ]],
@@ -99,10 +106,10 @@ object DND5eAPI {
     subclasses:  CharacterClassId => ZIO[DND5eGameService, DMScreenError, Seq[Subclass]]
   )
   case class Mutations(
-    event: DMScreenOperation => ZIO[DND5eGameService, DMScreenError, Boolean]
+    applyOperations: OperationsArgs => ZIO[DND5eGameService, DMScreenError, Unit]
   )
   case class Subscriptions(
-    operationStream: OperationStreamArgs => ZStream[DND5eGameService, DMScreenError, DMScreenOperation]
+    operationStream: OperationsArgs => ZStream[DND5eGameService, DMScreenError, DMScreenOperation]
   )
 
   lazy val api: GraphQL[DMScreenServerEnvironment] =
@@ -127,8 +134,11 @@ object DND5eAPI {
           backgrounds = ZIO.serviceWithZIO[DND5eGameService](_.backgrounds),
           subclasses = characterClassId => ZIO.serviceWithZIO[DND5eGameService](_.subClasses(characterClassId))
         ),
-        Mutations(event = event => ???),
-        Subscriptions(operationStream = operationStreamArgs => ???)
+        Mutations(applyOperations =
+          args => ???
+          // ZIO.serviceWithZIO[DND5eGameService](_.applyOperations(args.entityType.asInstanceOf[EntityType], args.id, args.operations *))
+        ),
+        Subscriptions(operationStream = operationArgs => ???)
       )
     )
 

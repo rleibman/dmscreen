@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{ClientConfiguration, DMScreenError, DMScreenOperation}
+import dmscreen.*
 import zio.*
 import zio.json.ast.Json
 
@@ -37,22 +37,17 @@ object GraphQLClientGameService {
     new DND5eGameService {
       override def campaigns: IO[DMScreenError, Seq[CampaignHeader]] = ???
 
-      override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[Campaign]] = ???
+      override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[DND5eCampaign]] = ???
 
       override def insert(
         campaignHeader: CampaignHeader,
         info:           Json
       ): IO[DMScreenError, CampaignId] = ???
 
-      override def applyOperation[IDType: ClassTag](
-        id:        IDType,
-        operation: DMScreenOperation
-      )(using ev:  ClassTag[IDType]
-      ): IO[DMScreenError, Unit] = ???
-
-      override def delete(
-        campaignId: CampaignId,
-        softDelete: Boolean
+      override def applyOperations[IDType](
+        entityType: EntityType,
+        id:         IDType,
+        operations: DMScreenOperation*
       ): IO[DMScreenError, Unit] = ???
 
       override def playerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[PlayerCharacter]] = ???
@@ -104,30 +99,12 @@ object GraphQLClientGameService {
         info:            Json
       ): IO[DMScreenError, EncounterId] = ???
 
-      override def deletePlayerCharacter(
-        playerCharacterId: PlayerCharacterId,
-        softDelete:        Boolean
+      override def deleteEntity[IDType](
+        entityType: EntityType,
+        id:         IDType,
+        softDelete: Boolean = true
       ): IO[DMScreenError, Unit] = ???
 
-      override def deleteNonPlayerCharacter(
-        nonPlayerCharacterId: NonPlayerCharacterId,
-        softDelete:           Boolean
-      ): IO[DMScreenError, Unit] = ???
-
-      override def deleteMonster(
-        monsterId:  MonsterId,
-        softDelete: Boolean
-      ): IO[DMScreenError, Unit] = ???
-
-      override def deleteSpell(
-        spellId:    SpellId,
-        softDelete: Boolean
-      ): IO[DMScreenError, Unit] = ???
-
-      override def deleteEncounter(
-        encounterId: EncounterId,
-        softDelete:  Boolean
-      ): IO[DMScreenError, Unit] = ???
     }
   })
 

@@ -22,14 +22,14 @@
 package dmscreen.dnd5e.dndbeyond
 
 import dmscreen.dnd5e.*
-import dmscreen.{DMScreenError, DMScreenServerEnvironment}
+import dmscreen.{Campaign, DMScreenError, DMScreenServerEnvironment}
 import zio.*
 
 import java.net.URL
 
 trait DND5eImporter[CampaignLink, PlayerCharacterLink, EncounterLink, MonsterLink] {
 
-  def importCampaign(campaignLink: CampaignLink): ZIO[DMScreenServerEnvironment, DMScreenError, Campaign]
+  def importCampaign(campaignLink: CampaignLink): ZIO[DMScreenServerEnvironment, DMScreenError, DND5eCampaign]
 
   def importPlayerCharacter(playerCharacterLink: PlayerCharacterLink)
     : ZIO[DMScreenServerEnvironment, DMScreenError, PlayerCharacter]
@@ -42,7 +42,7 @@ trait DND5eImporter[CampaignLink, PlayerCharacterLink, EncounterLink, MonsterLin
 
 class DNDBeyondImporter extends DND5eImporter[URL, URL, URL, URL] {
 
-  override def importCampaign(campaignLink: URL): ZIO[DMScreenServerEnvironment, DMScreenError, Campaign] = ???
+  override def importCampaign(campaignLink: URL): ZIO[DMScreenServerEnvironment, DMScreenError, DND5eCampaign] = ???
 
   override def importPlayerCharacter(playerCharacterLink: URL)
     : ZIO[DMScreenServerEnvironment, DMScreenError, PlayerCharacter] = ???

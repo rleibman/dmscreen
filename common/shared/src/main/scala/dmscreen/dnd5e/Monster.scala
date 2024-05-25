@@ -119,4 +119,8 @@ case class MonsterHeader(
 case class Monster(
   header:   MonsterHeader,
   jsonInfo: Json
-) extends DMScreenEntity[MonsterId, MonsterHeader, MonsterInfo]
+) extends DMScreenEntity[MonsterId, MonsterHeader, MonsterInfo] {
+
+  override val entityType: EntityType = DND5eEntityType.monster
+
+}

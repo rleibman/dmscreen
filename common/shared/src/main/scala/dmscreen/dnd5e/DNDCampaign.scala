@@ -19,23 +19,41 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen
+package dmscreen.dnd5e
 
-import dmscreen.dnd5e.{DND5eCampaignInfo, PlayerCharacter}
-import japgolly.scalajs.react.React.Context
-import japgolly.scalajs.react.{Callback, React}
-import org.scalajs.dom.window
+import dmscreen.*
+import zio.json.ast.Json
 
-trait CampaignState
-
-case class DMScreenState(
-  user:          Option[User] = None,
-  campaignState: Option[CampaignState] = None
-//  operationStream: Option[WebSocketHandler] = None
+case class Scene(
+  name:       String,
+  isActive:   Boolean,
+  notes:      String,
+  npcs:       List[NonPlayerCharacterId] = List.empty,
+  encounters: List[EncounterId] = List.empty
 )
 
-object DMScreenState {
+case class DND5eCampaignInfo(
+  notes:  String,
+  scenes: List[Scene] = List.empty
+)
 
-  val ctx: Context[DMScreenState] = React.createContext(DMScreenState())
+case class DND5eCampaign(
+  override val header:   CampaignHeader,
+  override val jsonInfo: Json
+) extends Campaign[DND5eCampaignInfo] {
+
+  override val entityType: EntityType = DND5eEntityType.campaign
+
+}
+
+enum DND5eEntityType(val name: String) {
+
+  case campaign extends DND5eEntityType("campaign") with EntityType
+  case encounter extends DND5eEntityType("encounter") with EntityType
+  case playerCharacter extends DND5eEntityType("playerCharacter") with EntityType
+  case nonPlayerCharacter extends DND5eEntityType("nonPlayerCharacter") with EntityType
+  case scene extends DND5eEntityType("scene") with EntityType
+  case monster extends DND5eEntityType("monster") with EntityType
+  case spell extends DND5eEntityType("spell") with EntityType
 
 }

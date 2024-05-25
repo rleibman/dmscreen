@@ -40,5 +40,5 @@ Come chat with us on [![Badge-Discord]][Link-Discord].
 http://localhost:8079/api/dnd5e/schema
 
 # Client code generation
-calibanGenClient /home/rleibman/projects/dmscreen/server/src/main/graphql/schema.gql /home/rleibman/projects/dmscreen/web/src/main/scala/caliban/client/scalajs/DND5eClient.scala --genview true
+calibanGenClient /home/rleibman/projects/dmscreen/server/src/main/graphql/schema.gql /home/rleibman/projects/dmscreen/web/src/main/scala/caliban/client/scalajs/DND5eClient.scala --genview true --scalarMappings Json:zio.json.ast.Json --packageName caliban.client.scalajs
 

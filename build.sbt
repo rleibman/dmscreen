@@ -79,14 +79,17 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     buildInfoPackage := "dmscreen"
   )
   .settings(
-    commonSettings
+    commonSettings,
+    libraryDependencies ++= Seq(
+
+    )
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
       "dev.zio"   %% "zio"            % zioVersion withSources (),
       "dev.zio"   %% "zio-json"       % "0.6.2" withSources (),
       "io.megl"   %% "zio-json-extra" % "0.6.2" withSources (),
-      "org.gnieh" %% "diffson-core"   % "4.6.0" withSources ()
+      "org.gnieh" %% "diffson-core"   % "4.6.0" withSources (),
     )
   )
   .jsSettings(
@@ -94,7 +97,9 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
       "dev.zio" %%% "zio"            % zioVersion withSources (),
       "dev.zio" %%% "zio-json"       % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-extra" % "0.6.2" withSources (),
-      "org.gnieh" %%% "diffson-core" % "4.6.0" withSources ()
+      "org.gnieh" %%% "diffson-core" % "4.6.0" withSources (),
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.28.5",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.28.5"
     )
   )
 
@@ -182,6 +187,7 @@ lazy val reactNpmDeps: Project => Project =
       "csstype"                      -> "^3.0.0",
       "@types/prop-types"            -> "^15.0.0",
       "semantic-ui-react"            -> "^2.0.0",
+      "react-svg-radar-chart"        -> "^1.0.0",
       "@types/react-svg-radar-chart" -> "^1.0.0"
     )
   )
@@ -208,6 +214,7 @@ lazy val bundlerSettings: Project => Project =
       scalaJSLinkerConfig ~= (_.withSourceMap(false))
     )
 
+//TODO move to it's own repo and project, publish local, but get it out of here as it makes the build take forever
 lazy val stLib = project
   .in(file("dmscreen-stLib"))
   .enablePlugins(ScalablyTypedConverterGenSourcePlugin)

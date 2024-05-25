@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{EnvironmentBuilder, JsonPath, Replace, UserId}
+import dmscreen.*
 import zio.*
 import zio.test.*
 import zio.json.*
@@ -41,17 +41,18 @@ object StorageSpec extends ZIOSpecDefault {
           campaign  <- service.campaign(campaigns.head.id)
           newCampaignId <- service.insert(
             CampaignHeader(CampaignId.empty, testUser, "Test Campaign 2"),
-            CampaignInfo(notes = "These are some notes").toJsonAST.getOrElse(Json.Null)
+            DND5eCampaignInfo(notes = "These are some notes").toJsonAST.getOrElse(Json.Null)
           )
           newCampaigns     <- service.campaigns
           afterNewCampaign <- service.campaign(newCampaignId)
-          _ <- service.applyOperation(
+          _ <- service.applyOperations(
+            entityType = DND5eEntityType.campaign,
             id = newCampaignId,
-            operation = Replace(JsonPath("$.notes"), Json.Str("These are some updated notes"))
+            operations = Replace(JsonPath("$.notes"), Json.Str("These are some updated notes"))
           )
           updatedCampaigns <- service.campaigns
           updatedCampaign  <- service.campaign(newCampaignId)
-          _                <- service.delete(newCampaignId)
+          _                <- service.deleteEntity(entityType = DND5eEntityType.campaign, id = newCampaignId)
           deletedCampaigns <- service.campaigns
           deletedCampaign  <- service.campaign(newCampaignId)
         } yield {

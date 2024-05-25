@@ -31,10 +31,17 @@ trait HasId[Id] {
 
 }
 
+trait EntityType {
+
+  def name: String
+
+}
+
 trait DMScreenEntity[Id, Header <: HasId[Id], Info: JsonEncoder: JsonDecoder] {
 
-  def header:   Header
-  def jsonInfo: Json
+  def entityType: EntityType
+  def header:     Header
+  def jsonInfo:   Json
   final def id = header.id
   final def info: Either[DMScreenError, Info] = jsonInfo.as[Info].left.map(DMScreenError(_))
 

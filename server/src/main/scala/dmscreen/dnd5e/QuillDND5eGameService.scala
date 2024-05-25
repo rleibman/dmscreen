@@ -44,8 +44,8 @@ object QuillDND5eGameService {
     info:       Json
   ) {
 
-    def toModel: Campaign =
-      Campaign(header = CampaignHeader(id = CampaignId(id), dm = UserId(dm), name = name), jsonInfo = info)
+    def toModel: DND5eCampaign =
+      DND5eCampaign(header = CampaignHeader(id = CampaignId(id), dm = UserId(dm), name = name), jsonInfo = info)
 
   }
 
@@ -225,7 +225,7 @@ object QuillDND5eGameService {
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
 
-        override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[Campaign]] =
+        override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[DND5eCampaign]] =
           ctx
             .run(qCampaigns.filter(_.id == lift(campaignId.value)))
             .map(_.headOption.map(_.toModel))
@@ -335,23 +335,23 @@ object QuillDND5eGameService {
         }
 
         @nowarn // We're using ClassTag to inject compile info to runtime so we can match on the IDType, but it still produces a warning
-        override def applyOperation[IDType: ClassTag](
-          id:        IDType,
-          operation: DMScreenOperation
-        )(using ev:  ClassTag[IDType]
-        ) = {
-          id match {
-            case id: CampaignId => applyOperationCampaign(id.asInstanceOf[CampaignId], operation)
-            case _ => ZIO.fail(DMScreenError("Can't apply operation to an id $id"))
+        override def applyOperations[IDType](
+          entityType: EntityType,
+          id:         IDType,
+          operations: DMScreenOperation*
+        ): IO[DMScreenError, Unit] = {
+          entityType match {
+            case DND5eEntityType.campaign => applyOperationsCampaign(CampaignId(id.asInstanceOf[Long]), operations*)
+            case _                        => ZIO.fail(DMScreenError("Can't apply operation to an id $id"))
           }
         }
 
-        def applyOperationCampaign(
+        def applyOperationsCampaign(
           campaignId: CampaignId,
-          operation:  DMScreenOperation
+          operations: DMScreenOperation*
         ): IO[DMScreenError, Unit] = {
           // UPDATE t SET json_col = JSON_SET(json_col, '$.name', 'Knut') WHERE id = 123
-          (operation match {
+          (operations match {
             case Add(path, value) =>
               ctx
                 .run(
@@ -383,16 +383,21 @@ object QuillDND5eGameService {
 
         }
 
-        override def delete(
-          campaignId: CampaignId,
-          softDelete: Boolean
+        override def deleteEntity[IDType](
+          entityType: EntityType,
+          id:         IDType,
+          softDelete: Boolean = true
         ): IO[DMScreenError, Unit] = {
           // TODO implement soft deletes
-          ctx
-            .run(qCampaigns.filter(_.id == lift(campaignId.value)).delete)
-            .unit
-            .provideLayer(dataSourceLayer)
-            .mapError(RepositoryError.apply)
+          entityType match {
+            case DND5eEntityType.campaign =>
+              ctx
+                .run(qCampaigns.filter(_.id == lift(id.asInstanceOf[CampaignId].value)).delete)
+                .unit
+                .provideLayer(dataSourceLayer)
+                .mapError(RepositoryError.apply)
+            case _ => ZIO.fail(DMScreenError(s"Don't know how to delete ${entityType.name}"))
+          }
         }
 
         override def spells: IO[DMScreenError, Seq[Spell]] = ???
@@ -422,30 +427,6 @@ object QuillDND5eGameService {
           info:            Json
         ): IO[DMScreenError, EncounterId] = ???
 
-        override def deletePlayerCharacter(
-          playerCharacterId: PlayerCharacterId,
-          softDelete:        Boolean
-        ): IO[DMScreenError, Unit] = ???
-
-        override def deleteNonPlayerCharacter(
-          nonPlayerCharacterId: NonPlayerCharacterId,
-          softDelete:           Boolean
-        ): IO[DMScreenError, Unit] = ???
-
-        override def deleteMonster(
-          monsterId:  MonsterId,
-          softDelete: Boolean
-        ): IO[DMScreenError, Unit] = ???
-
-        override def deleteSpell(
-          spellId:    SpellId,
-          softDelete: Boolean
-        ): IO[DMScreenError, Unit] = ???
-
-        override def deleteEncounter(
-          encounterId: EncounterId,
-          softDelete:  Boolean
-        ): IO[DMScreenError, Unit] = ???
       }
     }
 

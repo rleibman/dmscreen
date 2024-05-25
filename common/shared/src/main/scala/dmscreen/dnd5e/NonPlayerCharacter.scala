@@ -80,4 +80,8 @@ case class NonPlayerCharacterInfo(
 case class NonPlayerCharacter(
   header:   NonPlayerCharacterHeader,
   jsonInfo: Json
-) extends DMScreenEntity[NonPlayerCharacterId, NonPlayerCharacterHeader, NonPlayerCharacterInfo]
+) extends DMScreenEntity[NonPlayerCharacterId, NonPlayerCharacterHeader, NonPlayerCharacterInfo] {
+
+  override val entityType: EntityType = DND5eEntityType.nonPlayerCharacter
+
+}

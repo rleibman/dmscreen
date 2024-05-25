@@ -21,47 +21,33 @@
 
 package dmscreen
 
-import zio.json.JsonCodec
-import zio.json.ast.Json
+opaque type CampaignId = Long
 
-// An attempt to abstract everything so that we can use the same code for all games.
+object CampaignId {
 
-opaque type EntityId = Long
+  val empty: CampaignId = CampaignId(0)
 
-case class EntityType(
-  name: String
-)
+  def apply(campaignId: Long): CampaignId = campaignId
 
-case class EntityHeader(
-  id:         EntityId,
-  entityType: EntityType,
-  name:       String
-)
+  extension (campaignId: CampaignId) {
 
-case class Entity(entityHeader: EntityHeader) {}
+    def value: Long = campaignId
 
-enum EntityValueType {
-
-  case Id, String, Number, Boolean, Array, Object
+  }
 
 }
 
-case class EntityMetadata(
-  entityType: EntityType,
+enum GameSystem {
+
+  case dnd5e, pathfinder2e, starTrekAdventures
+
+}
+
+case class CampaignHeader(
+  id:         CampaignId,
+  dm:         UserId,
   name:       String,
-  path:       String,
-  isOptional: Boolean,
-  valueType:  EntityValueType
-)
+  gameSystem: GameSystem = GameSystem.dnd5e
+) extends HasId[CampaignId]
 
-trait EntityValue[+Type] {
-
-  def value: Type
-
-}
-
-case class StringValue(value: String) extends EntityValue[String] {}
-case class NumberValue(value: Number) extends EntityValue[Number] {}
-case class BooleanValue(value: Boolean) extends EntityValue[Boolean] {}
-case class ObjectValue[Type: JsonCodec](value: Type) extends EntityValue[Type] {}
-case class ArrayValue[Type](value: Seq[Type]) extends EntityValue[Seq[Type]] {}
+trait Campaign[CampaignInfo] extends DMScreenEntity[CampaignId, CampaignHeader, CampaignInfo]

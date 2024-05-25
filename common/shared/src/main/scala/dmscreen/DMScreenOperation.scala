@@ -21,6 +21,7 @@
 
 package dmscreen
 
+import zio.json.JsonCodec
 import zio.json.ast.Json
 
 enum EventType {
@@ -31,31 +32,34 @@ enum EventType {
 
 case class JsonPath(value: String)
 
-sealed trait DMScreenOperation
+sealed abstract class DMScreenOperation
 
-case class Add(
+sealed case class Add(
   path:  JsonPath,
   value: Json
 ) extends DMScreenOperation
 
-case class Copy(
+sealed case class Copy(
   from: JsonPath,
   to:   JsonPath
 ) extends DMScreenOperation
 
-case class Move(
+sealed case class Move(
   from: JsonPath,
   to:   JsonPath
 ) extends DMScreenOperation
 
-case class Remove(path: JsonPath) extends DMScreenOperation
+sealed case class Remove(path: JsonPath) extends DMScreenOperation
 
-case class Replace(
+sealed case class Replace(
   path:  JsonPath,
   value: Json
 ) extends DMScreenOperation
 
-case class Test(
+sealed case class Test(
   path:  JsonPath,
   value: Json
 ) extends DMScreenOperation
+
+given JsonCodec[JsonPath] = JsonCodec.string.transform(JsonPath.apply, _.value)
+given JsonCodec[DMScreenOperation] = JsonCodec.derived[DMScreenOperation]

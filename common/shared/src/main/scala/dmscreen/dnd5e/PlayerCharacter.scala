@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{DMScreenEntity, HasId}
+import dmscreen.{CampaignId, DMScreenEntity, EntityType, HasId}
 import zio.json.ast.Json
 
 import java.net.{URI, URL}
@@ -43,7 +43,7 @@ object PlayerCharacterId {
 final case class PlayerCharacterHeader(
   id:         PlayerCharacterId,
   campaignId: CampaignId,
-  name:       String,
+  name:       String, // TODO make it optional
   playerName: Option[String]
 ) extends HasId[PlayerCharacterId]
 
@@ -246,4 +246,8 @@ case class PlayerCharacterInfo(
 case class PlayerCharacter(
   header:   PlayerCharacterHeader,
   jsonInfo: Json
-) extends DMScreenEntity[PlayerCharacterId, PlayerCharacterHeader, PlayerCharacterInfo]
+) extends DMScreenEntity[PlayerCharacterId, PlayerCharacterHeader, PlayerCharacterInfo] {
+
+  override def entityType: EntityType = DND5eEntityType.playerCharacter
+
+}

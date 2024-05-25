@@ -139,7 +139,9 @@ object AppRouter {
             .width(SemanticWIDTHS.`2`)(renderMenu),
           Grid
             .Column()
-            .width(SemanticWIDTHS.`14`)(resolution.render())
+            .width(SemanticWIDTHS.`14`)(
+              resolution.render()
+            )
         )
     }
   }

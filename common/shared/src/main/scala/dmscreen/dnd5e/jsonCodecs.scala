@@ -21,6 +21,7 @@
 
 package dmscreen.dnd5e
 
+import dmscreen.CampaignId
 import zio.json.*
 
 import java.net.{URI, URL}
@@ -58,7 +59,7 @@ given JsonCodec[CharacterClass] = JsonCodec.derived[CharacterClass]
 given JsonCodec[Scene] = JsonCodec.derived[Scene]
 given JsonCodec[Race] = JsonCodec.derived[Race]
 given JsonCodec[Background] = JsonCodec.derived[Background]
-given JsonCodec[CampaignInfo] = JsonCodec.derived[CampaignInfo]
+given JsonCodec[DND5eCampaignInfo] = JsonCodec.derived[DND5eCampaignInfo]
 given JsonCodec[Map[CharacterClassId, Subclass]] = JsonCodec.map[CharacterClassId, Subclass]
 given JsonCodec[ImportSource] = JsonCodec.derived[ImportSource]
 given JsonCodec[PhysicalCharacteristics] = JsonCodec.derived[PhysicalCharacteristics]

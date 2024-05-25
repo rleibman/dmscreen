@@ -89,9 +89,11 @@ object DMScreenContainer {
           } { case (_, stmt) =>
             ZIO
               .foreach(statements) { statement =>
-                ZIO.attempt(stmt.executeUpdate(statement).nn)
-              }.catchSome { case e: SQLException =>
-                ZIO.fail(RepositoryError(e))
+                ZIO
+                  .attempt(stmt.executeUpdate(statement).nn)
+                  .catchSome { case e: SQLException =>
+                    ZIO.fail(RepositoryError(s"Error processing $statement", Some(e)))
+                  }
               }
           }
         }.unit.mapError(RepositoryError.apply)

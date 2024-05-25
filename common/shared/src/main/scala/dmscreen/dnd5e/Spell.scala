@@ -59,4 +59,8 @@ case class SpellInfo(
 case class Spell(
   header:   SpellHeader,
   jsonInfo: Json
-) extends DMScreenEntity[SpellId, SpellHeader, SpellInfo]
+) extends DMScreenEntity[SpellId, SpellHeader, SpellInfo] {
+
+  override def entityType: EntityType = DND5eEntityType.spell
+
+}
