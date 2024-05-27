@@ -22,8 +22,8 @@
 package dmscreen.dnd5e
 
 import dmscreen.{Campaign, DMScreenState, DMScreenTab}
-import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
-import japgolly.scalajs.react.component.Scala.Unmounted
+import japgolly.scalajs.react.{BackendScope, Callback, CtorType, ScalaComponent}
+import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.reactSvgRadarChart.anon.Color
 import net.leibman.dmscreen.reactSvgRadarChart.components.ReactSvgRadarChart
@@ -41,7 +41,7 @@ object DashboardPage extends DMScreenTab {
     scenes:   Seq[Scene] = Seq.empty
   )
 
-  val radarColors = js.Array(
+  private val radarColors = List(
     "#ff0000",
     "#00ff00",
     "#0000ff",
@@ -58,43 +58,88 @@ object DashboardPage extends DMScreenTab {
 
   class Backend($ : BackendScope[Unit, State]) {
 
-    def render(s: State) = {
+    def render(s: State): VdomElement = {
       DMScreenState.ctx.consume { dmScreenState =>
         {
           dmScreenState.campaignState.fold {
             <.div("Campaign Loading")
           } { case campaignState: DND5eCampaignState =>
             val campaign = campaignState.campaign
-//            val abilityScores = Array(
-//              ChartData(StringDictionary[Double]("a" -> 1, "b" -> 5), Color(radarColors(0))),
-//              ChartData(StringDictionary[Double]("a" -> 2, "b" -> 4), Color(radarColors(1)))
-//            ).toJSArray
-//
-            <.div(
-              <.div("Ability Score Radar"),
-              ReactSvgRadarChart
-                .withProps(
-                  ChartProps(
-                    data = Array.empty[ChartData].toJSArray, // abilityScores,
-                    captions = StringDictionary[String]("player1-k" -> "player1-v", "player2-k" -> "player2-v"),
-                    size = 200
-                  )
+            val abilityScores = Array(
+              ChartData(
+                StringDictionary(
+                  "Str" -> 18 / 20.0,
+                  "Con" -> 15 / 20.0,
+                  "Dex" -> 10 / 20.0,
+                  "Int" -> 9 / 20.0,
+                  "Wis" -> 12 / 20.0,
+                  "Cha" -> 14 / 20.0
                 ),
-              <.div("Passive Score Radar"),
-//              //            Radar(passiveScores),
-              <.div("Proficiency Radar"),
-//              //            Radar(proficiencies)
+                Color(radarColors(0))
+              ),
+              ChartData(
+                StringDictionary(
+                  "Str" -> 15 / 20.0,
+                  "Con" -> 18 / 20.0,
+                  "Dex" -> 12 / 20.0,
+                  "Int" -> 11 / 20.0,
+                  "Wis" -> 9 / 20.0,
+                  "Cha" -> 20 / 20.0
+                ),
+                Color(radarColors(1))
+              )
+            ).toJSArray
 
+            <.div(
+              <.h1("Dashboard"),
+              <.div(
+                <.h2("Ability Scores"),
+                ReactSvgRadarChart
+                  .withProps(
+                    ChartProps(
+                      captions = StringDictionary[String](
+                        "Str" -> "Str",
+                        "Con" -> "Con",
+                        "Dex" -> "Dex",
+                        "Int" -> "Int",
+                        "Wis" -> "Wis",
+                        "Cha" -> "Cha"
+                      ),
+                      data = abilityScores, // Array.empty[ChartData].toJSArray,
+                      size = 200
+                    )
+                  )
+              ),
+              <.div(
+                <.h2("Saving Throws")
+              ),
+              <.div(
+                <.h2("Passive Scores")
+              ),
+              <.div(
+                <.h2("Proficiencies")
+              ),
+              <.div(
+                <.h2("Legend")
+              ),
               campaign.info.fold(
                 _ => EmptyVdom,
                 campaignInfo =>
-                  <.div(<.div("Campaign Notes"), campaignInfo.notes, <.div("Scenes"), campaignInfo.scenes.mkString(","))
+                  VdomArray(
+                    <.div(<.h2("Campaign Notes"), campaignInfo.notes),
+                    if (campaignInfo.scenes.isEmpty) EmptyVdom
+                    else
+                      <.div(
+                        <.h2("Scene Notes"),
+                        campaignInfo.scenes.mkString(",")
+                        //              campaignInfo.scenes
+                        //                .find(_.isActive).orElse(campaignInfo.scenes.headOption).map { scene =>
+                        //                  <.div(if (scene.isActive) "Current Scene" else "First Scene", scene.name, scene.notes)
+                        //                }.toVdomArray
+
+                      )
+                  )
               )
-              //              <.div("Scene Notes"),
-//              campaignInfo.scenes
-//                .find(_.isActive).orElse(campaignInfo.scenes.headOption).map { scene =>
-//                  <.div(if (scene.isActive) "Current Scene" else "First Scene", scene.name, scene.notes)
-//                }.toVdomArray
             )
           }
         }
@@ -103,8 +148,8 @@ object DashboardPage extends DMScreenTab {
 
   }
 
-  private val component = ScalaComponent
-    .builder[Unit]("router")
+  private val component: Component[Unit, State, Backend, CtorType.Nullary] = ScalaComponent
+    .builder[Unit]("dashboardPage")
     .initialState {
       State()
     }

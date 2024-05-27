@@ -87,24 +87,17 @@ object Content {
             // TODO move the sb declarations to common code
             val campaignSB: SelectionBuilder[CalibanDND5eCampaign, DND5eCampaign] = (CalibanDND5eCampaign.header(
               CalibanCampaignHeader.id ~ CalibanCampaignHeader.name ~ CalibanCampaignHeader.dm ~ CalibanCampaignHeader.gameSystem
-            ) ~ CalibanDND5eCampaign.jsonInfo).mapEither {
+            ) ~ CalibanDND5eCampaign.jsonInfo).map {
               (
-                id:       Long,
-                name:     String,
-                dm:       Long,
-                system:   CalibanGameSystem,
-                jsonInfo: Json
+                id:     Long,
+                name:   String,
+                dm:     Long,
+                system: CalibanGameSystem,
+                info:   Json
               ) =>
-                jsonInfo.toJsonAST.fold(
-                  e => Left(DecodingError(e)),
-                  { infoJson =>
-                    Right(
-                      DND5eCampaign(
-                        CampaignHeader(CampaignId(id), UserId(dm), name, GameSystem.valueOf(system.value)),
-                        infoJson
-                      )
-                    )
-                  }
+                DND5eCampaign(
+                  CampaignHeader(CampaignId(id), UserId(dm), name, GameSystem.valueOf(system.value)),
+                  info
                 )
             }
             val playerCharacterSB: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
@@ -113,7 +106,7 @@ object Content {
                   CalibanPlayerCharacterHeader.id ~
                   CalibanPlayerCharacterHeader.name ~
                   CalibanPlayerCharacterHeader.playerName
-              ) ~ CalibanPlayerCharacter.jsonInfo).mapEither {
+              ) ~ CalibanPlayerCharacter.jsonInfo).map {
                 (
                   campaignId: Long,
                   pcId:       Long,
@@ -121,20 +114,14 @@ object Content {
                   playerName: Option[String],
                   info:       Json
                 ) =>
-                  info.toJsonAST.fold(
-                    e => Left(DecodingError(e)),
-                    infoJson =>
-                      Right(
-                        PlayerCharacter(
-                          PlayerCharacterHeader(
-                            id = PlayerCharacterId(pcId),
-                            campaignId = CampaignId(campaignId),
-                            name = name,
-                            playerName = playerName
-                          ),
-                          infoJson
-                        )
-                      )
+                  PlayerCharacter(
+                    PlayerCharacterHeader(
+                      id = PlayerCharacterId(pcId),
+                      campaignId = CampaignId(campaignId),
+                      name = name,
+                      playerName = playerName
+                    ),
+                    info
                   )
               }
 

@@ -33,6 +33,8 @@ enum Sense(val name: String) {
   case darkvision extends Sense("Darkvision")
   case tremorsense extends Sense("Tremorsense")
   case truesight extends Sense("Truesight")
+  case scent extends Sense("Scent")
+  case other extends Sense("Other")
 
 }
 

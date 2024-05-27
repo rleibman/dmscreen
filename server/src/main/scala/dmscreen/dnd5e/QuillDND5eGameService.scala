@@ -170,8 +170,8 @@ object QuillDND5eGameService {
         private object ctx extends MysqlZioJdbcContext(MysqlEscape)
 
         import ctx.*
-
-        private val dataSourceLayer = Quill.DataSource.fromDataSource(config.dataSource)
+        private val dataSourceLayer: ZLayer[Any, Throwable, DataSource] =
+          Quill.DataSource.fromDataSource(config.dataSource)
 
         given MappedEncoding[Json, String] = MappedEncoding[Json, String](_.toJson)
 
