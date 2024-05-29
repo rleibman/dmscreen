@@ -47,7 +47,7 @@ object DND5eAPI {
 
   private given Schema[Any, UserId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, CampaignId] = Schema.longSchema.contramap(_.value)
-  private given Schema[Any, CharacterClassId] = Schema.stringSchema.contramap(_.value)
+  private given Schema[Any, CharacterClassId] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, MonsterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, PlayerCharacterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, NonPlayerCharacterId] = Schema.longSchema.contramap(_.value)
@@ -73,7 +73,8 @@ object DND5eAPI {
 
   private given ArgBuilder[PlayerCharacterId] = ArgBuilder.long.map(PlayerCharacterId.apply)
   private given ArgBuilder[NonPlayerCharacterId] = ArgBuilder.long.map(NonPlayerCharacterId.apply)
-  private given ArgBuilder[CharacterClassId] = ArgBuilder.string.map(CharacterClassId.apply)
+  private given ArgBuilder[CharacterClassId] =
+    ArgBuilder.string.map(s => CharacterClassId.values.find(a => s.equalsIgnoreCase(a.toString)).get)
   private given ArgBuilder[SourceId] = ArgBuilder.string.map(SourceId.apply)
   private given ArgBuilder[CampaignId] = ArgBuilder.long.map(CampaignId.apply)
   private given ArgBuilder[EncounterId] = ArgBuilder.long.map(EncounterId.apply)

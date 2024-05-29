@@ -1,0 +1,110 @@
+{
+  "stats": null,
+  "editable": true,
+  "data": {
+    "id": "5f96a7e2-5d36-4446-a617-d4f642a3ef9b",
+    "copiedFromId": null,
+    "userId": 118784048,
+    "name": null,
+    "map": null,
+    "room": null,
+    "source": null,
+    "inProgress": true,
+    "roundNum": 1,
+    "turnNum": 1,
+    "notes": null,
+    "monsters": [
+      {
+        "groupId": "2e2456ec-f5ed-4195-95ac-f07b53ae924e",
+        "id": 2821140,
+        "uniqueId": "3748477b-a3c4-4e2d-a18f-4fb8856c1420",
+        "name": "Aarakocra Spelljammer",
+        "order": 1,
+        "quantity": 1,
+        "notes": null,
+        "index": null,
+        "currentHitPoints": 40,
+        "temporaryHitPoints": 0,
+        "maximumHitPoints": 40,
+        "initiative": 18
+      }
+    ],
+    "groups": [
+      {
+        "id": "2e2456ec-f5ed-4195-95ac-f07b53ae924e",
+        "order": 1,
+        "name": null
+      }
+    ],
+    "players": [
+      {
+        "id": "123986266",
+        "count": 1,
+        "level": 3,
+        "type": "CHARACTER_TYPE_DDB",
+        "hidden": false,
+        "race": "Thri-Kreen",
+        "gender": "male",
+        "name": "Chr'zyzx",
+        "userName": "rodilomelyk",
+        "isReady": true,
+        "avatarUrl": "https://www.dndbeyond.com/avatars/thumbnails/41613/211/150/188/1581111423-123986266.jpeg",
+        "classByLine": "Ranger / Swarmkeeper",
+        "initiative": 15,
+        "currentHitPoints": 0,
+        "temporaryHitPoints": 0,
+        "maximumHitPoints": 0
+      },
+      {
+        "id": "preset-2e732f46-4027-4b1c-a256-b60d12ea1cb6",
+        "count": 1,
+        "level": 3,
+        "type": "CHARACTER_TYPE_ABSTRACT",
+        "hidden": false,
+        "race": null,
+        "gender": null,
+        "name": null,
+        "userName": null,
+        "isReady": false,
+        "avatarUrl": null,
+        "classByLine": null,
+        "initiative": 12,
+        "currentHitPoints": 0,
+        "temporaryHitPoints": 0,
+        "maximumHitPoints": 0
+      },
+      {
+        "id": "preset-da3d1f3b-8cc8-4c9a-b9f4-057c824e0c48",
+        "count": 1,
+        "level": 3,
+        "type": "CHARACTER_TYPE_ABSTRACT",
+        "hidden": false,
+        "race": null,
+        "gender": null,
+        "name": null,
+        "userName": null,
+        "isReady": false,
+        "avatarUrl": null,
+        "classByLine": null,
+        "initiative": 13,
+        "currentHitPoints": 0,
+        "temporaryHitPoints": 0,
+        "maximumHitPoints": 0
+      }
+    ],
+    "manualEntries": [],
+    "difficulty": 4,
+    "dateCreated": 1716785606203,
+    "dateModified": 1716785633531,
+    "versionNumber": 1,
+    "status": 1,
+    "campaign": {
+      "id": 5415230,
+      "name": "Journeys through the Radiant Citadel"
+    },
+    "flavorText": null,
+    "description": null,
+    "rewards": null,
+    "compendiumLink": null
+  }
+}

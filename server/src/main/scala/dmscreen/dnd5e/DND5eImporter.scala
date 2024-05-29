@@ -19,13 +19,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e.dndbeyond
+package dmscreen.dnd5e
 
-import dmscreen.dnd5e.*
-import dmscreen.{Campaign, DMScreenError, DMScreenServerEnvironment}
+import dmscreen.dnd5e.{*, given}
+import dmscreen.{CampaignId, DMScreenError, DMScreenServerEnvironment}
 import zio.*
+import zio.json.*
+import zio.json.ast.Json
+import zio.nio.file.*
 
-import java.net.URL
+import java.net.URI
 
 trait DND5eImporter[CampaignLink, PlayerCharacterLink, EncounterLink, MonsterLink] {
 
@@ -37,18 +40,5 @@ trait DND5eImporter[CampaignLink, PlayerCharacterLink, EncounterLink, MonsterLin
   def importEncounter(encounterLink: EncounterLink): ZIO[DMScreenServerEnvironment, DMScreenError, Encounter]
 
   def importMonster(monsterLink: MonsterLink): ZIO[DMScreenServerEnvironment, DMScreenError, Monster]
-
-}
-
-class DNDBeyondImporter extends DND5eImporter[URL, URL, URL, URL] {
-
-  override def importCampaign(campaignLink: URL): ZIO[DMScreenServerEnvironment, DMScreenError, DND5eCampaign] = ???
-
-  override def importPlayerCharacter(playerCharacterLink: URL)
-    : ZIO[DMScreenServerEnvironment, DMScreenError, PlayerCharacter] = ???
-
-  override def importEncounter(encounterLink: URL): ZIO[DMScreenServerEnvironment, DMScreenError, Encounter] = ???
-
-  override def importMonster(monsterLink: URL): ZIO[DMScreenServerEnvironment, DMScreenError, Monster] = ???
 
 }

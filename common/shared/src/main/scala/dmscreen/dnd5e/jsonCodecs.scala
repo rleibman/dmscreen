@@ -24,17 +24,25 @@ package dmscreen.dnd5e
 import dmscreen.CampaignId
 import zio.json.*
 
-import java.net.{URI, URL}
+import java.net.URI
 
 //Field encoders
-given JsonFieldEncoder[CharacterClassId] = JsonFieldEncoder[String].contramap(_.value)
-given JsonFieldDecoder[CharacterClassId] = JsonFieldDecoder[String].map(CharacterClassId.apply)
+given JsonFieldEncoder[CharacterClassId] = JsonFieldEncoder[String].contramap(_.toString)
+given JsonFieldDecoder[CharacterClassId] =
+  JsonFieldDecoder[String].mapOrFail(s =>
+    CharacterClassId.values.find(a => s.equalsIgnoreCase(a.toString)).toRight(s"$s is not a valid CharacterClassId")
+  )
 
 //Other
 given JsonCodec[URI] = JsonCodec.string.transform(new URI(_), _.toString)
 
 //Ids
-given JsonCodec[CharacterClassId] = JsonCodec.string.transform(CharacterClassId.apply, _.value)
+given JsonCodec[CharacterClassId] =
+  JsonCodec.string.transformOrFail(
+    s =>
+      CharacterClassId.values.find(a => s.equalsIgnoreCase(a.toString)).toRight(s"$s is not a valid CharacterClassId"),
+    _.toString
+  )
 given JsonCodec[SourceId] = JsonCodec.string.transform(SourceId.apply, _.value)
 given JsonCodec[CampaignId] = JsonCodec.long.transform(CampaignId.apply, _.value)
 given JsonCodec[EncounterId] = JsonCodec.long.transform(EncounterId.apply, _.value)
@@ -45,6 +53,8 @@ given JsonCodec[SpellId] = JsonCodec.long.transform(SpellId.apply, _.value)
 
 //Enums
 given JsonCodec[CreatureSize] = JsonCodec.string.transform(CreatureSize.valueOf, _.toString)
+given JsonCodec[SkillType] = JsonCodec.string.transform(SkillType.valueOf, _.toString)
+given JsonCodec[AdvantageDisadvantage] = JsonCodec.string.transform(AdvantageDisadvantage.valueOf, _.toString)
 given JsonCodec[MonsterType] = JsonCodec.string.transform(MonsterType.valueOf, _.toString)
 given JsonCodec[Biome] = JsonCodec.string.transform(Biome.valueOf, _.toString)
 given JsonCodec[Alignment] = JsonCodec.string.transform(Alignment.valueOf, _.toString)
@@ -70,13 +80,16 @@ given JsonCodec[Wallet] = JsonCodec.derived[Wallet]
 given JsonCodec[PlayerCharacterClass] = JsonCodec.derived[PlayerCharacterClass]
 given JsonCodec[Feat] = JsonCodec.derived[Feat]
 given JsonCodec[DeathSave] = JsonCodec.derived[DeathSave]
-given JsonCodec[SpellSlot] = JsonCodec.derived[SpellSlot]
-given JsonCodec[Options] = JsonCodec.derived[Options]
-given JsonCodec[Choices] = JsonCodec.derived[Choices]
-given JsonCodec[Modifiers] = JsonCodec.derived[Modifiers]
-given JsonCodec[Actions] = JsonCodec.derived[Actions]
+given JsonCodec[SpellSlots] = JsonCodec.derived[SpellSlots]
 given JsonCodec[Creature] = JsonCodec.derived[Creature]
 given JsonCodec[SenseRange] = JsonCodec.derived[SenseRange]
+given JsonCodec[HitPoints] = JsonCodec.derived[HitPoints]
+given JsonCodec[Abilities] = JsonCodec.derived[Abilities]
+given JsonCodec[Skill] = JsonCodec.derived[Skill]
+given JsonCodec[Skills] = JsonCodec.derived[Skills]
+given JsonCodec[Language] = JsonCodec.string.transform(Language.fromName, _.name)
+given JsonCodec[Action] = JsonCodec.derived[Action]
+given JsonCodec[SpellHeader] = JsonCodec.derived[SpellHeader]
 given JsonCodec[PlayerCharacterInfo] = JsonCodec.derived[PlayerCharacterInfo]
 
 given JsonCodec[NonPlayerCharacterInfo] = JsonCodec.derived[NonPlayerCharacterInfo]

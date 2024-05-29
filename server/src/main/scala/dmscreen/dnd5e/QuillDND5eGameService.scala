@@ -143,10 +143,9 @@ object QuillDND5eGameService {
 
   private def readFromResource[A: JsonDecoder](resourceName: String): IO[DMScreenError, A] = {
     getClass.getResource(".")
+    val uri = getClass.getResource(resourceName).nn.toURI.nn
     Files
-      .readAllBytes(Path(getClass.getResource(resourceName).nn.toURI.nn)).map(bytes =>
-        new String(bytes.toArray, "UTF-8")
-      )
+      .readAllBytes(Path(uri)).map(bytes => new String(bytes.toArray, "UTF-8"))
       .mapBoth(
         e => DMScreenError("", Some(e)),
         _.fromJson[A].left.map(DMScreenError(_))

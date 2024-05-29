@@ -53,14 +53,24 @@ object PlayerPage extends DMScreenTab {
             ),
             "{}".toJsonAST.toOption.get
           )
-          <.div(
-            ^.className := "characterContainer",
-            PlayerCharacterComponent(pc),
-            PlayerCharacterComponent(pc),
-            PlayerCharacterComponent(pc),
-            PlayerCharacterComponent(pc),
-            PlayerCharacterComponent(pc),
-            PlayerCharacterComponent(pc)
+          VdomArray(
+            <.div(
+              ^.className := "pageActions",
+              Button("Add Character"),
+              Button("Import from dndbeyond.com"),
+              Button("Import from 5th Edition Tools"),
+              Button("Short Rest"),
+              Button("Long Rest")
+            ),
+            <.div(
+              ^.className := "characterContainer",
+              PlayerCharacterComponent(pc),
+              PlayerCharacterComponent(pc),
+              PlayerCharacterComponent(pc),
+              PlayerCharacterComponent(pc),
+              PlayerCharacterComponent(pc),
+              PlayerCharacterComponent(pc)
+            )
           )
 //
 //          ,

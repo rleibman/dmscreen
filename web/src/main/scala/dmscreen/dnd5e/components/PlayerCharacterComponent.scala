@@ -25,6 +25,8 @@ import dmscreen.dnd5e.PlayerCharacter
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
+import net.leibman.dmscreen.semanticUiReact.*
+import net.leibman.dmscreen.semanticUiReact.components.*
 
 object PlayerCharacterComponent {
 
@@ -38,6 +40,8 @@ object PlayerCharacterComponent {
     ): VdomElement = {
       <.div(
         ^.className := "characterCard",
+        Button("Delete"),
+        Button("Sync"), // Only if the character originally came from a synchable source
         <.div(^.className := "characterHeader", <.h2("Aramil"), <.span("John")),
         <.div(
           ^.className := "characterDetails",
@@ -272,7 +276,10 @@ object PlayerCharacterComponent {
     .build
 
   def apply(
-    playerCharacter: PlayerCharacter
+    playerCharacter: PlayerCharacter,
+    onSave:          PlayerCharacter => Callback = _ => Callback.empty,
+    onDelete:        PlayerCharacter => Callback = _ => Callback.empty,
+    onSync:          PlayerCharacter => Callback = _ => Callback.empty
   ): Unmounted[PlayerCharacter, State, Backend] = component(playerCharacter)
 
 }
