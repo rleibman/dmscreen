@@ -32,13 +32,12 @@ import java.net.URI
 
 trait DND5eImporter[CampaignLink, PlayerCharacterLink, EncounterLink, MonsterLink] {
 
-  def importCampaign(campaignLink: CampaignLink): ZIO[DMScreenServerEnvironment, DMScreenError, DND5eCampaign]
+  def importCampaign(campaignLink: CampaignLink): ZIO[Any, DMScreenError, DND5eCampaign]
 
-  def importPlayerCharacter(playerCharacterLink: PlayerCharacterLink)
-    : ZIO[DMScreenServerEnvironment, DMScreenError, PlayerCharacter]
+  def importPlayerCharacter(playerCharacterLink: PlayerCharacterLink): ZIO[Any, DMScreenError, PlayerCharacter]
 
-  def importEncounter(encounterLink: EncounterLink): ZIO[DMScreenServerEnvironment, DMScreenError, Encounter]
+  def importEncounter(encounterLink: EncounterLink): ZIO[Any, DMScreenError, Encounter]
 
-  def importMonster(monsterLink: MonsterLink): ZIO[DMScreenServerEnvironment, DMScreenError, Monster]
+  def importMonster(monsterLink: MonsterLink): ZIO[Any, DMScreenError, Monster]
 
 }

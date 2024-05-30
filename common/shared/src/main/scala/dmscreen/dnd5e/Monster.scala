@@ -22,6 +22,7 @@
 package dmscreen.dnd5e
 
 import dmscreen.*
+import just.semver.SemVer
 import zio.json.ast.Json
 
 opaque type MonsterId = Long
@@ -119,8 +120,9 @@ case class MonsterHeader(
 ) extends HasId[MonsterId]
 
 case class Monster(
-  header:   MonsterHeader,
-  jsonInfo: Json
+  header:               MonsterHeader,
+  jsonInfo:             Json,
+  override val version: SemVer = SemVer.unsafeParse(dmscreen.BuildInfo.version)
 ) extends DMScreenEntity[MonsterId, MonsterHeader, MonsterInfo] {
 
   override val entityType: EntityType = DND5eEntityType.monster

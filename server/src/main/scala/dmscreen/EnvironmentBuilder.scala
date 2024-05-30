@@ -21,26 +21,44 @@
 
 package dmscreen
 
-import dmscreen.dnd5e.{DND5eGameService, QuillDND5eGameService, RepositoryError}
+import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
+import dmscreen.dnd5e.{DND5eRepository, QuillDND5eRepository, RepositoryError}
+import dmscreen.util.TestCreator
 import zio.*
 
-type DMScreenServerEnvironment = DND5eGameService
+type DMScreenServerEnvironment = DND5eRepository & DNDBeyondImporter
 
 object EnvironmentBuilder {
 
   def live =
     ZLayer
-      .make[DND5eGameService & ConfigurationService](
+      .make[DND5eRepository & ConfigurationService & DNDBeyondImporter](
         ConfigurationService.live,
-        QuillDND5eGameService.db
+        QuillDND5eRepository.db,
+        DNDBeyondImporter.live
       ).orDie
+
+  case class InitializingLayer()
+
+  private val initializingLayer: ZLayer[DND5eRepository & DNDBeyondImporter, DMScreenError, InitializingLayer] =
+    ZLayer.fromZIO {
+      for {
+        playerCharacters <- TestCreator.createCharacters
+        repo             <- ZIO.service[DND5eRepository]
+        _                <- ZIO.foreachDiscard(playerCharacters)(pc => repo.insert(pc.header, pc.jsonInfo))
+      } yield InitializingLayer()
+
+    }
 
   def withContainer = {
     ZLayer
-      .make[DND5eGameService & ConfigurationService](
+      .make[DND5eRepository & ConfigurationService & DNDBeyondImporter & InitializingLayer](
         DMScreenContainer.containerLayer,
         ConfigurationService.live >>> DMScreenContainer.configLayer,
-        QuillDND5eGameService.db
+        QuillDND5eRepository.db,
+        DNDBeyondImporter.live,
+//        ZLayer.succeed(InitializingLayer()),
+        initializingLayer
       ).orDie
   }
 

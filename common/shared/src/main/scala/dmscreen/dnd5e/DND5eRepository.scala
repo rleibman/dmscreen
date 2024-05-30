@@ -53,7 +53,7 @@ case class MonsterSearch(
   pageSize:        Int = 25
 )
 
-trait DND5eGameService extends GameService {
+trait DND5eRepository extends GameRepository {
 
   def campaigns: IO[DMScreenError, Seq[CampaignHeader]]
 
@@ -72,6 +72,8 @@ trait DND5eGameService extends GameService {
   ): IO[DMScreenError, Unit]
 
   def playerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[PlayerCharacter]]
+
+  def playerCharacter(playerCharacterId: PlayerCharacterId): IO[DMScreenError, Option[PlayerCharacter]]
 
   def nonPlayerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[NonPlayerCharacter]]
 

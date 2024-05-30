@@ -23,6 +23,7 @@ package dmscreen.dnd5e
 
 import dmscreen.CampaignId
 import zio.json.*
+import zio.prelude.NonEmptyList
 
 import java.net.URI
 
@@ -90,6 +91,11 @@ given JsonCodec[Skills] = JsonCodec.derived[Skills]
 given JsonCodec[Language] = JsonCodec.string.transform(Language.fromName, _.name)
 given JsonCodec[Action] = JsonCodec.derived[Action]
 given JsonCodec[SpellHeader] = JsonCodec.derived[SpellHeader]
+given JsonCodec[NonEmptyList[PlayerCharacterClass]] =
+  JsonCodec[List[PlayerCharacterClass]].transformOrFail(
+    l => NonEmptyList.fromIterableOption(l).toRight("List must not be empty"),
+    _.toList
+  )
 given JsonCodec[PlayerCharacterInfo] = JsonCodec.derived[PlayerCharacterInfo]
 
 given JsonCodec[NonPlayerCharacterInfo] = JsonCodec.derived[NonPlayerCharacterInfo]

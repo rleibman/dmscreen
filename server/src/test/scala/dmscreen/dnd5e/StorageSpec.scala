@@ -26,6 +26,7 @@ import zio.*
 import zio.test.*
 import zio.json.*
 import zio.json.ast.*
+import zio.prelude.NonEmptyList
 
 object StorageSpec extends ZIOSpecDefault {
 
@@ -33,46 +34,129 @@ object StorageSpec extends ZIOSpecDefault {
   private val testUser = UserId(1)
 
   override def spec: Spec[TestEnvironment & Scope, Any] = {
-    suite("Testing Storage") {
+    suite("Testing Storage")(
       test("Should be able to store and retrieve a campaign") {
         for {
-          service   <- ZIO.service[DND5eGameService]
-          campaigns <- service.campaigns
-          campaign  <- service.campaign(campaigns.head.id)
-          newCampaignId <- service.insert(
+          service     <- ZIO.service[DND5eRepository]
+          listAtStart <- service.campaigns
+          startObject <- service.campaign(listAtStart.head.id)
+          newId <- service.insert(
             CampaignHeader(CampaignId.empty, testUser, "Test Campaign 2"),
             DND5eCampaignInfo(notes = "These are some notes").toJsonAST.getOrElse(Json.Null)
           )
-          newCampaigns     <- service.campaigns
-          afterNewCampaign <- service.campaign(newCampaignId)
+          listAfterInsert <- service.campaigns
+          insertedObject  <- service.campaign(newId)
           _ <- service.applyOperations(
             entityType = DND5eEntityType.campaign,
-            id = newCampaignId,
+            id = newId,
             operations = Replace(JsonPath("$.notes"), Json.Str("These are some updated notes"))
           )
-          updatedCampaigns <- service.campaigns
-          updatedCampaign  <- service.campaign(newCampaignId)
-          _                <- service.deleteEntity(entityType = DND5eEntityType.campaign, id = newCampaignId)
-          deletedCampaigns <- service.campaigns
-          deletedCampaign  <- service.campaign(newCampaignId)
+          listAfterUpdates <- service.campaigns
+          updatedCampaign  <- service.campaign(newId)
+          _                <- service.deleteEntity(entityType = DND5eEntityType.campaign, id = newId)
+          listAfterDelete  <- service.campaigns
+          deletedObject    <- service.campaign(newId)
         } yield {
-//          val info = campaign.get.info.toOption.get
-//          val updatedInfo = updatedCampaign.get.info.toOption.get
+          //          val info = campaign.get.info.toOption.get
+          //          val updatedInfo = updatedCampaign.get.info.toOption.get
           assertTrue(
-            campaigns.nonEmpty,
-            campaign.isDefined,
-//            info.notes.nonEmpty,
-            newCampaignId.value > 0,
-            newCampaigns.length == campaigns.length + 1,
-            afterNewCampaign.isDefined,
-            updatedCampaigns.length == newCampaigns.length,
-//            updatedInfo.notes.contains("These are some updated notes"),
-            deletedCampaigns.length == updatedCampaigns.length - 1,
-            deletedCampaign.isEmpty
+            listAtStart.nonEmpty,
+            startObject.isDefined,
+            //            info.notes.nonEmpty,
+            newId.value > 0,
+            listAfterInsert.length == listAtStart.length + 1,
+            insertedObject.isDefined,
+            listAfterUpdates.length == listAfterInsert.length,
+            //            updatedInfo.notes.contains("These are some updated notes"),
+            listAfterDelete.length == listAfterUpdates.length - 1,
+            deletedObject.isEmpty
           )
         }
+      },
+      test("characters") {
+        for {
+          service         <- ZIO.service[DND5eRepository]
+          startCharacters <- service.playerCharacters(testCampaignId)
+          newId <- service.insert(
+            PlayerCharacterHeader(PlayerCharacterId.empty, testCampaignId, "Test Character 2", Some("Test Player 2")),
+            PlayerCharacterInfo(
+              hitPoints = HitPoints(
+                currentHitPoints = Right(30),
+                maxHitPoints = 30
+              ),
+              armorClass = 16,
+              classes = NonEmptyList(
+                PlayerCharacterClass(
+                  characterClass = CharacterClassId.paladin,
+                  subclass = Option(Subclass("Oath of Vengance")),
+                  level = 3
+                )
+              )
+            ).toJsonAST.getOrElse(Json.Null)
+          )
+          objectAfterInsert <- service.playerCharacter(newId)
+          listAfterInsert   <- service.playerCharacters(testCampaignId)
+          _ <- service.applyOperations(
+            entityType = DND5eEntityType.playerCharacter,
+            id = newId,
+            Replace(JsonPath("$.notes"), Json.Str("These are some updated notes")),
+            Replace(JsonPath("$.armorClass"), Json.Num(17))
+          )
+          objectAfterUpdate <- service.playerCharacter(newId)
+          _                 <- service.deleteEntity(entityType = DND5eEntityType.playerCharacter, id = newId)
+          listAfterDelete   <- service.playerCharacters(testCampaignId)
+          objectAfterDelete <- service.playerCharacter(newId)
+        } yield assertTrue(
+          startCharacters.nonEmpty,
+          newId != PlayerCharacterId.empty,
+          objectAfterInsert.isDefined,
+          listAfterInsert.size == startCharacters.size + 1,
+          objectAfterUpdate.isDefined,
+          listAfterDelete.size == startCharacters.size,
+          objectAfterDelete.isEmpty
+        )
+      },
+      test("player character diff") {
+        import diffson.*
+        import diffson.lcs.*
+        import diffson.jsonpatch.*
+        import diffson.jsonpatch.lcsdiff.*
+        import zio.json.*
+        import zio.json.ast.Json
+        import diffson.zjson.*
+
+        val info1 = PlayerCharacterInfo(
+          hitPoints = HitPoints(
+            currentHitPoints = Right(30),
+            maxHitPoints = 30
+          ),
+          armorClass = 16,
+          classes = NonEmptyList(
+            PlayerCharacterClass(
+              characterClass = CharacterClassId.paladin,
+              subclass = Option(Subclass("Oath of Vengance")),
+              level = 3
+            )
+          )
+        )
+
+        given Patience[Json] = new Patience[Json]
+
+        val info2 = info1.copy(armorClass = 17)
+
+        val res: Either[String, JsonPatch[Json]] = for {
+          one <- info1.toJsonAST
+          two <- info2.toJsonAST
+        } yield diff(one, two)
+
+        assertTrue(
+          res.isRight,
+          res.toOption.get.ops.size == 1,
+          res.toOption.get.ops.head.toJson == """{"op":"replace","path":"/armorClass","value":17}"""
+        )
       }
-    }.provideLayerShared(EnvironmentBuilder.withContainer)
+    ).provideLayerShared(EnvironmentBuilder.withContainer)
+
   }
 
 }

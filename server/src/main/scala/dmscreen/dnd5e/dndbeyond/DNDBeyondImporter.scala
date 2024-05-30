@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Roberto Leibman
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package dmscreen.dnd5e.dndbeyond
 
 import dmscreen.dnd5e.DND5eImporter
@@ -7,6 +28,7 @@ import zio.*
 import zio.json.*
 import zio.json.ast.Json
 import zio.nio.file.*
+import zio.prelude.NonEmptyList
 
 import java.net.URI
 
@@ -18,11 +40,11 @@ object DNDBeyondImporter {
 
 class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
 
-  override def importCampaign(campaignLink: URI): ZIO[DMScreenServerEnvironment, DMScreenError, DND5eCampaign] = ???
+  override def importCampaign(campaignLink: URI): ZIO[Any, DMScreenError, DND5eCampaign] = ???
 
-  override def importEncounter(encounterLink: URI): ZIO[DMScreenServerEnvironment, DMScreenError, Encounter] = ???
+  override def importEncounter(encounterLink: URI): ZIO[Any, DMScreenError, Encounter] = ???
 
-  override def importMonster(monsterLink: URI): ZIO[DMScreenServerEnvironment, DMScreenError, Monster] = ???
+  override def importMonster(monsterLink: URI): ZIO[Any, DMScreenError, Monster] = ???
 
   extension (obj: Json.Obj) {
 
@@ -135,7 +157,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
       case 6 => AbilityType.charisma
     }
 
-  override def importPlayerCharacter(uri: URI): ZIO[DMScreenServerEnvironment, DMScreenError, PlayerCharacter] = {
+  override def importPlayerCharacter(uri: URI): ZIO[Any, DMScreenError, PlayerCharacter] = {
     def classObj2PlayerCharacterClass(obj: Json): Either[String, PlayerCharacterClass] =
       for {
         classObj   <- obj.asObject.toRight("Not an object")
@@ -218,7 +240,10 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
         currencySP     <- currencies.getInt("sp")
         currencyCP     <- currencies.getInt("cp")
         classes        <- data.getArr("classes")
-        classesParsed  <- listOfEither2EitherOfList(classes.map(classObj2PlayerCharacterClass).toList)
+        classesParsed <-
+          listOfEither2EitherOfList(classes.map(classObj2PlayerCharacterClass).toList).flatMap { l =>
+            NonEmptyList.fromIterableOption(l).toRight("You must supply at least one class")
+          }
         feats <- {
           data
             .getArr("feats")

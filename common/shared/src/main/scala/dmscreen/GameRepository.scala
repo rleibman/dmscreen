@@ -21,18 +21,4 @@
 
 package dmscreen
 
-import dmscreen.dnd5e.{DND5eRepository, GraphQLClientRepository}
-import zio.ZLayer
-
-type DMScreenClientEnvironment = DND5eRepository
-
-object EnvironmentBuilder {
-
-  def live =
-    ZLayer
-      .make[DND5eRepository](
-        ClientConfiguration.live,
-        GraphQLClientRepository.live
-      )
-
-}
+trait GameRepository {}

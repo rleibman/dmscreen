@@ -75,7 +75,7 @@ object DMScreen extends ZIOApp {
     }
   }
 
-  val zapp: RIO[Environment, HttpApp[Environment]] = for {
+  val zapp: ZIO[Environment, Throwable, Routes[Environment, Nothing]] = for {
     _             <- ZIO.log("Initializing Routes")
     defaultRoutes <- defaultRouteZio
     dnd5eRoute    <- DND5eRoutes.route
@@ -84,7 +84,7 @@ object DMScreen extends ZIOApp {
     StaticRoutes.unauthRoute /*Move this to after there's a user*/ ++
     StaticRoutes.authRoute ++
     defaultRoutes)
-    .handleErrorCauseZIO(mapError).toHttpApp
+    .handleErrorCauseZIO(mapError)
 
   override def run: ZIO[Environment & ZIOAppArgs & Scope, Throwable, ExitCode] = {
     // Configure thread count using CLI

@@ -22,6 +22,7 @@
 package dmscreen.dnd5e
 
 import dmscreen.*
+import just.semver.SemVer
 import zio.json.ast.Json
 
 case class Scene(
@@ -39,7 +40,8 @@ case class DND5eCampaignInfo(
 
 case class DND5eCampaign(
   override val header:   CampaignHeader,
-  override val jsonInfo: Json
+  override val jsonInfo: Json,
+  override val version:  SemVer = SemVer.unsafeParse(dmscreen.BuildInfo.version)
 ) extends Campaign[DND5eCampaignInfo] {
 
   override val entityType: EntityType = DND5eEntityType.campaign

@@ -25,27 +25,34 @@ import dmscreen.*
 import io.getquill.extras.*
 import io.getquill.jdbczio.Quill
 import io.getquill.{query as qquery, *}
+import just.semver.SemVer
 import zio.*
 import zio.json.*
 import zio.json.ast.Json
 import zio.nio.file.*
 
+import java.sql.SQLException
 import javax.sql.DataSource
 import scala.annotation.nowarn
 import scala.reflect.ClassTag
 
-object QuillDND5eGameService {
+object QuillDND5eRepository {
 
   private case class CampaignRow(
     id:         Long,
     name:       String,
     dm:         Long,
     gameSystem: String,
-    info:       Json
+    info:       Json,
+    version:    String
   ) {
 
     def toModel: DND5eCampaign =
-      DND5eCampaign(header = CampaignHeader(id = CampaignId(id), dm = UserId(dm), name = name), jsonInfo = info)
+      DND5eCampaign(
+        header = CampaignHeader(id = CampaignId(id), dm = UserId(dm), name = name),
+        jsonInfo = info,
+        version = SemVer.unsafeParse(version)
+      )
 
   }
 
@@ -54,7 +61,8 @@ object QuillDND5eGameService {
     campaignId: Long,
     name:       String,
     playerName: Option[String],
-    info:       Json
+    info:       Json,
+    version:    String
   ) {
 
     def toModel: PlayerCharacter =
@@ -65,7 +73,8 @@ object QuillDND5eGameService {
           name = name,
           playerName = playerName
         ),
-        jsonInfo = info
+        jsonInfo = info,
+        version = SemVer.unsafeParse(version)
       )
 
   }
@@ -74,7 +83,8 @@ object QuillDND5eGameService {
     id:         Long,
     campaignId: Long,
     name:       String,
-    info:       Json
+    info:       Json,
+    version:    String
   ) {
 
     def toModel: NonPlayerCharacter =
@@ -84,7 +94,8 @@ object QuillDND5eGameService {
           campaignId = CampaignId(campaignId),
           name = name
         ),
-        jsonInfo = info
+        jsonInfo = info,
+        version = SemVer.unsafeParse(version)
       )
 
   }
@@ -93,7 +104,8 @@ object QuillDND5eGameService {
     id:         Long,
     campaignId: Long,
     name:       String,
-    info:       Json
+    info:       Json,
+    version:    String
   ) {
 
     def toModel: Encounter =
@@ -103,7 +115,8 @@ object QuillDND5eGameService {
           campaignId = CampaignId(campaignId),
           name = name
         ),
-        jsonInfo = info
+        jsonInfo = info,
+        version = SemVer.unsafeParse(version)
       )
 
   }
@@ -119,7 +132,8 @@ object QuillDND5eGameService {
     ac:          Int,
     hp:          Int,
     size:        String,
-    info:        Json
+    info:        Json,
+    version:     String
   ) {
 
     def toModel: Monster =
@@ -136,7 +150,8 @@ object QuillDND5eGameService {
           hp = hp,
           size = CreatureSize.valueOf(size)
         ),
-        jsonInfo = info
+        jsonInfo = info,
+        version = SemVer.unsafeParse(version)
       )
 
   }
@@ -154,7 +169,7 @@ object QuillDND5eGameService {
 
   }
 
-  def db: ZLayer[ConfigurationService, DMScreenError, DND5eGameService] =
+  def db: ZLayer[ConfigurationService, DMScreenError, DND5eRepository] =
     ZLayer.fromZIO {
       for {
         config                  <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
@@ -164,7 +179,7 @@ object QuillDND5eGameService {
         cachedRaces             <- readFromResource[Seq[Race]]("/data/races.json")
         cachedBackgrounds       <- readFromResource[Seq[Background]]("/data/backgrounds.json")
 
-      } yield new DND5eGameService() {
+      } yield new DND5eRepository() {
 
         private object ctx extends MysqlZioJdbcContext(MysqlEscape)
 
@@ -221,6 +236,13 @@ object QuillDND5eGameService {
                 )
               )
             )
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+
+        override def playerCharacter(playerCharacterId: PlayerCharacterId): IO[DMScreenError, Option[PlayerCharacter]] =
+          ctx
+            .run(qPlayerCharacters.filter(_.id == lift(playerCharacterId.value)))
+            .map(_.headOption.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
 
@@ -286,32 +308,6 @@ object QuillDND5eGameService {
           ZIO.succeed(cachedSubclasses.get(characterClass).toSeq.flatten)
         }
 
-        override def insert(
-          header: CampaignHeader,
-          info:   Json
-        ): IO[DMScreenError, CampaignId] = {
-          ctx
-            .run(
-              qCampaigns
-                .insertValue(
-                  lift(
-                    CampaignRow(
-                      id = CampaignId.empty.value,
-                      name = header.name,
-                      dm = header.dm.value,
-                      gameSystem = header.gameSystem.toString,
-                      info = info
-                    )
-                  )
-                )
-                .returningGenerated(_.id)
-            )
-            .map(CampaignId.apply)
-            .provideLayer(dataSourceLayer)
-            .mapError(RepositoryError.apply)
-
-        }
-
         val jsonInsert: Quoted[(Json, String, Json) => Json] = quote {
           (
             doc:   Json,
@@ -341,46 +337,91 @@ object QuillDND5eGameService {
         ): IO[DMScreenError, Unit] = {
           entityType match {
             case DND5eEntityType.campaign => applyOperationsCampaign(CampaignId(id.asInstanceOf[Long]), operations*)
-            case _                        => ZIO.fail(DMScreenError("Can't apply operation to an id $id"))
+            case DND5eEntityType.playerCharacter =>
+              applyOperationsPlayerCharacter(PlayerCharacterId(id.asInstanceOf[Long]), operations*)
+            case _ => ZIO.fail(DMScreenError("Can't apply operation to an id $id"))
           }
         }
 
         def applyOperationsCampaign(
           campaignId: CampaignId,
           operations: DMScreenOperation*
-        ): IO[DMScreenError, Unit] = {
-          // UPDATE t SET json_col = JSON_SET(json_col, '$.name', 'Knut') WHERE id = 123
-          (operations match {
-            case Add(path, value) =>
-              ctx
-                .run(
-                  qCampaigns
-                    .filter(_.id == lift(campaignId.value)).update(a =>
-                      a.info -> jsonInsert(a.info, lift(path.value), lift(value))
-                    )
-                )
-            case Remove(path) =>
-              ctx
-                .run(
-                  qCampaigns
-                    .filter(_.id == lift(campaignId.value)).update(a => a.info -> jsonRemove(a.info, lift(path.value)))
-                )
-            case Replace(path, value) =>
-              ctx
-                .run(
-                  qCampaigns
-                    .filter(_.id == lift(campaignId.value)).update(a =>
-                      a.info -> jsonReplace(a.info, lift(path.value), lift(value))
-                    )
-                )
-            case Move(from, path) => ??? // Currently Not supported, but probably just read, then a delete followed by an insert
-            case Copy(from, path)  => ??? // Currently Not supported, but probably just a read followed by an insert
-            case Test(path, value) => ??? // Currently Not supported
-          }).unit
-            .provideLayer(dataSourceLayer)
+        ): IO[DMScreenError, Unit] =
+          ctx
+            .transaction {
+              // UPDATE t SET json_col = JSON_SET(json_col, '$.name', 'Knut') WHERE id = 123
+              ZIO
+                .foreach(operations) {
+                  case Add(path, value) =>
+                    ctx
+                      .run(
+                        qCampaigns
+                          .filter(_.id == lift(campaignId.value)).update(a =>
+                            a.info -> jsonInsert(a.info, lift(path.value), lift(value))
+                          )
+                      )
+                  case Remove(path) =>
+                    ctx
+                      .run(
+                        qCampaigns
+                          .filter(_.id == lift(campaignId.value)).update(a =>
+                            a.info -> jsonRemove(a.info, lift(path.value))
+                          )
+                      )
+                  case Replace(path, value) =>
+                    ctx
+                      .run(
+                        qCampaigns
+                          .filter(_.id == lift(campaignId.value)).update(a =>
+                            a.info -> jsonReplace(a.info, lift(path.value), lift(value))
+                          )
+                      )
+                  case Move(from, path) => ??? // Currently Not supported, but probably just read, then a delete followed by an insert
+                  case Copy(from, path) => ??? // Currently Not supported, but probably just a read followed by an insert
+                  case Test(path, value) => ??? // Currently Not supported
+                }.unit
+            }.provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
 
-        }
+        def applyOperationsPlayerCharacter(
+          playerCharacterId: PlayerCharacterId,
+          operations:        DMScreenOperation*
+        ): IO[DMScreenError, Unit] =
+          ctx
+            .transaction {
+              // UPDATE t SET json_col = JSON_SET(json_col, '$.name', 'Knut') WHERE id = 123
+              ZIO
+                .foreach(operations) {
+                  case Add(path, value) =>
+                    ctx
+                      .run(
+                        qPlayerCharacters
+                          .filter(_.id == lift(playerCharacterId.value)).update(a =>
+                            a.info -> jsonInsert(a.info, lift(path.value), lift(value))
+                          )
+                      )
+                  case Remove(path) =>
+                    ctx
+                      .run(
+                        qPlayerCharacters
+                          .filter(_.id == lift(playerCharacterId.value)).update(a =>
+                            a.info -> jsonRemove(a.info, lift(path.value))
+                          )
+                      )
+                  case Replace(path, value) =>
+                    ctx
+                      .run(
+                        qPlayerCharacters
+                          .filter(_.id == lift(playerCharacterId.value)).update(a =>
+                            a.info -> jsonReplace(a.info, lift(path.value), lift(value))
+                          )
+                      )
+                  case Move(from, path) => ??? // Currently Not supported, but probably just read, then a delete followed by an insert
+                  case Copy(from, path) => ??? // Currently Not supported, but probably just a read followed by an insert
+                  case Test(path, value) => ??? // Currently Not supported
+                }.unit
+            }.provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
 
         override def deleteEntity[IDType](
           entityType: EntityType,
@@ -395,6 +436,12 @@ object QuillDND5eGameService {
                 .unit
                 .provideLayer(dataSourceLayer)
                 .mapError(RepositoryError.apply)
+            case DND5eEntityType.playerCharacter =>
+              ctx
+                .run(qPlayerCharacters.filter(_.id == lift(id.asInstanceOf[PlayerCharacterId].value)).delete)
+                .unit
+                .provideLayer(dataSourceLayer)
+                .mapError(RepositoryError.apply)
             case _ => ZIO.fail(DMScreenError(s"Don't know how to delete ${entityType.name}"))
           }
         }
@@ -402,28 +449,81 @@ object QuillDND5eGameService {
         override def spells: IO[DMScreenError, Seq[Spell]] = ???
 
         override def insert(
-          playerCharacterHeader: PlayerCharacterHeader,
-          info:                  Json
-        ): IO[DMScreenError, PlayerCharacterId] = ???
+          header: CampaignHeader,
+          info:   Json
+        ): IO[DMScreenError, CampaignId] =
+          if (header.id != CampaignId.empty) {
+            ZIO.fail(DMScreenError("Can't insert a campaign with an id"))
+          } else {
+            ctx
+              .run(
+                qCampaigns
+                  .insertValue(
+                    lift(
+                      CampaignRow(
+                        id = CampaignId.empty.value,
+                        name = header.name,
+                        dm = header.dm.value,
+                        gameSystem = header.gameSystem.toString,
+                        info = info,
+                        version = dmscreen.BuildInfo.version
+                      )
+                    )
+                  )
+                  .returningGenerated(_.id)
+              )
+              .map(CampaignId.apply)
+              .provideLayer(dataSourceLayer)
+              .mapError(RepositoryError.apply)
+          }
 
         override def insert(
-          nonPlayerCharacterHeader: NonPlayerCharacterHeader,
-          info:                     Json
+          header: PlayerCharacterHeader,
+          info:   Json
+        ): IO[DMScreenError, PlayerCharacterId] =
+          if (header.id != PlayerCharacterId.empty) {
+            ZIO.fail(DMScreenError("Can't insert a player character with an id"))
+          } else {
+            ctx
+              .run(
+                qPlayerCharacters
+                  .insertValue(
+                    lift(
+                      PlayerCharacterRow(
+                        id = PlayerCharacterId.empty.value,
+                        campaignId = header.campaignId.value,
+                        name = header.name,
+                        playerName = header.playerName,
+                        info = info,
+                        version = dmscreen.BuildInfo.version
+                      )
+                    )
+                  )
+                  .returningGenerated(_.id)
+              )
+              .map(PlayerCharacterId.apply)
+              .provideLayer(dataSourceLayer)
+              .mapError(RepositoryError.apply)
+          }
+
+        override def insert(
+          header: NonPlayerCharacterHeader,
+          info:   Json
         ): IO[DMScreenError, NonPlayerCharacterId] = ???
 
         override def insert(
-          monsterHeader: MonsterHeader,
-          info:          Json
+          header: MonsterHeader,
+          info:   Json
         ): IO[DMScreenError, MonsterId] = ???
 
         override def insert(
-          spellHeader: SpellHeader,
-          info:        Json
+          header: SpellHeader,
+          info:   Json
         ): IO[DMScreenError, SpellId] = ???
 
         override def insert(
-          encounterHeader: EncounterHeader,
-          info:            Json
+          header: EncounterHeader,
+          info:   Json
         ): IO[DMScreenError, EncounterId] = ???
 
       }

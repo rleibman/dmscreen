@@ -19,6 +19,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen
+package dmscreen.dnd5e.fifthEditionCharacterSheet
 
-trait GameService {}
+import dmscreen.DMScreenError
+import dmscreen.dnd5e.*
+import zio.ZIO
+
+import java.net.URI
+
+class FifthEditionCharacterSheetImporter extends DND5eImporter[URI, URI, URI, URI] {
+
+  override def importCampaign(campaignLink: URI): ZIO[Any, DMScreenError, DND5eCampaign] = ???
+
+  override def importEncounter(encounterLink: URI): ZIO[Any, DMScreenError, Encounter] = ???
+
+  override def importMonster(monsterLink: URI): ZIO[Any, DMScreenError, Monster] = ???
+
+  override def importPlayerCharacter(playerCharacterLink: URI): ZIO[Any, DMScreenError, PlayerCharacter] = ???
+
+}

@@ -28,13 +28,13 @@ import zio.json.ast.Json
 import java.util.ResourceBundle
 import scala.reflect.ClassTag
 
-object GraphQLClientGameService {
+object GraphQLClientRepository {
 
-  val live: ZLayer[ClientConfiguration, Nothing, DND5eGameService] = ZLayer.fromZIO(for {
+  val live: ZLayer[ClientConfiguration, Nothing, DND5eRepository] = ZLayer.fromZIO(for {
     config <- ZIO.service[ClientConfiguration]
   } yield {
 
-    new DND5eGameService {
+    new DND5eRepository {
       override def campaigns: IO[DMScreenError, Seq[CampaignHeader]] = ???
 
       override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[DND5eCampaign]] = ???
@@ -105,6 +105,8 @@ object GraphQLClientGameService {
         softDelete: Boolean = true
       ): IO[DMScreenError, Unit] = ???
 
+      override def playerCharacter(playerCharacterId: PlayerCharacterId): IO[DMScreenError, Option[PlayerCharacter]] =
+        ???
     }
   })
 

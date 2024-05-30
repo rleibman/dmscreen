@@ -22,6 +22,7 @@
 package dmscreen.dnd5e
 
 import dmscreen.*
+import just.semver.SemVer
 import zio.json.ast.Json
 
 opaque type SpellId = Long
@@ -57,8 +58,9 @@ case class SpellInfo(
 )
 
 case class Spell(
-  header:   SpellHeader,
-  jsonInfo: Json
+  header:               SpellHeader,
+  jsonInfo:             Json,
+  override val version: SemVer = SemVer.unsafeParse(dmscreen.BuildInfo.version)
 ) extends DMScreenEntity[SpellId, SpellHeader, SpellInfo] {
 
   override def entityType: EntityType = DND5eEntityType.spell

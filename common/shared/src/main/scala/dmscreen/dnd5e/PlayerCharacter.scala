@@ -22,8 +22,10 @@
 package dmscreen.dnd5e
 
 import dmscreen.dnd5e.CreatureSize.medium
-import dmscreen.{CampaignId, DMScreenEntity, EntityType, HasId}
+import dmscreen.{BuildInfo, CampaignId, DMScreenEntity, EntityType, HasId}
+import just.semver.SemVer
 import zio.json.ast.Json
+import zio.prelude.NonEmptyList
 
 import java.net.{URI, URL}
 
@@ -386,6 +388,7 @@ case class HitPoints(
 case class PlayerCharacterInfo(
   hitPoints:               HitPoints,
   armorClass:              Int,
+  classes:                 NonEmptyList[PlayerCharacterClass],
   source:                  ImportSource = DMScreenSource,
   physicalCharacteristics: PhysicalCharacteristics = PhysicalCharacteristics(),
   faith:                   Option[String] = None,
@@ -400,7 +403,6 @@ case class PlayerCharacterInfo(
   traits:                  Traits = Traits(),
   inventory:               List[InventoryItem] = List.empty,
   wallet:                  Wallet = Wallet.empty,
-  classes:                 List[PlayerCharacterClass],
   feats:                   List[Feat] = List.empty,
   conditions:              List[Condition] = List.empty,
   spellSlots:              List[SpellSlots] = List.empty,
@@ -428,8 +430,9 @@ case class PlayerCharacterInfo(
 }
 
 case class PlayerCharacter(
-  header:   PlayerCharacterHeader,
-  jsonInfo: Json
+  header:               PlayerCharacterHeader,
+  jsonInfo:             Json,
+  override val version: SemVer = SemVer.unsafeParse(dmscreen.BuildInfo.version)
 ) extends DMScreenEntity[PlayerCharacterId, PlayerCharacterHeader, PlayerCharacterInfo] {
 
   override def entityType: EntityType = DND5eEntityType.playerCharacter

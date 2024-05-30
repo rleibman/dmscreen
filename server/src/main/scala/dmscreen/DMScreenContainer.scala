@@ -26,16 +26,17 @@ import org.testcontainers.utility.DockerImageName
 import com.mysql.cj.jdbc.MysqlDataSource
 import com.typesafe.config
 import com.typesafe.config.ConfigFactory
-import dmscreen.dnd5e.RepositoryError
-import io.getquill.extras.*
+import dmscreen.dnd5e.{DND5eRepository, PlayerCharacter, RepositoryError}
+import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
+import dmscreen.util.TestCreator
 import io.getquill.jdbczio.Quill
+import io.getquill.extras.*
 import io.getquill.query as qquery
 import zio.{IO, ZIO, ZLayer}
 
 import java.sql.SQLException
 import javax.sql.DataSource
 import scala.io.Source
-
 import scala.jdk.CollectionConverters.*
 
 trait DMScreenContainer {
@@ -105,7 +106,9 @@ object DMScreenContainer {
   val containerLayer: ZLayer[Any, RepositoryError, DMScreenContainer] = ZLayer.fromZIO((for {
     _ <- ZIO.logDebug("Creating container")
     newContainer <- ZIO.attemptBlocking {
-      val c = MySQLContainer(mysqlImageVersion = DockerImageName.parse("mysql:8.0.36").nn)
+//      val c = MySQLContainer(mysqlImageVersion = DockerImageName.parse("mysql:8.4.0").nn)
+      // latest known to work
+      val c = MySQLContainer(mysqlImageVersion = DockerImageName.parse("mysql:8.2.0").nn)
       c.container.setPortBindings(List("3306:3306").asJava)
       c.container.start()
       c

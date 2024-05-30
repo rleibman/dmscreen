@@ -7,6 +7,7 @@ import org.apache.commons.io.FileUtils
 
 lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time of build").withRank(KeyRanks.Invisible)
 
+// TODO switch to Mariadb
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
 lazy val SCALA = "3.5.0-RC1"
@@ -45,14 +46,14 @@ enablePlugins(
   GitVersioning
 )
 
-val calibanVersion = "2.6.0"
+val calibanVersion = "2.7.0"
 val zioVersion = "2.1.1"
 val quillVersion = "4.8.5"
-val zioHttpVersion = "3.0.0-RC6"
+val zioHttpVersion = "3.0.0-RC8"
 val zioConfigVersion = "4.0.2"
 val zioJsonVersion = "0.6.2"
 val testContainerVersion = "0.41.3"
-val tapirVersion = "1.10.7"
+val tapirVersion = "1.10.8"
 
 lazy val commonSettings = Seq(
   organization     := "net.leibman",
@@ -81,25 +82,32 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
   .settings(
     commonSettings,
     libraryDependencies ++= Seq(
-
     )
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
-      "dev.zio"   %% "zio"            % zioVersion withSources (),
-      "dev.zio"   %% "zio-json"       % "0.6.2" withSources (),
-      "io.megl"   %% "zio-json-extra" % "0.6.2" withSources (),
-      "org.gnieh" %% "diffson-core"   % "4.6.0" withSources (),
+      "dev.zio"     %% "zio"              % zioVersion withSources (),
+      "dev.zio"     %% "zio-json"         % "0.6.2" withSources (),
+      "dev.zio"     %% "zio-prelude"      % "1.0.0-RC26" withSources (),
+      "io.megl"     %% "zio-json-extra"   % "0.6.2" withSources (),
+      "org.gnieh"   %% "diffson-core"     % "4.6.0" withSources (),
+      "io.megl"     %% "zio-json-diffson" % "0.6.2" withSources (),
+      "io.megl"     %% "zio-json-extra"   % "0.6.2" withSources (),
+      "io.kevinlee" %% "just-semver-core" % "0.13.0" withSources ()
     )
   )
   .jsSettings(
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio"            % zioVersion withSources (),
-      "dev.zio" %%% "zio-json"       % "0.6.2" withSources (),
-      "io.megl" %%% "zio-json-extra" % "0.6.2" withSources (),
-      "org.gnieh" %%% "diffson-core" % "4.6.0" withSources (),
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.28.5",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.28.5"
+      "dev.zio" %%% "zio"                                                 % zioVersion withSources (),
+      "dev.zio" %%% "zio-json"                                            % "0.6.2" withSources (),
+      "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC26" withSources (),
+      "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
+      "org.gnieh" %%% "diffson-core"                                      % "4.6.0" withSources (),
+      "io.megl" %%% "zio-json-diffson"                                    % "0.6.2" withSources (),
+      "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
+      "io.kevinlee" %%% "just-semver-core"                                % "0.13.0" withSources (),
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.29.0",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.29.0"
     )
   )
 
@@ -123,8 +131,9 @@ lazy val server = project
 //    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2",
     libraryDependencies ++= Seq(
       // DB
-      "mysql"        % "mysql-connector-java" % "8.0.33" withSources (),
-      "io.getquill" %% "quill-jdbc-zio"       % quillVersion withSources (),
+      "mysql" % "mysql-connector-java" % "8.0.33" withSources (),
+      // "org.mariadb.jdbc" % "mariadb-java-client" % "3.4.0"
+      "io.getquill" %% "quill-jdbc-zio" % quillVersion withSources (),
       // ZIO
       "dev.zio"                     %% "zio"                   % zioVersion withSources (),
       "dev.zio"                     %% "zio-nio"               % "2.0.2" withSources (),
@@ -133,22 +142,21 @@ lazy val server = project
       "dev.zio"                     %% "zio-config-derivation" % zioConfigVersion withSources (),
       "dev.zio"                     %% "zio-config-magnolia"   % zioConfigVersion withSources (),
       "dev.zio"                     %% "zio-config-typesafe"   % zioConfigVersion withSources (),
-      "dev.zio"                     %% "zio-logging-slf4j"     % "2.2.4" withSources (),
+      "dev.zio"                     %% "zio-logging-slf4j"     % "2.3.0" withSources (),
       "dev.zio"                     %% "izumi-reflect"         % "2.3.9" withSources (),
       "com.github.ghostdogpr"       %% "caliban"               % calibanVersion withSources (),
-      "com.github.ghostdogpr"       %% "caliban-tapir"         % calibanVersion withSources (),
-      "com.softwaremill.sttp.tapir" %% "tapir-zio-http-server" % tapirVersion withSources (),
       "com.github.ghostdogpr"       %% "caliban-zio-http"      % calibanVersion withSources (),
       "com.github.ghostdogpr"       %% "caliban-quick"         % calibanVersion withSources (),
       "dev.zio"                     %% "zio-http"              % zioHttpVersion withSources (),
       "com.github.jwt-scala"        %% "jwt-circe"             % "10.0.1" withSources (),
       "dev.zio"                     %% "zio-json"              % zioJsonVersion withSources (),
       // Other random utilities
-      ("com.github.pathikrit" %% "better-files"               % "3.9.2" withSources ()).cross(CrossVersion.for3Use2_13),
-      "com.github.daddykotex" %% "courier"                    % "3.2.0" withSources (),
-      "ch.qos.logback"         % "logback-classic"            % "1.5.6" withSources (),
-      "commons-codec"          % "commons-codec"              % "1.17.0",
-      "com.dimafeng"          %% "testcontainers-scala-mysql" % testContainerVersion withSources (),
+      ("com.github.pathikrit" %% "better-files"    % "3.9.2" withSources ()).cross(CrossVersion.for3Use2_13),
+      "com.github.daddykotex" %% "courier"         % "3.2.0" withSources (),
+      "ch.qos.logback"         % "logback-classic" % "1.5.6" withSources (),
+      "commons-codec"          % "commons-codec"   % "1.17.0",
+      // "com.dimafeng"          %% "testcontainers-scala-mariadb" % testContainerVersion withSources (),
+      "com.dimafeng" %% "testcontainers-scala-mysql" % testContainerVersion withSources (),
       // Testing
       "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
       "dev.zio" %% "zio-test-sbt" % zioVersion % "test" withSources ()

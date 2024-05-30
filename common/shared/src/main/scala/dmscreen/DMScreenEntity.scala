@@ -21,6 +21,7 @@
 
 package dmscreen
 
+import just.semver.SemVer
 import zio.{IO, ZIO}
 import zio.json.ast.Json
 import zio.json.{JsonDecoder, JsonEncoder}
@@ -40,6 +41,7 @@ trait EntityType {
 trait DMScreenEntity[Id, Header <: HasId[Id], Info: JsonEncoder: JsonDecoder] {
 
   def entityType: EntityType
+  def version:    SemVer
   def header:     Header
   def jsonInfo:   Json
   final def id = header.id

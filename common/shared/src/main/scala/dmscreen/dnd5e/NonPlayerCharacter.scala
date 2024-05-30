@@ -22,6 +22,7 @@
 package dmscreen.dnd5e
 
 import dmscreen.*
+import just.semver.SemVer
 import zio.json.*
 import zio.json.ast.Json
 
@@ -78,8 +79,9 @@ case class NonPlayerCharacterInfo(
 )
 
 case class NonPlayerCharacter(
-  header:   NonPlayerCharacterHeader,
-  jsonInfo: Json
+  header:               NonPlayerCharacterHeader,
+  jsonInfo:             Json,
+  override val version: SemVer = SemVer.unsafeParse(dmscreen.BuildInfo.version)
 ) extends DMScreenEntity[NonPlayerCharacterId, NonPlayerCharacterHeader, NonPlayerCharacterInfo] {
 
   override val entityType: EntityType = DND5eEntityType.nonPlayerCharacter

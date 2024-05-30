@@ -19,21 +19,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package dmscreen.util
 
-import dmscreen.dnd5e.Creator.getClass
+import dmscreen.dnd5e.*
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
 import dmscreen.dnd5e.given
-import dmscreen.{CampaignId, DMScreenError, DMScreenServerEnvironment, EnvironmentBuilder}
+import dmscreen.*
 import zio.*
 import zio.json.*
+import zio.prelude.NonEmptyList
 
-object Creator extends ZIOApp {
+object TestCreator extends ZIOApp {
 
-  override type Environment = DMScreenServerEnvironment & DNDBeyondImporter
+  override type Environment = DNDBeyondImporter
   override def environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
-  override def bootstrap: ZLayer[ZIOAppArgs, Any, DMScreenServerEnvironment & DNDBeyondImporter] = {
-    ZLayer.make[Environment](EnvironmentBuilder.withContainer, DNDBeyondImporter.live)
+  override def bootstrap: ZLayer[ZIOAppArgs, Any, DNDBeyondImporter] = {
+    ZLayer.make[Environment](DNDBeyondImporter.live)
   }
 
   private val `Chr'zyzx` = PlayerCharacter(
@@ -46,7 +47,7 @@ object Creator extends ZIOApp {
     PlayerCharacterInfo(
       source = DMScreenSource,
       race = Race("Thri-Kreen"),
-      classes = List(
+      classes = NonEmptyList(
         PlayerCharacterClass(
           characterClass = CharacterClassId.ranger,
           subclass = Some(Subclass("Swarmkeeper")),
@@ -66,16 +67,16 @@ object Creator extends ZIOApp {
     ).toJsonAST.toOption.get
   )
 
-  val allCharacters: ZIO[DMScreenServerEnvironment & DNDBeyondImporter, DMScreenError, List[PlayerCharacter]] =
+  val createCharacters: ZIO[DNDBeyondImporter, DMScreenError, List[PlayerCharacter]] =
     for {
       dndBeyondImporter <- ZIO.service[DNDBeyondImporter]
       wryax <- dndBeyondImporter.importPlayerCharacter(getClass.getResource("/wryrax-dndbeyond.json").nn.toURI.nn)
       nut   <- dndBeyondImporter.importPlayerCharacter(getClass.getResource("/nut-dndbeyond.json").nn.toURI.nn)
     } yield List(`Chr'zyzx`, wryax, nut)
 
-  override def run: ZIO[DMScreenServerEnvironment & DNDBeyondImporter & ZIOAppArgs & Scope, DMScreenError, Unit] = {
+  override def run: ZIO[DNDBeyondImporter & ZIOAppArgs & Scope, DMScreenError, Unit] = {
     for {
-      all <- allCharacters
+      all <- createCharacters
       _ <- ZIO.foreach(all) { c =>
         ZIO.logInfo(c.header.toString + ": " + c.jsonInfo.toJsonPretty)
       }
