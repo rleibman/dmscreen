@@ -51,7 +51,7 @@ object QuillDND5eRepository {
       DND5eCampaign(
         header = CampaignHeader(id = CampaignId(id), dm = UserId(dm), name = name),
         jsonInfo = info,
-        version = SemVer.unsafeParse(version)
+        version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
       )
 
   }
@@ -74,7 +74,7 @@ object QuillDND5eRepository {
           playerName = playerName
         ),
         jsonInfo = info,
-        version = SemVer.unsafeParse(version)
+        version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
       )
 
   }
@@ -95,7 +95,7 @@ object QuillDND5eRepository {
           name = name
         ),
         jsonInfo = info,
-        version = SemVer.unsafeParse(version)
+        version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
       )
 
   }
@@ -116,7 +116,7 @@ object QuillDND5eRepository {
           name = name
         ),
         jsonInfo = info,
-        version = SemVer.unsafeParse(version)
+        version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
       )
 
   }
@@ -151,7 +151,7 @@ object QuillDND5eRepository {
           size = CreatureSize.valueOf(size)
         ),
         jsonInfo = info,
-        version = SemVer.unsafeParse(version)
+        version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
       )
 
   }

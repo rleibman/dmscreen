@@ -114,7 +114,7 @@ case class EncounterInfo(
 case class Encounter(
   header:               EncounterHeader,
   jsonInfo:             Json,
-  override val version: SemVer = SemVer.unsafeParse(dmscreen.BuildInfo.version)
+  override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
 ) extends DMScreenEntity[EncounterId, EncounterHeader, EncounterInfo] {
 
   override def entityType: EntityType = DND5eEntityType.encounter

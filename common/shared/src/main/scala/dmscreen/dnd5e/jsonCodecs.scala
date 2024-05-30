@@ -23,6 +23,7 @@ package dmscreen.dnd5e
 
 import dmscreen.CampaignId
 import zio.json.*
+import zio.json.ast.Json
 import zio.prelude.NonEmptyList
 
 import java.net.URI
@@ -109,3 +110,13 @@ given JsonCodec[MonsterHeader] = JsonCodec.derived[MonsterHeader]
 given JsonCodec[EncounterEntity] = JsonCodec.derived[EncounterEntity]
 given JsonCodec[EncounterDifficulty] = JsonCodec.derived[EncounterDifficulty]
 given JsonCodec[EncounterInfo] = JsonCodec.derived[EncounterInfo]
+
+given JsonDecoder[Either[DeathSave, Int]] =
+  JsonDecoder[Json].mapOrFail(json =>
+    json.as[Int].map(Right(_)).orElse(json.as[DeathSave].map(Left(_)))
+  )
+  
+given JsonEncoder[Either[DeathSave, Int]] = JsonEncoder[Json].contramap {
+  case Right(i) => i.toJsonAST.toOption.get
+  case Left(ds) => ds.toJsonAST.toOption.get
+}

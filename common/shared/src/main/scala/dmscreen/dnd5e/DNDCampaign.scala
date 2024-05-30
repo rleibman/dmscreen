@@ -41,7 +41,7 @@ case class DND5eCampaignInfo(
 case class DND5eCampaign(
   override val header:   CampaignHeader,
   override val jsonInfo: Json,
-  override val version:  SemVer = SemVer.unsafeParse(dmscreen.BuildInfo.version)
+  override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
 ) extends Campaign[DND5eCampaignInfo] {
 
   override val entityType: EntityType = DND5eEntityType.campaign

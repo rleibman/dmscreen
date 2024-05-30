@@ -38,7 +38,7 @@ object ScenePage extends DMScreenTab {
           <.div("Campaign Loading")
         } { case campaignState: DND5eCampaignState =>
           val campaign = campaignState.campaign
-          <.div()
+          <.div("Coming Soon")
         }
       }
     }

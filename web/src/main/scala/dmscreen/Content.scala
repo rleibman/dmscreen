@@ -40,7 +40,7 @@ import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.vdom.html_<^.*
-import org.scalajs.dom.{Event, window}
+import org.scalajs.dom.*
 
 import java.net.URI
 import java.util.UUID
@@ -68,16 +68,19 @@ object Content {
     }
 
     def refresh(initial: Boolean): Callback = {
+      val params = URL(window.location.href).searchParams
 
       val ajax = for {
         oldState <- $.state.asAsyncCallback
         currentCampaignId <- AsyncCallback.pure {
-          val strId: String | Null = window.sessionStorage.getItem("currentCampaignId")
-          window.console.log("Current campaign id from session storage: " + strId)
-          if (strId == null || strId.isEmpty)
-            Some(CampaignId(1)) // Change this, we'll need to load campaigns from the server and select the first one
-          else
-            Some(CampaignId(strId.toInt))
+          
+          //If the campaign is in the URL, use it, otherwise use the one in the session storage if it exist, otherwise, for now use 1
+          //But in the future, we just shouldn't show the other tabs and only show the home tab 
+          Option(params.get("campaignId"))
+            .orElse(Option(window.sessionStorage.getItem("currentCampaignId")))
+            .fold(
+              Some(CampaignId(1)) // Change this, we'll need to load campaigns from the server and select the first one)
+            )(str => Some(CampaignId(str.toInt)))
         }
         // Store the current campaign Id in the session storage for next time
         _ <- AsyncCallback.pure(window.sessionStorage.setItem("currentCampaignId", currentCampaignId.value.toString))

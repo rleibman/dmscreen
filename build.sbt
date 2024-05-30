@@ -1,6 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////////
 // Common Stuff
 
+import com.typesafe.sbt.SbtGit.GitKeys.gitDescribedVersion
+
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import org.apache.commons.io.FileUtils
@@ -77,14 +79,14 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
   )
   .settings(
     name             := "dmscreen-common",
-    buildInfoPackage := "dmscreen"
-  )
-  .settings(
+    buildInfoPackage := "dmscreen",
     commonSettings,
     libraryDependencies ++= Seq(
     )
   )
+  .jvmEnablePlugins(GitVersioning, BuildInfoPlugin)
   .jvmSettings(
+    version := gitDescribedVersion.value.getOrElse("0.0.1-SNAPSHOT"),
     libraryDependencies ++= Seq(
       "dev.zio"     %% "zio"              % zioVersion withSources (),
       "dev.zio"     %% "zio-json"         % "0.6.2" withSources (),
@@ -96,7 +98,9 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
       "io.kevinlee" %% "just-semver-core" % "0.13.0" withSources ()
     )
   )
+  .jsEnablePlugins(GitVersioning, BuildInfoPlugin)
   .jsSettings(
+    version := gitDescribedVersion.value.getOrElse("0.0.1-SNAPSHOT"),
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio"                                                 % zioVersion withSources (),
       "dev.zio" %%% "zio-json"                                            % "0.6.2" withSources (),
@@ -128,28 +132,27 @@ lazy val server = project
   .dependsOn(commonJVM)
   .settings(
     name := "dmscreen-server",
-//    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2",
     libraryDependencies ++= Seq(
       // DB
       "mysql" % "mysql-connector-java" % "8.0.33" withSources (),
       // "org.mariadb.jdbc" % "mariadb-java-client" % "3.4.0"
       "io.getquill" %% "quill-jdbc-zio" % quillVersion withSources (),
       // ZIO
-      "dev.zio"                     %% "zio"                   % zioVersion withSources (),
-      "dev.zio"                     %% "zio-nio"               % "2.0.2" withSources (),
-      "dev.zio"                     %% "zio-cache"             % "0.2.3" withSources (),
-      "dev.zio"                     %% "zio-config"            % zioConfigVersion withSources (),
-      "dev.zio"                     %% "zio-config-derivation" % zioConfigVersion withSources (),
-      "dev.zio"                     %% "zio-config-magnolia"   % zioConfigVersion withSources (),
-      "dev.zio"                     %% "zio-config-typesafe"   % zioConfigVersion withSources (),
-      "dev.zio"                     %% "zio-logging-slf4j"     % "2.3.0" withSources (),
-      "dev.zio"                     %% "izumi-reflect"         % "2.3.9" withSources (),
-      "com.github.ghostdogpr"       %% "caliban"               % calibanVersion withSources (),
-      "com.github.ghostdogpr"       %% "caliban-zio-http"      % calibanVersion withSources (),
-      "com.github.ghostdogpr"       %% "caliban-quick"         % calibanVersion withSources (),
-      "dev.zio"                     %% "zio-http"              % zioHttpVersion withSources (),
-      "com.github.jwt-scala"        %% "jwt-circe"             % "10.0.1" withSources (),
-      "dev.zio"                     %% "zio-json"              % zioJsonVersion withSources (),
+      "dev.zio"               %% "zio"                   % zioVersion withSources (),
+      "dev.zio"               %% "zio-nio"               % "2.0.2" withSources (),
+      "dev.zio"               %% "zio-cache"             % "0.2.3" withSources (),
+      "dev.zio"               %% "zio-config"            % zioConfigVersion withSources (),
+      "dev.zio"               %% "zio-config-derivation" % zioConfigVersion withSources (),
+      "dev.zio"               %% "zio-config-magnolia"   % zioConfigVersion withSources (),
+      "dev.zio"               %% "zio-config-typesafe"   % zioConfigVersion withSources (),
+      "dev.zio"               %% "zio-logging-slf4j"     % "2.3.0" withSources (),
+      "dev.zio"               %% "izumi-reflect"         % "2.3.9" withSources (),
+      "com.github.ghostdogpr" %% "caliban"               % calibanVersion withSources (),
+      "com.github.ghostdogpr" %% "caliban-zio-http"      % calibanVersion withSources (),
+      "com.github.ghostdogpr" %% "caliban-quick"         % calibanVersion withSources (),
+      "dev.zio"               %% "zio-http"              % zioHttpVersion withSources (),
+      "com.github.jwt-scala"  %% "jwt-circe"             % "10.0.1" withSources (),
+      "dev.zio"               %% "zio-json"              % zioJsonVersion withSources (),
       // Other random utilities
       ("com.github.pathikrit" %% "better-files"    % "3.9.2" withSources ()).cross(CrossVersion.for3Use2_13),
       "com.github.daddykotex" %% "courier"         % "3.2.0" withSources (),

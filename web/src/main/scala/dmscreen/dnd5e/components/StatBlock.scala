@@ -19,12 +19,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package dmscreen.dnd5e.components
 
 import dmscreen.dnd5e.Monster
-import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.<
+import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
 
 object StatBlock {
 

@@ -24,3 +24,5 @@ addSbtPlugin("org.scalablytyped.converter" % "sbt-converter"            % "1.0.0
 // Testing
 addSbtPlugin("io.stryker-mutator" % "sbt-stryker4s" % "0.16.1")
 addSbtPlugin("org.scoverage"      % "sbt-scoverage" % "2.0.12")
+
+libraryDependencies ++= Seq( "org.eclipse.jgit" % "org.eclipse.jgit" % "6.9.0.202403050737-r" )

@@ -81,7 +81,7 @@ case class NonPlayerCharacterInfo(
 case class NonPlayerCharacter(
   header:               NonPlayerCharacterHeader,
   jsonInfo:             Json,
-  override val version: SemVer = SemVer.unsafeParse(dmscreen.BuildInfo.version)
+  override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
 ) extends DMScreenEntity[NonPlayerCharacterId, NonPlayerCharacterHeader, NonPlayerCharacterInfo] {
 
   override val entityType: EntityType = DND5eEntityType.nonPlayerCharacter

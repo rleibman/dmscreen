@@ -58,66 +58,68 @@ object AppRouter {
                   page.setEH(AppPage.home)(event.asInstanceOf[ReactEvent])
 
               }("Home"),
-            Menu.Item
-              .active(resolution.page == AppPage.dashboard)
-              .onClick {
-                (
-                  event: ReactMouseEventFrom[HTMLAnchorElement],
-                  data:  MenuItemProps
-                ) =>
-                  page.setEH(AppPage.dashboard)(event.asInstanceOf[ReactEvent])
+            VdomArray(
+              Menu.Item
+                .active(resolution.page == AppPage.dashboard)
+                .onClick {
+                  (
+                    event: ReactMouseEventFrom[HTMLAnchorElement],
+                    data:  MenuItemProps
+                  ) =>
+                    page.setEH(AppPage.dashboard)(event.asInstanceOf[ReactEvent])
 
-              }("Dashboard"),
-            Menu.Item
-              .active(resolution.page == AppPage.player)
-              .onClick {
-                (
-                  event: ReactMouseEventFrom[HTMLAnchorElement],
-                  data:  MenuItemProps
-                ) =>
-                  page.setEH(AppPage.player)(event.asInstanceOf[ReactEvent])
+                }("Dashboard"),
+              Menu.Item
+                .active(resolution.page == AppPage.player)
+                .onClick {
+                  (
+                    event: ReactMouseEventFrom[HTMLAnchorElement],
+                    data:  MenuItemProps
+                  ) =>
+                    page.setEH(AppPage.player)(event.asInstanceOf[ReactEvent])
 
-              }("PCs"),
-            Menu.Item
-              .active(resolution.page == AppPage.encounter)
-              .onClick {
-                (
-                  event: ReactMouseEventFrom[HTMLAnchorElement],
-                  data:  MenuItemProps
-                ) =>
-                  page.setEH(AppPage.encounter)(event.asInstanceOf[ReactEvent])
+                }("PCs"),
+              Menu.Item
+                .active(resolution.page == AppPage.encounter)
+                .onClick {
+                  (
+                    event: ReactMouseEventFrom[HTMLAnchorElement],
+                    data:  MenuItemProps
+                  ) =>
+                    page.setEH(AppPage.encounter)(event.asInstanceOf[ReactEvent])
 
-              }("Encounters"),
-            Menu.Item
-              .active(resolution.page == AppPage.npc)
-              .onClick {
-                (
-                  event: ReactMouseEventFrom[HTMLAnchorElement],
-                  data:  MenuItemProps
-                ) =>
-                  page.setEH(AppPage.npc)(event.asInstanceOf[ReactEvent])
+                }("Encounters"),
+              Menu.Item
+                .active(resolution.page == AppPage.npc)
+                .onClick {
+                  (
+                    event: ReactMouseEventFrom[HTMLAnchorElement],
+                    data:  MenuItemProps
+                  ) =>
+                    page.setEH(AppPage.npc)(event.asInstanceOf[ReactEvent])
 
-              }("NPCs"),
-            Menu.Item
-              .active(resolution.page == AppPage.scene)
-              .onClick {
-                (
-                  event: ReactMouseEventFrom[HTMLAnchorElement],
-                  data:  MenuItemProps
-                ) =>
-                  page.setEH(AppPage.scene)(event.asInstanceOf[ReactEvent])
+                }("NPCs"),
+              Menu.Item
+                .active(resolution.page == AppPage.scene)
+                .onClick {
+                  (
+                    event: ReactMouseEventFrom[HTMLAnchorElement],
+                    data:  MenuItemProps
+                  ) =>
+                    page.setEH(AppPage.scene)(event.asInstanceOf[ReactEvent])
 
-              }("Scenes"),
-            Menu.Item
-              .active(resolution.page == AppPage.bestiary)
-              .onClick {
-                (
-                  event: ReactMouseEventFrom[HTMLAnchorElement],
-                  data:  MenuItemProps
-                ) =>
-                  page.setEH(AppPage.bestiary)(event.asInstanceOf[ReactEvent])
+                }("Scenes"),
+              Menu.Item
+                .active(resolution.page == AppPage.bestiary)
+                .onClick {
+                  (
+                    event: ReactMouseEventFrom[HTMLAnchorElement],
+                    data:  MenuItemProps
+                  ) =>
+                    page.setEH(AppPage.bestiary)(event.asInstanceOf[ReactEvent])
 
-              }("Bestiary"),
+                }("Bestiary")
+            ).when(dmscreenState.campaignState.isDefined),
             Menu.Item
               .active(resolution.page == AppPage.about)
               .onClick {

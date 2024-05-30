@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.DMScreenTab
+import dmscreen.{BuildInfo, DMScreenTab}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -29,27 +29,14 @@ import japgolly.scalajs.react.vdom.html_<^.*
 object AboutPage extends DMScreenTab {
 
   case class State(
-    monsters:    Seq[MonsterHeader] = Seq.empty,
-    currentPage: Int = 0
   )
 
   class Backend($ : BackendScope[Unit, State]) {
 
     def render(s: State) = {
       <.div(
-        s.monsters.map { m =>
-          <.div(
-            m.name,
-            m.ac,
-            m.cr,
-            m.monsterType.toString,
-            m.biome.toString,
-            m.size.toString,
-            m.hp,
-            m.xp
-          )
-
-        }.toVdomArray
+        <.div(s"Version = ${BuildInfo.version}"),
+        <.div("Coming soon")
       )
     }
 
@@ -71,8 +58,6 @@ object AboutPage extends DMScreenTab {
     .build
 
   def apply(
-//    monsters:    Seq[MonsterHeader],
-//    currentPage: Int
   ): Unmounted[Unit, State, Backend] = component()
 
 }

@@ -1,16 +1,25 @@
 <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+        <encoder>
+<!--
+            The X is a placeholder for the MDC value. The MDC value is set in the code. [%X{userId}, %X{transactionId}]
+            <pattern>%date [%level] %logger{30} - [%X] %replace(%message){'\n', ''}%n%xException</pattern>-->
+            <pattern>%date [%level] %logger{30} - %replace(%message){'\n', ''}%n%xException</pattern>
         </encoder>
     </appender>
+
     <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
         <discardingThreshold>0</discardingThreshold>
         <appender-ref ref="STDOUT"/>
     </appender>
+
     <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </root>
 
-<!--    <logger name="com.github.dockerjava" level="OFF"/>-->
-<!--    <logger name="org.testcontainers" level="OFF"/>-->
+    <logger name="dmscreen" level="DEBUG"/>
+    <logger name="com.github.dockerjava" level="OFF"/>
+    <logger name="org.testcontainers" level="OFF"/>
+    <logger name="com.zaxxer.hikari" level="OFF"/>
+    <logger name="MYSQL" level="OFF"/>
 </configuration>

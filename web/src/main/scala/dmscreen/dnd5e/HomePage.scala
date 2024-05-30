@@ -29,31 +29,15 @@ import japgolly.scalajs.react.vdom.html_<^.*
 object HomePage extends DMScreenTab {
 
   case class State(
-    monsters:    Seq[MonsterHeader] = Seq.empty,
-    currentPage: Int = 0
-  )
+                  )
 
-  class Backend($ : BackendScope[Unit, State]) {
+  class Backend($: BackendScope[Unit, State]) {
 
     def render(s: State) = {
-      <.div(
-        s.monsters.map { m =>
-          <.div(
-            m.name,
-            m.ac,
-            m.cr,
-            m.monsterType.toString,
-            m.biome.toString,
-            m.size.toString,
-            m.hp,
-            m.xp
-          )
-
-        }.toVdomArray
-      )
+      <.div("Coming soon")
     }
-
   }
+  
   private val component = ScalaComponent
     .builder[Unit]("router")
     .initialState {
@@ -71,8 +55,6 @@ object HomePage extends DMScreenTab {
     .build
 
   def apply(
-//    monsters:    Seq[MonsterHeader],
-//    currentPage: Int
   ): Unmounted[Unit, State, Backend] = component()
 
 }

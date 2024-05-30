@@ -100,7 +100,7 @@ object DMScreen extends ZIOApp {
 
         Server
           .serve(app)
-          .zipLeft(ZIO.logInfo(s"Server Started on ${config.dmscreen.port}"))
+          .zipLeft(ZIO.logDebug(s"Server Started on ${config.dmscreen.port}"))
           .tapErrorCause(ZIO.logErrorCause(s"Server on port ${config.dmscreen.port} has unexpectedly stopped", _))
           .provideSome[Environment](serverConfig, Server.live)
           .foldCauseZIO(
