@@ -81,7 +81,7 @@ object StorageSpec extends ZIOSpecDefault {
             PlayerCharacterHeader(PlayerCharacterId.empty, testCampaignId, "Test Character 2", Some("Test Player 2")),
             PlayerCharacterInfo(
               hitPoints = HitPoints(
-                currentHitPoints = Right(30),
+                currentHitPoints = 30,
                 maxHitPoints = 30
               ),
               armorClass = 16,
@@ -127,7 +127,7 @@ object StorageSpec extends ZIOSpecDefault {
 
         val info1 = PlayerCharacterInfo(
           hitPoints = HitPoints(
-            currentHitPoints = Right(30),
+            currentHitPoints = 30,
             maxHitPoints = 30
           ),
           armorClass = 16,

@@ -73,9 +73,9 @@ object Content {
       val ajax = for {
         oldState <- $.state.asAsyncCallback
         currentCampaignId <- AsyncCallback.pure {
-          
-          //If the campaign is in the URL, use it, otherwise use the one in the session storage if it exist, otherwise, for now use 1
-          //But in the future, we just shouldn't show the other tabs and only show the home tab 
+
+          // If the campaign is in the URL, use it, otherwise use the one in the session storage if it exist, otherwise, for now use 1
+          // But in the future, we just shouldn't show the other tabs and only show the home tab
           Option(params.get("campaignId"))
             .orElse(Option(window.sessionStorage.getItem("currentCampaignId")))
             .fold(

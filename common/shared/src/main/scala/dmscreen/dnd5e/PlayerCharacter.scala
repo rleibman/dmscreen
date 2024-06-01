@@ -22,12 +22,12 @@
 package dmscreen.dnd5e
 
 import dmscreen.dnd5e.CreatureSize.medium
-import dmscreen.{BuildInfo, CampaignId, DMScreenEntity, EntityType, HasId}
+import dmscreen.{CampaignId, DMScreenEntity, EntityType, HasId}
 import just.semver.SemVer
 import zio.json.ast.Json
 import zio.prelude.NonEmptyList
 
-import java.net.{URI, URL}
+import java.net.URI
 
 opaque type PlayerCharacterId = Long
 
@@ -49,7 +49,7 @@ final case class PlayerCharacterHeader(
   id:         PlayerCharacterId,
   campaignId: CampaignId,
   name:       String, // TODO make it optional
-  playerName: Option[String]
+  playerName: Option[String] = None
 ) extends HasId[PlayerCharacterId]
 
 sealed trait ImportSource
@@ -57,6 +57,10 @@ sealed trait ImportSource
 case object DMScreenSource extends ImportSource
 
 sealed case class DNDBeyondImportSource(
+  uri: URI
+) extends ImportSource
+
+sealed case class FifthEditionCharacterSheetImportSource(
   uri: URI
 ) extends ImportSource
 
@@ -70,9 +74,22 @@ case class Traits(
 
 case class Race(name: String)
 
-enum CharacterClassId {
+enum CharacterClassId(val name: String) {
 
-  case barbarian, bard, cleric, druid, fighter, monk, paladin, ranger, rogue, sorcerer, warlock, wizard, `blood hunter`
+  case barbarian extends CharacterClassId("Barbarian")
+  case bard extends CharacterClassId("Bard")
+  case cleric extends CharacterClassId("Cleric")
+  case druid extends CharacterClassId("Druid")
+  case fighter extends CharacterClassId("Fighter")
+  case monk extends CharacterClassId("Monk")
+  case paladin extends CharacterClassId("Paladin")
+  case ranger extends CharacterClassId("Ranger")
+  case rogue extends CharacterClassId("Rogue")
+  case sorcerer extends CharacterClassId("Sorcerer")
+  case warlock extends CharacterClassId("Warlock")
+  case wizard extends CharacterClassId("Wizard")
+  case `blood hunter` extends CharacterClassId("Blood Hunter,")
+  case unknown extends CharacterClassId("Unknown")
 
 }
 
@@ -120,7 +137,7 @@ enum Lifestyle {
 enum Alignment {
 
   case lawfulGood, neutralGood, chaoticGood, lawfulNeutral, trueNeutral, chaoticNeutral, lawfulEvil, neutralEvil,
-    chaoticEvil
+    chaoticEvil, unaligned
 
 }
 
@@ -210,7 +227,7 @@ enum Condition {
 case class DeathSave(
   fails:        Int,
   successes:    Int,
-  isStabilized: Boolean
+  isStabilized: Boolean = true
 )
 
 case class SpellSlots(
@@ -379,7 +396,7 @@ case class Skills(
 case class Language(name: String)
 
 case class HitPoints(
-  currentHitPoints:     Either[DeathSave, Int],
+  currentHitPoints:     DeathSave | Int,
   maxHitPoints:         Int,
   overrideMaxHitPoints: Option[Int] = None,
   temporaryHitPoints:   Option[Int] = None
@@ -393,7 +410,7 @@ case class PlayerCharacterInfo(
   physicalCharacteristics: PhysicalCharacteristics = PhysicalCharacteristics(),
   faith:                   Option[String] = None,
   inspiration:             Boolean = false,
-  currentXp:               Option[Int] = None,
+  currentXp:               Option[Long] = None,
   alignment:               Alignment = Alignment.trueNeutral,
   lifestyle:               Lifestyle = Lifestyle.modest,
   abilities:               Abilities = Abilities(),

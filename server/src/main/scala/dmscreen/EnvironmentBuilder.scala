@@ -22,6 +22,7 @@
 package dmscreen
 
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
+import dmscreen.dnd5e.fifthEditionCharacterSheet.FifthEditionCharacterSheetImporter
 import dmscreen.dnd5e.{DND5eRepository, QuillDND5eRepository, RepositoryError}
 import dmscreen.util.TestCreator
 import zio.*
@@ -40,7 +41,11 @@ object EnvironmentBuilder {
 
   case class InitializingLayer()
 
-  private val initializingLayer: ZLayer[DND5eRepository & DNDBeyondImporter, DMScreenError, InitializingLayer] =
+  private val initializingLayer: ZLayer[
+    DND5eRepository & DNDBeyondImporter & FifthEditionCharacterSheetImporter,
+    DMScreenError,
+    InitializingLayer
+  ] =
     ZLayer.fromZIO {
       for {
         playerCharacters <- TestCreator.createCharacters
@@ -57,7 +62,7 @@ object EnvironmentBuilder {
         ConfigurationService.live >>> DMScreenContainer.configLayer,
         QuillDND5eRepository.db,
         DNDBeyondImporter.live,
-//        ZLayer.succeed(InitializingLayer()),
+        FifthEditionCharacterSheetImporter.live,
         initializingLayer
       ).orDie
   }

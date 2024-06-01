@@ -21,255 +21,284 @@
 
 package dmscreen.dnd5e.components
 
-import dmscreen.dnd5e.PlayerCharacter
-import japgolly.scalajs.react.*
-import japgolly.scalajs.react.component.Scala.Unmounted
+import dmscreen.dnd5e.*
+import japgolly.scalajs.react.{CtorType, *}
+import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
+import japgolly.scalajs.react.vdom.all.verticalAlign
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticSIZES
+
+import scala.scalajs.js
+import scala.scalajs.js.UndefOr
 
 object PlayerCharacterComponent {
 
   case class State(playerCharacter: PlayerCharacter)
+  case class Props(
+    playerCharacter: PlayerCharacter,
+    onSave:          PlayerCharacter => Callback = _ => Callback.empty,
+    onDelete:        PlayerCharacter => Callback = _ => Callback.empty,
+    onSync:          PlayerCharacter => Callback = _ => Callback.empty
+  )
 
-  case class Backend($ : BackendScope[PlayerCharacter, State]) {
+  case class Backend($ : BackendScope[Props, State]) {
 
     def render(
-      playerCharacter: PlayerCharacter,
-      s:               State
+      p: Props,
+      s: State
     ): VdomElement = {
-      <.div(
-        ^.className := "characterCard",
-        Button("Delete"),
-        Button("Sync"), // Only if the character originally came from a synchable source
-        <.div(^.className := "characterHeader", <.h2("Aramil"), <.span("John")),
-        <.div(
-          ^.className := "characterDetails",
-          <.table(
-            ^.width := "auto",
-            <.tbody(
-              <.tr(
-                <.th("Class"),
-                <.td(<.div("Fighter (Champion) 7"), <.div("Paladin (Oath of Vengance) 3"))
-              ),
-              <.tr(
-                <.th("Background"),
-                <.td("Noble")
-              ),
-              <.tr(
-                <.th("AC"),
-                <.td("18")
-              ),
-              <.tr(
-                <.th("Proficiency Bonus"),
-                <.td("+2")
-              ),
-              <.tr(
-                <.th("Initiative"),
-                <.td("+2")
-              ),
-              <.tr(
-                <.th("Inspiration"),
-                <.td("+2")
-              )
-            )
-          )
-        ),
-        <.div(
-          ^.className := "characterDetails",
-          <.table(
-            <.thead(
-              <.tr(<.th("Current HP"), <.th("Max HP"), <.th("Temp HP"))
+
+      s.playerCharacter.info.fold(
+        e => <.div(s"Could not parse character info: ${e.getMessage}"),
+        { pc =>
+          <.div(
+            ^.className := "characterCard",
+            Button("Delete").size(SemanticSIZES.tiny).compact(true),
+            Button("Sync").size(SemanticSIZES.tiny).compact(true).when(pc.source != DMScreenSource), // Only if the character originally came from a synchable source
+            <.div(
+              ^.className := "characterHeader",
+              <.h2(EditableText(s.playerCharacter.header.name)),
+              <.span(EditableText(s.playerCharacter.header.playerName.getOrElse("")))
             ),
-            <.tbody(
-              <.tr(<.td("40"), <.td("70"), <.td("8"))
-            )
-          )
-        ),
-        <.div(
-          ^.className := "characterDetails",
-          <.table(
-            <.thead(
-              <.tr(<.th(^.colSpan := 6, <.div("Abilities"))),
-              <.tr(
-                <.th("Str"),
-                <.th("Dex"),
-                <.th("Con"),
-                <.th("Int"),
-                <.th("Wis"),
-                <.th("Cha")
+            <.div(
+              ^.className := "characterDetails",
+              ^.minHeight := 180.px,
+              <.table(
+                ^.width := "auto",
+                <.tbody(
+                  <.tr(
+                    <.td(
+                      ^.colSpan := 2,
+                      pc.classes
+                        .map { cl =>
+                          <.div(
+                            s"${cl.characterClass.name} ${cl.subclass.fold("Unknown")(sc => s"(${sc.name})")} ${cl.level}"
+                          )
+                        }.toList.toVdomArray
+                    )
+                  ),
+                  <.tr(
+                    <.th("Background"),
+                    <.td("Noble")
+                  ),
+                  <.tr(
+                    <.th("AC"),
+                    <.td("18")
+                  ),
+                  <.tr(
+                    <.th("Proficiency Bonus"),
+                    <.td("+2")
+                  ),
+                  <.tr(
+                    <.th("Initiative"),
+                    <.td("+2")
+                  ),
+                  <.tr(
+                    <.th("Inspiration"),
+                    <.td(Checkbox())
+                  )
+                )
               )
             ),
-            <.tbody(
-              <.tr(
-                <.td("18 (+3)"),
-                <.td("15 (+2)"),
-                <.td("12 (+1)"),
-                <.td("9 (-1)"),
-                <.td("12 (0)"),
-                <.td("14 (+1)")
+            <.div(
+              ^.className := "characterDetails",
+              <.table(
+                <.thead(
+                  <.tr(<.th("HP"), <.th("Temp HP"))
+                ),
+                <.tbody(
+                  <.tr(<.td("40/70"), <.td("8"))
+                )
               )
             ),
-            <.thead(
-              <.tr(<.th(^.colSpan := 6, <.div("Saving Throws"))),
-              <.tr(
-                <.th("Str"),
-                <.th("Dex"),
-                <.th("Con"),
-                <.th("Int"),
-                <.th("Wis"),
-                <.th("Cha")
+            <.div(
+              ^.className := "characterDetails",
+              <.table(
+                <.thead(
+                  <.tr(
+                    <.th("Str"),
+                    <.th("Dex"),
+                    <.th("Con"),
+                    <.th("Int"),
+                    <.th("Wis"),
+                    <.th("Cha")
+                  )
+                ),
+                <.tbody(
+                  <.tr(
+                    <.td("18 (+3)"),
+                    <.td("15 (+2)"),
+                    <.td("12 (+1)"),
+                    <.td("9 (-1)"),
+                    <.td("12 (0)"),
+                    <.td("14 (+1)")
+                  )
+                ),
+                <.thead(
+                  <.tr(<.th(^.colSpan := 6, <.div("Saving Throws"))),
+                  <.tr(
+                    <.th("Str"),
+                    <.th("Dex"),
+                    <.th("Con"),
+                    <.th("Int"),
+                    <.th("Wis"),
+                    <.th("Cha")
+                  )
+                ),
+                <.tbody(
+                  <.tr(
+                    <.td("+3"),
+                    <.td("+2"),
+                    <.td("+1"),
+                    <.td("-1"),
+                    <.td("+4"),
+                    <.td("+1")
+                  )
+                )
               )
             ),
-            <.tbody(
-              <.tr(
-                <.td("+3"),
-                <.td("+2"),
-                <.td("+1"),
-                <.td("-1"),
-                <.td("+4"),
-                <.td("+1")
-              )
-            )
-          )
-        ),
-        <.div(
-          ^.className := "characterDetails",
-          <.div(^.className := "sectionTitle", "Passive"),
-          <.table(
-            <.thead(
-              <.tr(
-                <.th("Perception"),
-                <.th("Investigation"),
-                <.th("Insight")
+            <.div(
+              ^.className := "characterDetails",
+              <.div(^.className := "sectionTitle", "Passive"),
+              <.table(
+                <.thead(
+                  <.tr(
+                    <.th("Perception"),
+                    <.th("Investigation"),
+                    <.th("Insight")
+                  )
+                ),
+                <.tbody(
+                  <.tr(
+                    <.td("10"),
+                    <.td("10"),
+                    <.td("13")
+                  )
+                )
               )
             ),
-            <.tbody(
-              <.tr(
-                <.td("10"),
-                <.td("10"),
-                <.td("13")
-              )
-            )
-          )
-        ),
-        <.div(
-          ^.className := "characterDetails",
-          <.div(^.className := "sectionTitle", "Conditions"),
-          "Click to change"
-        ),
-        <.div(
-          ^.className := "characterDetails",
-          <.td(^.className := "sectionTitle", "Speed"),
-          <.table(
-            <.thead(
-              <.tr(
-                <.th("walk"),
-                <.th("fly"),
-                <.th("swim"),
-                <.th("burrow")
+            <.div(
+              ^.className := "characterDetails",
+              <.div(^.className := "sectionTitle", "Conditions"),
+              "Click to change"
+            ),
+            <.div(
+              ^.className := "characterDetails",
+              <.div(^.className := "sectionTitle", "Speed"),
+              <.table(
+                <.thead(
+                  <.tr(
+                    <.th("walk"),
+                    <.th("fly"),
+                    <.th("swim"),
+                    <.th("burrow")
+                  )
+                ),
+                <.tbody(
+                  <.tr(
+                    <.td("30"),
+                    <.td("30"),
+                    <.td("30"),
+                    <.td("30")
+                  )
+                )
               )
             ),
-            <.tbody(
-              <.tr(
-                <.td("30"),
-                <.td("30"),
-                <.td("30"),
-                <.td("30")
+            <.div(
+              ^.className := "characterDetails",
+              <.div(^.className := "sectionTitle", "Skills"),
+              <.table(
+                <.tbody(
+                  <.tr(
+                    <.th("Acrobatics"),
+                    <.td("5"),
+                    <.th("Medicine"),
+                    <.td("3")
+                  ),
+                  <.tr(
+                    <.th("Animal Handling"),
+                    <.td("5"),
+                    <.th("Nature"),
+                    <.td("3")
+                  ),
+                  <.tr(
+                    <.th("Arcana"),
+                    <.td("5"),
+                    <.th("Perception"),
+                    <.td("3")
+                  ),
+                  <.tr(
+                    <.th("*Athletics"),
+                    <.td("5"),
+                    <.th("Performance"),
+                    <.td("3")
+                  ),
+                  <.tr(
+                    <.th("Deception"),
+                    <.td("5"),
+                    <.th("*Persuasion"),
+                    <.td("3")
+                  ),
+                  <.tr(
+                    <.th("History"),
+                    <.td("5"),
+                    <.th("Religion"),
+                    <.td("3")
+                  ),
+                  <.tr(
+                    <.th("Insight"),
+                    <.td("5"),
+                    <.th("Sleight of Hand"),
+                    <.td("3")
+                  ),
+                  <.tr(
+                    <.th("Intimidation"),
+                    <.td("5"),
+                    <.th("Stealth"),
+                    <.td("3")
+                  ),
+                  <.tr(
+                    <.th("*Investigation"),
+                    <.td("5"),
+                    <.th("*Survival"),
+                    <.td("3")
+                  )
+                )
               )
+            ),
+            <.div(
+              ^.className := "characterDetails",
+              <.div(^.className := "sectionTitle", "Languages"),
+              "Celestial, Common, Egyptian, Elvish, Infernal, Sylvan"
+            ),
+            <.div(^.className := "characterDetails", <.div(^.className := "sectionTitle", "Feats")),
+            <.div(
+              ^.className := "characterDetails",
+              <.div(^.className := "sectionTitle", "Senses"),
+              "Darkvision 60ft"
+            ),
+            <.div(
+              ^.className := "characterDetails",
+              <.div(^.className := "sectionTitle", "Notes"),
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut cursus sapien, sed sollicitudin nibh. Morbi vitae purus eu diam tempor efficitur. Etiam nec sem est. Curabitur et sem pharetra, tristique libero vel, venenatis ante. Curabitur mattis egestas erat. Ut finibus suscipit augue a iaculis. Ut congue dui eget malesuada ullamcorper. Phasellus nec nunc blandit, viverra metus sed, placerat enim. Suspendisse vel nibh volutpat, sagittis est ut, feugiat leo. Phasellus suscipit et erat id sollicitudin. In vel posuere odio. Donec vestibulum nec felis et feugiat. Morbi lacus orci, finibus at risus sed, vestibulum pretium lorem. Vivamus suscipit diam id dignissim maximus. Curabitur et consectetur elit, vel ornare risus."
             )
           )
-        ),
-        <.div(
-          ^.className := "characterDetails",
-          <.div(^.className := "sectionTitle", "Skills"),
-          <.table(
-            <.tbody(
-              <.tr(
-                <.th("Acrobatics"),
-                <.td("5"),
-                <.th("Medicine"),
-                <.td("3")
-              ),
-              <.tr(
-                <.th("Animal Handling"),
-                <.td("5"),
-                <.th("Nature"),
-                <.td("3")
-              ),
-              <.tr(
-                <.th("Arcana"),
-                <.td("5"),
-                <.th("Perception"),
-                <.td("3")
-              ),
-              <.tr(
-                <.th("*Athletics"),
-                <.td("5"),
-                <.th("Performance"),
-                <.td("3")
-              ),
-              <.tr(
-                <.th("Deception"),
-                <.td("5"),
-                <.th("*Persuasion"),
-                <.td("3")
-              ),
-              <.tr(
-                <.th("History"),
-                <.td("5"),
-                <.th("Religion"),
-                <.td("3")
-              ),
-              <.tr(
-                <.th("Insight"),
-                <.td("5"),
-                <.th("Sleight of Hand"),
-                <.td("3")
-              ),
-              <.tr(
-                <.th("Intimidation"),
-                <.td("5"),
-                <.th("Stealth"),
-                <.td("3")
-              ),
-              <.tr(
-                <.th("*Investigation"),
-                <.td("5"),
-                <.th("*Survival"),
-                <.td("3")
-              )
-            )
-          )
-        ),
-        <.div(
-          ^.className := "characterDetails",
-          <.div(^.className := "sectionTitle", "Languages"),
-          "Celestial, Common, Egyptian, Elvish, Infernal, Sylvan"
-        ),
-        <.div(^.className := "characterDetails", <.div(^.className := "sectionTitle", "Feats")),
-        <.div(
-          ^.className := "characterDetails",
-          <.div(^.className := "sectionTitle", "Senses"),
-          "Darkvision 60ft"
-        ),
-        <.div(
-          ^.className := "characterDetails",
-          <.div(^.className := "sectionTitle", "Notes"),
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut cursus sapien, sed sollicitudin nibh. Morbi vitae purus eu diam tempor efficitur. Etiam nec sem est. Curabitur et sem pharetra, tristique libero vel, venenatis ante. Curabitur mattis egestas erat. Ut finibus suscipit augue a iaculis. Ut congue dui eget malesuada ullamcorper. Phasellus nec nunc blandit, viverra metus sed, placerat enim. Suspendisse vel nibh volutpat, sagittis est ut, feugiat leo. Phasellus suscipit et erat id sollicitudin. In vel posuere odio. Donec vestibulum nec felis et feugiat. Morbi lacus orci, finibus at risus sed, vestibulum pretium lorem. Vivamus suscipit diam id dignissim maximus. Curabitur et consectetur elit, vel ornare risus."
-        )
+        }
       )
     }
 
   }
 
   import scala.language.unsafeNulls
-  given Reusability[PlayerCharacter] = Reusability.by(_.toString)
-  given Reusability[State] = Reusability.derive[State]
 
-  private val component = ScalaComponent
-    .builder[PlayerCharacter]("playerCharacterCmoponent")
-    .initialStateFromProps(p => State(p))
+  given Reusability[State] = Reusability.derive[State]
+  given Reusability[Props] = Reusability.by((_: Props).playerCharacter)
+
+  private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
+    .builder[Props]("playerCharacterComponent")
+    .initialStateFromProps(p => State(p.playerCharacter))
     .renderBackend[Backend]
     .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
@@ -280,6 +309,6 @@ object PlayerCharacterComponent {
     onSave:          PlayerCharacter => Callback = _ => Callback.empty,
     onDelete:        PlayerCharacter => Callback = _ => Callback.empty,
     onSync:          PlayerCharacter => Callback = _ => Callback.empty
-  ): Unmounted[PlayerCharacter, State, Backend] = component(playerCharacter)
+  ): Unmounted[Props, State, Backend] = component(Props(playerCharacter, onSave, onDelete, onSync))
 
 }

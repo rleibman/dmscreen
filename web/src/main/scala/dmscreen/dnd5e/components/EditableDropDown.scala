@@ -19,43 +19,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package dmscreen.dnd5e.components
 
-import dmscreen.DMScreenTab
-import japgolly.scalajs.react.*
-import japgolly.scalajs.react.component.Scala.Unmounted
-import japgolly.scalajs.react.vdom.html_<^.*
-
-object HomePage extends DMScreenTab {
-
-  case class State(
-  )
-
-  class Backend($ : BackendScope[Unit, State]) {
-
-    def render(s: State) = {
-      <.div("Coming soon")
-    }
-
-  }
-
-  private val component = ScalaComponent
-    .builder[Unit]("router")
-    .initialState {
-      State()
-    }
-    .renderBackend[Backend]
-    .componentDidMount(
-      // _.backend.refresh(initial = true)()
-      $ => Callback.empty
-    )
-    .componentWillUnmount($ =>
-      // TODO close down streams here
-      Callback.empty
-    )
-    .build
-
-  def apply(
-  ): Unmounted[Unit, State, Backend] = component()
-
-}
+object EditableDropDown {}

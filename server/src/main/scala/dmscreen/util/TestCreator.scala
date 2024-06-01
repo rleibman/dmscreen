@@ -23,6 +23,7 @@ package dmscreen.util
 
 import dmscreen.dnd5e.*
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
+import dmscreen.dnd5e.fifthEditionCharacterSheet.FifthEditionCharacterSheetImporter
 import dmscreen.dnd5e.given
 import dmscreen.*
 import zio.*
@@ -31,10 +32,10 @@ import zio.prelude.NonEmptyList
 
 object TestCreator extends ZIOApp {
 
-  override type Environment = DNDBeyondImporter
+  override type Environment = DNDBeyondImporter & FifthEditionCharacterSheetImporter
   override def environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
-  override def bootstrap: ZLayer[ZIOAppArgs, Any, DNDBeyondImporter] = {
-    ZLayer.make[Environment](DNDBeyondImporter.live)
+  override def bootstrap: ZLayer[ZIOAppArgs, Any, DNDBeyondImporter & FifthEditionCharacterSheetImporter] = {
+    ZLayer.make[Environment](DNDBeyondImporter.live, FifthEditionCharacterSheetImporter.live)
   }
 
   private val `Chr'zyzx` = PlayerCharacter(
@@ -62,19 +63,25 @@ object TestCreator extends ZIOApp {
         wisdom = Ability(AbilityType.wisdom, 16, None, false),
         charisma = Ability(AbilityType.charisma, 10, None, false)
       ),
-      hitPoints = HitPoints(currentHitPoints = Right(30), 30),
+      hitPoints = HitPoints(currentHitPoints = 30, 30),
       armorClass = 16
     ).toJsonAST.toOption.get
   )
 
-  val createCharacters: ZIO[DNDBeyondImporter, DMScreenError, List[PlayerCharacter]] =
+  val createCharacters
+    : ZIO[DNDBeyondImporter & FifthEditionCharacterSheetImporter, DMScreenError, List[PlayerCharacter]] =
     for {
       dndBeyondImporter <- ZIO.service[DNDBeyondImporter]
       wryax <- dndBeyondImporter.importPlayerCharacter(getClass.getResource("/wryrax-dndbeyond.json").nn.toURI.nn)
       nut   <- dndBeyondImporter.importPlayerCharacter(getClass.getResource("/nut-dndbeyond.json").nn.toURI.nn)
-    } yield List(`Chr'zyzx`, wryax, nut)
+      fifthEditionCharacterSheetImporter <- ZIO.service[FifthEditionCharacterSheetImporter]
+      wryax2 <- fifthEditionCharacterSheetImporter.importPlayerCharacter(
+        getClass.getResource("/Wryax-FifthEditionCharacterSheet.xml").nn.toURI.nn
+      )
+    } yield List(`Chr'zyzx`, wryax, nut, wryax2)
 
-  override def run: ZIO[DNDBeyondImporter & ZIOAppArgs & Scope, DMScreenError, Unit] = {
+  override def run
+    : ZIO[DNDBeyondImporter & FifthEditionCharacterSheetImporter & ZIOAppArgs & Scope, DMScreenError, Unit] = {
     for {
       all <- createCharacters
       _ <- ZIO.foreach(all) { c =>

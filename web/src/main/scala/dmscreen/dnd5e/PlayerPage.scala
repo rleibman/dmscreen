@@ -44,15 +44,7 @@ object PlayerPage extends DMScreenTab {
           <.div("Campaign Loading")
         } { case campaignState: DND5eCampaignState =>
           val campaign = campaignState.campaign
-          val pc = PlayerCharacter(
-            PlayerCharacterHeader(
-              PlayerCharacterId(1),
-              CampaignId(1),
-              "Aramil",
-              Some("John")
-            ),
-            "{}".toJsonAST.toOption.get
-          )
+
           VdomArray(
             <.div(
               ^.className := "pageActions",
@@ -64,12 +56,7 @@ object PlayerPage extends DMScreenTab {
             ),
             <.div(
               ^.className := "characterContainer",
-              PlayerCharacterComponent(pc),
-              PlayerCharacterComponent(pc),
-              PlayerCharacterComponent(pc),
-              PlayerCharacterComponent(pc),
-              PlayerCharacterComponent(pc),
-              PlayerCharacterComponent(pc)
+              campaignState.pcs.map(PlayerCharacterComponent(_)).toVdomArray
             )
           )
 //

@@ -352,9 +352,9 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
           HitPoints(
             currentHitPoints =
               if (atZero <= 0)
-                Left(DeathSave(deathSavesSuccesses, deathSavesFailures, deathSavesIsStable))
+                DeathSave(deathSavesSuccesses, deathSavesFailures, deathSavesIsStable)
               else
-                Right(maxHP - removedHP),
+                maxHP - removedHP,
             maxHitPoints = maxHP,
             overrideMaxHitPoints = overrideHitPoints,
             temporaryHitPoints = temporaryHitPoints

@@ -111,12 +111,10 @@ given JsonCodec[EncounterEntity] = JsonCodec.derived[EncounterEntity]
 given JsonCodec[EncounterDifficulty] = JsonCodec.derived[EncounterDifficulty]
 given JsonCodec[EncounterInfo] = JsonCodec.derived[EncounterInfo]
 
-given JsonDecoder[Either[DeathSave, Int]] =
-  JsonDecoder[Json].mapOrFail(json =>
-    json.as[Int].map(Right(_)).orElse(json.as[DeathSave].map(Left(_)))
-  )
-  
-given JsonEncoder[Either[DeathSave, Int]] = JsonEncoder[Json].contramap {
-  case Right(i) => i.toJsonAST.toOption.get
-  case Left(ds) => ds.toJsonAST.toOption.get
-}
+given JsonDecoder[DeathSave | Int] = JsonDecoder[Json].mapOrFail(json => json.as[Int].orElse(json.as[DeathSave]))
+
+given JsonEncoder[DeathSave | Int] =
+  JsonEncoder[Json].contramap {
+    case i:  Int       => i.toJsonAST.toOption.get
+    case ds: DeathSave => ds.toJsonAST.toOption.get
+  }
