@@ -219,7 +219,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
         bonusStatsObj    <- data.getArr("bonusStats")
         overrideStatsObj <- data.getArr("overrideStats")
         conditions <- data
-          .getArr("conditions").map(_.flatMap(_.asNumber.map(n => conditionId2Condition(n.value.intValue))).toList)
+          .getArr("conditions").map(_.flatMap(_.asNumber.map(n => conditionId2Condition(n.value.intValue))).toSet)
         stats         <- listOfEither2EitherOfList(statsObj.map(statTuple).toList)
         bonusStats    <- listOfEither2EitherOfList(bonusStatsObj.map(statTuple).toList)
         overrideStats <- listOfEither2EitherOfList(overrideStatsObj.map(statTuple).toList)
@@ -306,7 +306,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
         val languages = allModifiers
           .filter(_._1 == "language")
           .flatMap(_._2.flatMap(_.get("subType").flatMap(_.asString.map(Language.fromName))))
-          .toList
+          .toSet
         val resistances = allModifiers.filter(_._1 == "resistance").flatMap(_._2)
         val immunity = allModifiers.filter(_._1 == "immunity").flatMap(_._2)
         val vulnerability = allModifiers.filter(_._1 == "vulnerability").flatMap(_._2)

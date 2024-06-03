@@ -48,7 +48,7 @@ enablePlugins(
   GitVersioning
 )
 
-val calibanVersion = "2.7.0"
+val calibanVersion = "2.7.1"
 val zioVersion = "2.1.1"
 val quillVersion = "4.8.5"
 val zioHttpVersion = "3.0.0-RC8"
@@ -90,7 +90,7 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "dev.zio"     %% "zio"              % zioVersion withSources (),
       "dev.zio"     %% "zio-json"         % "0.6.2" withSources (),
-      "dev.zio"     %% "zio-prelude"      % "1.0.0-RC26" withSources (),
+      "dev.zio"     %% "zio-prelude"      % "1.0.0-RC27" withSources (),
       "io.megl"     %% "zio-json-extra"   % "0.6.2" withSources (),
       "org.gnieh"   %% "diffson-core"     % "4.6.0" withSources (),
       "io.megl"     %% "zio-json-diffson" % "0.6.2" withSources (),
@@ -104,14 +104,14 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio"                                                 % zioVersion withSources (),
       "dev.zio" %%% "zio-json"                                            % "0.6.2" withSources (),
-      "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC26" withSources (),
+      "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC27" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "org.gnieh" %%% "diffson-core"                                      % "4.6.0" withSources (),
       "io.megl" %%% "zio-json-diffson"                                    % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.kevinlee" %%% "just-semver-core"                                % "0.13.0" withSources (),
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.29.0",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.29.0"
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.30.1",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.30.1"
     )
   )
 
@@ -155,7 +155,7 @@ lazy val server = project
       "dev.zio"                %% "zio-json"              % zioJsonVersion withSources (),
       "org.scala-lang.modules" %% "scala-xml"             % "2.3.0" withSources (),
       // Other random utilities
-      ("com.github.pathikrit" %% "better-files"    % "3.9.2" withSources ()).cross(CrossVersion.for3Use2_13),
+      "com.github.pathikrit"  %% "better-files"    % "3.9.2" withSources (),
       "com.github.daddykotex" %% "courier"         % "3.2.0" withSources (),
       "ch.qos.logback"         % "logback-classic" % "1.5.6" withSources (),
       "commons-codec"          % "commons-codec"   % "1.17.0",

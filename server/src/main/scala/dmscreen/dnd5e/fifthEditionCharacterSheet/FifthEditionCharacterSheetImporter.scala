@@ -279,7 +279,7 @@ class FifthEditionCharacterSheetImporter extends DND5eImporter[URI, URI, URI, UR
 //conditions = ,
 //spellSlots = ,
 //pactMagic = ,
-            languages = languages.toList,
+            languages = languages.toSet,
 //actions = ,
 //classSpells = ,
 //creatures = ,

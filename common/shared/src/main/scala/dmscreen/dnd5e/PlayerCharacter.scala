@@ -298,7 +298,7 @@ object Language {
   val druidic:     Language = Language("Druidic")
   val thievesCant: Language = Language("Thieves' Cant")
 
-  val all: Seq[Language] = List(
+  val all: Set[Language] = Set(
     common,
     dwarvish,
     elvish,
@@ -322,10 +322,10 @@ object Language {
     druidic,
     thievesCant
   )
-  val standard: Seq[Language] = List(common, dwarvish, elvish, giant, gnomish, goblin, halfling, orc)
-  val exotic: Seq[Language] =
-    List(abyssal, celestial, draconic, deep, infernal, primordial, auran, aquan, ignan, terran, sylvan, undercommon)
-  val other: Seq[Language] = List(druidic, thievesCant)
+  val standard: Set[Language] = Set(common, dwarvish, elvish, giant, gnomish, goblin, halfling, orc)
+  val exotic: Set[Language] =
+    Set(abyssal, celestial, draconic, deep, infernal, primordial, auran, aquan, ignan, terran, sylvan, undercommon)
+  val other: Set[Language] = Set(druidic, thievesCant)
 
   def fromName(str: String): Language = all.find(_.name.equalsIgnoreCase(str)).getOrElse(Language(str))
 
@@ -421,10 +421,10 @@ case class PlayerCharacterInfo(
   inventory:               List[InventoryItem] = List.empty,
   wallet:                  Wallet = Wallet.empty,
   feats:                   List[Feat] = List.empty,
-  conditions:              List[Condition] = List.empty,
+  conditions:              Set[Condition] = Set.empty,
   spellSlots:              List[SpellSlots] = List.empty,
   pactMagic:               List[SpellSlots] = List.empty,
-  languages:               List[Language] = List(Language.common),
+  languages:               Set[Language] = Set(Language.common),
   actions:                 List[Action] = List.empty,
   classSpells:             List[SpellHeader] = List.empty,
   creatures:               List[Creature] = List.empty,

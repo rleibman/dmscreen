@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e.components
 
-import dmscreen.dnd5e.*
+import dmscreen.dnd5e.{*, given}
 import japgolly.scalajs.react.{CtorType, *}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.all.verticalAlign
@@ -32,10 +32,14 @@ import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticSIZES
 
 import scala.scalajs.js
 import scala.scalajs.js.UndefOr
+import zio.json.*
 
 object PlayerCharacterComponent {
 
-  case class State(playerCharacter: PlayerCharacter)
+  case class State(
+    playerCharacter: PlayerCharacter,
+    dialogOpen:      Boolean = false
+  )
   case class Props(
     playerCharacter: PlayerCharacter,
     onSave:          PlayerCharacter => Callback = _ => Callback.empty,
@@ -44,6 +48,21 @@ object PlayerCharacterComponent {
   )
 
   case class Backend($ : BackendScope[Props, State]) {
+
+    extension (b: BackendScope[Props, State]) {
+
+      // This is doing json-info/info-json way too much, we need to change it to just store the info in the object
+      // And then every so often accumulate the changes and send 'em to the server
+      def modPCInfo(fn: PlayerCharacterInfo => PlayerCharacterInfo): Callback = {
+        b.modState { s =>
+          s.playerCharacter.info.fold(
+            _ => s, // TODO Do something with the error
+            oldInfo => s.copy(playerCharacter = s.playerCharacter.copy(jsonInfo = fn(oldInfo).toJsonAST.toOption.get)) // do something with the error
+          )
+        }
+      }
+
+    }
 
     def render(
       p: Props,
@@ -182,7 +201,18 @@ object PlayerCharacterComponent {
             <.div(
               ^.className := "characterDetails",
               <.div(^.className := "sectionTitle", "Conditions"),
-              "Click to change"
+              EditableComponent(
+                viewComponent = <.span(
+                  pc.conditions.headOption
+                    .fold("Click to change")(_ => pc.conditions.map(_.toString.capitalize).mkString(", "))
+                ),
+                editComponent = ConditionsEditor(
+                  pc.conditions,
+                  onChange = conditions => $.modPCInfo(info => info.copy(conditions = conditions))
+                ),
+                modalTitle = "Conditions",
+                onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+              )
             ),
             <.div(
               ^.className := "characterDetails",
@@ -291,17 +321,16 @@ object PlayerCharacterComponent {
 
   }
 
-  import scala.language.unsafeNulls
-
-  given Reusability[State] = Reusability.derive[State]
-  given Reusability[Props] = Reusability.by((_: Props).playerCharacter)
+//  import scala.language.unsafeNulls
+//
+//  given Reusability[Props] = Reusability.by((_: Props).playerCharacter)
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
     .builder[Props]("playerCharacterComponent")
     .initialStateFromProps(p => State(p.playerCharacter))
     .renderBackend[Backend]
     .componentDidMount($ => Callback.empty)
-    .configure(Reusability.shouldComponentUpdate)
+    .shouldComponentUpdatePure($ => ! $.nextState.dialogOpen)
     .build
 
   def apply(

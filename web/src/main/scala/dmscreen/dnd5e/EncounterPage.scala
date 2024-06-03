@@ -39,6 +39,7 @@ object EncounterPage extends DMScreenTab {
         } { case campaignState: DND5eCampaignState =>
           val campaign = campaignState.campaign
           <.div("Coming Soon")
+          <.div(<.h2("Encounter Log"))
         }
       }
     }
