@@ -227,7 +227,7 @@ enum Condition {
 case class DeathSave(
   fails:        Int,
   successes:    Int,
-  isStabilized: Boolean = true
+  isStabilized: Boolean = false
 )
 
 case class SpellSlots(
@@ -399,8 +399,18 @@ case class HitPoints(
   currentHitPoints:     DeathSave | Int,
   maxHitPoints:         Int,
   overrideMaxHitPoints: Option[Int] = None,
-  temporaryHitPoints:   Option[Int] = None
-)
+  temporaryHitPoints:   Int = 0
+) {
+
+  def currentMax = overrideMaxHitPoints.getOrElse(maxHitPoints)
+  def lifeColor = {
+    s"hsl(${currentHitPoints match {
+        case DeathSave(_, _, _) => 0
+        case i: Int => (i * 120.0) / currentMax
+      }}, 85%, 50%, 0.8)"
+  }
+
+}
 
 case class PlayerCharacterInfo(
   hitPoints:               HitPoints,

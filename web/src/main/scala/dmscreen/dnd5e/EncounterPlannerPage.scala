@@ -22,11 +22,11 @@
 package dmscreen.dnd5e
 
 import dmscreen.{DMScreenState, DMScreenTab}
-import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
+import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
 
-object EncounterPage extends DMScreenTab {
+object EncounterPlannerPage extends DMScreenTab {
 
   case class State()
 

@@ -1,6 +1,53 @@
 
-- Finish StorageSpec for Campaign
-- Work on GraphQL API for Campaign
-- Work on first app page, retrieve a campaign
-- Dice: https://www.npmjs.com/package/@3d-dice/dice-box
-- 
+- General
+  - Work on GraphQL API for Campaign
+  - Work on first app page, retrieve a campaign
+  - Dice: https://www.npmjs.com/package/@3d-dice/dice-box
+  - Modal component CSS
+- StorageSpec 
+  - Campaign
+  - Player Character
+  - Monster
+  - NPC
+  - Scene
+  - Encounter
+- About page
+- Bestiary Page
+- Dashboard Page
+- EncounterPlanner Page
+  - Encounter balancing
+- Encounter Page
+- Home Page
+- NPC Page
+- Player Page
+  - Feats Editor
+  - Hitpoints Editor
+  - Notes Editor
+  - Player Character Class Editor
+  - Skills Editor
+  - New Player Character
+  - Delete Player Character
+  - Sync Player Character
+  - DNDBeyond Import
+  - Fifth Edition Character Sheet Import
+  - Short Rest
+  - Long Rest (reset all stats)
+- Scene Page
+
+Future (some ideas from Chatgpt)
+- Campaign Management:
+  - Manage multiple campaigns, each with its own set of characters, NPCs, and notes.
+  - Timeline feature to track campaign events chronologically.
+- Session Notes and Log:
+  - Digital notepad for session planning and real-time note-taking.
+  - Automatically log session events, dice rolls, and decisions for future reference.
+- Maps (others do it much better)
+- Audio/video/image library
+- Messaging (others do it much better)
+- Integration with discord
+- Dice roller
+- NPC Automatic Generator
+- Mobile mode
+- DND Beyond plugin
+- Integrate with AI graphic generator
+- Connect everything to it's source (rules, monsters, skills, classes, races, subclasses, spells, etc)

@@ -47,7 +47,7 @@ object GraphQLClientRepository {
       override def applyOperations[IDType](
         entityType: EntityType,
         id:         IDType,
-        operations: DMScreenOperation*
+        operations: DMScreenEvent*
       ): IO[DMScreenError, Unit] = ???
 
       override def playerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[PlayerCharacter]] = ???

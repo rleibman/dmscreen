@@ -96,8 +96,8 @@ class FifthEditionCharacterSheetImporter extends DND5eImporter[URI, URI, URI, UR
             )
           } else currentHealth,
           maxHitPoints = child.collect { case elem2: Elem if elem2.label == "maxHealth" => elem2.text }.head.toInt,
-          temporaryHitPoints =
-            child.collectFirst { case elem2: Elem if elem2.label == "currentTempHP" => elem2.text }.map(_.toInt)
+          temporaryHitPoints = child
+            .collectFirst { case elem2: Elem if elem2.label == "currentTempHP" => elem2.text }.map(_.toInt).getOrElse(0)
         )
       }
 //      val maxDex = child.collect { case elem2: Elem if elem2.label == "maxDex" => elem2.text }.head

@@ -62,7 +62,7 @@ trait DND5eRepository extends GameRepository {
   def applyOperations[IDType](
     entityType: EntityType,
     id:         IDType,
-    operations: DMScreenOperation*
+    operations: DMScreenEvent*
   ): IO[DMScreenError, Unit]
 
   def deleteEntity[IDType](

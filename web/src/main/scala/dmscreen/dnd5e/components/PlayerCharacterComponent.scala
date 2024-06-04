@@ -28,7 +28,7 @@ import japgolly.scalajs.react.vdom.all.verticalAlign
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
-import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticSIZES
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES}
 
 import scala.scalajs.js
 import scala.scalajs.js.UndefOr
@@ -100,36 +100,61 @@ object PlayerCharacterComponent {
                   ),
                   <.tr(
                     <.th("Background"),
-                    <.td("Noble")
+                    <.td(
+                      Dropdown
+                        .placeholder("Choose background")
+                        .allowAdditions(true)
+                        .search(true)
+                        .value(pc.background.fold("")(_.name))
+                    )
                   ),
                   <.tr(
                     <.th("AC"),
-                    <.td("18")
+                    <.td("18") // AC Editor
                   ),
                   <.tr(
                     <.th("Proficiency Bonus"),
-                    <.td("+2")
+                    <.td("+2") // Automatic
                   ),
                   <.tr(
                     <.th("Initiative"),
                     <.td("+2")
                   ),
                   <.tr(
-                    <.th("Inspiration"),
-                    <.td(Checkbox())
+                    <.td(^.colSpan := 2, Checkbox.label("Inspiration").toggle(true)) // TODO onChange
                   )
                 )
               )
             ),
             <.div(
-              ^.className := "characterDetails",
-              <.table(
-                <.thead(
-                  <.tr(<.th("HP"), <.th("Temp HP"))
+              ^.className       := "characterDetails",
+              ^.backgroundColor := pc.hitPoints.lifeColor,
+              EditableComponent(
+                <.table(
+                  <.thead(
+                    <.tr(<.th("HP"), <.th("Temp HP"))
+                  ),
+                  <.tbody(
+                    pc.hitPoints.currentHitPoints match {
+                      case ds: DeathSave =>
+                        <.tr(
+                          <.td(s"0/${pc.hitPoints.currentMax}", if (ds.isStabilized) " (stabilized)" else ""),
+                          <.td(pc.hitPoints.temporaryHitPoints.toString)
+                        )
+                      case i: Int =>
+                        <.tr(
+                          <.td(s"$i/${pc.hitPoints.currentMax}"),
+                          <.td(pc.hitPoints.temporaryHitPoints.toString)
+                        )
+                    }
+                  )
                 ),
-                <.tbody(
-                  <.tr(<.td("40/70"), <.td("8"))
-                )
+                editComponent = HitPointsEditor(
+                  pc.hitPoints,
+                  onChange = hitPoints => $.modPCInfo(info => info.copy(hitPoints = hitPoints))
+                ),
+                modalTitle = "Hit Points",
+                onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
               )
             ),
             <.div(

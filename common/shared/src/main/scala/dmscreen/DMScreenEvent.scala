@@ -32,34 +32,44 @@ enum EventType {
 
 case class JsonPath(value: String)
 
-sealed abstract class DMScreenOperation
+sealed abstract class DMScreenEvent
+
+sealed case class CombatLog(
+  message: String,
+  json:    Json
+) extends DMScreenEvent
+
+sealed case class GeneralLog(
+  message: String,
+  json:    Json
+) extends DMScreenEvent
 
 sealed case class Add(
   path:  JsonPath,
   value: Json
-) extends DMScreenOperation
+) extends DMScreenEvent
 
 sealed case class Copy(
   from: JsonPath,
   to:   JsonPath
-) extends DMScreenOperation
+) extends DMScreenEvent
 
 sealed case class Move(
   from: JsonPath,
   to:   JsonPath
-) extends DMScreenOperation
+) extends DMScreenEvent
 
-sealed case class Remove(path: JsonPath) extends DMScreenOperation
+sealed case class Remove(path: JsonPath) extends DMScreenEvent
 
 sealed case class Replace(
   path:  JsonPath,
   value: Json
-) extends DMScreenOperation
+) extends DMScreenEvent
 
 sealed case class Test(
   path:  JsonPath,
   value: Json
-) extends DMScreenOperation
+) extends DMScreenEvent
 
 given JsonCodec[JsonPath] = JsonCodec.string.transform(JsonPath.apply, _.value)
-given JsonCodec[DMScreenOperation] = JsonCodec.derived[DMScreenOperation]
+given JsonCodec[DMScreenEvent] = JsonCodec.derived[DMScreenEvent]

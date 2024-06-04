@@ -22,8 +22,7 @@
 package dmscreen.dnd5e.components
 
 import dmscreen.dnd5e.*
-import dmscreen.dnd5e.components.EditableComponent.Props
-import dmscreen.dnd5e.components.PlayerCharacterComponent.{Backend, Props, State, component}
+import dmscreen.dnd5e.components.HitPointsEditor.State
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.VdomNode
@@ -59,7 +58,7 @@ object ConditionsEditor {
           .onChange {
             (
               _,
-              eventProps
+              changedData
             ) =>
               $.modState(
                 (
@@ -67,7 +66,7 @@ object ConditionsEditor {
                   p
                 ) =>
                   s.copy(conditions =
-                    if (eventProps.checked.getOrElse(false))
+                    if (changedData.checked.getOrElse(false))
                       s.conditions + condition
                     else {
                       s.conditions - condition
@@ -130,7 +129,7 @@ object ConditionsEditor {
 
   import scala.language.unsafeNulls
 
-  given Reusability[State] = Reusability.by((s: State) => s.conditions)
+  given Reusability[State] = Reusability.derive[State]
   given Reusability[Props] = Reusability.by((_: Props) => "") // make sure the props are ignored for re-rendering the component
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent

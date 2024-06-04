@@ -63,7 +63,7 @@ object TestCreator extends ZIOApp {
         wisdom = Ability(AbilityType.wisdom, 16, None, false),
         charisma = Ability(AbilityType.charisma, 10, None, false)
       ),
-      hitPoints = HitPoints(currentHitPoints = 30, 30),
+      hitPoints = HitPoints(currentHitPoints = DeathSave(fails = 2, successes = 2), 30),
       armorClass = 16
     ).toJsonAST.toOption.get
   )

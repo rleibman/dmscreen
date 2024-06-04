@@ -128,3 +128,8 @@ case class Monster(
   override val entityType: EntityType = DND5eEntityType.monster
 
 }
+
+//Import monsters:
+// - the srd, from https://github.com/5e-bits/5e-database?tab=readme-ov-file
+// - A fairly complete list, but many monsters only have limited data in https://docs.google.com/spreadsheets/d/1-xWeXO3lh_aIUsFTLOfOCFQm-OKawrJHs3xsGikgOXA/edit#gid=1903101837
+// - the more complete list, but with even less data in https://docs.google.com/spreadsheets/d/1sccR7HgoHGB0Mq24k5K-O-tqJZG8D3Z66Ig7UloukNY/edit#gid=2073157549

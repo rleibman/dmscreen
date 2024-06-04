@@ -1,57 +1,488 @@
 [
-  { "name": "Acolyte", "source": "Player's Handbook" },
-  { "name": "Charlatan", "source": "Player's Handbook" },
-  { "name": "Criminal", "source": "Player's Handbook" },
-  { "name": "Entertainer", "source": "Player's Handbook" },
-  { "name": "Folk Hero", "source": "Player's Handbook" },
-  { "name": "Guild Artisan", "source": "Player's Handbook" },
-  { "name": "Hermit", "source": "Player's Handbook" },
-  { "name": "Noble", "source": "Player's Handbook" },
-  { "name": "Outlander", "source": "Player's Handbook" },
-  { "name": "Sage", "source": "Player's Handbook" },
-  { "name": "Sailor", "source": "Player's Handbook" },
-  { "name": "Soldier", "source": "Player's Handbook" },
-  { "name": "Urchin", "source": "Player's Handbook" },
-  { "name": "City Watch", "source": "Sword Coast Adventurer's Guide" },
-  { "name": "Clan Crafter", "source": "Sword Coast Adventurer's Guide" },
-  { "name": "Cloistered Scholar", "source": "Sword Coast Adventurer's Guide" },
-  { "name": "Courtier", "source": "Sword Coast Adventurer's Guide" },
-  { "name": "Faction Agent", "source": "Sword Coast Adventurer's Guide" },
-  { "name": "Far Traveler", "source": "Sword Coast Adventurer's Guide" },
-  { "name": "Inheritor", "source": "Sword Coast Adventurer's Guide" },
-  { "name": "Knight of the Order", "source": "Sword Coast Adventurer's Guide" },
-  { "name": "Mercenary Veteran", "source": "Sword Coast Adventurer's Guide" },
-  { "name": "Urban Bounty Hunter", "source": "Sword Coast Adventurer's Guide" },
-  { "name": "Uthgardt Tribe Member", "source": "Sword Coast Adventurer's Guide" },
-  { "name": "Waterdhavian Noble", "source": "Sword Coast Adventurer's Guide" },
-  { "name": "Astral Drifter", "source": "Spelljammer: Adventures in Space" },
-  { "name": "Wildspacer", "source": "Spelljammer: Adventures in Space" },
-  { "name": "Knight of Solamnia", "source": "Dragonlance: Shadow of the Dragon Queen" },
-  { "name": "Mage of High Sorcery", "source": "Dragonlance: Shadow of the Dragon Queen" },
-  { "name": "Gambler", "source": "Journeys Through the Radiant Citadel" },
-  { "name": "Witchlight Hand", "source": "The Wild Beyond the Witchlight" },
-  { "name": "Faceless", "source": "Baldur's Gate: Descent into Avernus" },
-  { "name": "Marine", "source": "Ghosts of Saltmarsh" },
-  { "name": "Shipwright", "source": "Ghosts of Saltmarsh" },
-  { "name": "Smuggler", "source": "Ghosts of Saltmarsh" },
-  { "name": "House Agent", "source": "Eberron: Rising from the Last War" },
-  { "name": "Orzhov Representative", "source": "Guildmasters' Guide to Ravnica" },
-  { "name": "Dimir Operative", "source": "Guildmasters' Guide to Ravnica" },
-  { "name": "Gruul Anarch", "source": "Guildmasters' Guide to Ravnica" },
-  { "name": "Izzet Engineer", "source": "Guildmasters' Guide to Ravnica" },
-  { "name": "Selesnya Initiate", "source": "Guildmasters' Guide to Ravnica" },
-  { "name": "Boros Legionnaire", "source": "Guildmasters' Guide to Ravnica" },
-  { "name": "Golgari Agent", "source": "Guildmasters' Guide to Ravnica" },
-  { "name": "Simic Scientist", "source": "Guildmasters' Guide to Ravnica" },
-  { "name": "Rakdos Cultist", "source": "Guildmasters' Guide to Ravnica" },
-  { "name": "Azorius Functionary", "source": "Guildmasters' Guide to Ravnica" },
-  { "name": "Witherbloom Student", "source": "Strixhaven: A Curriculum of Chaos" },
-  { "name": "Prismari Student", "source": "Strixhaven: A Curriculum of Chaos" },
-  { "name": "Quandrix Student", "source": "Strixhaven: A Curriculum of Chaos" },
-  { "name": "Lorehold Student", "source": "Strixhaven: A Curriculum of Chaos" },
-  { "name": "Silverquill Student", "source": "Strixhaven: A Curriculum of Chaos" },
-  { "name": "Grinner", "source": "Explorer's Guide to Wildemount" },
-  { "name": "Volstrucker Agent", "source": "Explorer's Guide to Wildemount" },
-  { "name": "Rival Intern", "source": "Acquisitions Incorporated" },
-  { "name": "Plaintiff", "source": "Acquisitions Incorporated" }
+  {
+    "name": "Alienist",
+    "feature": "Alienist Contacts",
+    "source": "Sandy Petersen's Cthulhu Mythos",
+    "page number": 62
+  },
+  {
+    "name": "Anthropologist",
+    "feature": "Adept Linguist",
+    "source": "Tomb of Annihilation",
+    "page number": 191
+  },
+  {
+    "name": "Archaeologist",
+    "feature": "Dust Digger",
+    "source": "Tomb of Annihilation",
+    "page number": 192
+  },
+  {
+    "name": "Ashari",
+    "feature": "Elemental Harmony",
+    "source": "Tal'Dorei Campaign Setting Reborn",
+    "page number": 180
+  },
+  {
+    "name": "Aspirant",
+    "feature": "Wild Hospitality",
+    "source": "DM's Guild: Morgrave Miscellany",
+    "page number": 123
+  },
+  {
+    "name": "Auditor",
+    "feature": "Keeper of Vaults",
+    "source": "DM's Guild: Morgrave Miscellany",
+    "page number": 125
+  },
+  {
+    "name": "Azorius Functionary",
+    "feature": "Legal Authority",
+    "source": "Guildmaster's Guide to Ravnica",
+    "page number": 33
+  },
+  {
+    "name": "Boros Legionnaire",
+    "feature": "Legion Station",
+    "source": "Guildmaster's Guide to Ravnica",
+    "page number": 40
+  },
+  {
+    "name": "Cadet",
+    "feature": "Pupil of Conflict",
+    "source": "DM's Guild: Morgrave Miscellany",
+    "page number": 126
+  },
+  {
+    "name": "Celebrity Adventurer's Scion",
+    "feature": "Name Dropping",
+    "source": "Acquisitions Incorporated",
+    "page number": 48
+  },
+  {
+    "name": "Charlatan",
+    "feature": "False Identity",
+    "source": "Player's Handbook",
+    "page number": 128
+  },
+  {
+    "name": "Chronicler",
+    "feature": "Press Pass",
+    "source": "DM's Guild: Morgrave Miscellany",
+    "page number": 127
+  },
+  {
+    "name": "City Watch",
+    "feature": "Watcher's Eye",
+    "source": "Sword Coast Adventurer's Guide",
+    "page number": 145
+  },
+  {
+    "name": "Clan Crafter",
+    "feature": "Respect of the Stout Folk",
+    "source": "Sword Coast Adventurer's Guide",
+    "page number": 145
+  },
+  {
+    "name": "Clasp Member",
+    "feature": "A Favor in Turn",
+    "source": "Tal'Dorei Campaign Setting Reborn",
+    "page number": 181
+  },
+  {
+    "name": "Cloistered Scholar",
+    "feature": "Library Access",
+    "source": "Sword Coast Adventurer's Guide",
+    "page number": 146
+  },
+  {
+    "name": "Courtier",
+    "feature": "Court Functionary",
+    "source": "Sword Coast Adventurer's Guide",
+    "page number": 146
+  },
+  {
+    "name": "Criminal",
+    "feature": "Criminal Contact",
+    "source": "Player's Handbook",
+    "page number": 129
+  },
+  {
+    "name": "Dimir Operative",
+    "feature": "False Identity",
+    "source": "Guildmaster's Guide to Ravnica",
+    "page number": 46
+  },
+  {
+    "name": "Entertainer",
+    "feature": "By Popular Demand",
+    "source": "Player's Handbook",
+    "page number": 130
+  },
+  {
+    "name": "Faceless",
+    "feature": "Dual Personalities",
+    "source": "Baldur's Gate: Descent into Avernus",
+    "page number": 203
+  },
+  {
+    "name": "Faction Agent",
+    "feature": "Safe Haven",
+    "source": "Sword Coast Adventurer's Guide",
+    "page number": 147
+  },
+  {
+    "name": "Failed Merchant",
+    "feature": "Supply Chain",
+    "source": "Acquisitions Incorporated",
+    "page number": 49
+  },
+  {
+    "name": "Far Traveler",
+    "feature": "All Eyes on You",
+    "source": "Sword Coast Adventurer's Guide",
+    "page number": 148
+  },
+  {
+    "name": "Feylost",
+    "feature": "Feywild Connection",
+    "source": "The Wild Beyond The Witchlight",
+    "page number": 9
+  },
+  {
+    "name": "Fisher",
+    "feature": "Harvest the Water",
+    "source": "Ghosts of Saltmarsh",
+    "page number": 29
+  },
+  {
+    "name": "Folk Hero",
+    "feature": "Rustic Hospitality",
+    "source": "Player's Handbook",
+    "page number": 131
+  },
+  {
+    "name": "Gambler",
+    "feature": "Never Tell Me The Odds",
+    "source": "Acquisitions Incorporated",
+    "page number": 49
+  },
+  {
+    "name": "Gate Warden",
+    "feature": "Planar Infusion",
+    "source": "UA - 2022-07-18 Wonders of the Multiverse",
+    "page number": 3
+  },
+  {
+    "name": "Giant Foundling",
+    "feature": "Strike of the Giants",
+    "source": "UA - 2022-07-18 Wonders of the Multiverse",
+    "page number": 4
+  },
+  {
+    "name": "Golgari Agent",
+    "feature": "Undercity Paths",
+    "source": "Guildmaster's Guide to Ravnica",
+    "page number": 53
+  },
+  {
+    "name": "Grinner",
+    "feature": "Ballad of the Grinning Fool",
+    "source": "Explorer's Guide to Wildemount",
+    "page number": 200
+  },
+  {
+    "name": "Gruul Anarch",
+    "feature": "Rubblebelt Refuge",
+    "source": "Guildmaster's Guide to Ravnica",
+    "page number": 60
+  },
+  {
+    "name": "Guild Artisan",
+    "feature": "Guild Membership",
+    "source": "Player's Handbook",
+    "page number": 132
+  },
+  {
+    "name": "Haunted One",
+    "feature": "Heart of Darkness",
+    "source": "Van Richten's Guide to Ravenloft",
+    "page number": 35
+  },
+  {
+    "name": "Hermit",
+    "feature": "Discovery",
+    "source": "Player's Handbook",
+    "page number": 133
+  },
+  {
+    "name": "House Agent",
+    "feature": "House Connections",
+    "source": "Eberron: Rising from the Last War",
+    "page number": 53
+  },
+  {
+    "name": "Inheritor",
+    "feature": "Inheritance",
+    "source": "Sword Coast Adventurer's Guide",
+    "page number": 150
+  },
+  {
+    "name": "Initiate",
+    "feature": "Trials of the Five Gods",
+    "source": "Planeshift: Amonkhet",
+    "page number": 8
+  },
+  {
+    "name": "Inquisitor",
+    "feature": "Legal Authority",
+    "source": "Planeshift: Innistrad",
+    "page number": 12
+  },
+  {
+    "name": "Investigator",
+    "feature": "Official Inquiriy",
+    "source": "Van Richten's Guide to Ravenloft",
+    "page number": 35
+  },
+  {
+    "name": "Izzet Engineer",
+    "feature": "Urban Infrastucture",
+    "source": "Guildmaster's Guide to Ravnica",
+    "page number": 66
+  },
+  {
+    "name": "Knight of Solamnia",
+    "feature": "Squire of Solamnia",
+    "source": "UA - 2022-04-25 Heroes of Krynn Revisited",
+    "page number": 2
+  },
+  {
+    "name": "Knight of the Order",
+    "feature": "Knightly Regard",
+    "source": "Sword Coast Adventurer's Guide",
+    "page number": 151
+  },
+  {
+    "name": "Lorehold Student",
+    "feature": "Lorehold Initiate",
+    "source": "Strixhaven: A Cirriculum of Chaos",
+    "page number": 31
+  },
+  {
+    "name": "Lyceum Student",
+    "feature": "Academic Requisition",
+    "source": "Tal'Dorei Campaign Setting Reborn",
+    "page number": 183
+  },
+  {
+    "name": "Mage of High Sorcery",
+    "feature": "Initiate of High Sorcery",
+    "source": "UA - 2022-04-25 Heroes of Krynn Revisited",
+    "page number": 3
+  },
+  {
+    "name": "Marine",
+    "feature": "Steady",
+    "source": "Ghosts of Saltmarsh",
+    "page number": 31
+  },
+  {
+    "name": "Mercenary Veteran",
+    "feature": "Mercenary Life",
+    "source": "Sword Coast Adventurer's Guide",
+    "page number": 152
+  },
+  {
+    "name": "Mythos Cultist",
+    "feature": "Revelation",
+    "source": "Sandy Petersen's Cthulhu Mythos",
+    "page number": 63
+  },
+  {
+    "name": "Mythos Survivor",
+    "feature": "Desperate Insight",
+    "source": "Sandy Petersen's Cthulhu Mythos",
+    "page number": 64
+  },
+  {
+    "name": "Noble",
+    "feature": "Position of Privilege",
+    "source": "Player's Handbook",
+    "page number": 134
+  },
+  {
+    "name": "Orzhov Representative",
+    "feature": "Orzhov Representative",
+    "source": "Guildmaster's Guide to Ravnica",
+    "page number": 72
+  },
+  {
+    "name": "Outlander",
+    "feature": "Wanderer",
+    "source": "Player's Handbook",
+    "page number": 135
+  },
+  {
+    "name": "Plaintiff",
+    "feature": "Legalese",
+    "source": "Acquisitions Incorporated",
+    "page number": 50
+  },
+  {
+    "name": "Planar Philosopher",
+    "feature": "Conviction",
+    "source": "UA - 2022-07-18 Wonders of the Multiverse",
+    "page number": 4
+  },
+  {
+    "name": "Prismari Student",
+    "feature": "Prismari Initiate",
+    "source": "Strixhaven: A Cirriculum of Chaos",
+    "page number": 32
+  },
+  {
+    "name": "Quandrix Student",
+    "feature": "Quandrix Initiate",
+    "source": "Strixhaven: A Cirriculum of Chaos",
+    "page number": 33
+  },
+  {
+    "name": "Rakdos Cultist",
+    "feature": "Fearsome Reputation",
+    "source": "Guildmaster's Guide to Ravnica",
+    "page number": 79
+  },
+  {
+    "name": "Recovered Cultist",
+    "feature": "Wicked Awareness",
+    "source": "Tal'Dorei Campaign Setting",
+    "page number": 107
+  },
+  {
+    "name": "Reformed Cultist",
+    "feature": "Fell Teachings",
+    "source": "Tal'Dorei Campaign Setting Reborn",
+    "page number": 186
+  },
+  {
+    "name": "Rival Intern",
+    "feature": "Inside Informant",
+    "source": "Acquisitions Incorporated",
+    "page number": 51
+  },
+  {
+    "name": "Rune Carver",
+    "feature": "Rune Carver Apprentice",
+    "source": "UA - 2022-07-18 Wonders of the Multiverse",
+    "page number": 5
+  },
+  {
+    "name": "Sage",
+    "feature": "Researcher",
+    "source": "Player's Handbook",
+    "page number": 135
+  },
+  {
+    "name": "Sailor",
+    "feature": "Ship's Passage",
+    "source": "Player's Handbook",
+    "page number": 136
+  },
+  {
+    "name": "Selesnya Initiate",
+    "feature": "Conclave's Shelter",
+    "source": "Guildmaster's Guide to Ravnica",
+    "page number": 86
+  },
+  {
+    "name": "Shipwright",
+    "feature": "I'll Patch It!",
+    "source": "Ghosts of Saltmarsh",
+    "page number": 33
+  },
+  {
+    "name": "Silverquill Student",
+    "feature": "Silverquill Initiate",
+    "source": "Strixhaven: A Cirriculum of Chaos",
+    "page number": 35
+  },
+  {
+    "name": "Simic Scientist",
+    "feature": "Researcher",
+    "source": "Guildmaster's Guide to Ravnica",
+    "page number": 93
+  },
+  {
+    "name": "Smuggler",
+    "feature": "Down Low",
+    "source": "Ghosts of Saltmarsh",
+    "page number": 34
+  },
+  {
+    "name": "Soldier",
+    "feature": "Military Rank",
+    "source": "Player's Handbook",
+    "page number": 138
+  },
+  {
+    "name": "Urban Bounty Hunter",
+    "feature": "Ear to the Ground",
+    "source": "Sword Coast Adventurer's Guide",
+    "page number": 153
+  },
+  {
+    "name": "Urchin",
+    "feature": "City Secrets",
+    "source": "Player's Handbook",
+    "page number": 140
+  },
+  {
+    "name": "Uthgardt Tribe Member",
+    "feature": "Uthgardt Heritage",
+    "source": "Sword Coast Adventurer's Guide",
+    "page number": 153
+  },
+  {
+    "name": "Visionary",
+    "feature": "Eldritch Sensitivity",
+    "source": "Sandy Petersen's Cthulhu Mythos",
+    "page number": 65
+  },
+  {
+    "name": "Vizier",
+    "feature": "Voice of Authority",
+    "source": "Planeshift: Amonkhet",
+    "page number": 10
+  },
+  {
+    "name": "Volstrucker",
+    "feature": "Shadow Network",
+    "source": "Explorer's Guide to Wildemount",
+    "page number": 202
+  },
+  {
+    "name": "Waterdhavian Noble",
+    "feature": "Kept in Style",
+    "source": "Sword Coast Adventurer's Guide",
+    "page number": 154
+  },
+  {
+    "name": "Whitestone Rifle Corps",
+    "feature": "Legacy of Secrecy",
+    "source": "Tal'Dorei Campaign Setting Reborn",
+    "page number": 187
+  },
+  {
+    "name": "Witchlight Hand",
+    "feature": "Carnival Fixture",
+    "source": "The Wild Beyond The Witchlight",
+    "page number": 11
+  },
+  {
+    "name": "Witherbloom Student",
+    "feature": "Witherbloom Initiate",
+    "source": "Strixhaven: A Cirriculum of Chaos",
+    "page number": 36
+  }
 ]

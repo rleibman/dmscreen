@@ -357,7 +357,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
                 maxHP - removedHP,
             maxHitPoints = maxHP,
             overrideMaxHitPoints = overrideHitPoints,
-            temporaryHitPoints = temporaryHitPoints
+            temporaryHitPoints = temporaryHitPoints.getOrElse(0)
           )
         }
 

@@ -40,10 +40,10 @@ import java.net.URL
 
 object DND5eAPI {
 
-  case class OperationsArgs(
+  case class CampaignEventsArgs(
     entityType: DND5eEntityType,
     id:         Long,
-    operations: Seq[Json]
+    events:     Seq[Json]
   )
 
   private given Schema[Any, UserId] = Schema.longSchema.contramap(_.value)
@@ -56,7 +56,7 @@ object DND5eAPI {
   private given Schema[Any, SourceId] = Schema.stringSchema.contramap(_.value)
   private given Schema[Any, URL] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, SemVer] = Schema.stringSchema.contramap(_.render)
-  private given Schema[Any, DMScreenOperation] = Schema.gen[Any, DMScreenOperation]
+  private given Schema[Any, DMScreenEvent] = Schema.gen[Any, DMScreenEvent]
   private given Schema[Any, Source] = Schema.gen[Any, Source]
   private given Schema[Any, MonsterSearch] = Schema.gen[Any, MonsterSearch]
   private given Schema[Any, Json] =
@@ -80,7 +80,7 @@ object DND5eAPI {
   private given ArgBuilder[SourceId] = ArgBuilder.string.map(SourceId.apply)
   private given ArgBuilder[CampaignId] = ArgBuilder.long.map(CampaignId.apply)
   private given ArgBuilder[EncounterId] = ArgBuilder.long.map(EncounterId.apply)
-  private given ArgBuilder[DMScreenOperation] = ArgBuilder.gen[DMScreenOperation]
+  private given ArgBuilder[DMScreenEvent] = ArgBuilder.gen[DMScreenEvent]
   private given ArgBuilder[Add] = ArgBuilder.gen[Add]
   private given ArgBuilder[Copy] = ArgBuilder.gen[Copy]
   private given ArgBuilder[Move] = ArgBuilder.gen[Move]
@@ -88,7 +88,7 @@ object DND5eAPI {
   private given ArgBuilder[Replace] = ArgBuilder.gen[Replace]
   private given ArgBuilder[Test] = ArgBuilder.gen[Test]
   private given ArgBuilder[MonsterSearch] = ArgBuilder.gen[MonsterSearch]
-  private given ArgBuilder[OperationsArgs] = ArgBuilder.gen[OperationsArgs]
+  private given ArgBuilder[CampaignEventsArgs] = ArgBuilder.gen[CampaignEventsArgs]
 
   case class Queries(
     campaigns: ZIO[DND5eRepository, DMScreenError, Seq[CampaignHeader]],
@@ -109,10 +109,10 @@ object DND5eAPI {
     subclasses:  CharacterClassId => ZIO[DND5eRepository, DMScreenError, Seq[Subclass]]
   )
   case class Mutations(
-    applyOperations: OperationsArgs => ZIO[DND5eRepository, DMScreenError, Unit]
+    applyOperations: CampaignEventsArgs => ZIO[DND5eRepository, DMScreenError, Unit]
   )
   case class Subscriptions(
-    operationStream: OperationsArgs => ZStream[DND5eRepository, DMScreenError, DMScreenOperation]
+    campaignStream: CampaignEventsArgs => ZStream[DND5eRepository, DMScreenError, DMScreenEvent]
   )
 
   lazy val api: GraphQL[DMScreenServerEnvironment] =
@@ -141,7 +141,7 @@ object DND5eAPI {
           args => ???
           // ZIO.serviceWithZIO[DND5eRepository](_.applyOperations(args.entityType.asInstanceOf[EntityType], args.id, args.operations *))
         ),
-        Subscriptions(operationStream = operationArgs => ???)
+        Subscriptions(campaignStream = operationArgs => ???)
       )
     )
 

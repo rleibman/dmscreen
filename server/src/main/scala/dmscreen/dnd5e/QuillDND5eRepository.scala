@@ -333,7 +333,7 @@ object QuillDND5eRepository {
         override def applyOperations[IDType](
           entityType: EntityType,
           id:         IDType,
-          operations: DMScreenOperation*
+          operations: DMScreenEvent*
         ): IO[DMScreenError, Unit] = {
           entityType match {
             case DND5eEntityType.campaign => applyOperationsCampaign(CampaignId(id.asInstanceOf[Long]), operations*)
@@ -345,7 +345,7 @@ object QuillDND5eRepository {
 
         def applyOperationsCampaign(
           campaignId: CampaignId,
-          operations: DMScreenOperation*
+          operations: DMScreenEvent*
         ): IO[DMScreenError, Unit] =
           ctx
             .transaction {
@@ -379,13 +379,14 @@ object QuillDND5eRepository {
                   case Move(from, path) => ??? // Currently Not supported, but probably just read, then a delete followed by an insert
                   case Copy(from, path) => ??? // Currently Not supported, but probably just a read followed by an insert
                   case Test(path, value) => ??? // Currently Not supported
+                  case _                 => ???
                 }.unit
             }.provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
 
         def applyOperationsPlayerCharacter(
           playerCharacterId: PlayerCharacterId,
-          operations:        DMScreenOperation*
+          operations:        DMScreenEvent*
         ): IO[DMScreenError, Unit] =
           ctx
             .transaction {
@@ -419,6 +420,7 @@ object QuillDND5eRepository {
                   case Move(from, path) => ??? // Currently Not supported, but probably just read, then a delete followed by an insert
                   case Copy(from, path) => ??? // Currently Not supported, but probably just a read followed by an insert
                   case Test(path, value) => ??? // Currently Not supported
+                  case _                 => ???
                 }.unit
             }.provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
