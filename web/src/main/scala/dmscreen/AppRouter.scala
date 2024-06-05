@@ -49,6 +49,7 @@ object AppRouter {
           .tabular(true)
           .className("mainMenu")(
             Menu.Item
+              .withKey("home")
               .active(resolution.page == AppPage.home)
               .onClick {
                 (
@@ -60,6 +61,7 @@ object AppRouter {
               }("Home"),
             VdomArray(
               Menu.Item
+                .withKey("dashboard")
                 .active(resolution.page == AppPage.dashboard)
                 .onClick {
                   (
@@ -70,6 +72,7 @@ object AppRouter {
 
                 }("Dashboard"),
               Menu.Item
+                .withKey("pcs")
                 .active(resolution.page == AppPage.player)
                 .onClick {
                   (
@@ -80,6 +83,7 @@ object AppRouter {
 
                 }("PCs"),
               Menu.Item
+                .withKey("encounters")
                 .active(resolution.page == AppPage.encounter)
                 .onClick {
                   (
@@ -90,6 +94,7 @@ object AppRouter {
 
                 }("Encounters"),
               Menu.Item
+                .withKey("encounterPlanner")
                 .active(resolution.page == AppPage.encounterPlanner)
                 .onClick {
                   (
@@ -100,6 +105,7 @@ object AppRouter {
 
                 }("Encounter Planner"),
               Menu.Item
+                .withKey("npcs")
                 .active(resolution.page == AppPage.npc)
                 .onClick {
                   (
@@ -110,6 +116,7 @@ object AppRouter {
 
                 }("NPCs"),
               Menu.Item
+                .withKey("scenes")
                 .active(resolution.page == AppPage.scene)
                 .onClick {
                   (
@@ -120,6 +127,7 @@ object AppRouter {
 
                 }("Scenes"),
               Menu.Item
+                .withKey("bestiary")
                 .active(resolution.page == AppPage.bestiary)
                 .onClick {
                   (
@@ -131,6 +139,7 @@ object AppRouter {
                 }("Bestiary")
             ).when(dmscreenState.campaignState.isDefined),
             Menu.Item
+              .withKey("about")
               .active(resolution.page == AppPage.about)
               .onClick {
                 (

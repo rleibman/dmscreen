@@ -28,7 +28,6 @@ import dmscreen.dnd5e.given
 import dmscreen.*
 import zio.*
 import zio.json.*
-import zio.prelude.NonEmptyList
 
 object TestCreator extends ZIOApp {
 
@@ -48,10 +47,11 @@ object TestCreator extends ZIOApp {
     PlayerCharacterInfo(
       source = DMScreenSource,
       race = Race("Thri-Kreen"),
-      classes = NonEmptyList(
+      background = Some(Background("Volstrucker")),
+      classes = List(
         PlayerCharacterClass(
           characterClass = CharacterClassId.ranger,
-          subclass = Some(Subclass("Swarmkeeper")),
+          subclass = Some(SubClass("Swarmkeeper")),
           level = 3
         )
       ),

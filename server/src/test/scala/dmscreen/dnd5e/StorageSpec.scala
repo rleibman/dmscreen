@@ -26,7 +26,6 @@ import zio.*
 import zio.test.*
 import zio.json.*
 import zio.json.ast.*
-import zio.prelude.NonEmptyList
 
 object StorageSpec extends ZIOSpecDefault {
 
@@ -85,10 +84,10 @@ object StorageSpec extends ZIOSpecDefault {
                 maxHitPoints = 30
               ),
               armorClass = 16,
-              classes = NonEmptyList(
+              classes = List(
                 PlayerCharacterClass(
                   characterClass = CharacterClassId.paladin,
-                  subclass = Option(Subclass("Oath of Vengance")),
+                  subclass = Option(SubClass("Oath of Vengance")),
                   level = 3
                 )
               )
@@ -131,10 +130,10 @@ object StorageSpec extends ZIOSpecDefault {
             maxHitPoints = 30
           ),
           armorClass = 16,
-          classes = NonEmptyList(
+          classes = List(
             PlayerCharacterClass(
               characterClass = CharacterClassId.paladin,
-              subclass = Option(Subclass("Oath of Vengance")),
+              subclass = Option(SubClass("Oath of Vengance")),
               level = 3
             )
           )

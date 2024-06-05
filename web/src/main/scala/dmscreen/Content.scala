@@ -22,7 +22,9 @@
 package dmscreen
 
 import caliban.client.scalajs.DND5eClient.{
+  Background as CalibanBackground,
   CampaignHeader as CalibanCampaignHeader,
+  CharacterClass as CalibanCharacterClass,
   DND5eCampaign as CalibanDND5eCampaign,
   GameSystem as CalibanGameSystem,
   PlayerCharacter as CalibanPlayerCharacter,
@@ -85,6 +87,25 @@ object Content {
         // Store the current campaign Id in the session storage for next time
         _ <- AsyncCallback.pure(window.sessionStorage.setItem("currentCampaignId", currentCampaignId.value.toString))
         _ <- Callback.log("Loading campaign data from server...").asAsyncCallback
+        backgrounds <- {
+          val sb = Queries.backgrounds(CalibanBackground.name.map(Background.apply))
+          asyncCalibanCall(sb).map(_.toSeq.flatten)
+        }
+        classes <- {
+          val sb = Queries.classes(
+            (CalibanCharacterClass.id ~ CalibanCharacterClass.hitDice).map(
+              (
+                id,
+                hd
+              ) =>
+                CharacterClass(
+                  CharacterClassId.values.find(_.name.equalsIgnoreCase(id)).getOrElse(CharacterClassId.unknown),
+                  hd
+                )
+            )
+          )
+          asyncCalibanCall(sb).map(_.toSeq.flatten)
+        }
         campaign <- currentCampaignId.fold(AsyncCallback.pure(None: Option[(DND5eCampaign, List[PlayerCharacter])])) {
           id =>
             // TODO move the sb declarations to common code
@@ -169,7 +190,16 @@ object Content {
             }
         )
 
-        copy.copy(dmScreenState = s.dmScreenState.copy(campaignState = newCampaignState))
+        copy.copy(dmScreenState =
+          s.dmScreenState
+            .copy(
+              campaignState = newCampaignState,
+              dnd5e = s.dmScreenState.dnd5e.copy(
+                backgrounds = backgrounds,
+                classes = classes
+              )
+            )
+        )
       }
       for {
         _ <- Callback.log(

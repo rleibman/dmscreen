@@ -28,7 +28,6 @@ import zio.*
 import zio.json.*
 import zio.json.ast.Json
 import zio.nio.file.*
-import zio.prelude.NonEmptyList
 
 import java.net.URI
 
@@ -168,7 +167,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
         level              <- classObj.getInt("level")
         subclassDefinition <- classObj.getObj("subclassDefinition")
         subclassName       <- subclassDefinition.getStr("name")
-      } yield PlayerCharacterClass(characterClassId, Option(Subclass(subclassName)), level)
+      } yield PlayerCharacterClass(characterClassId, Option(SubClass(subclassName)), level)
 
     def statTuple(json: Json): Either[String, (AbilityType, Int)] = {
       for {
@@ -223,7 +222,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
         stats         <- listOfEither2EitherOfList(statsObj.map(statTuple).toList)
         bonusStats    <- listOfEither2EitherOfList(bonusStatsObj.map(statTuple).toList)
         overrideStats <- listOfEither2EitherOfList(overrideStatsObj.map(statTuple).toList)
-        backgroundOpt <- data.getObjOption("background")
+        backgroundOpt <- data.getObjOption("background").map(_.flatMap(_.get("definition").flatMap(_.asObject)))
         background <- backgroundOpt.fold(Left[String, Option[Background]](""))(
           _.getStrOption("name").map(_.map(Background.apply))
         )
@@ -241,9 +240,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
         currencyCP     <- currencies.getInt("cp")
         classes        <- data.getArr("classes")
         classesParsed <-
-          listOfEither2EitherOfList(classes.map(classObj2PlayerCharacterClass).toList).flatMap { l =>
-            NonEmptyList.fromIterableOption(l).toRight("You must supply at least one class")
-          }
+          listOfEither2EitherOfList(classes.map(classObj2PlayerCharacterClass).toList)
         feats <- {
           data
             .getArr("feats")

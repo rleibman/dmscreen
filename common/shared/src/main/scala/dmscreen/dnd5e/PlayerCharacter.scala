@@ -25,7 +25,6 @@ import dmscreen.dnd5e.CreatureSize.medium
 import dmscreen.{CampaignId, DMScreenEntity, EntityType, HasId}
 import just.semver.SemVer
 import zio.json.ast.Json
-import zio.prelude.NonEmptyList
 
 import java.net.URI
 
@@ -88,7 +87,7 @@ enum CharacterClassId(val name: String) {
   case sorcerer extends CharacterClassId("Sorcerer")
   case warlock extends CharacterClassId("Warlock")
   case wizard extends CharacterClassId("Wizard")
-  case `blood hunter` extends CharacterClassId("Blood Hunter,")
+  case `blood hunter` extends CharacterClassId("Blood Hunter")
   case unknown extends CharacterClassId("Unknown")
 
 }
@@ -120,11 +119,11 @@ case class Source(
 
 case class PlayerCharacterClass(
   characterClass: CharacterClassId,
-  subclass:       Option[Subclass] = None,
+  subclass:       Option[SubClass] = None,
   level:          Int = 1
 )
 
-case class Subclass(name: String)
+case class SubClass(name: String)
 
 case class Feat(name: String)
 
@@ -415,7 +414,7 @@ case class HitPoints(
 case class PlayerCharacterInfo(
   hitPoints:               HitPoints,
   armorClass:              Int,
-  classes:                 NonEmptyList[PlayerCharacterClass],
+  classes:                 List[PlayerCharacterClass],
   source:                  ImportSource = DMScreenSource,
   physicalCharacteristics: PhysicalCharacteristics = PhysicalCharacteristics(),
   faith:                   Option[String] = None,

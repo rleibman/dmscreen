@@ -49,11 +49,11 @@ enablePlugins(
 )
 
 val calibanVersion = "2.7.1"
-val zioVersion = "2.1.1"
+val zioVersion = "2.1.2"
 val quillVersion = "4.8.5"
 val zioHttpVersion = "3.0.0-RC8"
 val zioConfigVersion = "4.0.2"
-val zioJsonVersion = "0.6.2"
+val zioJsonVersion = "0.7.0"
 val testContainerVersion = "0.41.3"
 val tapirVersion = "1.10.8"
 
@@ -89,7 +89,7 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     version := gitDescribedVersion.value.getOrElse("0.0.1-SNAPSHOT"),
     libraryDependencies ++= Seq(
       "dev.zio"     %% "zio"              % zioVersion withSources (),
-      "dev.zio"     %% "zio-json"         % "0.6.2" withSources (),
+      "dev.zio"     %% "zio-json"         % zioJsonVersion withSources (),
       "dev.zio"     %% "zio-prelude"      % "1.0.0-RC27" withSources (),
       "io.megl"     %% "zio-json-extra"   % "0.6.2" withSources (),
       "org.gnieh"   %% "diffson-core"     % "4.6.0" withSources (),
@@ -103,10 +103,10 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     version := gitDescribedVersion.value.getOrElse("0.0.1-SNAPSHOT"),
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio"                                                 % zioVersion withSources (),
-      "dev.zio" %%% "zio-json"                                            % "0.6.2" withSources (),
+      "dev.zio" %%% "zio-json"                                            % zioJsonVersion withSources (),
       "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC27" withSources (),
-      "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "org.gnieh" %%% "diffson-core"                                      % "4.6.0" withSources (),
+      "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-diffson"                                    % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.kevinlee" %%% "just-semver-core"                                % "0.13.0" withSources (),
@@ -263,7 +263,7 @@ lazy val web: Project = project
     name := "dmscreen-web",
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio"      % zioVersion withSources (),
-      "dev.zio" %%% "zio-json" % "0.6.2" withSources ()
+      "dev.zio" %%% "zio-json" % zioJsonVersion withSources ()
     ),
     debugDist := {
 

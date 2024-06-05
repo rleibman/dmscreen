@@ -24,7 +24,6 @@ package dmscreen.dnd5e
 import dmscreen.CampaignId
 import zio.json.*
 import zio.json.ast.Json
-import zio.prelude.NonEmptyList
 
 import java.net.URI
 
@@ -66,13 +65,13 @@ given JsonCodec[Condition] = JsonCodec.string.transform(Condition.valueOf, _.toS
 given JsonCodec[Sense] = JsonCodec.string.transform(Sense.valueOf, _.toString)
 
 given JsonCodec[Source] = JsonCodec.derived[Source]
-given JsonCodec[Subclass] = JsonCodec.derived[Subclass]
+given JsonCodec[SubClass] = JsonCodec.derived[SubClass]
 given JsonCodec[CharacterClass] = JsonCodec.derived[CharacterClass]
 given JsonCodec[Scene] = JsonCodec.derived[Scene]
 given JsonCodec[Race] = JsonCodec.derived[Race]
 given JsonCodec[Background] = JsonCodec.derived[Background]
 given JsonCodec[DND5eCampaignInfo] = JsonCodec.derived[DND5eCampaignInfo]
-given JsonCodec[Map[CharacterClassId, Subclass]] = JsonCodec.map[CharacterClassId, Subclass]
+given JsonCodec[Map[CharacterClassId, SubClass]] = JsonCodec.map[CharacterClassId, SubClass]
 given JsonCodec[ImportSource] = JsonCodec.derived[ImportSource]
 given JsonCodec[PhysicalCharacteristics] = JsonCodec.derived[PhysicalCharacteristics]
 given JsonCodec[Ability] = JsonCodec.derived[Ability]
@@ -92,11 +91,6 @@ given JsonCodec[Skills] = JsonCodec.derived[Skills]
 given JsonCodec[Language] = JsonCodec.string.transform(Language.fromName, _.name)
 given JsonCodec[Action] = JsonCodec.derived[Action]
 given JsonCodec[SpellHeader] = JsonCodec.derived[SpellHeader]
-given JsonCodec[NonEmptyList[PlayerCharacterClass]] =
-  JsonCodec[List[PlayerCharacterClass]].transformOrFail(
-    l => NonEmptyList.fromIterableOption(l).toRight("List must not be empty"),
-    _.toList
-  )
 given JsonCodec[PlayerCharacterInfo] = JsonCodec.derived[PlayerCharacterInfo]
 
 given JsonCodec[NonPlayerCharacterInfo] = JsonCodec.derived[NonPlayerCharacterInfo]

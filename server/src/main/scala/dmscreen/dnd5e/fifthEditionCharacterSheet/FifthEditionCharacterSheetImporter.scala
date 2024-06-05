@@ -25,7 +25,6 @@ import dmscreen.dnd5e.{*, given}
 import dmscreen.{CampaignId, DMScreenError}
 import zio.json.*
 import zio.nio.file.Files
-import zio.prelude.NonEmptyList
 import zio.{ULayer, ZIO, ZLayer}
 
 import java.io.StringReader
@@ -124,15 +123,14 @@ class FifthEditionCharacterSheetImporter extends DND5eImporter[URI, URI, URI, UR
       val classDataParsed = classData.splitWith('⊟').map(_.splitWith('⊠').map(_.splitWith('⊡')))
       // classDataParsed also has feats, resources, sourcery points and other things I don't quite understand yet
 
-      val classes = NonEmptyList
-        .fromIterableOption(classDataParsed.head.map { data =>
-          PlayerCharacterClass(
-            characterClass = CharacterClassId.values
-              .find(_.toString.equalsIgnoreCase(data(0).trim)).getOrElse(CharacterClassId.unknown),
-            subclass = if (data(1).isEmpty) None else Some(Subclass(data(1).trim)),
-            level = data(2).trim.toInt
-          )
-        }).getOrElse(throw new Exception("No classes found"))
+      val classes = classDataParsed.head.map { data =>
+        PlayerCharacterClass(
+          characterClass = CharacterClassId.values
+            .find(_.toString.equalsIgnoreCase(data(0).trim)).getOrElse(CharacterClassId.unknown),
+          subclass = if (data(1).isEmpty) None else Some(SubClass(data(1).trim)),
+          level = data(2).trim.toInt
+        )
+      }.toList
 
 //      val multiclassFeatures = child.collect {case elem2: Elem if elem2.label == "multiclassFeatures" => elem2.text}.head
 //      val weaponList = child.collect { case elem2: Elem if elem2.label == "weaponList" => elem2.text }.head

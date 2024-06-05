@@ -21,16 +21,22 @@
 
 package dmscreen
 
-import dmscreen.dnd5e.{DND5eCampaignInfo, PlayerCharacter}
+import dmscreen.dnd5e.*
 import japgolly.scalajs.react.React.Context
 import japgolly.scalajs.react.{Callback, React}
 import org.scalajs.dom.window
 
 trait CampaignState
 
+case class DND5eState(
+  backgrounds: Seq[Background] = Seq.empty,
+  classes:     Seq[CharacterClass] = Seq.empty
+)
+
 case class DMScreenState(
   user:          Option[User] = None,
-  campaignState: Option[CampaignState] = None
+  campaignState: Option[CampaignState] = None,
+  dnd5e:         DND5eState = DND5eState()
 //  operationStream: Option[WebSocketHandler] = None
 )
 

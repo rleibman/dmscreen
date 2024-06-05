@@ -21,18 +21,20 @@
 
 package dmscreen.dnd5e.components
 
+import dmscreen.DMScreenState
 import dmscreen.dnd5e.{*, given}
-import japgolly.scalajs.react.{CtorType, *}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
-import japgolly.scalajs.react.vdom.all.verticalAlign
 import japgolly.scalajs.react.vdom.html_<^.*
+import japgolly.scalajs.react.{CtorType, *}
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
-import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES}
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticSIZES
+import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
+import zio.json.*
+import zio.prelude.*
 
 import scala.scalajs.js
-import scala.scalajs.js.UndefOr
-import zio.json.*
+import scala.scalajs.js.JSConverters.*
 
 object PlayerCharacterComponent {
 
@@ -68,280 +70,328 @@ object PlayerCharacterComponent {
       p: Props,
       s: State
     ): VdomElement = {
+      DMScreenState.ctx.consume { dmScreenState =>
+        s.playerCharacter.info.fold(
+          e => <.div(s"Could not parse character info: ${e.getMessage}"),
+          { pc =>
 
-      s.playerCharacter.info.fold(
-        e => <.div(s"Could not parse character info: ${e.getMessage}"),
-        { pc =>
-          <.div(
-            ^.className := "characterCard",
-            Button("Delete").size(SemanticSIZES.tiny).compact(true),
-            Button("Sync").size(SemanticSIZES.tiny).compact(true).when(pc.source != DMScreenSource), // Only if the character originally came from a synchable source
-            <.div(
-              ^.className := "characterHeader",
-              <.h2(EditableText(s.playerCharacter.header.name)),
-              <.span(EditableText(s.playerCharacter.header.playerName.getOrElse("")))
-            ),
-            <.div(
-              ^.className := "characterDetails",
-              ^.minHeight := 180.px,
-              <.table(
-                ^.width := "auto",
-                <.tbody(
-                  <.tr(
-                    <.td(
-                      ^.colSpan := 2,
-                      pc.classes
-                        .map { cl =>
-                          <.div(
-                            s"${cl.characterClass.name} ${cl.subclass.fold("Unknown")(sc => s"(${sc.name})")} ${cl.level}"
-                          )
-                        }.toList.toVdomArray
-                    )
-                  ),
-                  <.tr(
-                    <.th("Background"),
-                    <.td(
-                      Dropdown
-                        .placeholder("Choose background")
-                        .allowAdditions(true)
-                        .search(true)
-                        .value(pc.background.fold("")(_.name))
-                    )
-                  ),
-                  <.tr(
-                    <.th("AC"),
-                    <.td("18") // AC Editor
-                  ),
-                  <.tr(
-                    <.th("Proficiency Bonus"),
-                    <.td("+2") // Automatic
-                  ),
-                  <.tr(
-                    <.th("Initiative"),
-                    <.td("+2")
-                  ),
-                  <.tr(
-                    <.td(^.colSpan := 2, Checkbox.label("Inspiration").toggle(true)) // TODO onChange
-                  )
+            def allBackgrounds =
+              dmScreenState.dnd5e.backgrounds ++ pc.background.fold(Seq.empty)(bk =>
+                Seq(
+                  dmScreenState.dnd5e.backgrounds
+                    .find(_.name.equalsIgnoreCase(bk.name)).getOrElse(Background(name = bk.name))
                 )
               )
-            ),
+
             <.div(
-              ^.className       := "characterDetails",
-              ^.backgroundColor := pc.hitPoints.lifeColor,
-              EditableComponent(
+              ^.className := "characterCard",
+              Button("Delete").size(SemanticSIZES.tiny).compact(true),
+              Button("Sync").size(SemanticSIZES.tiny).compact(true).when(pc.source != DMScreenSource), // Only if the character originally came from a synchable source
+              <.div(
+                ^.className := "characterHeader",
+                <.h2(EditableText(s.playerCharacter.header.name)),
+                <.span(EditableText(s.playerCharacter.header.playerName.getOrElse("")))
+              ),
+              <.div(
+                ^.className := "characterDetails",
+                ^.minHeight := 180.px,
+                <.table(
+                  ^.width := "auto",
+                  <.tbody(
+                    <.tr(
+                      <.td(
+                        ^.colSpan := 2,
+                        EditableComponent(
+                          viewComponent = pc.classes.headOption.fold(<.div("Click to add Classes"))(_ =>
+                            pc.classes.zipWithIndex.map {
+                              (
+                                cl,
+                                i
+                              ) =>
+                                <.div(
+                                  ^.key := s"characterClass_$i",
+                                  s"${cl.characterClass.name} ${cl.subclass.fold("")(sc => s"(${sc.name})")} ${cl.level}"
+                                )
+                            }.toVdomArray
+                          ),
+                          editComponent = PlayerCharacterClassEditor(
+                            pc.classes,
+                            onChange = classes => $.modPCInfo(info => info.copy(classes = classes))
+                          ),
+                          modalTitle = "Classes/Subclasses/Levels",
+                          onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                        )
+                      )
+                    ),
+                    <.tr(
+                      <.th("Background"),
+                      <.td(
+                        Dropdown
+                          .placeholder("Choose")
+                          .clearable(true)
+                          .compact(true)
+                          .allowAdditions(true)
+                          .search(true)
+                          .options(
+                            allBackgrounds
+                              .map(background =>
+                                DropdownItemProps()
+                                  .setValue(background.name)
+                                  .setText(background.name),
+                              ).toJSArray
+                          )
+                          .onChange(
+                            (
+                              _,
+                              changedData
+                            ) =>
+                              $.modPCInfo(info =>
+                                info.copy(background = changedData.value match {
+                                  case s: String if s.isEmpty => None
+                                  case s: String =>
+                                    dmScreenState.dnd5e.backgrounds.find(_.name == s).orElse(Some(Background(s)))
+                                  case _ => throw new RuntimeException("Unexpected value")
+                                })
+                              )
+                          )
+                          .value(pc.background.fold("")(_.name))
+                      )
+                    ),
+                    <.tr(
+                      <.th("AC"),
+                      <.td("18") // AC Editor
+                    ),
+                    <.tr(
+                      <.th("Proficiency Bonus"),
+                      <.td("+2") // Automatic
+                    ),
+                    <.tr(
+                      <.th("Initiative"),
+                      <.td("+2")
+                    ),
+                    <.tr(
+                      <.td(^.colSpan := 2, Checkbox.label("Inspiration").toggle(true)) // TODO onChange
+                    )
+                  )
+                )
+              ),
+              <.div(
+                ^.className       := "characterDetails",
+                ^.backgroundColor := pc.hitPoints.lifeColor,
+                EditableComponent(
+                  <.table(
+                    <.thead(
+                      <.tr(<.th("HP"), <.th("Temp HP"))
+                    ),
+                    <.tbody(
+                      pc.hitPoints.currentHitPoints match {
+                        case ds: DeathSave =>
+                          <.tr(
+                            <.td(s"0/${pc.hitPoints.currentMax}", if (ds.isStabilized) " (stabilized)" else ""),
+                            <.td(pc.hitPoints.temporaryHitPoints.toString)
+                          )
+                        case i: Int =>
+                          <.tr(
+                            <.td(s"$i/${pc.hitPoints.currentMax}"),
+                            <.td(pc.hitPoints.temporaryHitPoints.toString)
+                          )
+                      }
+                    )
+                  ),
+                  editComponent = HitPointsEditor(
+                    pc.hitPoints,
+                    onChange = hitPoints => $.modPCInfo(info => info.copy(hitPoints = hitPoints))
+                  ),
+                  modalTitle = "Hit Points",
+                  onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                )
+              ),
+              <.div(
+                ^.className := "characterDetails",
                 <.table(
                   <.thead(
-                    <.tr(<.th("HP"), <.th("Temp HP"))
+                    <.tr(
+                      <.th("Str"),
+                      <.th("Dex"),
+                      <.th("Con"),
+                      <.th("Int"),
+                      <.th("Wis"),
+                      <.th("Cha")
+                    )
                   ),
                   <.tbody(
-                    pc.hitPoints.currentHitPoints match {
-                      case ds: DeathSave =>
-                        <.tr(
-                          <.td(s"0/${pc.hitPoints.currentMax}", if (ds.isStabilized) " (stabilized)" else ""),
-                          <.td(pc.hitPoints.temporaryHitPoints.toString)
-                        )
-                      case i: Int =>
-                        <.tr(
-                          <.td(s"$i/${pc.hitPoints.currentMax}"),
-                          <.td(pc.hitPoints.temporaryHitPoints.toString)
-                        )
-                    }
-                  )
-                ),
-                editComponent = HitPointsEditor(
-                  pc.hitPoints,
-                  onChange = hitPoints => $.modPCInfo(info => info.copy(hitPoints = hitPoints))
-                ),
-                modalTitle = "Hit Points",
-                onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
-              )
-            ),
-            <.div(
-              ^.className := "characterDetails",
-              <.table(
-                <.thead(
-                  <.tr(
-                    <.th("Str"),
-                    <.th("Dex"),
-                    <.th("Con"),
-                    <.th("Int"),
-                    <.th("Wis"),
-                    <.th("Cha")
-                  )
-                ),
-                <.tbody(
-                  <.tr(
-                    <.td("18 (+3)"),
-                    <.td("15 (+2)"),
-                    <.td("12 (+1)"),
-                    <.td("9 (-1)"),
-                    <.td("12 (0)"),
-                    <.td("14 (+1)")
-                  )
-                ),
-                <.thead(
-                  <.tr(<.th(^.colSpan := 6, <.div("Saving Throws"))),
-                  <.tr(
-                    <.th("Str"),
-                    <.th("Dex"),
-                    <.th("Con"),
-                    <.th("Int"),
-                    <.th("Wis"),
-                    <.th("Cha")
-                  )
-                ),
-                <.tbody(
-                  <.tr(
-                    <.td("+3"),
-                    <.td("+2"),
-                    <.td("+1"),
-                    <.td("-1"),
-                    <.td("+4"),
-                    <.td("+1")
+                    <.tr(
+                      <.td("18 (+3)"),
+                      <.td("15 (+2)"),
+                      <.td("12 (+1)"),
+                      <.td("9 (-1)"),
+                      <.td("12 (0)"),
+                      <.td("14 (+1)")
+                    )
+                  ),
+                  <.thead(
+                    <.tr(<.th(^.colSpan := 6, <.div("Saving Throws"))),
+                    <.tr(
+                      <.th("Str"),
+                      <.th("Dex"),
+                      <.th("Con"),
+                      <.th("Int"),
+                      <.th("Wis"),
+                      <.th("Cha")
+                    )
+                  ),
+                  <.tbody(
+                    <.tr(
+                      <.td("+3"),
+                      <.td("+2"),
+                      <.td("+1"),
+                      <.td("-1"),
+                      <.td("+4"),
+                      <.td("+1")
+                    )
                   )
                 )
-              )
-            ),
-            <.div(
-              ^.className := "characterDetails",
-              <.div(^.className := "sectionTitle", "Passive"),
-              <.table(
-                <.thead(
-                  <.tr(
-                    <.th("Perception"),
-                    <.th("Investigation"),
-                    <.th("Insight")
-                  )
-                ),
-                <.tbody(
-                  <.tr(
-                    <.td("10"),
-                    <.td("10"),
-                    <.td("13")
-                  )
-                )
-              )
-            ),
-            <.div(
-              ^.className := "characterDetails",
-              <.div(^.className := "sectionTitle", "Conditions"),
-              EditableComponent(
-                viewComponent = <.span(
-                  pc.conditions.headOption
-                    .fold("Click to change")(_ => pc.conditions.map(_.toString.capitalize).mkString(", "))
-                ),
-                editComponent = ConditionsEditor(
-                  pc.conditions,
-                  onChange = conditions => $.modPCInfo(info => info.copy(conditions = conditions))
-                ),
-                modalTitle = "Conditions",
-                onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
-              )
-            ),
-            <.div(
-              ^.className := "characterDetails",
-              <.div(^.className := "sectionTitle", "Speed"),
-              <.table(
-                <.thead(
-                  <.tr(
-                    <.th("walk"),
-                    <.th("fly"),
-                    <.th("swim"),
-                    <.th("burrow")
-                  )
-                ),
-                <.tbody(
-                  <.tr(
-                    <.td("30"),
-                    <.td("30"),
-                    <.td("30"),
-                    <.td("30")
+              ),
+              <.div(
+                ^.className := "characterDetails",
+                <.div(^.className := "sectionTitle", "Passive"),
+                <.table(
+                  <.thead(
+                    <.tr(
+                      <.th("Perception"),
+                      <.th("Investigation"),
+                      <.th("Insight")
+                    )
+                  ),
+                  <.tbody(
+                    <.tr(
+                      <.td("10"),
+                      <.td("10"),
+                      <.td("13")
+                    )
                   )
                 )
-              )
-            ),
-            <.div(
-              ^.className := "characterDetails",
-              <.div(^.className := "sectionTitle", "Skills"),
-              <.table(
-                <.tbody(
-                  <.tr(
-                    <.th("Acrobatics"),
-                    <.td("5"),
-                    <.th("Medicine"),
-                    <.td("3")
+              ),
+              <.div(
+                ^.className := "characterDetails",
+                <.div(^.className := "sectionTitle", "Conditions"),
+                EditableComponent(
+                  viewComponent = <.span(
+                    pc.conditions.headOption
+                      .fold("Click to change")(_ => pc.conditions.map(_.toString.capitalize).mkString(", "))
                   ),
-                  <.tr(
-                    <.th("Animal Handling"),
-                    <.td("5"),
-                    <.th("Nature"),
-                    <.td("3")
+                  editComponent = ConditionsEditor(
+                    pc.conditions,
+                    onChange = conditions => $.modPCInfo(info => info.copy(conditions = conditions))
                   ),
-                  <.tr(
-                    <.th("Arcana"),
-                    <.td("5"),
-                    <.th("Perception"),
-                    <.td("3")
+                  modalTitle = "Conditions",
+                  onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                )
+              ),
+              <.div(
+                ^.className := "characterDetails",
+                <.div(^.className := "sectionTitle", "Speed"),
+                <.table(
+                  <.thead(
+                    <.tr(
+                      <.th("walk"),
+                      <.th("fly"),
+                      <.th("swim"),
+                      <.th("burrow")
+                    )
                   ),
-                  <.tr(
-                    <.th("*Athletics"),
-                    <.td("5"),
-                    <.th("Performance"),
-                    <.td("3")
-                  ),
-                  <.tr(
-                    <.th("Deception"),
-                    <.td("5"),
-                    <.th("*Persuasion"),
-                    <.td("3")
-                  ),
-                  <.tr(
-                    <.th("History"),
-                    <.td("5"),
-                    <.th("Religion"),
-                    <.td("3")
-                  ),
-                  <.tr(
-                    <.th("Insight"),
-                    <.td("5"),
-                    <.th("Sleight of Hand"),
-                    <.td("3")
-                  ),
-                  <.tr(
-                    <.th("Intimidation"),
-                    <.td("5"),
-                    <.th("Stealth"),
-                    <.td("3")
-                  ),
-                  <.tr(
-                    <.th("*Investigation"),
-                    <.td("5"),
-                    <.th("*Survival"),
-                    <.td("3")
+                  <.tbody(
+                    <.tr(
+                      <.td("30"),
+                      <.td("30"),
+                      <.td("30"),
+                      <.td("30")
+                    )
                   )
                 )
+              ),
+              <.div(
+                ^.className := "characterDetails",
+                <.div(^.className := "sectionTitle", "Skills"),
+                <.table(
+                  <.tbody(
+                    <.tr(
+                      <.th("Acrobatics"),
+                      <.td("5"),
+                      <.th("Medicine"),
+                      <.td("3")
+                    ),
+                    <.tr(
+                      <.th("Animal Handling"),
+                      <.td("5"),
+                      <.th("Nature"),
+                      <.td("3")
+                    ),
+                    <.tr(
+                      <.th("Arcana"),
+                      <.td("5"),
+                      <.th("Perception"),
+                      <.td("3")
+                    ),
+                    <.tr(
+                      <.th("*Athletics"),
+                      <.td("5"),
+                      <.th("Performance"),
+                      <.td("3")
+                    ),
+                    <.tr(
+                      <.th("Deception"),
+                      <.td("5"),
+                      <.th("*Persuasion"),
+                      <.td("3")
+                    ),
+                    <.tr(
+                      <.th("History"),
+                      <.td("5"),
+                      <.th("Religion"),
+                      <.td("3")
+                    ),
+                    <.tr(
+                      <.th("Insight"),
+                      <.td("5"),
+                      <.th("Sleight of Hand"),
+                      <.td("3")
+                    ),
+                    <.tr(
+                      <.th("Intimidation"),
+                      <.td("5"),
+                      <.th("Stealth"),
+                      <.td("3")
+                    ),
+                    <.tr(
+                      <.th("*Investigation"),
+                      <.td("5"),
+                      <.th("*Survival"),
+                      <.td("3")
+                    )
+                  )
+                )
+              ),
+              <.div(
+                ^.className := "characterDetails",
+                <.div(^.className := "sectionTitle", "Languages"),
+                "Celestial, Common, Egyptian, Elvish, Infernal, Sylvan"
+              ),
+              <.div(^.className := "characterDetails", <.div(^.className := "sectionTitle", "Feats")),
+              <.div(
+                ^.className := "characterDetails",
+                <.div(^.className := "sectionTitle", "Senses"),
+                "Darkvision 60ft"
+              ),
+              <.div(
+                ^.className := "characterDetails",
+                <.div(^.className := "sectionTitle", "Notes"),
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut cursus sapien, sed sollicitudin nibh. Morbi vitae purus eu diam tempor efficitur. Etiam nec sem est. Curabitur et sem pharetra, tristique libero vel, venenatis ante. Curabitur mattis egestas erat. Ut finibus suscipit augue a iaculis. Ut congue dui eget malesuada ullamcorper. Phasellus nec nunc blandit, viverra metus sed, placerat enim. Suspendisse vel nibh volutpat, sagittis est ut, feugiat leo. Phasellus suscipit et erat id sollicitudin. In vel posuere odio. Donec vestibulum nec felis et feugiat. Morbi lacus orci, finibus at risus sed, vestibulum pretium lorem. Vivamus suscipit diam id dignissim maximus. Curabitur et consectetur elit, vel ornare risus."
               )
-            ),
-            <.div(
-              ^.className := "characterDetails",
-              <.div(^.className := "sectionTitle", "Languages"),
-              "Celestial, Common, Egyptian, Elvish, Infernal, Sylvan"
-            ),
-            <.div(^.className := "characterDetails", <.div(^.className := "sectionTitle", "Feats")),
-            <.div(
-              ^.className := "characterDetails",
-              <.div(^.className := "sectionTitle", "Senses"),
-              "Darkvision 60ft"
-            ),
-            <.div(
-              ^.className := "characterDetails",
-              <.div(^.className := "sectionTitle", "Notes"),
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut cursus sapien, sed sollicitudin nibh. Morbi vitae purus eu diam tempor efficitur. Etiam nec sem est. Curabitur et sem pharetra, tristique libero vel, venenatis ante. Curabitur mattis egestas erat. Ut finibus suscipit augue a iaculis. Ut congue dui eget malesuada ullamcorper. Phasellus nec nunc blandit, viverra metus sed, placerat enim. Suspendisse vel nibh volutpat, sagittis est ut, feugiat leo. Phasellus suscipit et erat id sollicitudin. In vel posuere odio. Donec vestibulum nec felis et feugiat. Morbi lacus orci, finibus at risus sed, vestibulum pretium lorem. Vivamus suscipit diam id dignissim maximus. Curabitur et consectetur elit, vel ornare risus."
             )
-          )
-        }
-      )
+          }
+        )
+      }
     }
 
   }

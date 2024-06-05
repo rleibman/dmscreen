@@ -93,7 +93,7 @@ trait DND5eRepository extends GameRepository {
 
   def backgrounds: IO[DMScreenError, Seq[Background]]
 
-  def subClasses(characterClass: CharacterClassId): IO[DMScreenError, Seq[Subclass]]
+  def subClasses(characterClass: CharacterClassId): IO[DMScreenError, Seq[SubClass]]
 
   def spells: IO[DMScreenError, Seq[Spell]]
 

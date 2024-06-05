@@ -29,6 +29,7 @@ import caliban.schema.ArgBuilder.auto.*
 import caliban.schema.Schema.auto.*
 import caliban.schema.Types.makeScalar
 import caliban.interop.zio.*
+import caliban.interop.zio.json.*
 import dmscreen.*
 import just.semver.SemVer
 import zio.*
@@ -56,23 +57,11 @@ object DND5eAPI {
   private given Schema[Any, SourceId] = Schema.stringSchema.contramap(_.value)
   private given Schema[Any, URL] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, SemVer] = Schema.stringSchema.contramap(_.render)
+  private given Schema[Any, GeneralLog] = Schema.gen[Any, GeneralLog]
+  private given Schema[Any, CombatLog] = Schema.gen[Any, CombatLog]
   private given Schema[Any, DMScreenEvent] = Schema.gen[Any, DMScreenEvent]
   private given Schema[Any, Source] = Schema.gen[Any, Source]
   private given Schema[Any, MonsterSearch] = Schema.gen[Any, MonsterSearch]
-  private given Schema[Any, Json] =
-    new Schema[Any, Json] {
-      override def toType(
-        isInput:        Boolean,
-        isSubscription: Boolean
-      ): __Type = makeScalar("Json")
-      override def resolve(value: Json): Step[Any] =
-        Step.fromEither {
-          val res = value.as[ResponseValue].left.map(Exception(_))
-          res
-        }
-    }
-  private given ArgBuilder[Json] = (input: InputValue) => input.toJsonAST.left.map(ExecutionError(_))
-
   private given ArgBuilder[PlayerCharacterId] = ArgBuilder.long.map(PlayerCharacterId.apply)
   private given ArgBuilder[NonPlayerCharacterId] = ArgBuilder.long.map(NonPlayerCharacterId.apply)
   private given ArgBuilder[CharacterClassId] =
@@ -80,6 +69,8 @@ object DND5eAPI {
   private given ArgBuilder[SourceId] = ArgBuilder.string.map(SourceId.apply)
   private given ArgBuilder[CampaignId] = ArgBuilder.long.map(CampaignId.apply)
   private given ArgBuilder[EncounterId] = ArgBuilder.long.map(EncounterId.apply)
+  private given ArgBuilder[GeneralLog] = ArgBuilder.gen[GeneralLog]
+  private given ArgBuilder[CombatLog] = ArgBuilder.gen[CombatLog]
   private given ArgBuilder[DMScreenEvent] = ArgBuilder.gen[DMScreenEvent]
   private given ArgBuilder[Add] = ArgBuilder.gen[Add]
   private given ArgBuilder[Copy] = ArgBuilder.gen[Copy]
@@ -106,7 +97,7 @@ object DND5eAPI {
     classes:     ZIO[DND5eRepository, DMScreenError, Seq[CharacterClass]],
     races:       ZIO[DND5eRepository, DMScreenError, Seq[Race]],
     backgrounds: ZIO[DND5eRepository, DMScreenError, Seq[Background]],
-    subclasses:  CharacterClassId => ZIO[DND5eRepository, DMScreenError, Seq[Subclass]]
+    subclasses:  CharacterClassId => ZIO[DND5eRepository, DMScreenError, Seq[SubClass]]
   )
   case class Mutations(
     applyOperations: CampaignEventsArgs => ZIO[DND5eRepository, DMScreenError, Unit]

@@ -175,7 +175,7 @@ object QuillDND5eRepository {
         config                  <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
         chachedCharacterClasses <- readFromResource[Seq[CharacterClass]]("/data/classes.json")
         cachedSources           <- readFromResource[Seq[Source]]("/data/sources.json")
-        cachedSubclasses        <- readFromResource[Map[CharacterClassId, Seq[Subclass]]]("/data/subclasses.json")
+        cachedSubclasses        <- readFromResource[Map[CharacterClassId, Seq[SubClass]]]("/data/subclasses.json")
         cachedRaces             <- readFromResource[Seq[Race]]("/data/races.json")
         cachedBackgrounds       <- readFromResource[Seq[Background]]("/data/backgrounds.json")
 
@@ -304,7 +304,7 @@ object QuillDND5eRepository {
 
         override def backgrounds: IO[DMScreenError, Seq[Background]] = ZIO.succeed(cachedBackgrounds)
 
-        override def subClasses(characterClass: CharacterClassId): IO[DMScreenError, Seq[Subclass]] = {
+        override def subClasses(characterClass: CharacterClassId): IO[DMScreenError, Seq[SubClass]] = {
           ZIO.succeed(cachedSubclasses.get(characterClass).toSeq.flatten)
         }
 

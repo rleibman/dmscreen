@@ -68,8 +68,8 @@ object GraphQLClientRepository {
 
       override def backgrounds: IO[DMScreenError, Seq[Background]] = ???
 
-      override def subClasses(characterClass: CharacterClassId): IO[DMScreenError, Seq[Subclass]] = {
-        ZIO.succeed(Seq(Subclass("Oath of Vengance")))
+      override def subClasses(characterClass: CharacterClassId): IO[DMScreenError, Seq[SubClass]] = {
+        ZIO.succeed(Seq(SubClass("Oath of Vengance")))
       }
 
       override def spells: IO[DMScreenError, Seq[Spell]] = ???

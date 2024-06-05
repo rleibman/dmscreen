@@ -1,5 +1,11 @@
 [
   {
+    "name": "Acolyte",
+    "feature": "Shelter of the Faithful",
+    "source": "Player's Handbook",
+    "page number": 127
+  },
+  {
     "name": "Alienist",
     "feature": "Alienist Contacts",
     "source": "Sandy Petersen's Cthulhu Mythos",
