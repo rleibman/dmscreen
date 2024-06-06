@@ -163,14 +163,14 @@ object PlayerCharacterComponent {
                     ),
                     <.tr(
                       <.th("Proficiency Bonus"),
-                      <.td("+2") // Automatic
+                      <.td(pc.proficiencyBonusString) // Automatic
                     ),
                     <.tr(
                       <.th("Initiative"),
-                      <.td("+2")
+                      <.td(pc.initiativeBonusString) // Override
                     ),
                     <.tr(
-                      <.td(^.colSpan := 2, Checkbox.label("Inspiration").toggle(true)) // TODO onChange
+                      <.td(^.colSpan := 2, Checkbox.fitted(true).label("Inspiration").toggle(true)) // TODO onChange
                     )
                   )
                 )
@@ -179,7 +179,7 @@ object PlayerCharacterComponent {
                 ^.className       := "characterDetails",
                 ^.backgroundColor := pc.hitPoints.lifeColor,
                 EditableComponent(
-                  <.table(
+                  viewComponent = <.table(
                     <.thead(
                       <.tr(<.th("HP"), <.th("Temp HP"))
                     ),
@@ -208,48 +208,64 @@ object PlayerCharacterComponent {
               ),
               <.div(
                 ^.className := "characterDetails",
-                <.table(
-                  <.thead(
-                    <.tr(
-                      <.th("Str"),
-                      <.th("Dex"),
-                      <.th("Con"),
-                      <.th("Int"),
-                      <.th("Wis"),
-                      <.th("Cha")
+                EditableComponent(
+                  viewComponent = <.table(
+                    <.thead(
+                      <.tr(
+                        <.th(^.width := "16.667%", "Str"),
+                        <.th(^.width := "16.666%", "Dex"),
+                        <.th(^.width := "16.666%", "Con"),
+                        <.th(^.width := "16.666%", "Int"),
+                        <.th(^.width := "16.666%", "Wis"),
+                        <.th(^.width := "16.666%", "Cha")
+                      )
+                    ),
+                    <.tbody(
+                      <.tr(
+                        <.td(s"${pc.abilities.strength.overridenValue}"),
+                        <.td(s"${pc.abilities.dexterity.overridenValue}"),
+                        <.td(s"${pc.abilities.constitution.overridenValue}"),
+                        <.td(s"${pc.abilities.intelligence.overridenValue}"),
+                        <.td(s"${pc.abilities.wisdom.overridenValue}"),
+                        <.td(s"${pc.abilities.charisma.overridenValue}")
+                      ),
+                      <.tr(
+                        <.td(s"(${pc.abilities.strength.modifierString})"),
+                        <.td(s"(${pc.abilities.dexterity.modifierString})"),
+                        <.td(s"(${pc.abilities.constitution.modifierString})"),
+                        <.td(s"(${pc.abilities.intelligence.modifierString})"),
+                        <.td(s"(${pc.abilities.wisdom.modifierString})"),
+                        <.td(s"(${pc.abilities.charisma.modifierString})")
+                      )
+                    ),
+                    <.thead(
+                      <.tr(<.th(^.colSpan := 6, <.div("Saving Throws"))),
+                      <.tr(
+                        <.th("Str"),
+                        <.th("Dex"),
+                        <.th("Con"),
+                        <.th("Int"),
+                        <.th("Wis"),
+                        <.th("Cha")
+                      )
+                    ),
+                    <.tbody(
+                      <.tr(
+                        <.td(s"${pc.abilities.strength.savingThrowString(pc.proficiencyBonus)}"),
+                        <.td(s"${pc.abilities.dexterity.savingThrowString(pc.proficiencyBonus)}"),
+                        <.td(s"${pc.abilities.constitution.savingThrowString(pc.proficiencyBonus)}"),
+                        <.td(s"${pc.abilities.intelligence.savingThrowString(pc.proficiencyBonus)}"),
+                        <.td(s"${pc.abilities.wisdom.savingThrowString(pc.proficiencyBonus)}"),
+                        <.td(s"${pc.abilities.charisma.savingThrowString(pc.proficiencyBonus)}")
+                      )
                     )
                   ),
-                  <.tbody(
-                    <.tr(
-                      <.td("18 (+3)"),
-                      <.td("15 (+2)"),
-                      <.td("12 (+1)"),
-                      <.td("9 (-1)"),
-                      <.td("12 (0)"),
-                      <.td("14 (+1)")
-                    )
+                  editComponent = AbilitiesEditor(
+                    pc.abilities,
+                    onChange = abilities => $.modPCInfo(info => info.copy(abilities = abilities))
                   ),
-                  <.thead(
-                    <.tr(<.th(^.colSpan := 6, <.div("Saving Throws"))),
-                    <.tr(
-                      <.th("Str"),
-                      <.th("Dex"),
-                      <.th("Con"),
-                      <.th("Int"),
-                      <.th("Wis"),
-                      <.th("Cha")
-                    )
-                  ),
-                  <.tbody(
-                    <.tr(
-                      <.td("+3"),
-                      <.td("+2"),
-                      <.td("+1"),
-                      <.td("-1"),
-                      <.td("+4"),
-                      <.td("+1")
-                    )
-                  )
+                  modalTitle = "Abilities",
+                  onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                 )
               ),
               <.div(

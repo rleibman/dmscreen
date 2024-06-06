@@ -33,12 +33,15 @@ given Reusability[DeathSave | Int] =
     case i: Int       => i.toString
   }
 
+given Reusability[Ability] = Reusability.derive[Ability]
+given Reusability[Abilities] = Reusability.derive[Abilities]
 given Reusability[Skill] = Reusability.derive[Skill]
 given Reusability[Skills] = Reusability.derive[Skills]
 given Reusability[HitPoints] = Reusability.derive[HitPoints]
 given Reusability[Feat] = Reusability.derive[Feat]
 given Reusability[Condition] = Reusability.derive[Condition]
 given Reusability[PlayerCharacter] = Reusability.by(_.toString)
+given Reusability[AbilityType] = Reusability.string.contramap(_.shorter)
 given Reusability[SubClass] = Reusability.string.contramap(_.name)
 given Reusability[CharacterClassId] = Reusability.string.contramap(_.name)
 given Reusability[SkillType] = Reusability.by(_.toString)

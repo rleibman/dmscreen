@@ -27,6 +27,7 @@ import just.semver.SemVer
 import zio.json.ast.Json
 
 import java.net.URI
+import scala.collection.SortedMap
 
 opaque type PlayerCharacterId = Long
 
@@ -162,11 +163,24 @@ case class Ability(
   isProficient:  Boolean = false
 ) {
 
+  def overridenValue: Int = overrideValue.getOrElse(value)
+
   // To determine an ability modifier without consulting the table,
   // subtract 10 from the ability score and then divide the total by 2 (round down).
   def modifier: Int = (overrideValue.getOrElse(value) - 10) / 2
   // Savings throws are calculated by adding the proficiency bonus to the modifier
   def savingThrow(proficiencyBonus: Int): Int = modifier + (if (isProficient) proficiencyBonus else 0)
+
+  def modifierString: String = {
+    val m = modifier
+    (if (m <= 0) ""
+     else "+") + m.toString
+  }
+  def savingThrowString(proficiencyBonus: Int): String = {
+    val s = savingThrow(proficiencyBonus)
+    (if (s <= 0) ""
+     else "+") + s.toString
+  }
 
 }
 
@@ -196,6 +210,17 @@ case class Abilities(
     value = 10
   )
 ) {
+
+  given Ordering[AbilityType] = Ordering.by(_.ordinal)
+
+  val all: SortedMap[AbilityType, Ability] = SortedMap(
+    AbilityType.strength     -> strength,
+    AbilityType.dexterity    -> dexterity,
+    AbilityType.constitution -> constitution,
+    AbilityType.intelligence -> intelligence,
+    AbilityType.wisdom       -> wisdom,
+    AbilityType.charisma     -> charisma
+  )
 
   def byType(abilityType: AbilityType): Ability =
     abilityType match {
@@ -401,8 +426,8 @@ case class HitPoints(
   temporaryHitPoints:   Int = 0
 ) {
 
-  def currentMax = overrideMaxHitPoints.getOrElse(maxHitPoints)
-  def lifeColor = {
+  def currentMax: Int = overrideMaxHitPoints.getOrElse(maxHitPoints)
+  def lifeColor: String = {
     s"hsl(${currentHitPoints match {
         case DeathSave(_, _, _) => 0
         case i: Int => (i * 120.0) / currentMax
@@ -419,6 +444,7 @@ case class PlayerCharacterInfo(
   physicalCharacteristics: PhysicalCharacteristics = PhysicalCharacteristics(),
   faith:                   Option[String] = None,
   inspiration:             Boolean = false,
+  overrideInitiative:      Option[Int] = None,
   currentXp:               Option[Long] = None,
   alignment:               Alignment = Alignment.trueNeutral,
   lifestyle:               Lifestyle = Lifestyle.modest,
@@ -452,6 +478,27 @@ case class PlayerCharacterInfo(
     skillModifiers:   Boolean = false,
     level:            Boolean = false
   ): PlayerCharacterInfo = this.copy()
+
+  def totalLevel: Int = classes.map(_.level).sum
+
+  def proficiencyBonus: Int = {
+    val level = totalLevel
+    Math.ceil((level / 4.0) + 1).toInt
+  }
+
+  def proficiencyBonusString: String = {
+    val m = proficiencyBonus
+    (if (m <= 0) ""
+     else "+") + m.toString
+  }
+
+  def overridenInitiative: Int = overrideInitiative.getOrElse(abilities.dexterity.modifier)
+
+  def initiativeBonusString: String = {
+    val m = overridenInitiative
+    (if (m <= 0) ""
+     else "+") + m.toString
+  }
 
 }
 

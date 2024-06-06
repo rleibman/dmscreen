@@ -146,7 +146,7 @@ lazy val server = project
       "dev.zio"                %% "zio-config-magnolia"   % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-typesafe"   % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-logging-slf4j"     % "2.3.0" withSources (),
-      "dev.zio"                %% "izumi-reflect"         % "2.3.9" withSources (),
+      "dev.zio"                %% "izumi-reflect"         % "2.3.10" withSources (),
       "com.github.ghostdogpr"  %% "caliban"               % calibanVersion withSources (),
       "com.github.ghostdogpr"  %% "caliban-zio-http"      % calibanVersion withSources (),
       "com.github.ghostdogpr"  %% "caliban-quick"         % calibanVersion withSources (),
