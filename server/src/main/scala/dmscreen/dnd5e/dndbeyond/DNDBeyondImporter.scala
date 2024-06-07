@@ -308,7 +308,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
         val immunity = allModifiers.filter(_._1 == "immunity").flatMap(_._2)
         val vulnerability = allModifiers.filter(_._1 == "vulnerability").flatMap(_._2)
         val senses = {
-          Seq(SenseRange(Sense.sight, 10560)) ++
+          List(SenseRange(Sense.sight, 10560)) ++
             allModifiers
               .filter(_._1 == "set-base")
               .flatMap(_._2)

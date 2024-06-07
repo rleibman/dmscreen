@@ -36,6 +36,7 @@ given Reusability[DeathSave | Int] =
 given Reusability[Ability] = Reusability.derive[Ability]
 given Reusability[Abilities] = Reusability.derive[Abilities]
 given Reusability[Skill] = Reusability.derive[Skill]
+given Reusability[Language] = Reusability.derive[Language]
 given Reusability[Skills] = Reusability.derive[Skills]
 given Reusability[HitPoints] = Reusability.derive[HitPoints]
 given Reusability[Feat] = Reusability.derive[Feat]

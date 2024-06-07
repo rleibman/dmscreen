@@ -63,6 +63,7 @@ given JsonCodec[Lifestyle] = JsonCodec.string.transform(Lifestyle.valueOf, _.toS
 given JsonCodec[AbilityType] = JsonCodec.string.transform(AbilityType.valueOf, _.toString)
 given JsonCodec[Condition] = JsonCodec.string.transform(Condition.valueOf, _.toString)
 given JsonCodec[Sense] = JsonCodec.string.transform(Sense.valueOf, _.toString)
+given JsonCodec[SpeedType] = JsonCodec.string.transform(SpeedType.valueOf, _.toString)
 
 given JsonCodec[Source] = JsonCodec.derived[Source]
 given JsonCodec[SubClass] = JsonCodec.derived[SubClass]
@@ -91,6 +92,7 @@ given JsonCodec[Skills] = JsonCodec.derived[Skills]
 given JsonCodec[Language] = JsonCodec.string.transform(Language.fromName, _.name)
 given JsonCodec[Action] = JsonCodec.derived[Action]
 given JsonCodec[SpellHeader] = JsonCodec.derived[SpellHeader]
+given JsonCodec[Speed] = JsonCodec.derived[Speed]
 given JsonCodec[PlayerCharacterInfo] = JsonCodec.derived[PlayerCharacterInfo]
 
 given JsonCodec[NonPlayerCharacterInfo] = JsonCodec.derived[NonPlayerCharacterInfo]

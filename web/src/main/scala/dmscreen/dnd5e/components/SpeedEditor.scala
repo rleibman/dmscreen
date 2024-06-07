@@ -32,16 +32,15 @@ import net.leibman.dmscreen.semanticUiReact.components.*
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
 
-object SkillsDialog {
+object SpeedsEditor {
 
   case class State(
-    skills: Skills
+    speeds: List[Speed]
   )
 
   case class Props(
-    skills:   Skills,
-    onSave:   Skills => Callback,
-    onCancel: Callback = Callback.empty
+    speeds:   List[Speed],
+    onChange: List[Speed] => Callback
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -50,28 +49,28 @@ object SkillsDialog {
       props: Props,
       state: State
     ): VdomNode = {
-      <.div("Hello")
+      <.div(
+      )
     }
 
   }
 
   import scala.language.unsafeNulls
 
-  given Reusability[State] = Reusability.derive[State]
-  given Reusability[Props] = Reusability.by((_: Props).skills)
+  given Reusability[State] = Reusability.by((s: State) => s.speeds.mkString) // make sure the state is ignored for re-rendering the component
+  given Reusability[Props] = Reusability.by((_: Props) => "") // make sure the props are ignored for re-rendering the component
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
-    .builder[Props]("SkillsDialog")
-    .initialStateFromProps(p => State(p.skills))
+    .builder[Props]("SpeedsEditor")
+    .initialStateFromProps(p => State(p.speeds))
     .renderBackend[Backend]
     .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
     .build
 
   def apply(
-    skills:   Skills,
-    onSave:   Skills => Callback = _ => Callback.empty,
-    onCancel: Callback = Callback.empty
-  ): Unmounted[Props, State, Backend] = component(Props(skills, onSave, onCancel))
+    speeds:   List[Speed],
+    onChange: List[Speed] => Callback = _ => Callback.empty
+  ): Unmounted[Props, State, Backend] = component(Props(speeds = speeds, onChange = onChange))
 
 }

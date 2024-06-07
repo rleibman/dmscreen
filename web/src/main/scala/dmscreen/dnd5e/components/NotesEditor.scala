@@ -32,7 +32,7 @@ import net.leibman.dmscreen.semanticUiReact.components.*
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
 
-object NotesDialog {
+object NotesEditor {
 
   case class State(
     notes: String

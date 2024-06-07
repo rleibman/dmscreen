@@ -394,6 +394,12 @@ case class Skill(
     abilities.byType(skillType.abilityType).modifier + (if (proficiency) 2 else 0)
   }
 
+  def modifierString(abilities: Abilities): String = {
+    val m = modifier(abilities)
+    (if (m <= 0) ""
+     else "+") + m.toString
+  }
+
 }
 
 case class Skills(
@@ -436,6 +442,17 @@ case class HitPoints(
 
 }
 
+enum SpeedType {
+
+  case walk, fly, swim, burrow
+
+}
+
+case class Speed(
+  speedType: SpeedType,
+  value:     Int
+)
+
 case class PlayerCharacterInfo(
   hitPoints:               HitPoints,
   armorClass:              Int,
@@ -464,7 +481,8 @@ case class PlayerCharacterInfo(
   classSpells:             List[SpellHeader] = List.empty,
   creatures:               List[Creature] = List.empty,
   notes:                   String = "",
-  senses:                  Seq[SenseRange] = Seq(SenseRange(Sense.sight, 10560)) // Normal sight, 2 miles
+  speeds:                  List[Speed] = List(Speed(SpeedType.walk, 30)),
+  senses:                  List[SenseRange] = List(SenseRange(Sense.sight, 10560)) // Normal sight, 2 miles
 ) {
 
   /** This method will make a copy of this character info, but will auto calculate some of the fields based on the
@@ -499,6 +517,12 @@ case class PlayerCharacterInfo(
     (if (m <= 0) ""
      else "+") + m.toString
   }
+
+  def passivePerception: Int = skills.perception.modifier(abilities) + 10
+
+  def passiveInvestigation: Int = skills.investigation.modifier(abilities) + 10
+
+  def passiveInsight: Int = skills.insight.modifier(abilities) + 10
 
 }
 

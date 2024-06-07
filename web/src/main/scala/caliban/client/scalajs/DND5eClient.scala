@@ -31,50 +31,54 @@ object DND5eClient {
   sealed trait Alignment extends scala.Product with scala.Serializable { def value: String }
   object Alignment {
 
-    case object ChaoticEvil extends Alignment { val value: String = "ChaoticEvil" }
-    case object ChaoticGood extends Alignment { val value: String = "ChaoticGood" }
-    case object ChaoticNeutral extends Alignment { val value: String = "ChaoticNeutral" }
-    case object LawfulEvil extends Alignment { val value: String = "LawfulEvil" }
-    case object LawfulGood extends Alignment { val value: String = "LawfulGood" }
-    case object LawfulNeutral extends Alignment { val value: String = "LawfulNeutral" }
-    case object NeutralEvil extends Alignment { val value: String = "NeutralEvil" }
-    case object NeutralGood extends Alignment { val value: String = "NeutralGood" }
-    case object TrueNeutral extends Alignment { val value: String = "TrueNeutral" }
+    case object chaoticEvil extends Alignment { val value: String = "chaoticEvil" }
+    case object chaoticGood extends Alignment { val value: String = "chaoticGood" }
+    case object chaoticNeutral extends Alignment { val value: String = "chaoticNeutral" }
+    case object lawfulEvil extends Alignment { val value: String = "lawfulEvil" }
+    case object lawfulGood extends Alignment { val value: String = "lawfulGood" }
+    case object lawfulNeutral extends Alignment { val value: String = "lawfulNeutral" }
+    case object neutralEvil extends Alignment { val value: String = "neutralEvil" }
+    case object neutralGood extends Alignment { val value: String = "neutralGood" }
+    case object trueNeutral extends Alignment { val value: String = "trueNeutral" }
+    case object unaligned extends Alignment { val value: String = "unaligned" }
 
     implicit val decoder: ScalarDecoder[Alignment] = {
-      case __StringValue("ChaoticEvil")    => Right(Alignment.ChaoticEvil)
-      case __StringValue("ChaoticGood")    => Right(Alignment.ChaoticGood)
-      case __StringValue("ChaoticNeutral") => Right(Alignment.ChaoticNeutral)
-      case __StringValue("LawfulEvil")     => Right(Alignment.LawfulEvil)
-      case __StringValue("LawfulGood")     => Right(Alignment.LawfulGood)
-      case __StringValue("LawfulNeutral")  => Right(Alignment.LawfulNeutral)
-      case __StringValue("NeutralEvil")    => Right(Alignment.NeutralEvil)
-      case __StringValue("NeutralGood")    => Right(Alignment.NeutralGood)
-      case __StringValue("TrueNeutral")    => Right(Alignment.TrueNeutral)
+      case __StringValue("chaoticEvil")    => Right(Alignment.chaoticEvil)
+      case __StringValue("chaoticGood")    => Right(Alignment.chaoticGood)
+      case __StringValue("chaoticNeutral") => Right(Alignment.chaoticNeutral)
+      case __StringValue("lawfulEvil")     => Right(Alignment.lawfulEvil)
+      case __StringValue("lawfulGood")     => Right(Alignment.lawfulGood)
+      case __StringValue("lawfulNeutral")  => Right(Alignment.lawfulNeutral)
+      case __StringValue("neutralEvil")    => Right(Alignment.neutralEvil)
+      case __StringValue("neutralGood")    => Right(Alignment.neutralGood)
+      case __StringValue("trueNeutral")    => Right(Alignment.trueNeutral)
+      case __StringValue("unaligned")      => Right(Alignment.unaligned)
       case other                           => Left(DecodingError(s"Can't build Alignment from input $other"))
     }
     implicit val encoder: ArgEncoder[Alignment] = {
-      case Alignment.ChaoticEvil    => __EnumValue("ChaoticEvil")
-      case Alignment.ChaoticGood    => __EnumValue("ChaoticGood")
-      case Alignment.ChaoticNeutral => __EnumValue("ChaoticNeutral")
-      case Alignment.LawfulEvil     => __EnumValue("LawfulEvil")
-      case Alignment.LawfulGood     => __EnumValue("LawfulGood")
-      case Alignment.LawfulNeutral  => __EnumValue("LawfulNeutral")
-      case Alignment.NeutralEvil    => __EnumValue("NeutralEvil")
-      case Alignment.NeutralGood    => __EnumValue("NeutralGood")
-      case Alignment.TrueNeutral    => __EnumValue("TrueNeutral")
+      case Alignment.chaoticEvil    => __EnumValue("chaoticEvil")
+      case Alignment.chaoticGood    => __EnumValue("chaoticGood")
+      case Alignment.chaoticNeutral => __EnumValue("chaoticNeutral")
+      case Alignment.lawfulEvil     => __EnumValue("lawfulEvil")
+      case Alignment.lawfulGood     => __EnumValue("lawfulGood")
+      case Alignment.lawfulNeutral  => __EnumValue("lawfulNeutral")
+      case Alignment.neutralEvil    => __EnumValue("neutralEvil")
+      case Alignment.neutralGood    => __EnumValue("neutralGood")
+      case Alignment.trueNeutral    => __EnumValue("trueNeutral")
+      case Alignment.unaligned      => __EnumValue("unaligned")
     }
 
     val values: scala.collection.immutable.Vector[Alignment] = scala.collection.immutable.Vector(
-      ChaoticEvil,
-      ChaoticGood,
-      ChaoticNeutral,
-      LawfulEvil,
-      LawfulGood,
-      LawfulNeutral,
-      NeutralEvil,
-      NeutralGood,
-      TrueNeutral
+      chaoticEvil,
+      chaoticGood,
+      chaoticNeutral,
+      lawfulEvil,
+      lawfulGood,
+      lawfulNeutral,
+      neutralEvil,
+      neutralGood,
+      trueNeutral,
+      unaligned
     )
 
   }
@@ -130,33 +134,33 @@ object DND5eClient {
   sealed trait CreatureSize extends scala.Product with scala.Serializable { def value: String }
   object CreatureSize {
 
-    case object Gargantuan extends CreatureSize { val value: String = "Gargantuan" }
-    case object Huge extends CreatureSize { val value: String = "Huge" }
-    case object Large extends CreatureSize { val value: String = "Large" }
-    case object Medium extends CreatureSize { val value: String = "Medium" }
-    case object Small extends CreatureSize { val value: String = "Small" }
-    case object Tiny extends CreatureSize { val value: String = "Tiny" }
+    case object gargantuan extends CreatureSize { val value: String = "gargantuan" }
+    case object huge extends CreatureSize { val value: String = "huge" }
+    case object large extends CreatureSize { val value: String = "large" }
+    case object medium extends CreatureSize { val value: String = "medium" }
+    case object small extends CreatureSize { val value: String = "small" }
+    case object tiny extends CreatureSize { val value: String = "tiny" }
 
     implicit val decoder: ScalarDecoder[CreatureSize] = {
-      case __StringValue("Gargantuan") => Right(CreatureSize.Gargantuan)
-      case __StringValue("Huge")       => Right(CreatureSize.Huge)
-      case __StringValue("Large")      => Right(CreatureSize.Large)
-      case __StringValue("Medium")     => Right(CreatureSize.Medium)
-      case __StringValue("Small")      => Right(CreatureSize.Small)
-      case __StringValue("Tiny")       => Right(CreatureSize.Tiny)
+      case __StringValue("gargantuan") => Right(CreatureSize.gargantuan)
+      case __StringValue("huge")       => Right(CreatureSize.huge)
+      case __StringValue("large")      => Right(CreatureSize.large)
+      case __StringValue("medium")     => Right(CreatureSize.medium)
+      case __StringValue("small")      => Right(CreatureSize.small)
+      case __StringValue("tiny")       => Right(CreatureSize.tiny)
       case other                       => Left(DecodingError(s"Can't build CreatureSize from input $other"))
     }
     implicit val encoder: ArgEncoder[CreatureSize] = {
-      case CreatureSize.Gargantuan => __EnumValue("Gargantuan")
-      case CreatureSize.Huge       => __EnumValue("Huge")
-      case CreatureSize.Large      => __EnumValue("Large")
-      case CreatureSize.Medium     => __EnumValue("Medium")
-      case CreatureSize.Small      => __EnumValue("Small")
-      case CreatureSize.Tiny       => __EnumValue("Tiny")
+      case CreatureSize.gargantuan => __EnumValue("gargantuan")
+      case CreatureSize.huge       => __EnumValue("huge")
+      case CreatureSize.large      => __EnumValue("large")
+      case CreatureSize.medium     => __EnumValue("medium")
+      case CreatureSize.small      => __EnumValue("small")
+      case CreatureSize.tiny       => __EnumValue("tiny")
     }
 
     val values: scala.collection.immutable.Vector[CreatureSize] =
-      scala.collection.immutable.Vector(Gargantuan, Huge, Large, Medium, Small, Tiny)
+      scala.collection.immutable.Vector(gargantuan, huge, large, medium, small, tiny)
 
   }
 
@@ -384,6 +388,15 @@ object DND5eClient {
 
   }
 
+  type CombatLog
+  object CombatLog {
+
+    def message: SelectionBuilder[CombatLog, String] = _root_.caliban.client.SelectionBuilder.Field("message", Scalar())
+    def json: SelectionBuilder[CombatLog, zio.json.ast.Json] =
+      _root_.caliban.client.SelectionBuilder.Field("json", Scalar())
+
+  }
+
   type Copy
   object Copy {
 
@@ -401,6 +414,8 @@ object DND5eClient {
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
     def jsonInfo: SelectionBuilder[DND5eCampaign, zio.json.ast.Json] =
       _root_.caliban.client.SelectionBuilder.Field("jsonInfo", Scalar())
+    def version: SelectionBuilder[DND5eCampaign, String] =
+      _root_.caliban.client.SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -411,6 +426,7 @@ object DND5eClient {
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
     def jsonInfo: SelectionBuilder[Encounter, zio.json.ast.Json] =
       _root_.caliban.client.SelectionBuilder.Field("jsonInfo", Scalar())
+    def version: SelectionBuilder[Encounter, String] = _root_.caliban.client.SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -421,6 +437,16 @@ object DND5eClient {
     def campaignId: SelectionBuilder[EncounterHeader, Long] =
       _root_.caliban.client.SelectionBuilder.Field("campaignId", Scalar())
     def name: SelectionBuilder[EncounterHeader, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+
+  }
+
+  type GeneralLog
+  object GeneralLog {
+
+    def message: SelectionBuilder[GeneralLog, String] =
+      _root_.caliban.client.SelectionBuilder.Field("message", Scalar())
+    def json: SelectionBuilder[GeneralLog, zio.json.ast.Json] =
+      _root_.caliban.client.SelectionBuilder.Field("json", Scalar())
 
   }
 
@@ -438,6 +464,7 @@ object DND5eClient {
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
     def jsonInfo: SelectionBuilder[Monster, zio.json.ast.Json] =
       _root_.caliban.client.SelectionBuilder.Field("jsonInfo", Scalar())
+    def version: SelectionBuilder[Monster, String] = _root_.caliban.client.SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -479,6 +506,8 @@ object DND5eClient {
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
     def jsonInfo: SelectionBuilder[NonPlayerCharacter, zio.json.ast.Json] =
       _root_.caliban.client.SelectionBuilder.Field("jsonInfo", Scalar())
+    def version: SelectionBuilder[NonPlayerCharacter, String] =
+      _root_.caliban.client.SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -501,6 +530,8 @@ object DND5eClient {
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
     def jsonInfo: SelectionBuilder[PlayerCharacter, zio.json.ast.Json] =
       _root_.caliban.client.SelectionBuilder.Field("jsonInfo", Scalar())
+    def version: SelectionBuilder[PlayerCharacter, String] =
+      _root_.caliban.client.SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -552,10 +583,10 @@ object DND5eClient {
 
   }
 
-  type Subclass
-  object Subclass {
+  type SubClass
+  object SubClass {
 
-    def name: SelectionBuilder[Subclass, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def name: SelectionBuilder[SubClass, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
 
   }
 
@@ -701,7 +732,7 @@ object DND5eClient {
     def subclasses[A](
       value: String
     )(
-      innerSelection:    SelectionBuilder[Subclass, A]
+      innerSelection:    SelectionBuilder[SubClass, A]
     )(implicit encoder0: ArgEncoder[String]
     ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
       _root_.caliban.client.SelectionBuilder.Field(
@@ -718,7 +749,7 @@ object DND5eClient {
     def applyOperations(
       entityType: DND5eEntityType,
       id:         Long,
-      operations: List[zio.json.ast.Json] = Nil
+      events:     List[zio.json.ast.Json] = Nil
     )(implicit
       encoder0: ArgEncoder[DND5eEntityType],
       encoder1: ArgEncoder[Long],
@@ -730,7 +761,7 @@ object DND5eClient {
         arguments = List(
           Argument("entityType", entityType, "DND5eEntityType!")(encoder0),
           Argument("id", id, "Long!")(encoder1),
-          Argument("operations", operations, "[Json!]!")(encoder2)
+          Argument("events", events, "[Json!]!")(encoder2)
         )
       )
 
@@ -739,40 +770,44 @@ object DND5eClient {
   type Subscriptions = _root_.caliban.client.Operations.RootSubscription
   object Subscriptions {
 
-    def operationStream[A](
+    def campaignStream[A](
       entityType: DND5eEntityType,
       id:         Long,
-      operations: List[zio.json.ast.Json] = Nil
+      events:     List[zio.json.ast.Json] = Nil
     )(
-      onAdd:     SelectionBuilder[Add, A],
-      onCopy:    SelectionBuilder[Copy, A],
-      onMove:    SelectionBuilder[Move, A],
-      onRemove:  SelectionBuilder[Remove, A],
-      onReplace: SelectionBuilder[Replace, A],
-      onTest:    SelectionBuilder[Test, A]
+      onAdd:        SelectionBuilder[Add, A],
+      onCombatLog:  SelectionBuilder[CombatLog, A],
+      onCopy:       SelectionBuilder[Copy, A],
+      onGeneralLog: SelectionBuilder[GeneralLog, A],
+      onMove:       SelectionBuilder[Move, A],
+      onRemove:     SelectionBuilder[Remove, A],
+      onReplace:    SelectionBuilder[Replace, A],
+      onTest:       SelectionBuilder[Test, A]
     )(implicit
       encoder0: ArgEncoder[DND5eEntityType],
       encoder1: ArgEncoder[Long],
       encoder2: ArgEncoder[List[zio.json.ast.Json]]
     ): SelectionBuilder[_root_.caliban.client.Operations.RootSubscription, scala.Option[A]] =
       _root_.caliban.client.SelectionBuilder.Field(
-        "operationStream",
+        "campaignStream",
         OptionOf(
           ChoiceOf(
             Map(
-              "Add"     -> Obj(onAdd),
-              "Copy"    -> Obj(onCopy),
-              "Move"    -> Obj(onMove),
-              "Remove"  -> Obj(onRemove),
-              "Replace" -> Obj(onReplace),
-              "Test"    -> Obj(onTest)
+              "Add"        -> Obj(onAdd),
+              "CombatLog"  -> Obj(onCombatLog),
+              "Copy"       -> Obj(onCopy),
+              "GeneralLog" -> Obj(onGeneralLog),
+              "Move"       -> Obj(onMove),
+              "Remove"     -> Obj(onRemove),
+              "Replace"    -> Obj(onReplace),
+              "Test"       -> Obj(onTest)
             )
           )
         ),
         arguments = List(
           Argument("entityType", entityType, "DND5eEntityType!")(encoder0),
           Argument("id", id, "Long!")(encoder1),
-          Argument("operations", operations, "[Json!]!")(encoder2)
+          Argument("events", events, "[Json!]!")(encoder2)
         )
       )
 

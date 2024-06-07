@@ -22,6 +22,7 @@
 package dmscreen.dnd5e.components
 
 import dmscreen.dnd5e.*
+import dmscreen.dnd5e.components.HitPointsEditor.State
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.VdomNode
@@ -29,19 +30,19 @@ import japgolly.scalajs.react.vdom.all.verticalAlign
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticSIZES, SemanticWIDTHS}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
 
-object FeatsDialog {
+object ArmorClassEditor {
 
   case class State(
-    feats: List[Feat]
+    armorClass: Int
   )
 
   case class Props(
-    feats:    List[Feat],
-    onSave:   List[Feat] => Callback,
-    onCancel: Callback = Callback.empty
+    armorClass: Int,
+    onChange:   Int => Callback
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -50,7 +51,29 @@ object FeatsDialog {
       props: Props,
       state: State
     ): VdomNode = {
-      <.div("Hello")
+      <.div(
+        Input
+          .`type`("number").min(-10).max(40).onChange(
+            (
+              _,
+              changedData
+            ) =>
+              $.modState(
+                s => {
+                  val newNum = changedData.value match {
+                    case s: String => s.toIntOption.getOrElse(10)
+                    case x: Double => x.toInt
+                  }
+
+                  s.copy(armorClass = newNum)
+                },
+                $.state.flatMap(s => props.onChange(s.armorClass))
+              )
+          )
+          .value(state.armorClass)
+          // TODO add explanation of Armor class here, and maybe split the ac into multiple inputs, but frankly it's too complicated to
+          // calculate all of that here for now
+      )
     }
 
   }
@@ -58,20 +81,19 @@ object FeatsDialog {
   import scala.language.unsafeNulls
 
   given Reusability[State] = Reusability.derive[State]
-  given Reusability[Props] = Reusability.by((_: Props).feats)
+  given Reusability[Props] = Reusability.by((_: Props) => "") // make sure the props are ignored for re-rendering the component
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
-    .builder[Props]("FeatsDialog")
-    .initialStateFromProps(p => State(p.feats))
+    .builder[Props]("ArmorClassEditor")
+    .initialStateFromProps(p => State(p.armorClass))
     .renderBackend[Backend]
     .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
     .build
 
   def apply(
-    feats:    List[Feat],
-    onSave:   List[Feat] => Callback = _ => Callback.empty,
-    onCancel: Callback = Callback.empty
-  ): Unmounted[Props, State, Backend] = component(Props(feats, onSave, onCancel))
+    armorClass: Int,
+    onChange:   Int => Callback = _ => Callback.empty
+  ): Unmounted[Props, State, Backend] = component(Props(armorClass = armorClass, onChange = onChange))
 
 }

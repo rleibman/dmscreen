@@ -159,7 +159,17 @@ object PlayerCharacterComponent {
                     ),
                     <.tr(
                       <.th("AC"),
-                      <.td("18") // AC Editor
+                      <.td(
+                        EditableComponent(
+                          viewComponent = <.div(pc.armorClass),
+                          editComponent = ArmorClassEditor(
+                            pc.armorClass,
+                            onChange = armorClass => $.modPCInfo(info => info.copy(armorClass = armorClass))
+                          ),
+                          modalTitle = "Armor Class",
+                          onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                        )
+                      ) // AC Editor
                     ),
                     <.tr(
                       <.th("Proficiency Bonus"),
@@ -281,9 +291,9 @@ object PlayerCharacterComponent {
                   ),
                   <.tbody(
                     <.tr(
-                      <.td("10"),
-                      <.td("10"),
-                      <.td("13")
+                      <.td(pc.passivePerception),
+                      <.td(pc.passiveInvestigation),
+                      <.td(pc.passiveInsight)
                     )
                   )
                 )
@@ -310,18 +320,12 @@ object PlayerCharacterComponent {
                 <.table(
                   <.thead(
                     <.tr(
-                      <.th("walk"),
-                      <.th("fly"),
-                      <.th("swim"),
-                      <.th("burrow")
+                      pc.speeds.map(sp => <.th(sp.speedType.toString)).toVdomArray
                     )
                   ),
                   <.tbody(
                     <.tr(
-                      <.td("30"),
-                      <.td("30"),
-                      <.td("30"),
-                      <.td("30")
+                      pc.speeds.map(sp => <.th(sp.value.toString)).toVdomArray
                     )
                   )
                 )
@@ -329,71 +333,96 @@ object PlayerCharacterComponent {
               <.div(
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Skills"),
-                <.table(
-                  <.tbody(
-                    <.tr(
-                      <.th("Acrobatics"),
-                      <.td("5"),
-                      <.th("Medicine"),
-                      <.td("3")
-                    ),
-                    <.tr(
-                      <.th("Animal Handling"),
-                      <.td("5"),
-                      <.th("Nature"),
-                      <.td("3")
-                    ),
-                    <.tr(
-                      <.th("Arcana"),
-                      <.td("5"),
-                      <.th("Perception"),
-                      <.td("3")
-                    ),
-                    <.tr(
-                      <.th("*Athletics"),
-                      <.td("5"),
-                      <.th("Performance"),
-                      <.td("3")
-                    ),
-                    <.tr(
-                      <.th("Deception"),
-                      <.td("5"),
-                      <.th("*Persuasion"),
-                      <.td("3")
-                    ),
-                    <.tr(
-                      <.th("History"),
-                      <.td("5"),
-                      <.th("Religion"),
-                      <.td("3")
-                    ),
-                    <.tr(
-                      <.th("Insight"),
-                      <.td("5"),
-                      <.th("Sleight of Hand"),
-                      <.td("3")
-                    ),
-                    <.tr(
-                      <.th("Intimidation"),
-                      <.td("5"),
-                      <.th("Stealth"),
-                      <.td("3")
-                    ),
-                    <.tr(
-                      <.th("*Investigation"),
-                      <.td("5"),
-                      <.th("*Survival"),
-                      <.td("3")
+                EditableComponent(
+                  viewComponent = <.table(
+                    ^.minHeight := 330.px,
+                    <.tbody(
+                      <.tr(
+                        <.th(^.width := 23.px, s"${if (pc.skills.acrobatics.proficiency) "* " else ""}Acrobatics"),
+                        <.td(^.width := "50%", pc.skills.acrobatics.modifierString(pc.abilities)),
+                        <.th(^.width := 23.px, s"${if (pc.skills.medicine.proficiency) "* " else ""}Medicine"),
+                        <.td(^.width := "50%", pc.skills.medicine.modifierString(pc.abilities))
+                      ),
+                      <.tr(
+                        <.th(s"${if (pc.skills.animalHandling.proficiency) "* " else ""}Animal H."),
+                        <.td(pc.skills.animalHandling.modifierString(pc.abilities)),
+                        <.th(s"${if (pc.skills.nature.proficiency) "* " else ""}Nature"),
+                        <.td(pc.skills.nature.modifierString(pc.abilities))
+                      ),
+                      <.tr(
+                        <.th(s"${if (pc.skills.arcana.proficiency) "* " else ""}Arcana"),
+                        <.td(pc.skills.arcana.modifierString(pc.abilities)),
+                        <.th(s"${if (pc.skills.perception.proficiency) "* " else ""}Perception"),
+                        <.td(pc.skills.perception.modifierString(pc.abilities))
+                      ),
+                      <.tr(
+                        <.th(s"${if (pc.skills.athletics.proficiency) "* " else ""}Athletics"),
+                        <.td(pc.skills.athletics.modifierString(pc.abilities)),
+                        <.th(s"${if (pc.skills.performance.proficiency) "* " else ""}Perf."),
+                        <.td(pc.skills.performance.modifierString(pc.abilities))
+                      ),
+                      <.tr(
+                        <.th(s"${if (pc.skills.deception.proficiency) "* " else ""}Deception"),
+                        <.td(pc.skills.deception.modifierString(pc.abilities)),
+                        <.th(s"${if (pc.skills.persuasion.proficiency) "* " else ""}Persuasion"),
+                        <.td(pc.skills.persuasion.modifierString(pc.abilities))
+                      ),
+                      <.tr(
+                        <.th(s"${if (pc.skills.history.proficiency) "* " else ""}History"),
+                        <.td(pc.skills.history.modifierString(pc.abilities)),
+                        <.th(s"${if (pc.skills.religion.proficiency) "* " else ""}Religion"),
+                        <.td(pc.skills.religion.modifierString(pc.abilities))
+                      ),
+                      <.tr(
+                        <.th(s"${if (pc.skills.insight.proficiency) "* " else ""}Insight"),
+                        <.td(pc.skills.insight.modifierString(pc.abilities)),
+                        <.th(s"${if (pc.skills.sleightOfHand.proficiency) "* " else ""}Sleight of H."),
+                        <.td(pc.skills.sleightOfHand.modifierString(pc.abilities))
+                      ),
+                      <.tr(
+                        <.th(s"${if (pc.skills.intimidation.proficiency) "* " else ""}Intim."),
+                        <.td(pc.skills.intimidation.modifierString(pc.abilities)),
+                        <.th(s"${if (pc.skills.stealth.proficiency) "* " else ""}Stealth"),
+                        <.td(pc.skills.stealth.modifierString(pc.abilities))
+                      ),
+                      <.tr(
+                        <.th(s"${if (pc.skills.investigation.proficiency) "* " else ""}Invest."),
+                        <.td(pc.skills.investigation.modifierString(pc.abilities)),
+                        <.th(s"${if (pc.skills.survival.proficiency) "* " else ""}Survival"),
+                        <.td(pc.skills.survival.modifierString(pc.abilities))
+                      )
                     )
-                  )
+                  ),
+                  editComponent = SkillsEditor(
+                    pc.skills,
+                    onChange = skills => $.modPCInfo(info => info.copy(skills = skills))
+                  ),
+                  modalTitle = "Skills",
+                  onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                 )
               ),
               <.div(
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Languages"),
-                "Celestial, Common, Egyptian, Elvish, Infernal, Sylvan"
+                EditableComponent(
+                  viewComponent =
+                    pc.languages.headOption.fold("Click to add")(_ => pc.languages.map(_.name).mkString(", ")),
+                  editComponent =
+                    LanguageEditor(pc.languages, languages => $.modPCInfo(info => info.copy(languages = languages))),
+                  modalTitle = "Languages",
+                  onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                )
               ),
-              <.div(^.className := "characterDetails", <.div(^.className := "sectionTitle", "Feats")),
+              <.div(
+                ^.className := "characterDetails",
+                <.div(^.className := "sectionTitle", "Feats"),
+                EditableComponent(
+                  viewComponent = pc.feats.headOption.fold("Click to add")(_ => pc.feats.map(_.name).mkString(", ")),
+                  editComponent = FeatsEditor(pc.feats, feats => $.modPCInfo(info => info.copy(feats = feats))),
+                  modalTitle = "Feats",
+                  onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                )
+              ),
               <.div(
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Senses"),

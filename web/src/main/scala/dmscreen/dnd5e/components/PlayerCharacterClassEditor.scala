@@ -22,7 +22,7 @@
 package dmscreen.dnd5e.components
 
 import caliban.ScalaJSClientAdapter.asyncCalibanCall
-import caliban.client.scalajs.DND5eClient.{Queries, Subclass as CalibanSubclass}
+import caliban.client.scalajs.DND5eClient.{Queries, SubClass as CalibanSubclass}
 import dmscreen.DMScreenState
 import dmscreen.dnd5e.*
 import dmscreen.dnd5e.CharacterClassId.paladin

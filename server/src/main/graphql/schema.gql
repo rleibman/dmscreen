@@ -7,18 +7,19 @@ scalar Json
 scalar Long
 scalar Unit
 
-union DMScreenOperation = Add | Copy | Move | Remove | Replace | Test
+union DMScreenEvent = Add | CombatLog | Copy | GeneralLog | Move | Remove | Replace | Test
 
 enum Alignment {
-  ChaoticEvil
-  ChaoticGood
-  ChaoticNeutral
-  LawfulEvil
-  LawfulGood
-  LawfulNeutral
-  NeutralEvil
-  NeutralGood
-  TrueNeutral
+  chaoticEvil
+  chaoticGood
+  chaoticNeutral
+  lawfulEvil
+  lawfulGood
+  lawfulNeutral
+  neutralEvil
+  neutralGood
+  trueNeutral
+  unaligned
 }
 
 enum Biome {
@@ -36,12 +37,12 @@ enum Biome {
 }
 
 enum CreatureSize {
-  Gargantuan
-  Huge
-  Large
-  Medium
-  Small
-  Tiny
+  gargantuan
+  huge
+  large
+  medium
+  small
+  tiny
 }
 
 enum DND5eEntityType {
@@ -119,6 +120,11 @@ type CharacterClass {
   hitDice: String!
 }
 
+type CombatLog {
+  message: String!
+  json: Json!
+}
+
 type Copy {
   from: JsonPath!
   to: JsonPath!
@@ -127,17 +133,24 @@ type Copy {
 type DND5eCampaign {
   header: CampaignHeader!
   jsonInfo: Json!
+  version: String!
 }
 
 type Encounter {
   header: EncounterHeader!
   jsonInfo: Json!
+  version: String!
 }
 
 type EncounterHeader {
   id: Long!
   campaignId: Long!
   name: String!
+}
+
+type GeneralLog {
+  message: String!
+  json: Json!
 }
 
 type JsonPath {
@@ -147,6 +160,7 @@ type JsonPath {
 type Monster {
   header: MonsterHeader!
   jsonInfo: Json!
+  version: String!
 }
 
 type MonsterHeader {
@@ -168,12 +182,13 @@ type Move {
 }
 
 type Mutations {
-  applyOperations(entityType: DND5eEntityType!, id: Long!, operations: [Json!]!): Unit
+  applyOperations(entityType: DND5eEntityType!, id: Long!, events: [Json!]!): Unit
 }
 
 type NonPlayerCharacter {
   header: NonPlayerCharacterHeader!
   jsonInfo: Json!
+  version: String!
 }
 
 type NonPlayerCharacterHeader {
@@ -185,6 +200,7 @@ type NonPlayerCharacterHeader {
 type PlayerCharacter {
   header: PlayerCharacterHeader!
   jsonInfo: Json!
+  version: String!
 }
 
 type PlayerCharacterHeader {
@@ -206,7 +222,7 @@ type Queries {
   classes: [CharacterClass!]
   races: [Race!]
   backgrounds: [Background!]
-  subclasses(value: String!): [Subclass!]
+  subclasses(value: String!): [SubClass!]
 }
 
 type Race {
@@ -228,12 +244,12 @@ type Source {
   url: String
 }
 
-type Subclass {
+type SubClass {
   name: String!
 }
 
 type Subscriptions {
-  operationStream(entityType: DND5eEntityType!, id: Long!, operations: [Json!]!): DMScreenOperation
+  campaignStream(entityType: DND5eEntityType!, id: Long!, events: [Json!]!): DMScreenEvent
 }
 
 type Test {
