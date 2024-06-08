@@ -64,7 +64,7 @@ object EditableComponent {
         case Mode.edit =>
           Modal
             .open(state.mode == Mode.edit)
-            .size(semanticUiReactStrings.tiny)
+            .size(semanticUiReactStrings.small)
             .closeIcon(true)
             .onClose(
               (

@@ -51,6 +51,14 @@ object PlayerCharacterComponent {
 
   case class Backend($ : BackendScope[Props, State]) {
 
+    def profStr(proficiencyLevel: ProficiencyLevel): String =
+      proficiencyLevel match {
+        case ProficiencyLevel.none       => ""
+        case ProficiencyLevel.half       => "½"
+        case ProficiencyLevel.proficient => "*"
+        case ProficiencyLevel.expert     => "**"
+      }
+
     extension (b: BackendScope[Props, State]) {
 
       // This is doing json-info/info-json way too much, we need to change it to just store the info in the object
@@ -338,63 +346,64 @@ object PlayerCharacterComponent {
                     ^.minHeight := 330.px,
                     <.tbody(
                       <.tr(
-                        <.th(^.width := 23.px, s"${if (pc.skills.acrobatics.proficiency) "* " else ""}Acrobatics"),
+                        <.th(^.width := 23.px, s"${profStr(pc.skills.acrobatics.proficiencyLevel)}Acrobatics"),
                         <.td(^.width := "50%", pc.skills.acrobatics.modifierString(pc.abilities)),
-                        <.th(^.width := 23.px, s"${if (pc.skills.medicine.proficiency) "* " else ""}Medicine"),
+                        <.th(^.width := 23.px, s"${profStr(pc.skills.medicine.proficiencyLevel)}Medicine"),
                         <.td(^.width := "50%", pc.skills.medicine.modifierString(pc.abilities))
                       ),
                       <.tr(
-                        <.th(s"${if (pc.skills.animalHandling.proficiency) "* " else ""}Animal H."),
+                        <.th(s"${profStr(pc.skills.animalHandling.proficiencyLevel)}Animal H."),
                         <.td(pc.skills.animalHandling.modifierString(pc.abilities)),
-                        <.th(s"${if (pc.skills.nature.proficiency) "* " else ""}Nature"),
+                        <.th(s"${profStr(pc.skills.nature.proficiencyLevel)}Nature"),
                         <.td(pc.skills.nature.modifierString(pc.abilities))
                       ),
                       <.tr(
-                        <.th(s"${if (pc.skills.arcana.proficiency) "* " else ""}Arcana"),
+                        <.th(s"${profStr(pc.skills.arcana.proficiencyLevel)}Arcana"),
                         <.td(pc.skills.arcana.modifierString(pc.abilities)),
-                        <.th(s"${if (pc.skills.perception.proficiency) "* " else ""}Perception"),
+                        <.th(s"${profStr(pc.skills.perception.proficiencyLevel)}Perception"),
                         <.td(pc.skills.perception.modifierString(pc.abilities))
                       ),
                       <.tr(
-                        <.th(s"${if (pc.skills.athletics.proficiency) "* " else ""}Athletics"),
+                        <.th(s"${profStr(pc.skills.athletics.proficiencyLevel)}Athletics"),
                         <.td(pc.skills.athletics.modifierString(pc.abilities)),
-                        <.th(s"${if (pc.skills.performance.proficiency) "* " else ""}Perf."),
+                        <.th(s"${profStr(pc.skills.performance.proficiencyLevel)}Perf."),
                         <.td(pc.skills.performance.modifierString(pc.abilities))
                       ),
                       <.tr(
-                        <.th(s"${if (pc.skills.deception.proficiency) "* " else ""}Deception"),
+                        <.th(s"${profStr(pc.skills.deception.proficiencyLevel)}Deception"),
                         <.td(pc.skills.deception.modifierString(pc.abilities)),
-                        <.th(s"${if (pc.skills.persuasion.proficiency) "* " else ""}Persuasion"),
+                        <.th(s"${profStr(pc.skills.persuasion.proficiencyLevel)}Persuasion"),
                         <.td(pc.skills.persuasion.modifierString(pc.abilities))
                       ),
                       <.tr(
-                        <.th(s"${if (pc.skills.history.proficiency) "* " else ""}History"),
+                        <.th(s"${profStr(pc.skills.history.proficiencyLevel)}History"),
                         <.td(pc.skills.history.modifierString(pc.abilities)),
-                        <.th(s"${if (pc.skills.religion.proficiency) "* " else ""}Religion"),
+                        <.th(s"${profStr(pc.skills.religion.proficiencyLevel)}Religion"),
                         <.td(pc.skills.religion.modifierString(pc.abilities))
                       ),
                       <.tr(
-                        <.th(s"${if (pc.skills.insight.proficiency) "* " else ""}Insight"),
+                        <.th(s"${profStr(pc.skills.insight.proficiencyLevel)}Insight"),
                         <.td(pc.skills.insight.modifierString(pc.abilities)),
-                        <.th(s"${if (pc.skills.sleightOfHand.proficiency) "* " else ""}Sleight of H."),
+                        <.th(s"${profStr(pc.skills.sleightOfHand.proficiencyLevel)}Sleight of H."),
                         <.td(pc.skills.sleightOfHand.modifierString(pc.abilities))
                       ),
                       <.tr(
-                        <.th(s"${if (pc.skills.intimidation.proficiency) "* " else ""}Intim."),
+                        <.th(s"${profStr(pc.skills.intimidation.proficiencyLevel)}Intim."),
                         <.td(pc.skills.intimidation.modifierString(pc.abilities)),
-                        <.th(s"${if (pc.skills.stealth.proficiency) "* " else ""}Stealth"),
+                        <.th(s"${profStr(pc.skills.stealth.proficiencyLevel)}Stealth"),
                         <.td(pc.skills.stealth.modifierString(pc.abilities))
                       ),
                       <.tr(
-                        <.th(s"${if (pc.skills.investigation.proficiency) "* " else ""}Invest."),
+                        <.th(s"${profStr(pc.skills.investigation.proficiencyLevel)}Invest."),
                         <.td(pc.skills.investigation.modifierString(pc.abilities)),
-                        <.th(s"${if (pc.skills.survival.proficiency) "* " else ""}Survival"),
+                        <.th(s"${profStr(pc.skills.survival.proficiencyLevel)}Survival"),
                         <.td(pc.skills.survival.modifierString(pc.abilities))
                       )
                     )
                   ),
                   editComponent = SkillsEditor(
                     pc.skills,
+                    pc.abilities,
                     onChange = skills => $.modPCInfo(info => info.copy(skills = skills))
                   ),
                   modalTitle = "Skills",

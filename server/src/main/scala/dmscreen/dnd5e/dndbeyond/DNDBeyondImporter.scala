@@ -410,14 +410,16 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
           scala.math.max(baseUnarmoredAC, equipmentBaseAC) + modifyAC
         }
 
-        val skills = {
+        val skills: Skills = {
           import SkillType.*
-          def hasProficiency(skillType: SkillType): Boolean = {
-            proficiencies.exists { p =>
-              val s = p.get("subType").flatMap(_.asString)
-              s.contains(skillType.toString.toLowerCase)
-            }
-          }
+          def hasProficiency(skillType: SkillType): ProficiencyLevel =
+            if ({
+              proficiencies.exists { p =>
+                val s = p.get("subType").flatMap(_.asString)
+                s.contains(skillType.toString.toLowerCase)
+              }
+            }) ProficiencyLevel.proficient
+            else ProficiencyLevel.none
           Skills(
             acrobatics = Skill(acrobatics, hasProficiency(acrobatics)),
             animalHandling = Skill(animalHandling, hasProficiency(animalHandling)),

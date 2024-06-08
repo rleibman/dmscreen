@@ -384,14 +384,27 @@ enum AdvantageDisadvantage {
 
 }
 
+enum ProficiencyLevel {
+
+  case none, half, proficient, expert
+
+}
+
 case class Skill(
-  skillType:   SkillType,
-  proficiency: Boolean = false,
-  advantage:   AdvantageDisadvantage = AdvantageDisadvantage.neither
+  skillType:        SkillType,
+  proficiencyLevel: ProficiencyLevel = ProficiencyLevel.none,
+  advantage:        AdvantageDisadvantage = AdvantageDisadvantage.neither
 ) {
 
   def modifier(abilities: Abilities): Int = {
-    abilities.byType(skillType.abilityType).modifier + (if (proficiency) 2 else 0)
+    val base = abilities.byType(skillType.abilityType).modifier
+    proficiencyLevel match {
+      case ProficiencyLevel.none       => base
+      case ProficiencyLevel.half       => Math.floor(base / 2.0).toInt
+      case ProficiencyLevel.proficient => base + 2
+      case ProficiencyLevel.expert     => base * 2
+    }
+
   }
 
   def modifierString(abilities: Abilities): String = {

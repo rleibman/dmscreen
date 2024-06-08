@@ -195,7 +195,8 @@ class FifthEditionCharacterSheetImporter extends DND5eImporter[URI, URI, URI, UR
          */
         import SkillType.*
         val list = skillInfo.splitWith(8864.toChar)
-        val proficiencies = list.take(18).map(_.trim.toBoolean)
+        val proficiencies =
+          list.take(18).map(_.trim.toBoolean).map(if (_) ProficiencyLevel.proficient else ProficiencyLevel.none)
         Skills(
           athletics = Skill(athletics, proficiencies(0)),
           acrobatics = Skill(acrobatics, proficiencies(1)),
