@@ -177,18 +177,27 @@ object PlayerCharacterComponent {
                           modalTitle = "Armor Class",
                           onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                         )
-                      ) // AC Editor
+                      )
                     ),
                     <.tr(
                       <.th("Proficiency Bonus"),
-                      <.td(pc.proficiencyBonusString) // Automatic
+                      <.td(pc.proficiencyBonusString)
                     ),
                     <.tr(
                       <.th("Initiative"),
-                      <.td(pc.initiativeBonusString) // Override
+                      <.td(pc.initiativeBonusString) // TODO Override
                     ),
                     <.tr(
-                      <.td(^.colSpan := 2, Checkbox.fitted(true).label("Inspiration").toggle(true)) // TODO onChange
+                      <.td(
+                        ^.colSpan := 2,
+                        Checkbox
+                          .fitted(true).label("Inspiration").toggle(true).onChange(
+                            (
+                              _,
+                              data
+                            ) => $.modPCInfo(info => info.copy(inspiration = data.checked.getOrElse(pc.inspiration)))
+                          )
+                      )
                     )
                   )
                 )
@@ -445,7 +454,14 @@ object PlayerCharacterComponent {
               <.div(
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Senses"),
-                "Darkvision 60ft"
+                EditableComponent(
+                  viewComponent = <.div(pc.senses.headOption.fold("Click to add") { _ =>
+                    pc.senses.map(s => s"${s.sense} ${s.range}").mkString(", ")
+                  }),
+                  editComponent = SensesEditor(pc.senses, senses => $.modPCInfo(info => info.copy(senses = senses))),
+                  modalTitle = "Senses",
+                  onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                )
               ),
               <.div(
                 ^.className := "characterDetails",
@@ -459,10 +475,6 @@ object PlayerCharacterComponent {
     }
 
   }
-
-//  import scala.language.unsafeNulls
-//
-//  given Reusability[Props] = Reusability.by((_: Props).playerCharacter)
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
     .builder[Props]("playerCharacterComponent")
