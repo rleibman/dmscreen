@@ -457,7 +457,7 @@ case class HitPoints(
 
 enum SpeedType {
 
-  case walk, fly, swim, burrow
+  case walk, fly, climb, swim, burrow
 
 }
 

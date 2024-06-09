@@ -325,17 +325,27 @@ object PlayerCharacterComponent {
               <.div(
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Speed"),
-                <.table(
-                  <.thead(
-                    <.tr(
-                      pc.speeds.map(sp => <.th(sp.speedType.toString)).toVdomArray
-                    )
+                EditableComponent(
+                  editComponent = SpeedsEditor(
+                    pc.speeds,
+                    speeds => $.modPCInfo(info => info.copy(speeds = speeds))
                   ),
-                  <.tbody(
-                    <.tr(
-                      pc.speeds.map(sp => <.th(sp.value.toString)).toVdomArray
+                  viewComponent = pc.speeds.headOption.fold(<.div("Click to add")) { _ =>
+                    <.table(
+                      <.thead(
+                        <.tr(
+                          pc.speeds.map(sp => <.th(sp.speedType.toString)).toVdomArray
+                        )
+                      ),
+                      <.tbody(
+                        <.tr(
+                          pc.speeds.map(sp => <.th(sp.value.toString)).toVdomArray
+                        )
+                      )
                     )
-                  )
+                  },
+                  modalTitle = "Speeds",
+                  onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                 )
               ),
               <.div(
