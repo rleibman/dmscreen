@@ -30,20 +30,18 @@ import japgolly.scalajs.react.vdom.all.verticalAlign
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
-import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticSIZES, SemanticWIDTHS}
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES, SemanticWIDTHS}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
-
-import scala.collection.SortedSet
 
 object LanguageEditor {
 
   case class State(
-    languages: SortedSet[Language]
+    languages: Seq[Language]
   )
 
   case class Props(
-    languages: Set[Language],
+    languages: Seq[Language],
     onChange:  Set[Language] => Callback
   )
 
@@ -53,8 +51,66 @@ object LanguageEditor {
       props: Props,
       state: State
     ): VdomNode = {
-      <.div(
+      Table(
+        Table.Body(state.languages.toList.zipWithIndex.map {
+          (
+            lang,
+            i
+          ) =>
+            Table.Row(
+              Table.Cell(
+                Input
+                  .value(lang.name)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case s: String => s
+                        case _ => lang.name
+                      }
+                      $.modState(
+                        s => s.copy(languages = s.languages.updated(i, lang.copy(name = newVal))),
+                        $.state.flatMap(s => props.onChange(s.languages.filter(_.name.trim.nonEmpty).toSet))
+                      )
+                    }
+                  )
+              ),
+              Table.Cell(
+                Button
+                  .icon(true).onClick {
+                    (
+                      _,
+                      _
+                    ) =>
+                      $.modState(
+                        s => s.copy(languages = s.languages.filter(_ != lang)),
+                        $.state.flatMap(s => props.onChange(s.languages.toSet))
+                      )
+                  }(Icon.name(SemanticICONS.delete))
+              )
+            )
+        }*),
+        Table.Footer(
+          Table.Row(
+            Table.Cell.colSpan(4)(
+              Button
+                .icon(true).onClick(
+                  (
+                    _,
+                    _
+                  ) =>
+                    $.modState(
+                      s => s.copy(languages = s.languages :+ Language("")),
+                      $.state.flatMap(s => props.onChange(s.languages.filter(_.name.trim.nonEmpty).toSet))
+                    )
+                )(Icon.name(SemanticICONS.add))
+            )
+          )
+        )
       )
+
     }
 
   }
@@ -67,7 +123,7 @@ object LanguageEditor {
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
     .builder[Props]("LanguageEditor")
-    .initialStateFromProps(p => State(SortedSet.from(p.languages)))
+    .initialStateFromProps(p => State(p.languages))
     .renderBackend[Backend]
     .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
@@ -76,6 +132,6 @@ object LanguageEditor {
   def apply(
     languages: Set[Language],
     onChange:  Set[Language] => Callback = _ => Callback.empty
-  ): Unmounted[Props, State, Backend] = component(Props(languages = languages, onChange = onChange))
+  ): Unmounted[Props, State, Backend] = component(Props(languages = languages.toSeq.sorted, onChange = onChange))
 
 }

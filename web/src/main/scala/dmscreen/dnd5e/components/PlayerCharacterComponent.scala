@@ -24,6 +24,9 @@ package dmscreen.dnd5e.components
 import dmscreen.DMScreenState
 import dmscreen.dnd5e.{*, given}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
+
+import japgolly.scalajs.react.vdom.InnerHtmlAttr
+import japgolly.scalajs.react.vdom.Attr
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{CtorType, *}
 import net.leibman.dmscreen.semanticUiReact.*
@@ -110,7 +113,7 @@ object PlayerCharacterComponent {
                       <.td(
                         ^.colSpan := 2,
                         EditableComponent(
-                          viewComponent = pc.classes.headOption.fold(<.div("Click to add Classes"))(_ =>
+                          view = pc.classes.headOption.fold(<.div("Click to add Classes"))(_ =>
                             pc.classes.zipWithIndex.map {
                               (
                                 cl,
@@ -122,11 +125,11 @@ object PlayerCharacterComponent {
                                 )
                             }.toVdomArray
                           ),
-                          editComponent = PlayerCharacterClassEditor(
+                          edit = PlayerCharacterClassEditor(
                             pc.classes,
                             onChange = classes => $.modPCInfo(info => info.copy(classes = classes))
                           ),
-                          modalTitle = "Classes/Subclasses/Levels",
+                          title = "Classes/Subclasses/Levels",
                           onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                         )
                       )
@@ -169,12 +172,12 @@ object PlayerCharacterComponent {
                       <.th("AC"),
                       <.td(
                         EditableComponent(
-                          viewComponent = <.div(pc.armorClass),
-                          editComponent = ArmorClassEditor(
+                          view = <.div(pc.armorClass),
+                          edit = ArmorClassEditor(
                             pc.armorClass,
                             onChange = armorClass => $.modPCInfo(info => info.copy(armorClass = armorClass))
                           ),
-                          modalTitle = "Armor Class",
+                          title = "Armor Class",
                           onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                         )
                       )
@@ -206,7 +209,7 @@ object PlayerCharacterComponent {
                 ^.className       := "characterDetails",
                 ^.backgroundColor := pc.hitPoints.lifeColor,
                 EditableComponent(
-                  viewComponent = <.table(
+                  view = <.table(
                     <.thead(
                       <.tr(<.th("HP"), <.th("Temp HP"))
                     ),
@@ -225,18 +228,18 @@ object PlayerCharacterComponent {
                       }
                     )
                   ),
-                  editComponent = HitPointsEditor(
+                  edit = HitPointsEditor(
                     pc.hitPoints,
                     onChange = hitPoints => $.modPCInfo(info => info.copy(hitPoints = hitPoints))
                   ),
-                  modalTitle = "Hit Points",
+                  title = "Hit Points",
                   onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                 )
               ),
               <.div(
                 ^.className := "characterDetails",
                 EditableComponent(
-                  viewComponent = <.table(
+                  view = <.table(
                     <.thead(
                       <.tr(
                         <.th(^.width := "16.667%", "Str"),
@@ -287,11 +290,11 @@ object PlayerCharacterComponent {
                       )
                     )
                   ),
-                  editComponent = AbilitiesEditor(
+                  edit = AbilitiesEditor(
                     pc.abilities,
                     onChange = abilities => $.modPCInfo(info => info.copy(abilities = abilities))
                   ),
-                  modalTitle = "Abilities",
+                  title = "Abilities",
                   onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                 )
               ),
@@ -319,15 +322,15 @@ object PlayerCharacterComponent {
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Conditions"),
                 EditableComponent(
-                  viewComponent = <.span(
+                  view = <.span(
                     pc.conditions.headOption
                       .fold("Click to change")(_ => pc.conditions.map(_.toString.capitalize).mkString(", "))
                   ),
-                  editComponent = ConditionsEditor(
+                  edit = ConditionsEditor(
                     pc.conditions,
                     onChange = conditions => $.modPCInfo(info => info.copy(conditions = conditions))
                   ),
-                  modalTitle = "Conditions",
+                  title = "Conditions",
                   onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                 )
               ),
@@ -335,11 +338,11 @@ object PlayerCharacterComponent {
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Speed"),
                 EditableComponent(
-                  editComponent = SpeedsEditor(
+                  edit = SpeedsEditor(
                     pc.speeds,
                     speeds => $.modPCInfo(info => info.copy(speeds = speeds))
                   ),
-                  viewComponent = pc.speeds.headOption.fold(<.div("Click to add")) { _ =>
+                  view = pc.speeds.headOption.fold(<.div("Click to add")) { _ =>
                     <.table(
                       <.thead(
                         <.tr(
@@ -353,7 +356,7 @@ object PlayerCharacterComponent {
                       )
                     )
                   },
-                  modalTitle = "Speeds",
+                  title = "Speeds",
                   onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                 )
               ),
@@ -361,7 +364,7 @@ object PlayerCharacterComponent {
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Skills"),
                 EditableComponent(
-                  viewComponent = <.table(
+                  view = <.table(
                     ^.minHeight := 330.px,
                     <.tbody(
                       <.tr(
@@ -420,12 +423,12 @@ object PlayerCharacterComponent {
                       )
                     )
                   ),
-                  editComponent = SkillsEditor(
+                  edit = SkillsEditor(
                     pc.skills,
                     pc.abilities,
                     onChange = skills => $.modPCInfo(info => info.copy(skills = skills))
                   ),
-                  modalTitle = "Skills",
+                  title = "Skills",
                   onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                 )
               ),
@@ -433,11 +436,10 @@ object PlayerCharacterComponent {
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Languages"),
                 EditableComponent(
-                  viewComponent =
-                    pc.languages.headOption.fold("Click to add")(_ => pc.languages.map(_.name).mkString(", ")),
-                  editComponent =
+                  view = pc.languages.headOption.fold("Click to add")(_ => pc.languages.map(_.name).mkString(", ")),
+                  edit =
                     LanguageEditor(pc.languages, languages => $.modPCInfo(info => info.copy(languages = languages))),
-                  modalTitle = "Languages",
+                  title = "Languages",
                   onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                 )
               ),
@@ -445,9 +447,9 @@ object PlayerCharacterComponent {
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Feats"),
                 EditableComponent(
-                  viewComponent = pc.feats.headOption.fold("Click to add")(_ => pc.feats.map(_.name).mkString(", ")),
-                  editComponent = FeatsEditor(pc.feats, feats => $.modPCInfo(info => info.copy(feats = feats))),
-                  modalTitle = "Feats",
+                  view = pc.feats.headOption.fold("Click to add")(_ => pc.feats.map(_.name).mkString(", ")),
+                  edit = FeatsEditor(pc.feats, feats => $.modPCInfo(info => info.copy(feats = feats))),
+                  title = "Feats",
                   onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                 )
               ),
@@ -455,18 +457,37 @@ object PlayerCharacterComponent {
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Senses"),
                 EditableComponent(
-                  viewComponent = <.div(pc.senses.headOption.fold("Click to add") { _ =>
+                  view = <.div(pc.senses.headOption.fold("Click to add") { _ =>
                     pc.senses.map(s => s"${s.sense} ${s.range}").mkString(", ")
                   }),
-                  editComponent = SensesEditor(pc.senses, senses => $.modPCInfo(info => info.copy(senses = senses))),
-                  modalTitle = "Senses",
+                  edit = SensesEditor(pc.senses, senses => $.modPCInfo(info => info.copy(senses = senses))),
+                  title = "Senses",
                   onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
                 )
               ),
               <.div(
-                ^.className := "characterDetails",
+                ^.className := "notesSection",
+                ^.height    := 700.px,
                 <.div(^.className := "sectionTitle", "Notes"),
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut cursus sapien, sed sollicitudin nibh. Morbi vitae purus eu diam tempor efficitur. Etiam nec sem est. Curabitur et sem pharetra, tristique libero vel, venenatis ante. Curabitur mattis egestas erat. Ut finibus suscipit augue a iaculis. Ut congue dui eget malesuada ullamcorper. Phasellus nec nunc blandit, viverra metus sed, placerat enim. Suspendisse vel nibh volutpat, sagittis est ut, feugiat leo. Phasellus suscipit et erat id sollicitudin. In vel posuere odio. Donec vestibulum nec felis et feugiat. Morbi lacus orci, finibus at risus sed, vestibulum pretium lorem. Vivamus suscipit diam id dignissim maximus. Curabitur et consectetur elit, vel ornare risus."
+                EditableComponent(
+                  view = <.div(
+                    ^.dangerouslySetInnerHtml := pc.notes.trim.headOption.fold("Click here to add")(_ => pc.notes)
+                  ),
+                  edit = {
+                    NotesEditor(
+                      pc.notes,
+                      onChange = (
+                        notes,
+                        personalityTraits,
+                        ideals,
+                        bonds,
+                        flaws
+                      ) => $.modPCInfo(info => info.copy(notes = notes))
+                    )
+                  },
+                  title = "Notes",
+                  onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                )
               )
             )
           }

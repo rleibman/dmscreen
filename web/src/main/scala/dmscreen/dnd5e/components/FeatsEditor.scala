@@ -22,6 +22,7 @@
 package dmscreen.dnd5e.components
 
 import dmscreen.dnd5e.*
+import dmscreen.dnd5e.components.HitPointsEditor.State
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.VdomNode
@@ -29,6 +30,7 @@ import japgolly.scalajs.react.vdom.all.verticalAlign
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES, SemanticWIDTHS}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
 
@@ -49,15 +51,74 @@ object FeatsEditor {
       props: Props,
       state: State
     ): VdomNode = {
-      <.div(
+      Table(
+        Table.Body(state.feats.zipWithIndex.map {
+          (
+            lang,
+            i
+          ) =>
+            Table.Row(
+              Table.Cell(
+                Input
+                  .value(lang.name)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case s: String => s
+                        case _ => lang.name
+                      }
+                      $.modState(
+                        s => s.copy(feats = s.feats.updated(i, lang.copy(name = newVal))),
+                        $.state.flatMap(s => props.onChange(s.feats.filter(_.name.trim.nonEmpty)))
+                      )
+                    }
+                  )
+              ),
+              Table.Cell(
+                Button
+                  .icon(true).onClick {
+                    (
+                      _,
+                      _
+                    ) =>
+                      $.modState(
+                        s => s.copy(feats = s.feats.filter(_ != lang)),
+                        $.state.flatMap(s => props.onChange(s.feats))
+                      )
+                  }(Icon.name(SemanticICONS.delete))
+              )
+            )
+        }*),
+        Table.Footer(
+          Table.Row(
+            Table.Cell.colSpan(4)(
+              Button
+                .icon(true).onClick(
+                  (
+                    _,
+                    _
+                  ) =>
+                    $.modState(
+                      s => s.copy(feats = s.feats :+ Feat("")),
+                      $.state.flatMap(s => props.onChange(s.feats.filter(_.name.trim.nonEmpty)))
+                    )
+                )(Icon.name(SemanticICONS.add))
+            )
+          )
+        )
       )
+
     }
 
   }
 
   import scala.language.unsafeNulls
 
-  given Reusability[State] = Reusability.derive[State]
+  given Ordering[Feat] = Ordering.by(_.name)
+  given Reusability[State] = Reusability.by((s: State) => s.feats.mkString)
   given Reusability[Props] = Reusability.by((_: Props) => "") // make sure the props are ignored for re-rendering the component
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent

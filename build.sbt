@@ -200,7 +200,8 @@ lazy val reactNpmDeps: Project => Project =
       "@types/prop-types"            -> "^15.0.0",
       "semantic-ui-react"            -> "^2.0.0",
       "react-svg-radar-chart"        -> "^1.0.0",
-      "@types/react-svg-radar-chart" -> "^1.0.0"
+      "@types/react-svg-radar-chart" -> "^1.0.0",
+      "react-quill"                  -> "^2.0.0"
     )
   )
 

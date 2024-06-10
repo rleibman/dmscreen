@@ -86,3 +86,10 @@ label {
     text-align: center;
 }
 
+.notesSection {
+    margin-bottom: 3px;
+    border-bottom: 1px solid #7f8c8d;
+    overflow: auto;
+    scrollbar-width: thin;
+
+}

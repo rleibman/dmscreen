@@ -27,6 +27,7 @@ import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.vdom.all.verticalAlign
 import japgolly.scalajs.react.vdom.html_<^.*
+import net.leibman.dmscreen.reactQuill.components.ReactQuill
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
 import org.scalajs.dom.html
@@ -35,13 +36,27 @@ import org.scalajs.dom.html.Span
 object NotesEditor {
 
   case class State(
-    notes: String
+    notes: String,
+    // TODO: all the below
+    personalityTraits: String = "",
+    ideals:            String = "",
+    bonds:             String = "",
+    flaws:             String = ""
   )
 
   case class Props(
-    notes:    String,
-    onSave:   String => Callback,
-    onCancel: Callback = Callback.empty
+    notes:             String,
+    personalityTraits: String = "",
+    ideals:            String = "",
+    bonds:             String = "",
+    flaws:             String = "",
+    onChange: (String, String, String, String, String) => Callback = (
+      _,
+      _,
+      _,
+      _,
+      _
+    ) => Callback.empty
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -50,7 +65,15 @@ object NotesEditor {
       props: Props,
       state: State
     ): VdomNode = {
-      <.div("Hello")
+      ReactQuill
+        .value(state.notes).onChange(
+          (
+            newValue,
+            deltaStatic,
+            sources,
+            editor
+          ) => $.modState(_.copy(notes = newValue), $.state.flatMap(s => props.onChange(s.notes.trim, "", "", "", "")))
+        )
     }
 
   }
@@ -69,9 +92,18 @@ object NotesEditor {
     .build
 
   def apply(
-    notes:    String,
-    onSave:   String => Callback = _ => Callback.empty,
-    onCancel: Callback = Callback.empty
-  ): Unmounted[Props, State, Backend] = component(Props(notes, onSave, onCancel))
+    notes:             String,
+    personalityTraits: String = "",
+    ideals:            String = "",
+    bonds:             String = "",
+    flaws:             String = "",
+    onChange: (String, String, String, String, String) => Callback = (
+      _,
+      _,
+      _,
+      _,
+      _
+    ) => Callback.empty
+  ): Unmounted[Props, State, Backend] = component(Props(notes, personalityTraits, ideals, bonds, flaws, onChange))
 
 }

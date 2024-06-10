@@ -92,11 +92,11 @@ object EditableComponent {
       .build
 
   def apply(
-    viewComponent:   VdomNode,
-    editComponent:   VdomNode,
+    view:            VdomNode,
+    edit:            VdomNode,
     actionComponent: VdomNode = EmptyVdom,
-    modalTitle:      String = "",
+    title:           String = "",
     onModeChange:    Mode => Callback = _ => Callback.empty
-  ) = component(Props(viewComponent, editComponent, actionComponent, modalTitle, onModeChange))
+  ) = component(Props(view, edit, actionComponent, title, onModeChange))
 
 }
