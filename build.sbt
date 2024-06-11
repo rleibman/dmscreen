@@ -187,35 +187,35 @@ lazy val debianSettings =
 ////////////////////////////////////////////////////////////////////////////////////
 // Web
 val scalajsReactVersion = "2.1.1"
-val reactVersion = "^18.0.0"
+//val reactVersion = "^18.0.0"
 
-lazy val reactNpmDeps: Project => Project =
-  _.settings(
-    Compile / npmDependencies ++= Seq(
-      "react-dom"                    -> reactVersion,
-      "@types/react-dom"             -> reactVersion,
-      "react"                        -> reactVersion,
-      "@types/react"                 -> reactVersion,
-      "csstype"                      -> "^3.0.0",
-      "@types/prop-types"            -> "^15.0.0",
-      "semantic-ui-react"            -> "^2.0.0",
-      "react-svg-radar-chart"        -> "^1.0.0",
-      "@types/react-svg-radar-chart" -> "^1.0.0",
-      "react-quill"                  -> "^2.0.0"
-    )
-  )
+//lazy val reactNpmDeps: Project => Project =
+//  _.settings(
+//    Compile / npmDependencies ++= Seq(
+//      "react-dom"                    -> reactVersion,
+//      "@types/react-dom"             -> reactVersion,
+//      "react"                        -> reactVersion,
+//      "@types/react"                 -> reactVersion,
+//      "csstype"                      -> "^3.0.0",
+//      "@types/prop-types"            -> "^15.0.0",
+//      "semantic-ui-react"            -> "^2.0.0",
+//      "react-svg-radar-chart"        -> "^1.0.0",
+//      "@types/react-svg-radar-chart" -> "^1.0.0",
+//      "react-quill"                  -> "^2.0.0"
+//    )
+//  )
 
 lazy val bundlerSettings: Project => Project =
   _.enablePlugins(ScalaJSBundlerPlugin)
     .settings(
-      startWebpackDevServer / version := "5.0.4",
-      webpack / version               := "5.91.0",
+//      startWebpackDevServer / version := "5.0.4",
+      webpack / version := "5.91.0",
 //      Compile / fastOptJS / webpackExtraArgs += "--mode=development",
-      Compile / fastOptJS / webpackDevServerExtraArgs += "--mode=development",
+//      Compile / fastOptJS / webpackDevServerExtraArgs += "--mode=development",
       Compile / fastOptJS / artifactPath := ((Compile / fastOptJS / crossTarget).value /
         ((fastOptJS / moduleName).value + "-opt.js")),
       //      Compile / fullOptJS / webpackExtraArgs += "--mode=production",
-      Compile / fullOptJS / webpackDevServerExtraArgs += "--mode=production",
+//      Compile / fullOptJS / webpackDevServerExtraArgs += "--mode=production",
       Compile / fullOptJS / artifactPath := ((Compile / fullOptJS / crossTarget).value /
         ((fullOptJS / moduleName).value + "-opt.js")),
       useYarn                                   := true,
@@ -227,30 +227,30 @@ lazy val bundlerSettings: Project => Project =
       scalaJSLinkerConfig ~= (_.withSourceMap(false))
     )
 
-//TODO move to it's own repo and project, publish local, but get it out of here as it makes the build take forever
-lazy val stLib = project
-  .in(file("dmscreen-stLib"))
-  .enablePlugins(ScalablyTypedConverterGenSourcePlugin)
-  .configure(reactNpmDeps)
-  .settings(
-    name                     := "dmscreen-stLib",
-    useYarn                  := true,
-    stOutputPackage          := "net.leibman.dmscreen",
-    stFlavour                := Flavour.ScalajsReact,
-    stReactEnableTreeShaking := Selection.All,
-    stQuiet                  := true,
-    // stEnableLongApplyMethod         := true, // can't use this because it breaks scala 3
-    scalaJSUseMainModuleInitializer := true,
-    /* disabled because it somehow triggers many warnings */
-    scalaJSLinkerConfig ~= (_.withSourceMap(false)),
-    libraryDependencies ++= Seq(
-      "com.github.japgolly.scalajs-react" %%% "core"  % scalajsReactVersion withSources (),
-      "com.github.japgolly.scalajs-react" %%% "extra" % scalajsReactVersion withSources ()
-    )
-  )
+////TODO move to it's own repo and project, publish local, but get it out of here as it makes the build take forever
+//lazy val stLib = project
+//  .in(file("dmscreen-stLib"))
+//  .enablePlugins(ScalablyTypedConverterGenSourcePlugin)
+//  .configure(reactNpmDeps)
+//  .settings(
+//    name                     := "dmscreen-stLib",
+//    useYarn                  := true,
+//    stOutputPackage          := "net.leibman.dmscreen",
+//    stFlavour                := Flavour.ScalajsReact,
+//    stReactEnableTreeShaking := Selection.All,
+//    stQuiet                  := true,
+//    // stEnableLongApplyMethod         := true, // can't use this because it breaks scala 3
+//    scalaJSUseMainModuleInitializer := true,
+//    /* disabled because it somehow triggers many warnings */
+//    scalaJSLinkerConfig ~= (_.withSourceMap(false)),
+//    libraryDependencies ++= Seq(
+//      "com.github.japgolly.scalajs-react" %%% "core"  % scalajsReactVersion withSources (),
+//      "com.github.japgolly.scalajs-react" %%% "extra" % scalajsReactVersion withSources ()
+//    )
+//  )
 
 lazy val web: Project = project
-  .dependsOn(commonJS, stLib)
+  .dependsOn(commonJS)
   .settings(commonSettings)
   .configure(bundlerSettings)
   .configure(withCssLoading)
@@ -315,6 +315,7 @@ lazy val commonWeb: Project => Project =
   _.settings(
     libraryDependencies ++= Seq(
 //      "commons-io" % "commons-io" % "2.15.1" withSources(),
+      "net.leibman" %%% "dmscreen-stlib"              % "0.2.0-SNAPSHOT" withSources (),
       "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
       "dev.zio" %%% "zio"                             % zioVersion withSources (),
       "com.softwaremill.sttp.client3" %%% "core"      % "3.9.7" withSources (),
@@ -322,8 +323,8 @@ lazy val commonWeb: Project => Project =
       "io.github.cquiroz" %%% "scala-java-time-tzdb"  % "2.5.0" withSources (),
       "org.scala-js" %%% "scalajs-dom"                % "2.8.0" withSources (),
       "com.olvind" %%% "scalablytyped-runtime"        % "2.4.2",
-      "com.github.japgolly.scalajs-react" %%% "core"  % "2.1.1" withSources (),
-      "com.github.japgolly.scalajs-react" %%% "extra" % "2.1.1" withSources (),
+      "com.github.japgolly.scalajs-react" %%% "core"  % scalajsReactVersion withSources (),
+      "com.github.japgolly.scalajs-react" %%% "extra" % scalajsReactVersion withSources (),
       "com.lihaoyi" %%% "scalatags"                   % "0.13.1" withSources (),
       "com.github.japgolly.scalacss" %%% "core"       % "1.0.0" withSources (),
       "com.github.japgolly.scalacss" %%% "ext-react"  % "1.0.0" withSources ()
@@ -333,8 +334,8 @@ lazy val commonWeb: Project => Project =
     startYear        := Some(2024),
     licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
     Compile / unmanagedSourceDirectories := Seq((Compile / scalaSource).value),
-    Test / unmanagedSourceDirectories    := Seq((Test / scalaSource).value),
-    webpackDevServerPort                 := 8009
+    Test / unmanagedSourceDirectories    := Seq((Test / scalaSource).value)
+//    webpackDevServerPort                 := 8009
   )
 
 lazy val withCssLoading: Project => Project =
@@ -354,7 +355,7 @@ lazy val withCssLoading: Project => Project =
 // Root project
 lazy val root = project
   .in(file("."))
-  .aggregate(commonJVM, commonJS, server, web, stLib)
+  .aggregate(commonJVM, commonJS, server, web)
   .settings(
     name           := "dmscreen",
     publish / skip := true,

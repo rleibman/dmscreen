@@ -44,7 +44,6 @@ given Reusability[Skills] = Reusability.derive[Skills]
 given Reusability[HitPoints] = Reusability.derive[HitPoints]
 given Reusability[Feat] = Reusability.derive[Feat]
 given Reusability[Condition] = Reusability.derive[Condition]
-given Reusability[PlayerCharacter] = Reusability.by(_.toString)
 given Reusability[SubClass] = Reusability.string.contramap(_.name)
 given Reusability[SkillType] = Reusability.by(_.toString)
 given Reusability[AdvantageDisadvantage] = Reusability.by(_.toString)

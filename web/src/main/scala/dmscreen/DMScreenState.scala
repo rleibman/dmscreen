@@ -34,10 +34,11 @@ case class DND5eState(
 )
 
 case class DMScreenState(
-  user:          Option[User] = None,
-  campaignState: Option[CampaignState] = None,
-  dnd5e:         DND5eState = DND5eState()
-//  operationStream: Option[WebSocketHandler] = None
+  user:                  Option[User] = None,
+  campaignState:         Option[CampaignState] = None,
+  dnd5e:                 DND5eState = DND5eState(),
+  onModifyCampaignState: CampaignState => Callback = _ => Callback.empty
+  //  operationStream: Option[WebSocketHandler] = None
 )
 
 object DMScreenState {

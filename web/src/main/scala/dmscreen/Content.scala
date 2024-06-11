@@ -57,7 +57,7 @@ object Content {
 
   class Backend($ : BackendScope[Unit, State]) {
 
-    def render(s: State) = {
+    def render(s: State): VdomElement = {
       DMScreenState.ctx.provide(s.dmScreenState) {
         <.div(
           ^.key    := "contentDiv",
@@ -197,7 +197,9 @@ object Content {
               dnd5e = s.dmScreenState.dnd5e.copy(
                 backgrounds = backgrounds,
                 classes = classes
-              )
+              ),
+              onModifyCampaignState = newState =>
+                $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(campaignState = Some(newState))))
             )
         )
       }
@@ -205,7 +207,7 @@ object Content {
         _ <- Callback.log(
           if (initial) "Initializing Content Component" else "Refreshing Content Component"
         )
-        modedState <- ajax.completeWith(a => a.get)
+        modedState <- ajax.completeWith(_.get)
       } yield modedState
     }
 

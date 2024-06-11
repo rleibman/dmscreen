@@ -47,6 +47,7 @@ object AppRouter {
           .fluid(true)
           .vertical(true)
           .tabular(true)
+          .withKey("mainMenu")
           .className("mainMenu")(
             Menu.Item
               .withKey("home")

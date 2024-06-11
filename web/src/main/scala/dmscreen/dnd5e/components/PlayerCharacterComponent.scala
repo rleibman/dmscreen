@@ -47,7 +47,6 @@ object PlayerCharacterComponent {
   )
   case class Props(
     playerCharacter: PlayerCharacter,
-    onSave:          PlayerCharacter => Callback = _ => Callback.empty,
     onDelete:        PlayerCharacter => Callback = _ => Callback.empty,
     onSync:          PlayerCharacter => Callback = _ => Callback.empty
   )
@@ -85,18 +84,29 @@ object PlayerCharacterComponent {
         s.playerCharacter.info.fold(
           e => <.div(s"Could not parse character info: ${e.getMessage}"),
           { pc =>
-
             def allBackgrounds =
-              dmScreenState.dnd5e.backgrounds ++ pc.background.fold(Seq.empty)(bk =>
+              (dmScreenState.dnd5e.backgrounds ++ pc.background.fold(Seq.empty)(bk =>
                 Seq(
                   dmScreenState.dnd5e.backgrounds
                     .find(_.name.equalsIgnoreCase(bk.name)).getOrElse(Background(name = bk.name))
                 )
-              )
+              ))
+                .sortBy(_.name)
+                .distinctBy(_.name)
 
             <.div(
               ^.className := "characterCard",
-              Button("Delete").size(SemanticSIZES.tiny).compact(true),
+              Button("Delete")
+                .size(SemanticSIZES.tiny).compact(true).onClick(
+                  (
+                    _,
+                    _
+                  ) =>
+                    _root_.components.Confirm.confirm(
+                      question = "Are you 100% sure you want to delete this character?",
+                      onConfirm = p.onDelete(p.playerCharacter)
+                    )
+                ),
               Button("Sync").size(SemanticSIZES.tiny).compact(true).when(pc.source != DMScreenSource), // Only if the character originally came from a synchable source
               <.div(
                 ^.className := "characterHeader",
@@ -507,9 +517,8 @@ object PlayerCharacterComponent {
 
   def apply(
     playerCharacter: PlayerCharacter,
-    onSave:          PlayerCharacter => Callback = _ => Callback.empty,
     onDelete:        PlayerCharacter => Callback = _ => Callback.empty,
     onSync:          PlayerCharacter => Callback = _ => Callback.empty
-  ): Unmounted[Props, State, Backend] = component(Props(playerCharacter, onSave, onDelete, onSync))
+  ): Unmounted[Props, State, Backend] = component.withKey(playerCharacter.header.id.value.toString)(Props(playerCharacter, onDelete, onSync))
 
 }

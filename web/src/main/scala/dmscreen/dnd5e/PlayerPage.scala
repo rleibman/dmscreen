@@ -24,10 +24,10 @@ package dmscreen.dnd5e
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
 import dmscreen.dnd5e.NPCPage.State
 import dmscreen.dnd5e.components.PlayerCharacterComponent
-import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
+import japgolly.scalajs.react.{BackendScope, Callback, Reusability, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import net.leibman.dmscreen.semanticUiReact.*
-import net.leibman.dmscreen.semanticUiReact.components.*
+import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
 import japgolly.scalajs.react.vdom.html_<^.*
 import zio.json.*
 import zio.json.ast.*
@@ -48,7 +48,28 @@ object PlayerPage extends DMScreenTab {
           VdomArray(
             <.div(
               ^.className := "pageActions",
-              Button("Add Character"),
+              Button.onClick(
+                (
+                  _,
+                  _
+                ) => {
+                  // new player
+                  val newPC = PlayerCharacter(
+                    header = PlayerCharacterHeader(
+                      id = PlayerCharacterId.empty,
+                      campaignId = campaign.header.id,
+                      name = "New Character"
+                    ),
+                    jsonInfo = PlayerCharacterInfo(
+                      hitPoints = HitPoints(0, 0),
+                      armorClass = 10,
+                      classes = List.empty
+                    ).toJsonAST.toOption.get
+                  )
+                  dmScreenState.onModifyCampaignState(campaignState.copy(pcs = campaignState.pcs :+ newPC))
+                  //TODO send to server
+                }
+              )("Add Character"),
               Button("Import from dndbeyond.com"),
               Button("Import from 5th Edition Tools"),
               Button("Short Rest"),
@@ -56,39 +77,19 @@ object PlayerPage extends DMScreenTab {
             ),
             <.div(
               ^.className := "characterContainer",
-              campaignState.pcs.map(PlayerCharacterComponent(_)).toVdomArray
+              campaignState.pcs
+                .map(pc =>
+                  PlayerCharacterComponent(
+                    playerCharacter = pc,
+                    onDelete = deleteMe =>
+                      dmScreenState.onModifyCampaignState(
+                        campaignState.copy(pcs = campaignState.pcs.filter(_.header.id != deleteMe.header.id))
+                        //TODO delete from server 
+                      )
+                  )
+                ).toVdomArray
             )
           )
-//
-//          ,
-//            campaignState.pcs.map { pc =>
-//
-//              val info = pc.info.toOption.get // Should never fail
-//
-//              <.div(
-//                pc.header.name,
-//                pc.header.playerName,
-//                info.alignment.toString,
-//                info.race.name,
-//                info.faith,
-//                info.classes.map(c => s"${c.name}: ${c.subclass.name} (l ${c.level})").mkString(", "),
-//                info.abilities
-//                  .map(a => <.div(^.className := "shortAbility", s"${a.abilityType.short}${a.value}")).toVdomArray,
-//                <.div(^.className := "hitPoints", s"${info.baseHitPoints}"),
-//                info.armorClass,
-//                info.background.name,
-//                info.conditions.map(_.toString).mkString(", "),
-//                info.deathSaves.successes,
-//                info.feats.map(f => s"${f.name}").mkString(", "),
-//                info.inspiration.toString,
-//                info.modifiers.toString,
-//                info.notes,
-//                info.languages.mkString(","),
-//                info.traits.toString
-//              )
-//
-//            }.toVdomArray
-//          )
         }
       }
     }
