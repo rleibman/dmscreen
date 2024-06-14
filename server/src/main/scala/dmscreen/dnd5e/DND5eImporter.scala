@@ -21,14 +21,9 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.dnd5e.{*, given}
-import dmscreen.{CampaignId, DMScreenError, DMScreenServerEnvironment}
+import dmscreen.DMScreenError
 import zio.*
-import zio.json.*
-import zio.json.ast.Json
-import zio.nio.file.*
-
-import java.net.URI
+import zio.stream.ZStream
 
 trait DND5eImporter[CampaignLink, PlayerCharacterLink, EncounterLink, MonsterLink] {
 
@@ -38,6 +33,6 @@ trait DND5eImporter[CampaignLink, PlayerCharacterLink, EncounterLink, MonsterLin
 
   def importEncounter(encounterLink: EncounterLink): ZIO[Any, DMScreenError, Encounter]
 
-  def importMonster(monsterLink: MonsterLink): ZIO[Any, DMScreenError, Monster]
+  def importMonsters(monsterLink: MonsterLink): ZStream[Any, DMScreenError, Monster]
 
 }

@@ -4,7 +4,7 @@ insert into dmscreenUser (`id`,
 values (1, 'test', 'test@localhost');
 
 insert into campaign (`id`,
-                      dm,
+                      dmUserId,
                       `name`,
                       info,
                       version,

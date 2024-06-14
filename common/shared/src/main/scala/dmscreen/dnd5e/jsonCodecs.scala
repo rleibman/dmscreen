@@ -90,6 +90,7 @@ given JsonCodec[HitPoints] = JsonCodec.derived[HitPoints]
 given JsonCodec[Abilities] = JsonCodec.derived[Abilities]
 given JsonCodec[Skill] = JsonCodec.derived[Skill]
 given JsonCodec[Skills] = JsonCodec.derived[Skills]
+given JsonCodec[Marker] = JsonCodec.derived[Marker]
 given JsonCodec[Language] = JsonCodec.string.transform(Language.fromName, _.name)
 given JsonCodec[Action] = JsonCodec.derived[Action]
 given JsonCodec[SpellHeader] = JsonCodec.derived[SpellHeader]

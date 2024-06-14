@@ -28,6 +28,7 @@ import zio.*
 import zio.json.*
 import zio.json.ast.Json
 import zio.nio.file.*
+import zio.stream.ZStream
 
 import java.net.URI
 
@@ -43,7 +44,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
 
   override def importEncounter(encounterLink: URI): ZIO[Any, DMScreenError, Encounter] = ???
 
-  override def importMonster(monsterLink: URI): ZIO[Any, DMScreenError, Monster] = ???
+  override def importMonsters(monsterLink: URI): ZStream[Any, DMScreenError, Monster] = ???
 
   extension (obj: Json.Obj) {
 

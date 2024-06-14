@@ -67,7 +67,7 @@ object PlayerPage extends DMScreenTab {
                     ).toJsonAST.toOption.get
                   )
                   dmScreenState.onModifyCampaignState(campaignState.copy(pcs = campaignState.pcs :+ newPC))
-                  //TODO send to server
+                  // TODO send to server
                 }
               )("Add Character"),
               Button("Import from dndbeyond.com"),
@@ -76,7 +76,7 @@ object PlayerPage extends DMScreenTab {
               Button("Long Rest")
             ),
             <.div(
-              ^.className := "characterContainer",
+              ^.className := "pageContainer",
               campaignState.pcs
                 .map(pc =>
                   PlayerCharacterComponent(
@@ -84,7 +84,7 @@ object PlayerPage extends DMScreenTab {
                     onDelete = deleteMe =>
                       dmScreenState.onModifyCampaignState(
                         campaignState.copy(pcs = campaignState.pcs.filter(_.header.id != deleteMe.header.id))
-                        //TODO delete from server 
+                        // TODO delete from server
                       )
                   )
                 ).toVdomArray

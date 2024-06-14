@@ -15,13 +15,13 @@ CREATE TABLE `dmscreenUser`
 create table campaign
 (
     `id`       int(11)                                              NOT NULL AUTO_INCREMENT,
-    dm         int(11)                                              not null,
+    dmUserId   int(11)                                              not null,
     `name`     text                                                 NOT NULL,
     `version`  text                                                 NOT NULL,
     info       json                                                 not null,
     gameSystem enum ('dnd5e', 'pathfinder2e', 'starTrekAdventures') not null,
-    key campaign_dm (dm),
-    constraint campaign_dm foreign key (dm) references `dmscreenUser` (id),
+    key campaign_dm (dmUserId),
+    constraint campaign_dm foreign key (dmUserId) references `dmscreenUser` (id),
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
@@ -37,6 +37,20 @@ create table playerCharacter
     PRIMARY KEY (`id`),
     key player_character_campaign (campaignId),
     constraint player_character_campaign foreign key (campaignId) references `campaign` (id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
+
+create table encounter
+(
+    `id`       int(11) NOT NULL AUTO_INCREMENT,
+    campaignId int(11) not null,
+    `name`     text    NOT NULL,
+    `status`   text    NOT NULL,
+    info       json    not null,
+    `version`  text    NOT NULL,
+    PRIMARY KEY (`id`),
+    key encounter_character_campaign (campaignId),
+    constraint encounter_character_campaign foreign key (campaignId) references `campaign` (id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -57,10 +71,18 @@ create table nonPlayerCharacter
 
 create table monster
 (
-    `id`      int(11) NOT NULL AUTO_INCREMENT,
-    `name`    text    NOT NULL,
-    info      json    not null,
-    `version` text    NOT NULL,
+    `id`          int(11) NOT NULL AUTO_INCREMENT,
+    `name`        text    NOT NULL,
+    `monsterType` text    NOT NULL,
+    `biome`       text    NULL,
+    `alignment`   text    NULL,
+    `cr`          double  NOT NULL,
+    `xp`          bigint  NOT NULL,
+    `armorClass`  int(11) NOT NULL,
+    `hitPoints`   int(11) NOT NULL,
+    `size`        text    NOT NULL,
+    `info`        json    not null,
+    `version`     text    NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;

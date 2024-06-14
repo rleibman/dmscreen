@@ -21,14 +21,26 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{DMScreenState, DMScreenTab}
-import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
+import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
+import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
+import net.leibman.dmscreen.semanticUiReact.*
+import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticWIDTHS
+import zio.json.*
 
 object EncounterPage extends DMScreenTab {
 
-  case class State()
+  case class State(
+    encounters:    List[Encounter] = List.empty,
+    monsterSearch: MonsterSearch = MonsterSearch(),
+    monsters:      List[Monster] = List.empty
+  ) {
+
+    def currentEncounter: Option[Encounter] = encounters.find(_.header.status == EncounterStatus.active)
+
+  }
 
   class Backend($ : BackendScope[Unit, State]) {
 
@@ -40,20 +52,67 @@ object EncounterPage extends DMScreenTab {
           val campaign = campaignState.campaign
 
           <.div(
-            """
-            A table of encounter entities,
-  def name: String
-  def id: String
-  def notes: String //editable
-  def concentration: Boolean
-  def hide: Boolean
-  def hp: Hitpoints // action: damage/healing/saves
-  def ac: Int
-  def initiative: Int // action: roll
-  def conditions: List[Condition] // action: add/remove
-  def otherStatuses: List[String] //action: add/remove
-            """,
-            <.div(<.h2("Encounter Log"))
+            ^.className := "pageContainer",
+            Grid(
+              Grid
+                .Column()
+                .width(SemanticWIDTHS.`14`)(
+                  s.currentEncounter.fold(<.div("There's no current encounter")) { encounter =>
+                    Table(
+                      Table.Header(
+                        Table.Row(
+                          Table.HeaderCell.colSpan(8)(
+                            s"${encounter.header.name}",
+                            Button("Roll NPC Initiative"),
+                            Button("Clear NPCs")
+                          )
+                        ),
+                        Table.Row(
+                          Table.HeaderCell("Initiative"),
+                          Table.HeaderCell("Name"),
+                          Table.HeaderCell("Concentration"),
+                          Table.HeaderCell("HP"),
+                          Table.HeaderCell("AC"),
+                          Table.HeaderCell("Conditions"),
+                          Table.HeaderCell("Other"),
+                          Table.HeaderCell( /*For actions*/ )
+                        )
+                      ),
+                      Table.Body()
+                    )
+                  },
+                  Table(
+                    Table.Header(
+                      Table.Row(Table.Cell.colSpan(9)("Search stuff goes here")),
+                      Table.Row(
+                        Table.HeaderCell("Name"),
+                        Table.HeaderCell("Type"),
+                        Table.HeaderCell("Biome"),
+                        Table.HeaderCell("Alignment"),
+                        Table.HeaderCell("CR"),
+                        Table.HeaderCell("XP"),
+                        Table.HeaderCell("AC"),
+                        Table.HeaderCell("HP"),
+                        Table.HeaderCell("Size"),
+                        Table.HeaderCell( /*For actions*/ )
+                      )
+                    ),
+                    Table.Body(),
+                    Table.Footer(
+                      Table.Row(
+                        Table.Cell.colSpan(10)(
+                          Pagination(10)
+                        )
+                      )
+                    )
+                  )
+                ),
+              Grid
+                .Column()
+                .width(SemanticWIDTHS.`4`)(
+                  <.div(<.h2("Encounter Log"))
+                )
+            )
           )
 
         }

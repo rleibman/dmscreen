@@ -45,7 +45,7 @@ enum GameSystem {
 
 case class CampaignHeader(
   id:         CampaignId,
-  dm:         UserId,
+  dmUserId:   UserId,
   name:       String,
   gameSystem: GameSystem = GameSystem.dnd5e
 ) extends HasId[CampaignId]

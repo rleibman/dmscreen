@@ -41,12 +41,12 @@ object BestiaryPage extends DMScreenTab {
           s.monsters.map { m =>
             <.div(
               m.name,
-              m.ac,
+              m.armorClass,
               m.cr,
               m.monsterType.toString,
               m.biome.toString,
               m.size.toString,
-              m.hp,
+              m.maximumHitPoints,
               m.xp
             )
 

@@ -110,7 +110,7 @@ type Background {
 
 type CampaignHeader {
   id: Long!
-  dm: Long!
+  dmUserId: Long!
   name: String!
   gameSystem: GameSystem!
 }
@@ -170,7 +170,7 @@ type MonsterHeader {
   biome: Biome
   alignment: Alignment
   cr: Float!
-  xp: Int!
+  xp: Long!
   ac: Int!
   hp: Int!
   size: CreatureSize!

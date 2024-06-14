@@ -41,7 +41,7 @@ object QuillDND5eRepository {
   private case class CampaignRow(
     id:         Long,
     name:       String,
-    dm:         Long,
+    dmUserId:   Long,
     gameSystem: String,
     info:       Json,
     version:    String
@@ -49,7 +49,7 @@ object QuillDND5eRepository {
 
     def toModel: DND5eCampaign =
       DND5eCampaign(
-        header = CampaignHeader(id = CampaignId(id), dm = UserId(dm), name = name),
+        header = CampaignHeader(id = CampaignId(id), dmUserId = UserId(dmUserId), name = name),
         jsonInfo = info,
         version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
       )
@@ -104,6 +104,7 @@ object QuillDND5eRepository {
     id:         Long,
     campaignId: Long,
     name:       String,
+    status:     String,
     info:       Json,
     version:    String
   ) {
@@ -113,7 +114,8 @@ object QuillDND5eRepository {
         header = EncounterHeader(
           id = EncounterId(id),
           campaignId = CampaignId(campaignId),
-          name = name
+          name = name,
+          status = EncounterStatus.valueOf(status)
         ),
         jsonInfo = info,
         version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
@@ -128,9 +130,9 @@ object QuillDND5eRepository {
     biome:       Option[String],
     alignment:   Option[String],
     cr:          Double,
-    xp:          Int,
-    ac:          Int,
-    hp:          Int,
+    xp:          Long,
+    armorClass:  Int,
+    hitPoints:   Int,
     size:        String,
     info:        Json,
     version:     String
@@ -146,8 +148,8 @@ object QuillDND5eRepository {
           alignment = alignment.map(Alignment.valueOf),
           cr = cr,
           xp = xp,
-          ac = ac,
-          hp = hp,
+          armorClass = armorClass,
+          maximumHitPoints = hitPoints,
           size = CreatureSize.valueOf(size)
         ),
         jsonInfo = info,
@@ -225,12 +227,12 @@ object QuillDND5eRepository {
 
         override def campaigns: IO[DMScreenError, Seq[CampaignHeader]] =
           ctx
-            .run(qCampaigns.map(a => (a.id, a.dm, a.name, a.gameSystem)))
+            .run(qCampaigns.map(a => (a.id, a.dmUserId, a.name, a.gameSystem)))
             .map(
               _.map(t =>
                 CampaignHeader(
                   id = CampaignId(t._1),
-                  dm = UserId(t._2),
+                  dmUserId = UserId(t._2),
                   name = t._3,
                   gameSystem = GameSystem.valueOf(t._4)
                 )
@@ -269,13 +271,17 @@ object QuillDND5eRepository {
 
         override def encounters(campaignId: CampaignId): IO[DMScreenError, Seq[EncounterHeader]] =
           ctx
-            .run(qEncounters.filter(_.campaignId == lift(campaignId.value)).map(a => (a.id, a.campaignId, a.name)))
+            .run(
+              qEncounters
+                .filter(_.campaignId == lift(campaignId.value)).map(a => (a.id, a.campaignId, a.name, a.status))
+            )
             .map(
               _.map(t =>
                 EncounterHeader(
                   id = EncounterId(t._1),
                   campaignId = CampaignId(t._2),
-                  name = t._3
+                  name = t._3,
+                  status = EncounterStatus.valueOf(t._4)
                 )
               )
             )
@@ -465,7 +471,7 @@ object QuillDND5eRepository {
                       CampaignRow(
                         id = CampaignId.empty.value,
                         name = header.name,
-                        dm = header.dm.value,
+                        dmUserId = header.dmUserId.value,
                         gameSystem = header.gameSystem.toString,
                         info = info,
                         version = dmscreen.BuildInfo.version
@@ -511,12 +517,69 @@ object QuillDND5eRepository {
         override def insert(
           header: NonPlayerCharacterHeader,
           info:   Json
-        ): IO[DMScreenError, NonPlayerCharacterId] = ???
+        ): IO[DMScreenError, NonPlayerCharacterId] = {
+          if (header.id != NonPlayerCharacterId.empty) {
+            ZIO.fail(DMScreenError("Can't insert an NPC with an id"))
+          } else {
+            ctx
+              .run(
+                qNonPlayerCharacters
+                  .insertValue(
+                    lift(
+                      NonPlayerCharacterRow(
+                        id = NonPlayerCharacterId.empty.value,
+                        campaignId = header.campaignId.value,
+                        name = header.name,
+                        info = info,
+                        version = dmscreen.BuildInfo.version
+                      )
+                    )
+                  )
+                  .returningGenerated(_.id)
+              )
+              .map(NonPlayerCharacterId.apply)
+              .provideLayer(dataSourceLayer)
+              .mapError(RepositoryError.apply)
+
+          }
+        }
 
         override def insert(
           header: MonsterHeader,
           info:   Json
-        ): IO[DMScreenError, MonsterId] = ???
+        ): IO[DMScreenError, MonsterId] = {
+          if (header.id != MonsterId.empty) {
+            ZIO.fail(DMScreenError("Can't insert a monster character with an id"))
+          } else {
+            ctx
+              .run(
+                qMonsters
+                  .insertValue(
+                    lift(
+                      MonsterRow(
+                        id = MonsterId.empty.value,
+                        name = header.name,
+                        monsterType = header.monsterType.toString,
+                        biome = header.biome.map(_.toString),
+                        alignment = header.alignment.map(_.toString),
+                        cr = header.cr,
+                        xp = header.xp,
+                        armorClass = header.armorClass,
+                        hitPoints = header.maximumHitPoints,
+                        size = header.size.toString,
+                        info = info,
+                        version = dmscreen.BuildInfo.version
+                      )
+                    )
+                  )
+                  .returningGenerated(_.id)
+              )
+              .map(MonsterId.apply)
+              .provideLayer(dataSourceLayer)
+              .mapError(RepositoryError.apply)
+
+          }
+        }
 
         override def insert(
           header: SpellHeader,
@@ -526,7 +589,34 @@ object QuillDND5eRepository {
         override def insert(
           header: EncounterHeader,
           info:   Json
-        ): IO[DMScreenError, EncounterId] = ???
+        ): IO[DMScreenError, EncounterId] = {
+          if (header.id != EncounterId.empty) {
+            ZIO.fail(DMScreenError("Can't insert an encounter with an id"))
+          } else {
+            ctx
+              .run(
+                qEncounters
+                  .insertValue(
+                    lift(
+                      EncounterRow(
+                        id = EncounterId.empty.value,
+                        campaignId = header.campaignId.value,
+                        name = header.name,
+                        status = header.status.toString,
+                        info = info,
+                        version = dmscreen.BuildInfo.version
+                      )
+                    )
+                  )
+                  .returningGenerated(_.id)
+              )
+              .map(EncounterId.apply)
+              .provideLayer(dataSourceLayer)
+              .mapError(RepositoryError.apply)
+
+          }
+
+        }
 
       }
     }

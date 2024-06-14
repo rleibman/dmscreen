@@ -134,10 +134,18 @@ enum Lifestyle {
 
 }
 
-enum Alignment {
+enum Alignment(val name: String) {
 
-  case lawfulGood, neutralGood, chaoticGood, lawfulNeutral, trueNeutral, chaoticNeutral, lawfulEvil, neutralEvil,
-    chaoticEvil, unaligned
+  case lawfulGood extends Alignment("Lawful Good")
+  case neutralGood extends Alignment("Neutral Good")
+  case chaoticGood extends Alignment("Chaotic Good")
+  case lawfulNeutral extends Alignment("Lawful Neutral")
+  case trueNeutral extends Alignment("True Neutral")
+  case chaoticNeutral extends Alignment("Chaotic Neutral")
+  case lawfulEvil extends Alignment("Lawful Evil")
+  case neutralEvil extends Alignment("Neutral Evil")
+  case chaoticEvil extends Alignment("Chaotic Evil")
+  case unaligned extends Alignment("Unaligned")
 
 }
 
@@ -522,6 +530,8 @@ case class PlayerCharacterInfo(
     (if (m <= 0) ""
      else "+") + m.toString
   }
+
+  def initiativeBonus: Int = abilities.dexterity.modifier
 
   def overridenInitiative: Int = overrideInitiative.getOrElse(abilities.dexterity.modifier)
 

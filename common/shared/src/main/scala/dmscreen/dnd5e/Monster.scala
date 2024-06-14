@@ -46,6 +46,8 @@ case class SenseRange(
 
 object MonsterId {
 
+  def empty: MonsterId = MonsterId(0)
+
   def apply(monsterId: Long): MonsterId = monsterId
 
   extension (monsterId: MonsterId) {
@@ -92,31 +94,30 @@ enum Biome {
 }
 
 case class MonsterInfo(
-  walkingSpeed:   Option[Int],
-  burrowingSpeed: Option[Int],
-  climbingSpeed:  Option[Int],
-  flyingSpeed:    Option[Int],
-  swimmingSpeed:  Option[Int],
-  abilities:      Seq[Ability],
-  languages:      Seq[String],
-  challenge:      String,
-  traits:         String,
-  actions:        Seq[String],
-  reactions:      String,
-  senses:         Seq[SenseRange]
-)
+  abilities: Abilities,
+  hitDice:   Option[String] = None,
+  speeds:    Seq[Speed] = Seq.empty,
+  languages: Seq[Language] = Seq.empty,
+  actions:   Seq[String] = Seq.empty,
+  reactions: Seq[String] = Seq.empty,
+  senses:    Seq[SenseRange] = Seq.empty
+) {
+
+  def initiativeBonus: Int = abilities.dexterity.modifier
+
+}
 
 case class MonsterHeader(
-  id:          MonsterId,
-  name:        String,
-  monsterType: MonsterType,
-  biome:       Option[Biome],
-  alignment:   Option[Alignment],
-  cr:          Double,
-  xp:          Int,
-  ac:          Int,
-  hp:          Int,
-  size:        CreatureSize
+  id:               MonsterId,
+  name:             String,
+  monsterType:      MonsterType,
+  biome:            Option[Biome],
+  alignment:        Option[Alignment],
+  cr:               Double,
+  xp:               Long,
+  armorClass:       Int,
+  maximumHitPoints: Int,
+  size:             CreatureSize
 ) extends HasId[MonsterId]
 
 case class Monster(

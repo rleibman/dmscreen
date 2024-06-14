@@ -25,6 +25,7 @@ import dmscreen.dnd5e.{*, given}
 import dmscreen.{CampaignId, DMScreenError}
 import zio.json.*
 import zio.nio.file.Files
+import zio.stream.ZStream
 import zio.{ULayer, ZIO, ZLayer}
 
 import java.io.StringReader
@@ -68,7 +69,7 @@ class FifthEditionCharacterSheetImporter extends DND5eImporter[URI, URI, URI, UR
 
   override def importEncounter(uri: URI): ZIO[Any, DMScreenError, Encounter] = ???
 
-  override def importMonster(uri: URI): ZIO[Any, DMScreenError, Monster] = ???
+  override def importMonsters(uri: URI): ZStream[Any, DMScreenError, Monster] = ???
 
   override def importPlayerCharacter(uri: URI): ZIO[Any, DMScreenError, PlayerCharacter] = {
     def parseCharacterElem(elem: Elem): Either[DMScreenError, PlayerCharacter] = {

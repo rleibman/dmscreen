@@ -30,55 +30,43 @@ sealed abstract class EncounterEntity(
 
   def notes: String
 
-  def concentration: Boolean
-
-  def hide: Boolean
-
-  def hp: Int
-
-  def ac: Int
+  def initiativeBonus: Int
 
   def initiative: Int
 
-  def conditions: List[Condition]
-
-  def name: String
+  def otherMarkers: Seq[Marker]
 
 }
 
 case class MonsterEncounterEntity(
-  monsterHeader:              MonsterHeader,
-  override val notes:         String,
-  override val concentration: Boolean,
-  override val hide:          Boolean,
-  override val hp:            Int,
-  override val ac:            Int,
-  override val initiative:    Int,
-  override val conditions:    List[Condition]
-) extends EncounterEntity() {
+  monsterHeader:                MonsterHeader,
+  override val notes:           String,
+  hitPoints:                    HitPoints,
+  armorClass:                   Int,
+  override val initiative:      Int,
+  conditions:                   Set[Condition],
+  override val otherMarkers:    Seq[Marker],
+  name:                         String,
+  override val initiativeBonus: Int
+) extends EncounterEntity()
 
-  override val name: String = monsterHeader.name
-
-}
+/** Used for things like Hunter's Mark, Hex, Hidden, concentration, etc.
+  */
+case class Marker(name: String)
 
 case class PlayerCharacterEncounterEntity(
-  playerCharacterHeader:      PlayerCharacterHeader,
-  override val notes:         String,
-  override val concentration: Boolean,
-  override val hide:          Boolean,
-  override val hp:            Int,
-  override val ac:            Int,
-  override val initiative:    Int,
-  override val conditions:    List[Condition]
-) extends EncounterEntity() {
-
-  override val name: String = playerCharacterHeader.name
-
-}
+  playerCharacterId:            PlayerCharacterId,
+  override val notes:           String,
+  override val initiative:      Int,
+  override val otherMarkers:    Seq[Marker],
+  override val initiativeBonus: Int
+) extends EncounterEntity()
 
 opaque type EncounterId = Long
 
 object EncounterId {
+
+  val empty: EncounterId = EncounterId(0)
 
   def apply(encounterId: Long): EncounterId = encounterId
 
@@ -99,17 +87,29 @@ enum EncounterDifficulty {
 
 }
 
+enum EncounterStatus {
+
+  case active, planned, old
+
+}
+
 case class EncounterHeader(
   id:         EncounterId,
   campaignId: CampaignId,
-  name:       String
+  name:       String,
+  status:     EncounterStatus
 ) extends HasId[EncounterId]
 
 case class EncounterInfo(
-  entities:   List[EncounterEntity],
-  difficulty: EncounterDifficulty,
-  xp:         Int
-)
+  entities: List[EncounterEntity]
+) {
+
+  lazy val difficulty: EncounterDifficulty = EncounterDifficulty.Hard // TODO calculate
+  lazy val xp = entities.collect { case m: MonsterEncounterEntity =>
+    m.monsterHeader.xp
+  }.sum
+
+}
 
 case class Encounter(
   header:               EncounterHeader,

@@ -21,13 +21,16 @@
 
 package dmscreen.util
 
-import dmscreen.dnd5e.*
+import dmscreen.*
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
 import dmscreen.dnd5e.fifthEditionCharacterSheet.FifthEditionCharacterSheetImporter
-import dmscreen.dnd5e.given
-import dmscreen.*
+import dmscreen.dnd5e.srd.SRDImporter
+import dmscreen.dnd5e.{*, given}
 import zio.*
 import zio.json.*
+
+import java.io.File
+import java.net.URI
 
 object TestCreator extends ZIOApp {
 
@@ -68,8 +71,7 @@ object TestCreator extends ZIOApp {
     ).toJsonAST.toOption.get
   )
 
-  val createCharacters
-    : ZIO[DNDBeyondImporter & FifthEditionCharacterSheetImporter, DMScreenError, List[PlayerCharacter]] =
+  val createPcs: ZIO[DNDBeyondImporter & FifthEditionCharacterSheetImporter, DMScreenError, List[PlayerCharacter]] =
     for {
       dndBeyondImporter <- ZIO.service[DNDBeyondImporter]
       wryax <- dndBeyondImporter.importPlayerCharacter(getClass.getResource("/wryrax-dndbeyond.json").nn.toURI.nn)
@@ -80,11 +82,100 @@ object TestCreator extends ZIOApp {
       )
     } yield List(`Chr'zyzx`, wryax, nut, wryax2)
 
+  val createMonsters
+    : ZIO[SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter, DMScreenError, List[Monster]] = {
+    val file = File("/home/rleibman/projects/dmscreen/common/shared/src/main/resources/5e-SRD-Monsters.json")
+    for {
+      _        <- ZIO.fail(DMScreenError(s"File ${file.getAbsolutePath} does not exist")).when(!file.exists())
+      importer <- ZIO.service[SRDImporter]
+      monsters <- importer.importMonsters(file).take(10).runCollect
+    } yield monsters.toList
+  }
+
+  def createEncounters(
+    pcs:      List[PlayerCharacter],
+    monsters: List[Monster]
+  ): IO[DMScreenError, List[Encounter]] = {
+    for {
+      howManyDifferentMonsters <- ZIO.random.flatMap(_.nextIntBetween(1, 4))
+      differentMonsterIndexes <- ZIO.foreach(1 to howManyDifferentMonsters) { _ =>
+        ZIO.random.flatMap(r => r.nextIntBetween(0, monsters.size))
+      }
+      differentMonsters = differentMonsterIndexes.map(monsters)
+      monstersWithCounts <- ZIO.foreach(differentMonsters) { monster =>
+        ZIO.random.flatMap(r => r.nextIntBetween(1, 4)).map(count => (monster, count))
+      }
+      totalEntities = pcs.size + monstersWithCounts.map(_._2).sum
+      initiatives <- ZIO.random.flatMap(r => ZIO.foreach(1 to (totalEntities + 1))(_ => r.nextIntBetween(1, 21)))
+    } yield {
+      def encounterInfo: EncounterInfo = {
+        val playerEntities: Seq[PlayerCharacterEncounterEntity] = pcs.map { pc =>
+          val info = pc.info.toOption.get
+          PlayerCharacterEncounterEntity(
+            playerCharacterId = pc.header.id,
+            notes = "These are some notes",
+            initiative = 1,
+            otherMarkers = Seq.empty,
+            initiativeBonus = info.initiativeBonus
+          )
+        }
+        val monsterEntities: Seq[MonsterEncounterEntity] = monstersWithCounts.flatMap { case (monster, count) =>
+          (1 to count).map { i =>
+            val info = monster.info.toOption.get
+            MonsterEncounterEntity(
+              monsterHeader = monster.header,
+              notes = "These are some notes",
+              hitPoints = HitPoints(
+                currentHitPoints = monster.header.maximumHitPoints,
+                maxHitPoints = monster.header.maximumHitPoints
+              ),
+              armorClass = monster.header.armorClass,
+              initiative = 1,
+              conditions = Set.empty,
+              otherMarkers = Seq.empty,
+              name = s"${monster.header.name} #$i",
+              initiativeBonus = info.initiativeBonus
+            )
+          }
+        }
+
+        val temp = EncounterInfo(
+          entities = (playerEntities ++ monsterEntities).toList
+        )
+        // Reset initiatives based on random values
+        temp.copy(entities = temp.entities.zip(initiatives.toList).map { case (entity, initiative) =>
+          entity match {
+            case pc: PlayerCharacterEncounterEntity =>
+              pc.copy(initiative = initiative + pc.initiativeBonus)
+            case monster: MonsterEncounterEntity => monster.copy(initiative = initiative + monster.initiativeBonus)
+          }
+        })
+      }
+
+      (for {
+        encounterIndex <- 1 to 5
+      } yield {
+        Encounter(
+          header = EncounterHeader(
+            id = EncounterId.empty,
+            campaignId = CampaignId(1),
+            name = s"Encounter $encounterIndex",
+            status =
+              if (encounterIndex == 1) EncounterStatus.active
+              else if (encounterIndex >= 4) EncounterStatus.old
+              else EncounterStatus.planned
+          ),
+          jsonInfo = encounterInfo.toJsonAST.toOption.get
+        )
+      }).toList
+    }
+  }
+
   override def run
     : ZIO[DNDBeyondImporter & FifthEditionCharacterSheetImporter & ZIOAppArgs & Scope, DMScreenError, Unit] = {
     for {
-      all <- createCharacters
-      _ <- ZIO.foreach(all) { c =>
+      pcs <- createPcs
+      _ <- ZIO.foreachDiscard(pcs) { c =>
         ZIO.logInfo(c.header.toString + ": " + c.jsonInfo.toJsonPretty)
       }
     } yield ()

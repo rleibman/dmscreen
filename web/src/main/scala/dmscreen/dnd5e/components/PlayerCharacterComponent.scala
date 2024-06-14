@@ -519,6 +519,7 @@ object PlayerCharacterComponent {
     playerCharacter: PlayerCharacter,
     onDelete:        PlayerCharacter => Callback = _ => Callback.empty,
     onSync:          PlayerCharacter => Callback = _ => Callback.empty
-  ): Unmounted[Props, State, Backend] = component.withKey(playerCharacter.header.id.value.toString)(Props(playerCharacter, onDelete, onSync))
+  ): Unmounted[Props, State, Backend] =
+    component.withKey(playerCharacter.header.id.value.toString)(Props(playerCharacter, onDelete, onSync))
 
 }

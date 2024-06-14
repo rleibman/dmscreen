@@ -371,8 +371,9 @@ object DND5eClient {
   type CampaignHeader
   object CampaignHeader {
 
-    def id:   SelectionBuilder[CampaignHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
-    def dm:   SelectionBuilder[CampaignHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("dm", Scalar())
+    def id: SelectionBuilder[CampaignHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
+    def dmUserId: SelectionBuilder[CampaignHeader, Long] =
+      _root_.caliban.client.SelectionBuilder.Field("dmUserId", Scalar())
     def name: SelectionBuilder[CampaignHeader, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
     def gameSystem: SelectionBuilder[CampaignHeader, GameSystem] =
       _root_.caliban.client.SelectionBuilder.Field("gameSystem", Scalar())

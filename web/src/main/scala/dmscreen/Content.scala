@@ -110,17 +110,17 @@ object Content {
           id =>
             // TODO move the sb declarations to common code
             val campaignSB: SelectionBuilder[CalibanDND5eCampaign, DND5eCampaign] = (CalibanDND5eCampaign.header(
-              CalibanCampaignHeader.id ~ CalibanCampaignHeader.name ~ CalibanCampaignHeader.dm ~ CalibanCampaignHeader.gameSystem
+              CalibanCampaignHeader.id ~ CalibanCampaignHeader.name ~ CalibanCampaignHeader.dmUserId ~ CalibanCampaignHeader.gameSystem
             ) ~ CalibanDND5eCampaign.jsonInfo).map {
               (
-                id:     Long,
-                name:   String,
-                dm:     Long,
-                system: CalibanGameSystem,
-                info:   Json
+                id:       Long,
+                name:     String,
+                dmUserId: Long,
+                system:   CalibanGameSystem,
+                info:     Json
               ) =>
                 DND5eCampaign(
-                  CampaignHeader(CampaignId(id), UserId(dm), name, GameSystem.valueOf(system.value)),
+                  CampaignHeader(CampaignId(id), UserId(dmUserId), name, GameSystem.valueOf(system.value)),
                   info
                 )
             }

@@ -22,16 +22,16 @@
 package dmscreen
 
 import com.dimafeng.testcontainers.*
-import org.testcontainers.utility.DockerImageName
 import com.mysql.cj.jdbc.MysqlDataSource
 import com.typesafe.config
 import com.typesafe.config.ConfigFactory
-import dmscreen.dnd5e.{DND5eRepository, PlayerCharacter, RepositoryError}
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
+import dmscreen.dnd5e.{DND5eRepository, PlayerCharacter, RepositoryError}
 import dmscreen.util.TestCreator
-import io.getquill.jdbczio.Quill
 import io.getquill.extras.*
+import io.getquill.jdbczio.Quill
 import io.getquill.query as qquery
+import org.testcontainers.utility.DockerImageName
 import zio.{IO, ZIO, ZLayer}
 
 import java.sql.SQLException

@@ -40,13 +40,13 @@ enum MonsterSearchOrder {
 }
 
 case class MonsterSearch(
-  name:            Option[String],
-  challengeRating: Option[Double],
-  size:            Option[String],
-  alignment:       Option[String],
-  environment:     Option[String],
-  monsterType:     Option[MonsterType],
-  source:          Option[Source],
+  name:            Option[String] = None,
+  challengeRating: Option[Double] = None,
+  size:            Option[String] = None,
+  alignment:       Option[String] = None,
+  environment:     Option[String] = None,
+  monsterType:     Option[MonsterType] = None,
+  source:          Option[Source] = None,
   order:           MonsterSearchOrder = MonsterSearchOrder.name,
   orderDir:        OrderDirection = OrderDirection.asc,
   page:            Int = 0,

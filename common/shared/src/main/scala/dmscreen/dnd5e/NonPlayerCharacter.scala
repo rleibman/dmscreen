@@ -32,6 +32,8 @@ opaque type NonPlayerCharacterId = Long
 
 object NonPlayerCharacterId {
 
+  val empty: NonPlayerCharacterId = 0L
+
   def apply(value: Long): NonPlayerCharacterId = value
 
   extension (npcId: NonPlayerCharacterId) {

@@ -23,8 +23,8 @@ package dmscreen.routes
 
 import dmscreen.ConfigurationService
 import dmscreen.routes.StaticRoutes.file
-import zio.http.*
 import zio.*
+import zio.http.*
 import zio.http.codec.HttpCodec.NotFound
 
 import java.nio.file.{Files, Paths as JPaths}

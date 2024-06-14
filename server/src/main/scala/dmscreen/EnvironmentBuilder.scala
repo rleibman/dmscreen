@@ -23,6 +23,7 @@ package dmscreen
 
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
 import dmscreen.dnd5e.fifthEditionCharacterSheet.FifthEditionCharacterSheetImporter
+import dmscreen.dnd5e.srd.SRDImporter
 import dmscreen.dnd5e.{DND5eRepository, QuillDND5eRepository, RepositoryError}
 import dmscreen.util.TestCreator
 import zio.*
@@ -42,15 +43,19 @@ object EnvironmentBuilder {
   case class InitializingLayer()
 
   private val initializingLayer: ZLayer[
-    DND5eRepository & DNDBeyondImporter & FifthEditionCharacterSheetImporter,
+    DND5eRepository & SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter,
     DMScreenError,
     InitializingLayer
   ] =
     ZLayer.fromZIO {
       for {
-        playerCharacters <- TestCreator.createCharacters
-        repo             <- ZIO.service[DND5eRepository]
-        _                <- ZIO.foreachDiscard(playerCharacters)(pc => repo.insert(pc.header, pc.jsonInfo))
+        pcs        <- TestCreator.createPcs
+        repo       <- ZIO.service[DND5eRepository]
+        _          <- ZIO.foreachDiscard(pcs)(pc => repo.insert(pc.header, pc.jsonInfo))
+        monsters   <- TestCreator.createMonsters
+        _          <- ZIO.foreachDiscard(monsters)(monster => repo.insert(monster.header, monster.jsonInfo))
+        encounters <- TestCreator.createEncounters(pcs, monsters)
+        _          <- ZIO.foreachDiscard(encounters)(encounter => repo.insert(encounter.header, encounter.jsonInfo))
       } yield InitializingLayer()
 
     }
@@ -63,6 +68,7 @@ object EnvironmentBuilder {
         QuillDND5eRepository.db,
         DNDBeyondImporter.live,
         FifthEditionCharacterSheetImporter.live,
+        SRDImporter.live,
         initializingLayer
       ).orDie
   }
