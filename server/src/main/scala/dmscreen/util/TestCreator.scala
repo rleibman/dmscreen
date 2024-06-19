@@ -88,7 +88,7 @@ object TestCreator extends ZIOApp {
     for {
       _        <- ZIO.fail(DMScreenError(s"File ${file.getAbsolutePath} does not exist")).when(!file.exists())
       importer <- ZIO.service[SRDImporter]
-      monsters <- importer.importMonsters(file).take(10).runCollect
+      monsters <- importer.importMonsters(file).take(30).runCollect
     } yield monsters.toList
   }
 

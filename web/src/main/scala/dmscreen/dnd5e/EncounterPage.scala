@@ -146,9 +146,9 @@ object EncounterPage extends DMScreenTab {
           val sb = Queries.bestiary(
             name = oldState.monsterSearch.name,
             challengeRating = oldState.monsterSearch.challengeRating,
-            size = oldState.monsterSearch.size,
-            alignment = oldState.monsterSearch.alignment,
-            biome = oldState.monsterSearch.biome,
+            size = oldState.monsterSearch.size.map(_.toString),
+            alignment = oldState.monsterSearch.alignment.map(_.toString),
+            biome = oldState.monsterSearch.biome.map(_.toString),
             monsterType = oldState.monsterSearch.monsterType,
             order = oldState.monsterSearch.order,
             orderDir = oldState.monsterSearch.orderDir,
@@ -241,6 +241,20 @@ object EncounterPage extends DMScreenTab {
         Table(
           Table.Header(
             Table.Row(
+              Table.HeaderCell.colSpan(3)(<.h2(s"${encounter.header.name}")),
+              Table.HeaderCell
+                .colSpan(3).textAlign(semanticUiReactStrings.center)(
+                  s"Difficulty: ${info.difficulty}, xp: ${info.xp}"
+                ),
+              Table.HeaderCell
+                .colSpan(4)
+                .singleLine(true)
+                .textAlign(semanticUiReactStrings.right)(
+                  Button.compact(true).icon(true)(Icon.name(SemanticICONS.`archive`)),
+                  Button.compact(true).icon(true)(Icon.name(SemanticICONS.`delete`))
+                )
+            ),
+            Table.Row(
               Table.HeaderCell("Name"),
               Table.HeaderCell("Type"),
               Table.HeaderCell("Biome"),
@@ -309,9 +323,10 @@ object EncounterPage extends DMScreenTab {
                   Form.Group(
                     Form.Field(
                       Label("Type"),
-                      Dropdown()
+                      Dropdown
                         .compact(true)
                         .search(false)
+                        .clearable(true)
                         .placeholder("All")
                         .options(
                           MonsterType.values
@@ -319,12 +334,27 @@ object EncounterPage extends DMScreenTab {
                               DropdownItemProps().setValue(s.toString.capitalize).setText(s.toString.capitalize)
                             ).toJSArray
                         )
+                        .onChange {
+                          (
+                            _,
+                            data
+                          ) =>
+                            val newVal = data.value match {
+                              case s: String if s.trim.isEmpty => None
+                              case s: String => MonsterType.values.find(_.toString.equalsIgnoreCase(s))
+                              case _ => None
+                            }
+
+                            modMonsterSearch(_.copy(monsterType = newVal))
+                        }
+                        .value(state.monsterSearch.monsterType.fold("")(_.toString.capitalize))
                     ),
                     Form.Field(
                       Label("Biome"),
                       Dropdown()
                         .compact(true)
                         .search(false)
+                        .clearable(true)
                         .placeholder("All")
                         .options(
                           Biome.values
@@ -332,33 +362,79 @@ object EncounterPage extends DMScreenTab {
                               DropdownItemProps().setValue(s.toString.capitalize).setText(s.toString.capitalize)
                             ).toJSArray
                         )
+                        .onChange {
+                          (
+                            _,
+                            data
+                          ) =>
+                            val newVal = data.value match {
+                              case s: String if s.trim.isEmpty => None
+                              case s: String                   => Biome.values.find(_.toString.equalsIgnoreCase(s))
+                              case _ => None
+                            }
+
+                            modMonsterSearch(_.copy(biome = newVal))
+                        }
+                        .value(state.monsterSearch.biome.fold("")(_.toString.capitalize))
                     ),
                     Form.Field(
                       Label("Aligment"),
                       Dropdown()
                         .compact(true)
                         .search(false)
+                        .clearable(true)
                         .placeholder("All")
                         .options(
                           Alignment.values.map(s => DropdownItemProps().setValue(s.name).setText(s.name)).toJSArray
                         )
+                        .onChange {
+                          (
+                            _,
+                            data
+                          ) =>
+                            val newVal = data.value match {
+                              case s: String if s.trim.isEmpty => None
+                              case s: String                   => Alignment.values.find(_.name.equalsIgnoreCase(s))
+                              case _ => None
+                            }
+
+                            modMonsterSearch(_.copy(alignment = newVal))
+                        }
+                        .value(state.monsterSearch.alignment.fold("")(_.name))
                     ),
                     Form.Field(
                       Label("CR"),
                       Dropdown()
                         .compact(true)
                         .search(false)
+                        .clearable(true)
                         .placeholder("All")
                         .options(
                           crs
-                            .map(s => DropdownItemProps().setValue(s._1).setText(s._2)).toJSArray
+                            .map(s => DropdownItemProps().setValue(s._2).setText(s._1)).toJSArray
                         )
+                        .onChange {
+                          (
+                            _,
+                            data
+                          ) =>
+                            val newVal = data.value match {
+                              case s: String if s.trim.isEmpty => None
+                              case s: String                   => s.toDoubleOption
+                              case d: Double                   => Some(d)
+                              case _ => None
+                            }
+
+                            modMonsterSearch(_.copy(challengeRating = newVal))
+                        }
+                        .value(state.monsterSearch.challengeRating.fold("")(_.toString))
                     ),
                     Form.Field(
                       Label("Size"),
                       Dropdown()
                         .compact(true)
                         .search(false)
+                        .clearable(true)
                         .placeholder("All")
                         .options(
                           CreatureSize.values
@@ -366,6 +442,20 @@ object EncounterPage extends DMScreenTab {
                               DropdownItemProps().setValue(s.toString.capitalize).setText(s.toString.capitalize)
                             ).toJSArray
                         )
+                        .onChange {
+                          (
+                            _,
+                            data
+                          ) =>
+                            val newVal = data.value match {
+                              case s: String if s.trim.isEmpty => None
+                              case s: String => CreatureSize.values.find(_.toString.equalsIgnoreCase(s))
+                              case _ => None
+                            }
+
+                            modMonsterSearch(_.copy(size = newVal))
+                        }
+                        .value(state.monsterSearch.size.fold("")(_.toString.capitalize))
                     )
                   )
                 )

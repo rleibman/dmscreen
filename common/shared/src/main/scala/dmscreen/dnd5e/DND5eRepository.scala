@@ -42,15 +42,15 @@ enum MonsterSearchOrder {
 case class MonsterSearch(
   name:            Option[String] = None,
   challengeRating: Option[Double] = None,
-  size:            Option[String] = None,
-  alignment:       Option[String] = None,
-  biome:           Option[String] = None,
+  size:            Option[CreatureSize] = None,
+  alignment:       Option[Alignment] = None,
+  biome:           Option[Biome] = None,
   monsterType:     Option[MonsterType] = None,
   source:          Option[Source] = None,
   order:           MonsterSearchOrder = MonsterSearchOrder.name,
   orderDir:        OrderDirection = OrderDirection.asc,
   page:            Int = 0,
-  pageSize:        Int = 25
+  pageSize:        Int = 10
 )
 
 case class MonsterSearchResults(
