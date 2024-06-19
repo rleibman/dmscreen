@@ -49,12 +49,12 @@ enablePlugins(
 )
 
 val calibanVersion = "2.7.1"
-val zioVersion = "2.1.2"
+val zioVersion = "2.1.3"
 val quillVersion = "4.8.5"
 val zioHttpVersion = "3.0.0-RC8"
 val zioConfigVersion = "4.0.2"
 val zioJsonVersion = "0.7.0"
-val testContainerVersion = "0.41.3"
+val testContainerVersion = "0.41.4"
 val tapirVersion = "1.10.8"
 
 lazy val commonSettings = Seq(
@@ -274,8 +274,8 @@ lazy val commonWeb: Project => Project =
       "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
       "dev.zio" %%% "zio"                             % zioVersion withSources (),
       "com.softwaremill.sttp.client3" %%% "core"      % "3.9.7" withSources (),
-      "io.github.cquiroz" %%% "scala-java-time"       % "2.5.0" withSources (),
-      "io.github.cquiroz" %%% "scala-java-time-tzdb"  % "2.5.0" withSources (),
+      "io.github.cquiroz" %%% "scala-java-time"       % "2.6.0" withSources (),
+      "io.github.cquiroz" %%% "scala-java-time-tzdb"  % "2.6.0" withSources (),
       "org.scala-js" %%% "scalajs-dom"                % "2.8.0" withSources (),
       "com.olvind" %%% "scalablytyped-runtime"        % "2.4.2",
       "com.github.japgolly.scalajs-react" %%% "core"  % scalajsReactVersion withSources (),

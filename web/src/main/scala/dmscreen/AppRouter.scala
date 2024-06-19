@@ -95,17 +95,6 @@ object AppRouter {
 
                 }("Encounters"),
               Menu.Item
-                .withKey("encounterPlanner")
-                .active(resolution.page == AppPage.encounterPlanner)
-                .onClick {
-                  (
-                    event: ReactMouseEventFrom[HTMLAnchorElement],
-                    data:  MenuItemProps
-                  ) =>
-                    page.setEH(AppPage.encounterPlanner)(event.asInstanceOf[ReactEvent])
-
-                }("Encounter Planner"),
-              Menu.Item
                 .withKey("npcs")
                 .active(resolution.page == AppPage.npc)
                 .onClick {
@@ -114,7 +103,6 @@ object AppRouter {
                     data:  MenuItemProps
                   ) =>
                     page.setEH(AppPage.npc)(event.asInstanceOf[ReactEvent])
-
                 }("NPCs"),
               Menu.Item
                 .withKey("scenes")
@@ -126,18 +114,7 @@ object AppRouter {
                   ) =>
                     page.setEH(AppPage.scene)(event.asInstanceOf[ReactEvent])
 
-                }("Scenes"),
-              Menu.Item
-                .withKey("bestiary")
-                .active(resolution.page == AppPage.bestiary)
-                .onClick {
-                  (
-                    event: ReactMouseEventFrom[HTMLAnchorElement],
-                    data:  MenuItemProps
-                  ) =>
-                    page.setEH(AppPage.bestiary)(event.asInstanceOf[ReactEvent])
-
-                }("Bestiary")
+                }("Scenes")
             ).when(dmscreenState.campaignState.isDefined),
             Menu.Item
               .withKey("about")
@@ -168,7 +145,7 @@ object AppRouter {
     }
   }
 
-  trait AppPage {}
+  sealed trait AppPage
 
   object AppPage {
 
@@ -176,10 +153,8 @@ object AppRouter {
     case object dashboard extends AppPage
     case object player extends AppPage
     case object encounter extends AppPage
-    case object encounterPlanner extends AppPage
     case object npc extends AppPage
     case object scene extends AppPage
-    case object bestiary extends AppPage
     case object about extends AppPage
 
   }
@@ -192,10 +167,8 @@ object AppRouter {
         | staticRoute(root, AppPage.dashboard) ~> renderR(_ => DashboardPage())
         | staticRoute("#player", AppPage.player) ~> renderR(_ => PlayerPage())
         | staticRoute("#encounter", AppPage.encounter) ~> renderR(_ => EncounterPage())
-        | staticRoute("#encounterPlanner", AppPage.encounterPlanner) ~> renderR(_ => EncounterPlannerPage())
         | staticRoute("#npc", AppPage.npc) ~> renderR(_ => NPCPage())
         | staticRoute("#scene", AppPage.scene) ~> renderR(_ => ScenePage())
-        | staticRoute("#bestiary", AppPage.bestiary) ~> renderR(_ => BestiaryPage())
         | staticRoute("#about", AppPage.about) ~> renderR(_ => AboutPage())
     )
       .notFound(redirectToPage(AppPage.dashboard)(SetRouteVia.HistoryReplace))

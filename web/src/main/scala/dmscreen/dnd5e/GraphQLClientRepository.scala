@@ -54,11 +54,9 @@ object GraphQLClientRepository {
 
       override def nonPlayerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[NonPlayerCharacter]] = ???
 
-      override def encounters(campaignId: CampaignId): IO[DMScreenError, Seq[EncounterHeader]] = ???
+      override def encounters(campaignId: CampaignId): IO[DMScreenError, Seq[Encounter]] = ???
 
-      override def encounter(encounterId: EncounterId): IO[DMScreenError, Seq[Encounter]] = ???
-
-      override def bestiary(search: MonsterSearch): IO[DMScreenError, Seq[Monster]] = ???
+      override def bestiary(search: MonsterSearch): IO[DMScreenError, MonsterSearchResults] = ???
 
       override def sources: IO[DMScreenError, Seq[Source]] = ???
 

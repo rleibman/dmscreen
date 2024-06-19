@@ -87,9 +87,11 @@ enum EncounterDifficulty {
 
 }
 
-enum EncounterStatus {
+enum EncounterStatus(val name: String) {
 
-  case active, planned, old
+  case active extends EncounterStatus("Active")
+  case planned extends EncounterStatus("Planned")
+  case archived extends EncounterStatus("Archived")
 
 }
 
@@ -97,17 +99,24 @@ case class EncounterHeader(
   id:         EncounterId,
   campaignId: CampaignId,
   name:       String,
-  status:     EncounterStatus
+  status:     EncounterStatus,
+  sceneId:    Option[SceneId],
+  order:      Int
 ) extends HasId[EncounterId]
 
 case class EncounterInfo(
-  entities: List[EncounterEntity]
+  entities:    List[EncounterEntity],
+  currentTurn: Int = 0,
+  round:       Int = 0,
+  notes:       String = ""
 ) {
 
   lazy val difficulty: EncounterDifficulty = EncounterDifficulty.Hard // TODO calculate
   lazy val xp = entities.collect { case m: MonsterEncounterEntity =>
     m.monsterHeader.xp
   }.sum
+
+  def monsters: Seq[MonsterEncounterEntity] = entities.collect { case m: MonsterEncounterEntity => m }
 
 }
 

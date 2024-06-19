@@ -54,21 +54,27 @@ object DND5eAPI {
   private given Schema[Any, PlayerCharacterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, NonPlayerCharacterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, EncounterId] = Schema.longSchema.contramap(_.value)
+  private given Schema[Any, SceneId] = Schema.longSchema.contramap(_.value)
+
   private given Schema[Any, SourceId] = Schema.stringSchema.contramap(_.value)
   private given Schema[Any, URL] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, SemVer] = Schema.stringSchema.contramap(_.render)
+  private given Schema[Any, EncounterStatus] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, GeneralLog] = Schema.gen[Any, GeneralLog]
   private given Schema[Any, CombatLog] = Schema.gen[Any, CombatLog]
   private given Schema[Any, DMScreenEvent] = Schema.gen[Any, DMScreenEvent]
   private given Schema[Any, Source] = Schema.gen[Any, Source]
   private given Schema[Any, MonsterSearch] = Schema.gen[Any, MonsterSearch]
+
   private given ArgBuilder[PlayerCharacterId] = ArgBuilder.long.map(PlayerCharacterId.apply)
+  private given ArgBuilder[SceneId] = ArgBuilder.long.map(SceneId.apply)
   private given ArgBuilder[NonPlayerCharacterId] = ArgBuilder.long.map(NonPlayerCharacterId.apply)
   private given ArgBuilder[CharacterClassId] =
     ArgBuilder.string.map(s => CharacterClassId.values.find(a => s.equalsIgnoreCase(a.toString)).get)
   private given ArgBuilder[SourceId] = ArgBuilder.string.map(SourceId.apply)
   private given ArgBuilder[CampaignId] = ArgBuilder.long.map(CampaignId.apply)
   private given ArgBuilder[EncounterId] = ArgBuilder.long.map(EncounterId.apply)
+
   private given ArgBuilder[GeneralLog] = ArgBuilder.gen[GeneralLog]
   private given ArgBuilder[CombatLog] = ArgBuilder.gen[CombatLog]
   private given ArgBuilder[DMScreenEvent] = ArgBuilder.gen[DMScreenEvent]
@@ -90,9 +96,8 @@ object DND5eAPI {
     nonPlayerCharacters: CampaignId => ZIO[DND5eRepository, DMScreenError, Seq[
       NonPlayerCharacter
     ]],
-    encounters:  CampaignId => ZIO[DND5eRepository, DMScreenError, Seq[EncounterHeader]],
-    encounter:   EncounterId => ZIO[DND5eRepository, DMScreenError, Seq[Encounter]],
-    bestiary:    MonsterSearch => ZIO[DND5eRepository, DMScreenError, Seq[Monster]],
+    encounters:  CampaignId => ZIO[DND5eRepository, DMScreenError, Seq[Encounter]],
+    bestiary:    MonsterSearch => ZIO[DND5eRepository, DMScreenError, MonsterSearchResults],
     sources:     ZIO[DND5eRepository, DMScreenError, Seq[Source]],
     classes:     ZIO[DND5eRepository, DMScreenError, Seq[CharacterClass]],
     races:       ZIO[DND5eRepository, DMScreenError, Seq[Race]],
@@ -120,7 +125,6 @@ object DND5eAPI {
           playerCharacters = campaignId => ZIO.serviceWithZIO[DND5eRepository](_.playerCharacters(campaignId)),
           nonPlayerCharacters = campaignId => ZIO.serviceWithZIO[DND5eRepository](_.nonPlayerCharacters(campaignId)),
           encounters = campaignId => ZIO.serviceWithZIO[DND5eRepository](_.encounters(campaignId)),
-          encounter = encounterId => ZIO.serviceWithZIO[DND5eRepository](_.encounter(encounterId)),
           bestiary = search => ZIO.serviceWithZIO[DND5eRepository](_.bestiary(search)),
           sources = ZIO.serviceWithZIO[DND5eRepository](_.sources),
           classes = ZIO.serviceWithZIO[DND5eRepository](_.classes),

@@ -228,8 +228,8 @@ object DND5eClient {
   object MonsterSearchOrder {
 
     case object alignment extends MonsterSearchOrder { val value: String = "alignment" }
+    case object biome extends MonsterSearchOrder { val value: String = "biome" }
     case object challengeRating extends MonsterSearchOrder { val value: String = "challengeRating" }
-    case object environment extends MonsterSearchOrder { val value: String = "environment" }
     case object monsterType extends MonsterSearchOrder { val value: String = "monsterType" }
     case object name extends MonsterSearchOrder { val value: String = "name" }
     case object size extends MonsterSearchOrder { val value: String = "size" }
@@ -237,8 +237,8 @@ object DND5eClient {
 
     implicit val decoder: ScalarDecoder[MonsterSearchOrder] = {
       case __StringValue("alignment")       => Right(MonsterSearchOrder.alignment)
+      case __StringValue("biome")           => Right(MonsterSearchOrder.biome)
       case __StringValue("challengeRating") => Right(MonsterSearchOrder.challengeRating)
-      case __StringValue("environment")     => Right(MonsterSearchOrder.environment)
       case __StringValue("monsterType")     => Right(MonsterSearchOrder.monsterType)
       case __StringValue("name")            => Right(MonsterSearchOrder.name)
       case __StringValue("size")            => Right(MonsterSearchOrder.size)
@@ -247,8 +247,8 @@ object DND5eClient {
     }
     implicit val encoder: ArgEncoder[MonsterSearchOrder] = {
       case MonsterSearchOrder.alignment       => __EnumValue("alignment")
+      case MonsterSearchOrder.biome           => __EnumValue("biome")
       case MonsterSearchOrder.challengeRating => __EnumValue("challengeRating")
-      case MonsterSearchOrder.environment     => __EnumValue("environment")
       case MonsterSearchOrder.monsterType     => __EnumValue("monsterType")
       case MonsterSearchOrder.name            => __EnumValue("name")
       case MonsterSearchOrder.size            => __EnumValue("size")
@@ -256,7 +256,7 @@ object DND5eClient {
     }
 
     val values: scala.collection.immutable.Vector[MonsterSearchOrder] =
-      scala.collection.immutable.Vector(alignment, challengeRating, environment, monsterType, name, size, source)
+      scala.collection.immutable.Vector(alignment, biome, challengeRating, monsterType, name, size, source)
 
   }
 
@@ -438,6 +438,11 @@ object DND5eClient {
     def campaignId: SelectionBuilder[EncounterHeader, Long] =
       _root_.caliban.client.SelectionBuilder.Field("campaignId", Scalar())
     def name: SelectionBuilder[EncounterHeader, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def status: SelectionBuilder[EncounterHeader, String] =
+      _root_.caliban.client.SelectionBuilder.Field("status", Scalar())
+    def sceneId: SelectionBuilder[EncounterHeader, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field("sceneId", OptionOf(Scalar()))
+    def order: SelectionBuilder[EncounterHeader, Int] = _root_.caliban.client.SelectionBuilder.Field("order", Scalar())
 
   }
 
@@ -481,11 +486,23 @@ object DND5eClient {
     def alignment: SelectionBuilder[MonsterHeader, scala.Option[Alignment]] =
       _root_.caliban.client.SelectionBuilder.Field("alignment", OptionOf(Scalar()))
     def cr: SelectionBuilder[MonsterHeader, Double] = _root_.caliban.client.SelectionBuilder.Field("cr", Scalar())
-    def xp: SelectionBuilder[MonsterHeader, Int] = _root_.caliban.client.SelectionBuilder.Field("xp", Scalar())
-    def ac: SelectionBuilder[MonsterHeader, Int] = _root_.caliban.client.SelectionBuilder.Field("ac", Scalar())
-    def hp: SelectionBuilder[MonsterHeader, Int] = _root_.caliban.client.SelectionBuilder.Field("hp", Scalar())
+    def xp: SelectionBuilder[MonsterHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("xp", Scalar())
+    def armorClass: SelectionBuilder[MonsterHeader, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("armorClass", Scalar())
+    def maximumHitPoints: SelectionBuilder[MonsterHeader, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("maximumHitPoints", Scalar())
     def size: SelectionBuilder[MonsterHeader, CreatureSize] =
       _root_.caliban.client.SelectionBuilder.Field("size", Scalar())
+
+  }
+
+  type MonsterSearchResults
+  object MonsterSearchResults {
+
+    def results[A](innerSelection: SelectionBuilder[Monster, A]): SelectionBuilder[MonsterSearchResults, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("results", ListOf(Obj(innerSelection)))
+    def total: SelectionBuilder[MonsterSearchResults, Long] =
+      _root_.caliban.client.SelectionBuilder.Field("total", Scalar())
 
   }
 
@@ -656,21 +673,10 @@ object DND5eClient {
         OptionOf(ListOf(Obj(innerSelection))),
         arguments = List(Argument("value", value, "Long!")(encoder0))
       )
-    def encounters[A](
-      value: Long
-    )(
-      innerSelection:    SelectionBuilder[EncounterHeader, A]
-    )(implicit encoder0: ArgEncoder[Long]
-    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
-      _root_.caliban.client.SelectionBuilder.Field(
-        "encounters",
-        OptionOf(ListOf(Obj(innerSelection))),
-        arguments = List(Argument("value", value, "Long!")(encoder0))
-      )
-    def encounter[A](value: Long)(innerSelection: SelectionBuilder[Encounter, A])(implicit encoder0: ArgEncoder[Long])
+    def encounters[A](value: Long)(innerSelection: SelectionBuilder[Encounter, A])(implicit encoder0: ArgEncoder[Long])
       : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
       _root_.caliban.client.SelectionBuilder.Field(
-        "encounter",
+        "encounters",
         OptionOf(ListOf(Obj(innerSelection))),
         arguments = List(Argument("value", value, "Long!")(encoder0))
       )
@@ -679,7 +685,7 @@ object DND5eClient {
       challengeRating: scala.Option[Double] = None,
       size:            scala.Option[String] = None,
       alignment:       scala.Option[String] = None,
-      environment:     scala.Option[String] = None,
+      biome:           scala.Option[String] = None,
       monsterType:     scala.Option[MonsterType] = None,
       source:          scala.Option[SourceInput] = None,
       order:           MonsterSearchOrder,
@@ -687,7 +693,7 @@ object DND5eClient {
       page:            Int,
       pageSize:        Int
     )(
-      innerSelection: SelectionBuilder[Monster, A]
+      innerSelection: SelectionBuilder[MonsterSearchResults, A]
     )(implicit
       encoder0:  ArgEncoder[scala.Option[String]],
       encoder1:  ArgEncoder[scala.Option[Double]],
@@ -700,16 +706,16 @@ object DND5eClient {
       encoder8:  ArgEncoder[OrderDirection],
       encoder9:  ArgEncoder[Int],
       encoder10: ArgEncoder[Int]
-    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
       _root_.caliban.client.SelectionBuilder.Field(
         "bestiary",
-        OptionOf(ListOf(Obj(innerSelection))),
+        OptionOf(Obj(innerSelection)),
         arguments = List(
           Argument("name", name, "String")(encoder0),
           Argument("challengeRating", challengeRating, "Float")(encoder1),
           Argument("size", size, "String")(encoder2),
           Argument("alignment", alignment, "String")(encoder3),
-          Argument("environment", environment, "String")(encoder4),
+          Argument("biome", biome, "String")(encoder4),
           Argument("monsterType", monsterType, "MonsterType")(encoder5),
           Argument("source", source, "SourceInput")(encoder6),
           Argument("order", order, "MonsterSearchOrder!")(encoder7),

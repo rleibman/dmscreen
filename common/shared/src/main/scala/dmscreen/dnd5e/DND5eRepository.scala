@@ -35,7 +35,7 @@ enum OrderDirection {
 
 enum MonsterSearchOrder {
 
-  case name, challengeRating, size, alignment, environment, monsterType, source
+  case name, challengeRating, size, alignment, biome, monsterType, source
 
 }
 
@@ -44,13 +44,18 @@ case class MonsterSearch(
   challengeRating: Option[Double] = None,
   size:            Option[String] = None,
   alignment:       Option[String] = None,
-  environment:     Option[String] = None,
+  biome:           Option[String] = None,
   monsterType:     Option[MonsterType] = None,
   source:          Option[Source] = None,
   order:           MonsterSearchOrder = MonsterSearchOrder.name,
   orderDir:        OrderDirection = OrderDirection.asc,
   page:            Int = 0,
   pageSize:        Int = 25
+)
+
+case class MonsterSearchResults(
+  results: Seq[Monster],
+  total:   Long
 )
 
 trait DND5eRepository extends GameRepository {
@@ -77,13 +82,11 @@ trait DND5eRepository extends GameRepository {
 
   def nonPlayerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[NonPlayerCharacter]]
 
-  def encounters(campaignId: CampaignId): IO[DMScreenError, Seq[EncounterHeader]]
-
-  def encounter(encounterId: EncounterId): IO[DMScreenError, Seq[Encounter]]
+  def encounters(campaignId: CampaignId): IO[DMScreenError, Seq[Encounter]]
 
   // Stuff that's generic to all campaigns
 
-  def bestiary(search: MonsterSearch): IO[DMScreenError, Seq[Monster]]
+  def bestiary(search: MonsterSearch): IO[DMScreenError, MonsterSearchResults]
 
   def sources: IO[DMScreenError, Seq[Source]]
 

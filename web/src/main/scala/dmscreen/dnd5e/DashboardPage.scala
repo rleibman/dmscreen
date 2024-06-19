@@ -71,7 +71,7 @@ object DashboardPage extends DMScreenTab {
 
   class Backend($ : BackendScope[Unit, State]) {
 
-    def render(s: State): VdomElement = {
+    def render(state: State): VdomElement = {
       DMScreenState.ctx.consume { dmScreenState =>
         {
           dmScreenState.campaignState.fold {
@@ -350,12 +350,12 @@ object DashboardPage extends DMScreenTab {
                         .value(campaignInfo.notes)
                         .style(CSSProperties().set("background-color", "#ced9e4").set("color", "#000000")) // TODO move colors to css
                     ),
-                    if (campaignInfo.scenes.isEmpty) EmptyVdom
+                    if (state.scenes.isEmpty) EmptyVdom
                     else
                       <.div(
                         ^.className := "radarCard",
                         <.h2("Scene Notes"),
-                        campaignInfo.scenes.mkString(",")
+                        state.scenes.map(_.header.name).mkString(",")
                         //              campaignInfo.scenes
                         //                .find(_.isActive).orElse(campaignInfo.scenes.headOption).map { scene =>
                         //                  <.div(if (scene.isActive) "Current Scene" else "First Scene", scene.name, scene.notes)

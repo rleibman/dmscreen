@@ -159,11 +159,13 @@ object TestCreator extends ZIOApp {
           header = EncounterHeader(
             id = EncounterId.empty,
             campaignId = CampaignId(1),
+            sceneId = None,
             name = s"Encounter $encounterIndex",
             status =
               if (encounterIndex == 1) EncounterStatus.active
-              else if (encounterIndex >= 4) EncounterStatus.old
-              else EncounterStatus.planned
+              else if (encounterIndex >= 4) EncounterStatus.archived
+              else EncounterStatus.planned,
+            order = encounterIndex
           ),
           jsonInfo = encounterInfo.toJsonAST.toOption.get
         )

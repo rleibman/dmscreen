@@ -26,6 +26,20 @@ create table campaign
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
+create table scene
+(
+    `id`       int(11) NOT NULL AUTO_INCREMENT,
+    campaignId int(11) not null,
+    `name`     text    NOT NULL,
+    info       json    not null,
+    `version`  text    NOT NULL,
+    PRIMARY KEY (`id`),
+    key scene_character_campaign (campaignId),
+    constraint scene_character_campaign foreign key (campaignId) references `campaign` (id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
+
+
 create table playerCharacter
 (
     `id`         int(11) NOT NULL AUTO_INCREMENT,
@@ -44,13 +58,17 @@ create table encounter
 (
     `id`       int(11) NOT NULL AUTO_INCREMENT,
     campaignId int(11) not null,
+    sceneId    int(11) null,
     `name`     text    NOT NULL,
     `status`   text    NOT NULL,
+    `order`    int(11) null,
     info       json    not null,
     `version`  text    NOT NULL,
     PRIMARY KEY (`id`),
-    key encounter_character_campaign (campaignId),
-    constraint encounter_character_campaign foreign key (campaignId) references `campaign` (id)
+    key encounter_campaign (campaignId),
+    constraint encounter_campaign foreign key (campaignId) references `campaign` (id),
+    key encounter_scene (sceneId),
+    constraint encounter_scene foreign key (sceneId) references `scene` (id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 

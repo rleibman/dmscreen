@@ -63,8 +63,8 @@ enum GameSystem {
 
 enum MonsterSearchOrder {
   alignment
+  biome
   challengeRating
-  environment
   monsterType
   name
   size
@@ -146,6 +146,9 @@ type EncounterHeader {
   id: Long!
   campaignId: Long!
   name: String!
+  status: String!
+  sceneId: Long
+  order: Int!
 }
 
 type GeneralLog {
@@ -171,9 +174,14 @@ type MonsterHeader {
   alignment: Alignment
   cr: Float!
   xp: Long!
-  ac: Int!
-  hp: Int!
+  armorClass: Int!
+  maximumHitPoints: Int!
   size: CreatureSize!
+}
+
+type MonsterSearchResults {
+  results: [Monster!]!
+  total: Long!
 }
 
 type Move {
@@ -215,9 +223,8 @@ type Queries {
   campaign(value: Long!): DND5eCampaign
   playerCharacters(value: Long!): [PlayerCharacter!]
   nonPlayerCharacters(value: Long!): [NonPlayerCharacter!]
-  encounters(value: Long!): [EncounterHeader!]
-  encounter(value: Long!): [Encounter!]
-  bestiary(name: String, challengeRating: Float, size: String, alignment: String, environment: String, monsterType: MonsterType, source: SourceInput, order: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): [Monster!]
+  encounters(value: Long!): [Encounter!]
+  bestiary(name: String, challengeRating: Float, size: String, alignment: String, biome: String, monsterType: MonsterType, source: SourceInput, order: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): MonsterSearchResults
   sources: [Source!]
   classes: [CharacterClass!]
   races: [Race!]

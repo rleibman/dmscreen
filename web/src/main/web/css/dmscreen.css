@@ -1,4 +1,4 @@
-label {
+alabel {
     color: #ecf0f1 !important;;
 }
 
@@ -106,4 +106,29 @@ label {
     overflow: auto;
     scrollbar-width: thin;
 
+}
+
+i.icon.d20icon:before {
+    content: url("/images/d20_small.svg");
+    position: relative;
+    top: -5px;
+    left: -2px;
+}
+
+i.icon.clearIcon:before {
+    content: url("/images/clear_small.svg");
+    position: relative;
+    top: -2px;
+    left: -5px;
+}
+
+.damageInput {
+    width: 60px;
+}
+
+.damageInput.input>input {
+    padding-bottom: 4px;
+    padding-right: 2px;
+    padding-left: 2px;
+    padding-top: 4px;
 }

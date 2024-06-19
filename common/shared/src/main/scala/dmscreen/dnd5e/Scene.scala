@@ -23,30 +23,44 @@ package dmscreen.dnd5e
 
 import dmscreen.*
 import just.semver.SemVer
-import zio.json.ast.Json
+import zio.json.*
+import zio.json.ast.*
 
-case class DND5eCampaignInfo(
-  notes: String
-)
+opaque type SceneId = Long
 
-case class DND5eCampaign(
-  override val header:   CampaignHeader,
-  override val jsonInfo: Json,
-  override val version:  SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
-) extends Campaign[DND5eCampaignInfo] {
+object SceneId {
 
-  override val entityType: EntityType = DND5eEntityType.campaign
+  def empty: SceneId = SceneId(0)
+
+  def apply(SceneId: Long): SceneId = SceneId
+
+  extension (sceneId: SceneId) {
+
+    def value: Long = sceneId
+
+  }
 
 }
 
-enum DND5eEntityType(val name: String) {
+case class SceneHeader(
+  id:   SceneId,
+  name: String
+  // TODO add scene order
+) extends HasId[SceneId]
 
-  case campaign extends DND5eEntityType("campaign") with EntityType
-  case encounter extends DND5eEntityType("encounter") with EntityType
-  case playerCharacter extends DND5eEntityType("playerCharacter") with EntityType
-  case nonPlayerCharacter extends DND5eEntityType("nonPlayerCharacter") with EntityType
-  case scene extends DND5eEntityType("scene") with EntityType
-  case monster extends DND5eEntityType("monster") with EntityType
-  case spell extends DND5eEntityType("spell") with EntityType
+case class SceneInfo(
+  isActive: Boolean = false,
+  notes:    String = "",
+  npcs:     List[NonPlayerCharacterId] = List.empty,
+  treasure: List[String] = List.empty
+)
+
+case class Scene(
+  header:               SceneHeader,
+  jsonInfo:             Json,
+  override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
+) extends DMScreenEntity[SceneId, SceneHeader, SceneInfo] {
+
+  override val entityType: EntityType = DND5eEntityType.scene
 
 }

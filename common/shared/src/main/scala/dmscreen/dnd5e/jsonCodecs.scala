@@ -51,6 +51,7 @@ given JsonCodec[NonPlayerCharacterId] = JsonCodec.long.transform(NonPlayerCharac
 given JsonCodec[PlayerCharacterId] = JsonCodec.long.transform(PlayerCharacterId.apply, _.value)
 given JsonCodec[MonsterId] = JsonCodec.long.transform(MonsterId.apply, _.value)
 given JsonCodec[SpellId] = JsonCodec.long.transform(SpellId.apply, _.value)
+given JsonCodec[SceneId] = JsonCodec.long.transform(SceneId.apply, _.value)
 
 //Enums
 given JsonCodec[ProficiencyLevel] = JsonCodec.string.transform(ProficiencyLevel.valueOf, _.toString)
@@ -69,7 +70,6 @@ given JsonCodec[SpeedType] = JsonCodec.string.transform(SpeedType.valueOf, _.toS
 given JsonCodec[Source] = JsonCodec.derived[Source]
 given JsonCodec[SubClass] = JsonCodec.derived[SubClass]
 given JsonCodec[CharacterClass] = JsonCodec.derived[CharacterClass]
-given JsonCodec[Scene] = JsonCodec.derived[Scene]
 given JsonCodec[Race] = JsonCodec.derived[Race]
 given JsonCodec[Background] = JsonCodec.derived[Background]
 given JsonCodec[DND5eCampaignInfo] = JsonCodec.derived[DND5eCampaignInfo]
@@ -105,6 +105,8 @@ given JsonCodec[SpellInfo] = JsonCodec.derived[SpellInfo]
 
 given JsonCodec[PlayerCharacterHeader] = JsonCodec.derived[PlayerCharacterHeader]
 given JsonCodec[MonsterHeader] = JsonCodec.derived[MonsterHeader]
+given JsonCodec[SceneHeader] = JsonCodec.derived[SceneHeader]
+given JsonCodec[SceneInfo] = JsonCodec.derived[SceneInfo]
 given JsonCodec[EncounterEntity] = JsonCodec.derived[EncounterEntity]
 given JsonCodec[EncounterDifficulty] = JsonCodec.derived[EncounterDifficulty]
 given JsonCodec[EncounterInfo] = JsonCodec.derived[EncounterInfo]

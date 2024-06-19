@@ -103,8 +103,10 @@ object QuillDND5eRepository {
   private case class EncounterRow(
     id:         Long,
     campaignId: Long,
+    sceneId:    Option[Long],
     name:       String,
     status:     String,
+    order:      Int,
     info:       Json,
     version:    String
   ) {
@@ -114,8 +116,10 @@ object QuillDND5eRepository {
         header = EncounterHeader(
           id = EncounterId(id),
           campaignId = CampaignId(campaignId),
+          sceneId = sceneId.map(SceneId.apply),
           name = name,
-          status = EncounterStatus.valueOf(status)
+          status = EncounterStatus.valueOf(status),
+          order = order
         ),
         jsonInfo = info,
         version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
@@ -269,38 +273,54 @@ object QuillDND5eRepository {
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
 
-        override def encounters(campaignId: CampaignId): IO[DMScreenError, Seq[EncounterHeader]] =
+        override def encounters(campaignId: CampaignId): IO[DMScreenError, Seq[Encounter]] =
           ctx
             .run(
               qEncounters
-                .filter(_.campaignId == lift(campaignId.value)).map(a => (a.id, a.campaignId, a.name, a.status))
+                .filter(_.campaignId == lift(campaignId.value)).map(a =>
+                  (a.id, a.campaignId, a.sceneId, a.name, a.status, a.order, a.info)
+                )
             )
             .map(
               _.map(t =>
-                EncounterHeader(
-                  id = EncounterId(t._1),
-                  campaignId = CampaignId(t._2),
-                  name = t._3,
-                  status = EncounterStatus.valueOf(t._4)
+                Encounter(
+                  header = EncounterHeader(
+                    id = EncounterId(t._1),
+                    campaignId = CampaignId(t._2),
+                    sceneId = t._3.map(i => SceneId(i)),
+                    name = t._4,
+                    status = EncounterStatus.valueOf(t._5),
+                    order = t._6
+                  ),
+                  jsonInfo = t._7
                 )
               )
             )
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
 
-        override def encounter(encounterId: EncounterId): IO[DMScreenError, Seq[Encounter]] =
-          ctx
-            .run(qEncounters.filter(_.id == lift(encounterId.value)))
-            .map(_.map(_.toModel))
-            .provideLayer(dataSourceLayer)
-            .mapError(RepositoryError.apply)
+        override def bestiary(search: MonsterSearch): IO[DMScreenError, MonsterSearchResults] = {
+          val q0: Quoted[EntityQuery[MonsterRow]] = qMonsters
+          val q1: Quoted[EntityQuery[MonsterRow]] = search.name.fold(q0)(n => q0.filter(_.name like lift(s"%$n%")))
+          val q2: Quoted[EntityQuery[MonsterRow]] = search.challengeRating.fold(q1)(n => q1.filter(_.cr == lift(n)))
+          val q3: Quoted[EntityQuery[MonsterRow]] =
+            search.monsterType.fold(q2)(n => q2.filter(_.monsterType == lift(n.toString)))
+          val q4: Quoted[EntityQuery[MonsterRow]] =
+            search.biome.fold(q3)(n => q3.filter(_.biome.contains(lift(n.toString))))
+          val q5: Quoted[EntityQuery[MonsterRow]] =
+            search.alignment.fold(q4)(n => q4.filter(_.alignment.contains(lift(n.toString))))
+          val q6: Quoted[EntityQuery[MonsterRow]] = search.size.fold(q5)(n => q5.filter(_.size == lift(n.toString)))
 
-        override def bestiary(search: MonsterSearch): IO[DMScreenError, Seq[Monster]] =
-          ctx
-            .run(qMonsters)
-            .map(_.map(_.toModel))
+          (for {
+            monsters <- ctx.run(q6.take(lift(search.pageSize)).drop(lift(search.page * search.pageSize)))
+            total    <- ctx.run(q6.size)
+          } yield MonsterSearchResults(
+            results = monsters.map(_.toModel),
+            total = total
+          ))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
+        }
 
         override def sources: IO[DMScreenError, Seq[Source]] = ZIO.succeed(cachedSources)
 
@@ -601,8 +621,10 @@ object QuillDND5eRepository {
                       EncounterRow(
                         id = EncounterId.empty.value,
                         campaignId = header.campaignId.value,
+                        sceneId = header.sceneId.map(_.value),
                         name = header.name,
                         status = header.status.toString,
+                        order = header.order,
                         info = info,
                         version = dmscreen.BuildInfo.version
                       )

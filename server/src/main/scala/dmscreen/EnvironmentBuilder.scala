@@ -49,13 +49,19 @@ object EnvironmentBuilder {
   ] =
     ZLayer.fromZIO {
       for {
-        pcs        <- TestCreator.createPcs
-        repo       <- ZIO.service[DND5eRepository]
-        _          <- ZIO.foreachDiscard(pcs)(pc => repo.insert(pc.header, pc.jsonInfo))
-        monsters   <- TestCreator.createMonsters
-        _          <- ZIO.foreachDiscard(monsters)(monster => repo.insert(monster.header, monster.jsonInfo))
-        encounters <- TestCreator.createEncounters(pcs, monsters)
-        _          <- ZIO.foreachDiscard(encounters)(encounter => repo.insert(encounter.header, encounter.jsonInfo))
+        pcs  <- TestCreator.createPcs
+        repo <- ZIO.service[DND5eRepository]
+        pcsWithIds <- ZIO.foreach(pcs)(pc =>
+          repo.insert(pc.header, pc.jsonInfo).map(id => pc.copy(pc.header.copy(id = id)))
+        )
+        monsters <- TestCreator.createMonsters
+        monstersWithIds <- ZIO.foreach(monsters)(monster =>
+          repo.insert(monster.header, monster.jsonInfo).map(id => monster.copy(monster.header.copy(id = id)))
+        )
+        encounters <- TestCreator.createEncounters(pcsWithIds, monstersWithIds)
+        encountersWithIds <- ZIO.foreach(encounters)(encounter =>
+          repo.insert(encounter.header, encounter.jsonInfo).map(id => encounter.copy(encounter.header.copy(id = id)))
+        )
       } yield InitializingLayer()
 
     }
