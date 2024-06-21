@@ -35,13 +35,13 @@ enum OrderDirection {
 
 enum MonsterSearchOrder {
 
-  case name, challengeRating, size, alignment, biome, monsterType, source
+  case name, challengeRating, size, alignment, biome, monsterType, source, random
 
 }
 
 case class MonsterSearch(
   name:            Option[String] = None,
-  challengeRating: Option[Double] = None,
+  challengeRating: Option[ChallengeRating] = None,
   size:            Option[CreatureSize] = None,
   alignment:       Option[Alignment] = None,
   biome:           Option[Biome] = None,

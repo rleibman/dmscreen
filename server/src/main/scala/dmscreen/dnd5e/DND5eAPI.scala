@@ -56,6 +56,7 @@ object DND5eAPI {
   private given Schema[Any, EncounterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, SceneId] = Schema.longSchema.contramap(_.value)
 
+  private given Schema[Any, ChallengeRating] = Schema.doubleSchema.contramap(_.value)
   private given Schema[Any, SourceId] = Schema.stringSchema.contramap(_.value)
   private given Schema[Any, URL] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, SemVer] = Schema.stringSchema.contramap(_.render)
@@ -74,6 +75,7 @@ object DND5eAPI {
   private given ArgBuilder[SourceId] = ArgBuilder.string.map(SourceId.apply)
   private given ArgBuilder[CampaignId] = ArgBuilder.long.map(CampaignId.apply)
   private given ArgBuilder[EncounterId] = ArgBuilder.long.map(EncounterId.apply)
+  private given ArgBuilder[ChallengeRating] = ArgBuilder.double.map(n => ChallengeRating.fromDouble(n).get)
 
   private given ArgBuilder[GeneralLog] = ArgBuilder.gen[GeneralLog]
   private given ArgBuilder[CombatLog] = ArgBuilder.gen[CombatLog]

@@ -224,7 +224,7 @@ type Queries {
   playerCharacters(value: Long!): [PlayerCharacter!]
   nonPlayerCharacters(value: Long!): [NonPlayerCharacter!]
   encounters(value: Long!): [Encounter!]
-  bestiary(name: String, challengeRating: Float, size: String, alignment: String, biome: String, monsterType: MonsterType, source: SourceInput, order: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): MonsterSearchResults
+  bestiary(name: String, challengeRating: Float, size: CreatureSize, alignment: Alignment, biome: Biome, monsterType: MonsterType, source: SourceInput, order: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): MonsterSearchResults
   sources: [Source!]
   classes: [CharacterClass!]
   races: [Race!]

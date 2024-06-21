@@ -126,9 +126,13 @@ i.icon.clearIcon:before {
     width: 60px;
 }
 
-.damageInput.input>input {
+.damageInput.input > input {
     padding-bottom: 4px;
     padding-right: 2px;
     padding-left: 2px;
     padding-top: 4px;
+}
+
+.encounterGrid {
+    width: 100%;
 }

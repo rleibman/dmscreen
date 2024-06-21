@@ -58,6 +58,51 @@ object MonsterId {
 
 }
 
+object ChallengeRating {
+
+  def fromDouble(value: Double): Option[ChallengeRating] = ChallengeRating.values.find(_.value == value)
+
+}
+
+enum ChallengeRating(val value: Double) {
+
+  case `0` extends ChallengeRating(0.0)
+  case `1/8` extends ChallengeRating(0.125)
+  case `1/4` extends ChallengeRating(0.25)
+  case `1/2` extends ChallengeRating(0.5)
+  case `1` extends ChallengeRating(1.0)
+  case `2` extends ChallengeRating(2.0)
+  case `3` extends ChallengeRating(3.0)
+  case `4` extends ChallengeRating(4.0)
+  case `5` extends ChallengeRating(5.0)
+  case `6` extends ChallengeRating(6.0)
+  case `7` extends ChallengeRating(7.0)
+  case `8` extends ChallengeRating(8.0)
+  case `9` extends ChallengeRating(9.0)
+  case `10` extends ChallengeRating(10.0)
+  case `11` extends ChallengeRating(11.0)
+  case `12` extends ChallengeRating(12.0)
+  case `13` extends ChallengeRating(13.0)
+  case `14` extends ChallengeRating(14.0)
+  case `15` extends ChallengeRating(15.0)
+  case `16` extends ChallengeRating(16.0)
+  case `17` extends ChallengeRating(17.0)
+  case `18` extends ChallengeRating(18.0)
+  case `19` extends ChallengeRating(19.0)
+  case `20` extends ChallengeRating(20.0)
+  case `21` extends ChallengeRating(21.0)
+  case `22` extends ChallengeRating(22.0)
+  case `23` extends ChallengeRating(23.0)
+  case `24` extends ChallengeRating(24.0)
+  case `25` extends ChallengeRating(25.0)
+  case `26` extends ChallengeRating(26.0)
+  case `27` extends ChallengeRating(27.0)
+  case `28` extends ChallengeRating(28.0)
+  case `29` extends ChallengeRating(29.0)
+  case `30` extends ChallengeRating(30.0)
+
+}
+
 enum MonsterType {
 
   case Aberration
@@ -113,7 +158,7 @@ case class MonsterHeader(
   monsterType:      MonsterType,
   biome:            Option[Biome],
   alignment:        Option[Alignment],
-  cr:               Double,
+  cr:               ChallengeRating,
   xp:               Long,
   armorClass:       Int,
   maximumHitPoints: Int,

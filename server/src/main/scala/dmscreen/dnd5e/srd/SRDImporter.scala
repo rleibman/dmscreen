@@ -168,7 +168,7 @@ class SRDImporter extends DND5eImporter[File, File, File, File] {
               monsterType = monsterType, // MonsterType,
               biome = None, // Option[Biome],
               alignment = alignment, // Option[Alignment],
-              cr = cr, // Double,
+              cr = ChallengeRating.fromDouble(cr).getOrElse(ChallengeRating.`0`),
               xp = xp, // Int,
               armorClass = armorClass, // Int,
               maximumHitPoints = maximumHitPoints, // Int,

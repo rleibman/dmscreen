@@ -150,7 +150,7 @@ object QuillDND5eRepository {
           monsterType = MonsterType.valueOf(monsterType),
           biome = biome.map(Biome.valueOf),
           alignment = alignment.map(Alignment.valueOf),
-          cr = cr,
+          cr = ChallengeRating.fromDouble(cr).getOrElse(ChallengeRating.`0`),
           xp = xp,
           armorClass = armorClass,
           maximumHitPoints = hitPoints,
@@ -302,7 +302,8 @@ object QuillDND5eRepository {
         override def bestiary(search: MonsterSearch): IO[DMScreenError, MonsterSearchResults] = {
           val q0: Quoted[EntityQuery[MonsterRow]] = qMonsters
           val q1: Quoted[EntityQuery[MonsterRow]] = search.name.fold(q0)(n => q0.filter(_.name like lift(s"%$n%")))
-          val q2: Quoted[EntityQuery[MonsterRow]] = search.challengeRating.fold(q1)(n => q1.filter(_.cr == lift(n)))
+          val q2: Quoted[EntityQuery[MonsterRow]] =
+            search.challengeRating.fold(q1)(n => q1.filter(_.cr == lift(n.value)))
           val q3: Quoted[EntityQuery[MonsterRow]] =
             search.monsterType.fold(q2)(n => q2.filter(_.monsterType == lift(n.toString)))
           val q4: Quoted[EntityQuery[MonsterRow]] =
@@ -582,7 +583,7 @@ object QuillDND5eRepository {
                         monsterType = header.monsterType.toString,
                         biome = header.biome.map(_.toString),
                         alignment = header.alignment.map(_.toString),
-                        cr = header.cr,
+                        cr = header.cr.value,
                         xp = header.xp,
                         armorClass = header.armorClass,
                         hitPoints = header.maximumHitPoints,

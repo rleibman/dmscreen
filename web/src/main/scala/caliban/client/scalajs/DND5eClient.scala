@@ -234,6 +234,7 @@ object DND5eClient {
     case object name extends MonsterSearchOrder { val value: String = "name" }
     case object size extends MonsterSearchOrder { val value: String = "size" }
     case object source extends MonsterSearchOrder { val value: String = "source" }
+    case object random extends MonsterSearchOrder { val value: String = "random" }
 
     implicit val decoder: ScalarDecoder[MonsterSearchOrder] = {
       case __StringValue("alignment")       => Right(MonsterSearchOrder.alignment)
@@ -243,6 +244,7 @@ object DND5eClient {
       case __StringValue("name")            => Right(MonsterSearchOrder.name)
       case __StringValue("size")            => Right(MonsterSearchOrder.size)
       case __StringValue("source")          => Right(MonsterSearchOrder.source)
+      case __StringValue("random")          => Right(MonsterSearchOrder.random)
       case other                            => Left(DecodingError(s"Can't build MonsterSearchOrder from input $other"))
     }
     implicit val encoder: ArgEncoder[MonsterSearchOrder] = {
@@ -253,10 +255,11 @@ object DND5eClient {
       case MonsterSearchOrder.name            => __EnumValue("name")
       case MonsterSearchOrder.size            => __EnumValue("size")
       case MonsterSearchOrder.source          => __EnumValue("source")
+      case MonsterSearchOrder.random          => __EnumValue("random")
     }
 
     val values: scala.collection.immutable.Vector[MonsterSearchOrder] =
-      scala.collection.immutable.Vector(alignment, biome, challengeRating, monsterType, name, size, source)
+      scala.collection.immutable.Vector(alignment, biome, challengeRating, monsterType, name, size, source, random)
 
   }
 
@@ -683,9 +686,9 @@ object DND5eClient {
     def bestiary[A](
       name:            scala.Option[String] = None,
       challengeRating: scala.Option[Double] = None,
-      size:            scala.Option[String] = None,
-      alignment:       scala.Option[String] = None,
-      biome:           scala.Option[String] = None,
+      size:            scala.Option[CreatureSize] = None,
+      alignment:       scala.Option[Alignment] = None,
+      biome:           scala.Option[Biome] = None,
       monsterType:     scala.Option[MonsterType] = None,
       source:          scala.Option[SourceInput] = None,
       order:           MonsterSearchOrder,
@@ -697,9 +700,9 @@ object DND5eClient {
     )(implicit
       encoder0:  ArgEncoder[scala.Option[String]],
       encoder1:  ArgEncoder[scala.Option[Double]],
-      encoder2:  ArgEncoder[scala.Option[String]],
-      encoder3:  ArgEncoder[scala.Option[String]],
-      encoder4:  ArgEncoder[scala.Option[String]],
+      encoder2:  ArgEncoder[scala.Option[CreatureSize]],
+      encoder3:  ArgEncoder[scala.Option[Alignment]],
+      encoder4:  ArgEncoder[scala.Option[Biome]],
       encoder5:  ArgEncoder[scala.Option[MonsterType]],
       encoder6:  ArgEncoder[scala.Option[SourceInput]],
       encoder7:  ArgEncoder[MonsterSearchOrder],
@@ -713,9 +716,9 @@ object DND5eClient {
         arguments = List(
           Argument("name", name, "String")(encoder0),
           Argument("challengeRating", challengeRating, "Float")(encoder1),
-          Argument("size", size, "String")(encoder2),
-          Argument("alignment", alignment, "String")(encoder3),
-          Argument("biome", biome, "String")(encoder4),
+          Argument("size", size, "CreatureSize")(encoder2),
+          Argument("alignment", alignment, "Alignment")(encoder3),
+          Argument("biome", biome, "Biome")(encoder4),
           Argument("monsterType", monsterType, "MonsterType")(encoder5),
           Argument("source", source, "SourceInput")(encoder6),
           Argument("order", order, "MonsterSearchOrder!")(encoder7),

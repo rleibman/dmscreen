@@ -21,18 +21,56 @@
 
 package caliban.client.scalajs
 
+import caliban.client.scalajs.DND5eClient.{
+  Alignment as CalibanAlignment,
+  Biome as CalibanBiome,
+  CreatureSize as CalibanCreatureSize,
+  Encounter as CalibanEncounter,
+  EncounterHeader as CalibanEncounterHeader,
+  Monster as CalibanMonster,
+  MonsterHeader as CalibanMonsterHeader,
+  MonsterSearchOrder as CalibanMonsterSearchOrder,
+  MonsterSearchResults as CalibanMonsterSearchResults,
+  MonsterType as CalibanMonsterType,
+  OrderDirection as CalibanOrderDirection,
+  Queries
+}
 import caliban.client.CalibanClientError.DecodingError
 import caliban.client.__Value.__ObjectValue
 import caliban.client.{ScalarDecoder, __Value}
 import com.github.plokhotnyuk.jsoniter_scala.core.JsonWriter
 import zio.json.ast.Json
 import zio.json.*
-
 import com.github.plokhotnyuk.jsoniter_scala
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import dmscreen.dnd5e.*
 
 given ScalarDecoder[Json] = {
   case input: __ObjectValue =>
     writeToString(input).fromJson[Json].left.map(DecodingError(_))
   case _ => Left(DecodingError("Expected an object"))
 }
+
+given monsterTypeConv: Conversion[Option[MonsterType], Option[CalibanMonsterType]] =
+  monsterTypeOpt =>
+    monsterTypeOpt.flatMap(monsterType => CalibanMonsterType.values.find(_.toString == monsterType.toString))
+
+given biomeConv: Conversion[Option[Biome], Option[CalibanBiome]] =
+  biomeOpt => biomeOpt.flatMap(biome => CalibanBiome.values.find(_.toString == biome.toString))
+
+given alignmentConv: Conversion[Option[Alignment], Option[CalibanAlignment]] =
+  alignmentOpt => alignmentOpt.flatMap(alignment => CalibanAlignment.values.find(_.toString == alignment.toString))
+
+given creatureSizeConv: Conversion[Option[CreatureSize], Option[CalibanCreatureSize]] =
+  creatureSizeOpt =>
+    creatureSizeOpt.flatMap(creatureSize => CalibanCreatureSize.values.find(_.toString == creatureSize.toString))
+
+given Conversion[MonsterSearchOrder, CalibanMonsterSearchOrder] =
+  order =>
+    CalibanMonsterSearchOrder.values
+      .find(_.toString == order.toString).getOrElse(CalibanMonsterSearchOrder.name)
+
+given Conversion[OrderDirection, CalibanOrderDirection] =
+  dir =>
+    CalibanOrderDirection.values
+      .find(_.toString == dir.toString).getOrElse(CalibanOrderDirection.asc)

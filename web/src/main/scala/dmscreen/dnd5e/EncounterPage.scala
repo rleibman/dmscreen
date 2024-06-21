@@ -24,6 +24,9 @@ package dmscreen.dnd5e
 import caliban.ScalaJSClientAdapter.*
 import caliban.client.SelectionBuilder
 import caliban.client.scalajs.DND5eClient.{
+  Alignment as CalibanAlignment,
+  Biome as CalibanBiome,
+  CreatureSize as CalibanCreatureSize,
   Encounter as CalibanEncounter,
   EncounterHeader as CalibanEncounterHeader,
   Monster as CalibanMonster,
@@ -34,6 +37,7 @@ import caliban.client.scalajs.DND5eClient.{
   OrderDirection as CalibanOrderDirection,
   Queries
 }
+import caliban.client.scalajs.{*, given}
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
@@ -118,7 +122,7 @@ object EncounterPage extends DMScreenTab {
                   monsterType = MonsterType.valueOf(monsterType.value),
                   biome = biome.map(a => Biome.valueOf(a.value)),
                   alignment = alignment.map(a => Alignment.valueOf(a.value)),
-                  cr = cr,
+                  cr = ChallengeRating.fromDouble(cr).getOrElse(ChallengeRating.`0`),
                   xp = xp,
                   armorClass = armorClass,
                   maximumHitPoints = maximumHitPoints,
@@ -129,26 +133,12 @@ object EncounterPage extends DMScreenTab {
           val resultsSB: SelectionBuilder[CalibanMonsterSearchResults, (List[MonsterHeader], Long)] =
             CalibanMonsterSearchResults.results(monsterSB) ~ CalibanMonsterSearchResults.total
 
-          given Conversion[Option[MonsterType], Option[CalibanMonsterType]] =
-            monsterTypeOpt =>
-              monsterTypeOpt.flatMap(monsterType => CalibanMonsterType.values.find(_.toString == monsterType.toString))
-
-          given Conversion[MonsterSearchOrder, CalibanMonsterSearchOrder] =
-            order =>
-              CalibanMonsterSearchOrder.values
-                .find(_.toString == order.toString).getOrElse(CalibanMonsterSearchOrder.name)
-
-          given Conversion[OrderDirection, CalibanOrderDirection] =
-            dir =>
-              CalibanOrderDirection.values
-                .find(_.toString == dir.toString).getOrElse(CalibanOrderDirection.asc)
-
           val sb = Queries.bestiary(
             name = oldState.monsterSearch.name,
-            challengeRating = oldState.monsterSearch.challengeRating,
-            size = oldState.monsterSearch.size.map(_.toString),
-            alignment = oldState.monsterSearch.alignment.map(_.toString),
-            biome = oldState.monsterSearch.biome.map(_.toString),
+            challengeRating = oldState.monsterSearch.challengeRating.map(_.value),
+            size = oldState.monsterSearch.size,
+            alignment = oldState.monsterSearch.alignment,
+            biome = oldState.monsterSearch.biome,
             monsterType = oldState.monsterSearch.monsterType,
             order = oldState.monsterSearch.order,
             orderDir = oldState.monsterSearch.orderDir,
@@ -274,12 +264,15 @@ object EncounterPage extends DMScreenTab {
                 Table.Cell(entity.monsterHeader.monsterType.toString.capitalize),
                 Table.Cell(entity.monsterHeader.biome.fold("")(_.toString.capitalize)),
                 Table.Cell(entity.monsterHeader.alignment.fold("")(_.name)),
-                Table.Cell(entity.monsterHeader.cr),
+                Table.Cell(entity.monsterHeader.cr.toString),
                 Table.Cell(entity.monsterHeader.xp),
                 Table.Cell(entity.monsterHeader.armorClass),
                 Table.Cell(entity.hitPoints.maxHitPoints),
                 Table.Cell(entity.monsterHeader.size.toString.capitalize),
-                Table.Cell( /*For actions*/ )
+                Table.Cell.singleLine(true)(
+                  Button.compact(true).size(SemanticSIZES.mini).icon(true)(Icon.name(SemanticICONS.`delete`)),
+                  Button.compact(true).size(SemanticSIZES.mini).icon(true)(Icon.name(SemanticICONS.`clone outline`))
+                )
               )
             }*
           )
@@ -310,7 +303,7 @@ object EncounterPage extends DMScreenTab {
                         }
                         .value(state.monsterSearch.name.getOrElse(""))
                     ),
-                    Button
+                    Button // TODO move these buttons to the right
                       .compact(true).icon(true).onClick(
                         (
                           _,
@@ -318,6 +311,15 @@ object EncounterPage extends DMScreenTab {
                         ) => modMonsterSearch(_ => MonsterSearch())
                       )(
                         Icon.className("clearIcon")
+                      ),
+                    Button
+                      .compact(true).icon(true).onClick(
+                        (
+                          _,
+                          _
+                        ) => modMonsterSearch(_ => MonsterSearch())
+                      )(
+                        Icon.name(SemanticICONS.`random`)
                       )
                   ),
                   Form.Group(
@@ -410,8 +412,8 @@ object EncounterPage extends DMScreenTab {
                         .clearable(true)
                         .placeholder("All")
                         .options(
-                          crs
-                            .map(s => DropdownItemProps().setValue(s._2).setText(s._1)).toJSArray
+                          ChallengeRating.values
+                            .map(s => DropdownItemProps().setValue(s.toString).setText(s.toString)).toJSArray
                         )
                         .onChange {
                           (
@@ -420,8 +422,7 @@ object EncounterPage extends DMScreenTab {
                           ) =>
                             val newVal = data.value match {
                               case s: String if s.trim.isEmpty => None
-                              case s: String                   => s.toDoubleOption
-                              case d: Double                   => Some(d)
+                              case s: String => ChallengeRating.values.find(_.toString.equalsIgnoreCase(s))
                               case _ => None
                             }
 
@@ -481,7 +482,7 @@ object EncounterPage extends DMScreenTab {
                 Table.Cell(header.monsterType.toString.capitalize),
                 Table.Cell(header.biome.fold("")(_.toString.capitalize)),
                 Table.Cell(header.alignment.fold("")(_.name)),
-                Table.Cell(header.cr),
+                Table.Cell(header.cr.toString),
                 Table.Cell(header.xp),
                 Table.Cell(header.armorClass),
                 Table.Cell(header.maximumHitPoints),
@@ -666,149 +667,150 @@ object EncounterPage extends DMScreenTab {
 
           <.div(
             ^.className := "pageContainer",
-            Grid
-              .columns(semanticUiReactStrings.equal)(
-                Grid.Column
-//                  .width(SemanticWIDTHS.`6`)
-                  .withKey("scenes")(
-                    Accordion.Accordion
-                      .styled(true)
-                      .fluid(true)(
-                        state.encounters
-                          .sortBy(_.header.sceneId.map(_.value)) // TODO change to order by scene order
-                          .groupBy(_.header.sceneId)
-                          .zipWithIndex
-                          .toList
-                          .map { case ((scene, encounters), sceneIndex) =>
-                            VdomArray(
-                              Accordion.Title
-                                .active(state.accordionState._1 == sceneIndex).onClick(
-                                  onAccordionChange((sceneIndex, 0))
-                                )(
-                                  scene.fold("No Scene")(_.toString),
-                                  Button.icon(true)(Icon.name(SemanticICONS.`plus circle`))
-                                ),
-                              Accordion.Content.active(state.accordionState._1 == sceneIndex)(
-                                Accordion.Accordion
-                                  .fluid(true)
-                                  .styled(true)(
-                                    encounters.zipWithIndex
-                                      .map { case (encounter, encounterIndex) =>
-                                        val encounterInfo = encounter.info.toOption.get
-                                        VdomArray(
-                                          Accordion.Title
-                                            .active(state.accordionState == (sceneIndex, encounterIndex))
-                                            .onClick(
-                                              onAccordionChange((sceneIndex, encounterIndex))
-                                            )(
-                                              <.table(
-                                                ^.cellPadding := 0,
-                                                ^.cellSpacing := 0,
-                                                ^.border      := "0px",
-                                                <.tbody(
-                                                  <.tr(
-                                                    <.td(
-                                                      ^.textAlign := "left",
-                                                      s"${encounter.header.name} (${encounter.header.status.name})"
-                                                    ),
-                                                    <.td(
-                                                      ^.textAlign  := "right",
-                                                      ^.whiteSpace := "nowrap",
-                                                      ^.width      := 190.px,
-                                                      Button
-                                                        .compact(true)
-                                                        .size(SemanticSIZES.tiny)
-                                                        .icon(true)
-                                                        .onClick(
-                                                          (
-                                                            _,
-                                                            _
-                                                          ) =>
-                                                            $.modState(
-                                                              _.copy(
-                                                                currentEncounterId = Some(encounter.header.id),
-                                                                encounterMode = EncounterMode.combat
-                                                                // TODO change the encounter status to active
-                                                              )
+            Grid.className("encounterGrid")(
+              Grid.Column
+                .width(SemanticWIDTHS.`6`)
+                .withKey("scenes")(
+                  Accordion.Accordion
+                    .styled(true)
+                    .fluid(true)(
+                      state.encounters
+                        .sortBy(_.header.sceneId.map(_.value)) // TODO change to order by scene order
+                        .groupBy(_.header.sceneId)
+                        .zipWithIndex
+                        .toList
+                        .map { case ((scene, encounters), sceneIndex) =>
+                          VdomArray(
+                            Accordion.Title
+                              .active(state.accordionState._1 == sceneIndex).onClick(
+                                onAccordionChange((sceneIndex, 0))
+                              )(
+                                scene.fold("No Scene")(_.toString),
+                                Button.icon(true)(Icon.name(SemanticICONS.`plus circle`))
+                              ),
+                            Accordion.Content.active(state.accordionState._1 == sceneIndex)(
+                              Accordion.Accordion
+                                .fluid(true)
+                                .styled(true)(
+                                  encounters.zipWithIndex
+                                    .map { case (encounter, encounterIndex) =>
+                                      val encounterInfo = encounter.info.toOption.get
+                                      VdomArray(
+                                        Accordion.Title
+                                          .active(state.accordionState == (sceneIndex, encounterIndex))
+                                          .onClick(
+                                            onAccordionChange((sceneIndex, encounterIndex))
+                                          )(
+                                            <.table(
+                                              ^.cellPadding := 0,
+                                              ^.cellSpacing := 0,
+                                              ^.border      := "0px",
+                                              <.tbody(
+                                                <.tr(
+                                                  <.td(
+                                                    ^.textAlign := "left",
+                                                    s"${encounter.header.name} (${encounter.header.status.name})"
+                                                  ),
+                                                  <.td(
+                                                    ^.textAlign  := "right",
+                                                    ^.whiteSpace := "nowrap",
+                                                    ^.width      := 190.px,
+                                                    Button
+                                                      .compact(true)
+                                                      .size(SemanticSIZES.tiny)
+                                                      .icon(true)
+                                                      .onClick(
+                                                        (
+                                                          _,
+                                                          _
+                                                        ) =>
+                                                          $.modState(
+                                                            _.copy(
+                                                              currentEncounterId = Some(encounter.header.id),
+                                                              encounterMode = EncounterMode.combat
+                                                              // TODO change the encounter status to active
                                                             )
-                                                        )(
-                                                          Icon.name(SemanticICONS.`play`)
-                                                        )
-                                                        .when(encounter.header.status != EncounterStatus.archived),
-                                                      Button
-                                                        .compact(true)
-                                                        .size(SemanticSIZES.tiny)
-                                                        .icon(true)
-                                                        .onClick(
-                                                          (
-                                                            _,
-                                                            _
-                                                          ) =>
-                                                            $.modState(
-                                                              _.copy(
-                                                                currentEncounterId = Some(encounter.header.id),
-                                                                encounterMode = EncounterMode.edit
-                                                              ),
-                                                              monsterSearch
-                                                            )
-                                                        )(
-                                                          Icon.name(SemanticICONS.`edit`)
-                                                        ),
-                                                      Button
-                                                        .compact(true)
-                                                        .size(SemanticSIZES.tiny)
-                                                        .icon(true)
-                                                        // TODO confirm, then change the encounter status to archived
+                                                          )
+                                                      )(
+                                                        Icon.name(SemanticICONS.`play`)
+                                                      )
+                                                      .when(encounter.header.status != EncounterStatus.archived),
+                                                    Button
+                                                      .compact(true)
+                                                      .size(SemanticSIZES.tiny)
+                                                      .icon(true)
+                                                      .onClick(
                                                         (
-                                                          Icon.name(SemanticICONS.`delete`)
-                                                        ),
-                                                      Button
-                                                        .compact(true)
-                                                        .size(SemanticSIZES.tiny)
-                                                        .icon(true)
-                                                        // TODO Move the encounter to earlier in the list, or to the previous scene if it's at the beginning of the scene
-                                                        (
-                                                          Icon.name(SemanticICONS.`arrow up`)
-                                                        ).when(encounterIndex != 0),
-                                                      Button
-                                                        .compact(true)
-                                                        .size(SemanticSIZES.tiny)
-                                                        .icon(true)
-                                                        // TODO move the encounter to later in the list, or to the next scene if it's at the end of this scene
-                                                        (
-                                                          Icon.name(SemanticICONS.`arrow down`)
-                                                        ) // .when(encounterIndex != campaignState.encounters.size - 1)
-                                                      ,
-                                                      Button
-                                                        .compact(true)
-                                                        .size(SemanticSIZES.tiny)
-                                                        .icon(true)
-                                                        // TODO Make an exact copy of this ecounter, put it immediately after this one.
-                                                        (
-                                                          Icon.name(SemanticICONS.`clone outline`)
-                                                        )
-                                                    )
+                                                          _,
+                                                          _
+                                                        ) =>
+                                                          $.modState(
+                                                            _.copy(
+                                                              currentEncounterId = Some(encounter.header.id),
+                                                              encounterMode = EncounterMode.edit
+                                                            ),
+                                                            monsterSearch
+                                                          )
+                                                      )(
+                                                        Icon.name(SemanticICONS.`edit`)
+                                                      ),
+                                                    Button
+                                                      .compact(true)
+                                                      .size(SemanticSIZES.tiny)
+                                                      .icon(true)
+                                                      // TODO confirm, then change the encounter status to archived
+                                                      (
+                                                        Icon.name(SemanticICONS.`delete`)
+                                                      ),
+                                                    Button
+                                                      .compact(true)
+                                                      .size(SemanticSIZES.tiny)
+                                                      .icon(true)
+                                                      // TODO Move the encounter to earlier in the list, or to the previous scene if it's at the beginning of the scene
+                                                      (
+                                                        Icon.name(SemanticICONS.`arrow up`)
+                                                      ).when(encounterIndex != 0),
+                                                    Button
+                                                      .compact(true)
+                                                      .size(SemanticSIZES.tiny)
+                                                      .icon(true)
+                                                      // TODO move the encounter to later in the list, or to the next scene if it's at the end of this scene
+                                                      (
+                                                        Icon.name(SemanticICONS.`arrow down`)
+                                                      ) // .when(encounterIndex != campaignState.encounters.size - 1)
+                                                    ,
+                                                    Button
+                                                      .compact(true)
+                                                      .size(SemanticSIZES.tiny)
+                                                      .icon(true)
+                                                      // TODO Make an exact copy of this ecounter, put it immediately after this one.
+                                                      (
+                                                        Icon.name(SemanticICONS.`clone outline`)
+                                                      )
                                                   )
                                                 )
                                               )
-                                            ),
-                                          Accordion.Content
-                                            .active(state.accordionState == ((sceneIndex, encounterIndex)))(
-                                              VdomArray(
-                                                encounterInfo.monsters.map(_.name).mkString(", "),
-                                                s"Notes: ${encounterInfo.notes}"
-                                              )
                                             )
-                                        )
+                                          ),
+                                        Accordion.Content
+                                          .active(state.accordionState == ((sceneIndex, encounterIndex)))(
+                                            VdomArray(
+                                              encounterInfo.monsters.map(_.name).mkString(", "),
+                                              s"Notes: ${encounterInfo.notes}"
+                                            )
+                                          )
+                                      )
 
-                                      }*
-                                  )
-                              )
+                                    }*
+                                )
                             )
-                          }*
-                      )
-                  ),
-                Grid.Column.withKey("currentEncounter")(
+                          )
+                        }*
+                    )
+                ),
+              Grid.Column
+                .width(SemanticWIDTHS.`8`)
+                .withKey("currentEncounter")(
                   state.currentEncounter.fold(Container.fluid(true)("Choose an encounter to edit or run"))(encounter =>
                     state.encounterMode match {
                       case EncounterMode.edit   => EncounterEditor(campaignState, state, encounter)
@@ -816,15 +818,32 @@ object EncounterPage extends DMScreenTab {
                     }
                   )
                 ),
-                Grid.Column
-                  .withKey("encounterLog")
-                  .width(SemanticWIDTHS.`2`)(
-                    Container
-                      .fluid(true)(<.h2("Encounter Log")).when(
-                        state.encounterMode == EncounterMode.combat && state.currentEncounter.nonEmpty
-                      )
-                  )
-              )
+              Grid.Column
+                .withKey("encounterLog")
+                .width(SemanticWIDTHS.`2`)(
+                  Container
+                    .fluid(true)(
+                      if (state.encounterMode == EncounterMode.combat && state.currentEncounter.nonEmpty) {
+                        VdomArray(
+                          Container(
+                            <.h2("Encounter Log")
+                          ),
+                          Container(
+                            <.h2("Dice Roller"),
+                            Button("d4"),
+                            Button("d6"),
+                            Button("d10"),
+                            Button("d12"),
+                            Button("d20"),
+                            Button("d100"),
+                            Input.action(Button("Roll")()).value("2d20")
+                          )
+                        )
+
+                      } else <.div("Hello world")
+                    )
+                )
+            )
           )
 
         }
