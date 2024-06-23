@@ -109,9 +109,9 @@ given JsonCodec[PlayerCharacterHeader] = JsonCodec.derived[PlayerCharacterHeader
 given JsonCodec[MonsterHeader] = JsonCodec.derived[MonsterHeader]
 given JsonCodec[SceneHeader] = JsonCodec.derived[SceneHeader]
 given JsonCodec[SceneInfo] = JsonCodec.derived[SceneInfo]
-given JsonCodec[EncounterEntity] = JsonCodec.derived[EncounterEntity]
-given JsonCodec[MonsterEncounterEntity] = JsonCodec.derived[MonsterEncounterEntity]
-given JsonCodec[PlayerCharacterEncounterEntity] = JsonCodec.derived[PlayerCharacterEncounterEntity]
+given JsonCodec[EncounterCreature] = JsonCodec.derived[EncounterCreature]
+given JsonCodec[MonsterEncounterCreature] = JsonCodec.derived[MonsterEncounterCreature]
+given JsonCodec[PlayerCharacterEncounterCreature] = JsonCodec.derived[PlayerCharacterEncounterCreature]
 given JsonCodec[EncounterDifficulty] = JsonCodec.derived[EncounterDifficulty]
 given JsonCodec[EncounterInfo] = JsonCodec.derived[EncounterInfo]
 

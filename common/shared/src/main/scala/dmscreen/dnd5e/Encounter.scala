@@ -41,7 +41,7 @@ object EntityId {
 
 }
 
-sealed abstract class EncounterEntity(
+sealed abstract class EncounterCreature(
 ) {
 
   def id: EntityId
@@ -56,7 +56,7 @@ sealed abstract class EncounterEntity(
 
 }
 
-case class MonsterEncounterEntity(
+case class MonsterEncounterCreature(
   override val id:              EntityId,
   monsterHeader:                MonsterHeader,
   override val notes:           String,
@@ -67,20 +67,20 @@ case class MonsterEncounterEntity(
   override val otherMarkers:    Seq[Marker],
   name:                         String,
   override val initiativeBonus: Int
-) extends EncounterEntity()
+) extends EncounterCreature()
 
 /** Used for things like Hunter's Mark, Hex, Hidden, concentration, etc.
   */
 case class Marker(name: String)
 
-case class PlayerCharacterEncounterEntity(
+case class PlayerCharacterEncounterCreature(
   override val id:              EntityId,
   playerCharacterId:            PlayerCharacterId,
   override val notes:           String,
   override val initiative:      Int,
   override val otherMarkers:    Seq[Marker],
   override val initiativeBonus: Int
-) extends EncounterEntity() {}
+) extends EncounterCreature() {}
 
 opaque type EncounterId = Long
 
@@ -125,18 +125,18 @@ case class EncounterHeader(
 ) extends HasId[EncounterId]
 
 case class EncounterInfo(
-  entities:    List[EncounterEntity],
+  creatures:   List[EncounterCreature],
   currentTurn: Int = 0,
   round:       Int = 0,
   notes:       String = ""
 ) {
 
   lazy val difficulty: EncounterDifficulty = EncounterDifficulty.Hard // TODO calculate
-  lazy val xp = entities.collect { case m: MonsterEncounterEntity =>
+  lazy val xp = creatures.collect { case m: MonsterEncounterCreature =>
     m.monsterHeader.xp
   }.sum
 
-  def monsters: Seq[MonsterEncounterEntity] = entities.collect { case m: MonsterEncounterEntity => m }
+  def monsters: Seq[MonsterEncounterCreature] = creatures.collect { case m: MonsterEncounterCreature => m }
 
 }
 

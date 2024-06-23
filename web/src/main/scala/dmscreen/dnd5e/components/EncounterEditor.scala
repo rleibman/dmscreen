@@ -24,11 +24,6 @@ package dmscreen.dnd5e.components
 import caliban.ScalaJSClientAdapter.*
 import caliban.client.SelectionBuilder
 import caliban.client.scalajs.DND5eClient.{
-  Alignment as CalibanAlignment,
-  Biome as CalibanBiome,
-  CreatureSize as CalibanCreatureSize,
-  Encounter as CalibanEncounter,
-  EncounterHeader as CalibanEncounterHeader,
   Monster as CalibanMonster,
   MonsterHeader as CalibanMonsterHeader,
   MonsterSearchOrder as CalibanMonsterSearchOrder,
@@ -68,13 +63,13 @@ object EncounterEditor {
     encounter:     Encounter,
     monsterSearch: MonsterSearch = MonsterSearch(),
     monsters:      List[MonsterHeader] = List.empty,
-    monsterCount:  Long = 0,
-    dialogOpen:    Boolean = false
+    monsterCount:  Long = 0
   )
 
   case class Props(
     encounter: Encounter,
-    onDelete:  Encounter => Callback
+    onDelete:  Encounter => Callback,
+    onChange:  Encounter => Callback
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -157,18 +152,23 @@ object EncounterEditor {
       def modMonsterSearch(f: MonsterSearch => MonsterSearch): Callback =
         $.modState(s => s.copy(monsterSearch = f(s.monsterSearch)), monsterSearch) // TODO change search
 
-      def modEncounter(f: Encounter => Encounter) = $.modState(s => s.copy(encounter = f(s.encounter)))
-
-      val encounter = state.encounter
+      def modEncounter(
+        f:        Encounter => Encounter,
+        callback: => Callback = Callback.empty
+      ) =
+        $.modState(
+          s => s.copy(encounter = f(s.encounter)),
+          callback >> $.state.flatMap(s => props.onChange(s.encounter))
+        )
 
       Container(
         Table(
           Table.Header(
             Table.Row(
-              Table.HeaderCell.colSpan(3)(<.h2(s"${encounter.header.name}")),
+              Table.HeaderCell.colSpan(3)(<.h2(s"${state.encounter.header.name}")),
               Table.HeaderCell
                 .colSpan(3).textAlign(semanticUiReactStrings.center)(
-                  s"Difficulty: ${encounter.info.difficulty}, xp: ${encounter.info.xp}"
+                  s"Difficulty: ${state.encounter.info.difficulty}, xp: ${state.encounter.info.xp}"
                 ),
               Table.HeaderCell
                 .colSpan(4)
@@ -182,7 +182,9 @@ object EncounterEditor {
                         _,
                         _
                       ) => modEncounter(e => e.copy(header = e.header.copy(status = EncounterStatus.archived)))
-                    )(Icon.name(SemanticICONS.`archive`)).when(encounter.header.status != EncounterStatus.archived),
+                    )(Icon.name(SemanticICONS.`archive`)).when(
+                      state.encounter.header.status != EncounterStatus.archived
+                    ),
                   Button
                     .compact(true)
                     .icon(true)
@@ -193,7 +195,7 @@ object EncounterEditor {
                       ) =>
                         _root_.components.Confirm.confirm(
                           question = "Are you 100% sure you want to delete this encounter?",
-                          onConfirm = props.onDelete(encounter)
+                          onConfirm = props.onDelete(state.encounter)
                         )
                     )(Icon.name(SemanticICONS.`delete`))
                 )
@@ -212,18 +214,18 @@ object EncounterEditor {
             )
           ),
           Table.Body(
-            encounter.info.entities.collect { case entity: MonsterEncounterEntity =>
+            state.encounter.info.creatures.collect { case entity: MonsterEncounterCreature =>
               Table.Row(
                 Table.Cell(
                   EditableText(
                     value = s"${entity.id.value}:${entity.name}",
                     onChange = name =>
-                      modEncounter(encounter => {
-                        encounter
+                      modEncounter(e => {
+                        e
                           .copy(jsonInfo =
-                            encounter.info
-                              .copy(entities = encounter.info.entities.map {
-                                case entity: MonsterEncounterEntity if entity.id == entity.id =>
+                            e.info
+                              .copy(creatures = e.info.creatures.map {
+                                case entity: MonsterEncounterCreature if entity.id == entity.id =>
                                   entity.copy(name = name)
                                 case _ => entity
                               }).toJsonAST.toOption.get // TODO this conversion is akward, change it
@@ -242,12 +244,12 @@ object EncounterEditor {
                     min = 0,
                     max = 30,
                     onChange = v =>
-                      modEncounter { encounter =>
-                        encounter
+                      modEncounter { e =>
+                        e
                           .copy(jsonInfo =
-                            encounter.info
-                              .copy(entities = encounter.info.entities.map {
-                                case entity: MonsterEncounterEntity if entity.id == entity.id =>
+                            e.info
+                              .copy(creatures = e.info.creatures.map {
+                                case entity: MonsterEncounterCreature if entity.id == entity.id =>
                                   entity.copy(armorClass = v.toInt)
                                 case _ => entity
                               }).toJsonAST.toOption.get
@@ -261,12 +263,12 @@ object EncounterEditor {
                     min = 0,
                     max = 1000,
                     onChange = v =>
-                      modEncounter { encounter =>
-                        encounter
+                      modEncounter { e =>
+                        e
                           .copy(jsonInfo =
-                            encounter.info
-                              .copy(entities = encounter.info.entities.map {
-                                case entity: MonsterEncounterEntity if entity.id == entity.id =>
+                            e.info
+                              .copy(creatures = e.info.creatures.map {
+                                case entity: MonsterEncounterCreature if entity.id == entity.id =>
                                   entity.copy(hitPoints = entity.hitPoints.copy(maxHitPoints = v.toInt))
                                 case _ => entity
                               }).toJsonAST.toOption.get
@@ -285,17 +287,13 @@ object EncounterEditor {
                         _,
                         _
                       ) =>
-                        modEncounter(encounter => {
-                          println(s"deleting ${entity.id}, name=${entity.name}")
-                          println(encounter.info.entities.map(_.id).mkString(","))
-                          val res = encounter
+                        modEncounter(e => {
+                          e
                             .copy(jsonInfo =
-                              encounter.info
-                                .copy(entities = encounter.info.entities.filter(_.id != entity.id))
+                              e.info
+                                .copy(creatures = e.info.creatures.filter(_.id != entity.id))
                                 .toJsonAST.toOption.get
                             )
-                          println(res.info.entities.map(_.id).mkString(","))
-                          res
                         })
                     }(Icon.name(SemanticICONS.`delete`)),
                   Button
@@ -306,13 +304,13 @@ object EncounterEditor {
                         _,
                         _
                       ) =>
-                        val newId = EntityId(encounter.info.entities.size)
+                        val newId = EntityId(state.encounter.info.creatures.size)
                         modEncounter(encounter => {
                           encounter
                             .copy(jsonInfo =
                               encounter.info
-                                .copy(entities =
-                                  encounter.info.entities :+
+                                .copy(creatures =
+                                  encounter.info.creatures :+
                                     entity.copy(id = newId)
                                 )
                                 .toJsonAST.toOption.get
@@ -575,14 +573,14 @@ object EncounterEditor {
     .builder[Props]("EncounterEditor")
     .initialStateFromProps(p => State(p.encounter))
     .renderBackend[Backend]
-    .componentDidMount($ => Callback.empty)
-    .shouldComponentUpdatePure($ => ! $.nextState.dialogOpen)
+    .componentDidMount($ => $.backend.monsterSearch)
     .build
 
   def apply(
     encounter: Encounter,
-    onDelete:  Encounter => Callback = _ => Callback.empty
+    onDelete:  Encounter => Callback = _ => Callback.empty,
+    onChange:  Encounter => Callback = _ => Callback.empty
   ): Unmounted[Props, State, Backend] =
-    component.withKey(encounter.header.id.value.toString)(Props(encounter, onDelete))
+    component.withKey(encounter.header.id.value.toString)(Props(encounter, onDelete, onChange))
 
 }

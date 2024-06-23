@@ -70,10 +70,10 @@ object PlayerPage extends DMScreenTab {
                   // TODO send to server
                 }
               )("Add Character"),
-              Button("Import from dndbeyond.com"),
-              Button("Import from 5th Edition Tools"),
-              Button("Short Rest"),
-              Button("Long Rest")
+              Button("Import from dndbeyond.com"), // TODO
+              Button("Import from 5th Edition Tools"), // TODO
+              Button("Short Rest"), // TODO short rest
+              Button("Long Rest") // TODO long rest
             ),
             <.div(
               ^.className := "pageContainer",
@@ -98,18 +98,8 @@ object PlayerPage extends DMScreenTab {
 
   private val component = ScalaComponent
     .builder[Unit]("router")
-    .initialState {
-      State()
-    }
+    .initialState(State())
     .renderBackend[Backend]
-    .componentDidMount(
-      // _.backend.refresh(initial = true)()
-      $ => Callback.empty
-    )
-    .componentWillUnmount($ =>
-      // TODO close down streams here
-      Callback.empty
-    )
     .build
 
   def apply(): Unmounted[Unit, State, Backend] = component()
