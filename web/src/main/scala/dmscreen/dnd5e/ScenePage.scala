@@ -21,14 +21,23 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{DMScreenState, DMScreenTab}
-import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
+import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
+import dmscreen.dnd5e.NPCPage.State
+import dmscreen.dnd5e.components.PlayerCharacterComponent
+import japgolly.scalajs.react.{BackendScope, Callback, Reusability, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Unmounted
+import net.leibman.dmscreen.semanticUiReact.*
+import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
 import japgolly.scalajs.react.vdom.html_<^.*
 
 object ScenePage extends DMScreenTab {
 
-  case class State()
+  case class Thing(
+    value1: String,
+    value2: String
+  )
+
+  case class State(things: Seq[Thing] = Seq.empty)
 
   class Backend($ : BackendScope[Unit, State]) {
 
@@ -38,7 +47,31 @@ object ScenePage extends DMScreenTab {
           <.div("Campaign Loading")
         } { case campaignState: DND5eCampaignState =>
           val campaign = campaignState.campaign
-          <.div("Coming Soon")
+          Table(
+            Table.Row(
+              Table.HeaderCell("Value1"),
+              Table.HeaderCell("Value2"),
+              Table.HeaderCell("")
+            ),
+            Table.Body(
+              s.things.map(thing => {
+                Table.Row(
+                  Table.Cell(thing.value1),
+                  Table.Cell(thing.value2),
+                  Table.Cell(
+                    Button
+                      .onClick(
+                        (
+                          _,
+                          _
+                        ) => $.modState(s => s.copy(things = s.things.filterNot(_ == thing)))
+                      )
+                      .value("Delete")
+                  )
+                )
+              })*
+            )
+          )
         }
       }
     }
@@ -48,7 +81,17 @@ object ScenePage extends DMScreenTab {
   private val component = ScalaComponent
     .builder[Unit]("router")
     .initialState {
-      State()
+      State(
+        things = Seq(
+          Thing("1", "2"),
+          Thing("3", "4"),
+          Thing("5", "6"),
+          Thing("7", "8"),
+          Thing("9", "10"),
+          Thing("11", "12"),
+          Thing("13", "14")
+        )
+      )
     }
     .renderBackend[Backend]
     .componentDidMount(
