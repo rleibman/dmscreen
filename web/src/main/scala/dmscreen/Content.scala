@@ -29,7 +29,9 @@ import caliban.client.scalajs.DND5eClient.{
   GameSystem as CalibanGameSystem,
   PlayerCharacter as CalibanPlayerCharacter,
   PlayerCharacterHeader as CalibanPlayerCharacterHeader,
-  Queries
+  Queries,
+  Scene as CalibanScene,
+  SceneHeader as CalibanSceneHeader
 }
 import caliban.ScalaJSClientAdapter.*
 import caliban.client.CalibanClientError.DecodingError
@@ -89,7 +91,7 @@ object Content {
         _ <- Callback.log("Loading campaign data from server...").asAsyncCallback
         backgrounds <- {
           val sb = Queries.backgrounds(CalibanBackground.name.map(Background.apply))
-          asyncCalibanCall(sb).map(_.toSeq.flatten)
+          asyncCalibanCall(sb).map(_.toList.flatten)
         }
         classes <- {
           val sb = Queries.classes(
@@ -104,63 +106,79 @@ object Content {
                 )
             )
           )
-          asyncCalibanCall(sb).map(_.toSeq.flatten)
+          asyncCalibanCall(sb).map(_.toList.flatten)
         }
-        campaign <- currentCampaignId.fold(AsyncCallback.pure(None: Option[(DND5eCampaign, List[PlayerCharacter])])) {
-          id =>
-            // TODO move the sb declarations to common code
-            val campaignSB: SelectionBuilder[CalibanDND5eCampaign, DND5eCampaign] = (CalibanDND5eCampaign.header(
-              CalibanCampaignHeader.id ~ CalibanCampaignHeader.name ~ CalibanCampaignHeader.dmUserId ~ CalibanCampaignHeader.gameSystem
-            ) ~ CalibanDND5eCampaign.jsonInfo).map {
+        campaign <- currentCampaignId.fold(
+          AsyncCallback.pure(None: Option[(DND5eCampaign, List[PlayerCharacter], List[Scene])])
+        ) { id =>
+          // TODO move the sb declarations to common code
+          val campaignSB: SelectionBuilder[CalibanDND5eCampaign, DND5eCampaign] = (CalibanDND5eCampaign.header(
+            CalibanCampaignHeader.id ~ CalibanCampaignHeader.name ~ CalibanCampaignHeader.dmUserId ~ CalibanCampaignHeader.gameSystem
+          ) ~ CalibanDND5eCampaign.jsonInfo).map {
+            (
+              id:       Long,
+              name:     String,
+              dmUserId: Long,
+              system:   CalibanGameSystem,
+              info:     Json
+            ) =>
+              DND5eCampaign(
+                CampaignHeader(CampaignId(id), UserId(dmUserId), name, GameSystem.valueOf(system.value)),
+                info
+              )
+          }
+          val playerCharacterSB: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
+            (CalibanPlayerCharacter.header(
+              CalibanPlayerCharacterHeader.campaignId ~
+                CalibanPlayerCharacterHeader.id ~
+                CalibanPlayerCharacterHeader.name ~
+                CalibanPlayerCharacterHeader.playerName
+            ) ~ CalibanPlayerCharacter.jsonInfo).map {
               (
-                id:       Long,
-                name:     String,
-                dmUserId: Long,
-                system:   CalibanGameSystem,
-                info:     Json
+                campaignId: Long,
+                pcId:       Long,
+                name:       String,
+                playerName: Option[String],
+                info:       Json
               ) =>
-                DND5eCampaign(
-                  CampaignHeader(CampaignId(id), UserId(dmUserId), name, GameSystem.valueOf(system.value)),
+                PlayerCharacter(
+                  PlayerCharacterHeader(
+                    id = PlayerCharacterId(pcId),
+                    campaignId = CampaignId(campaignId),
+                    name = name,
+                    playerName = playerName
+                  ),
                   info
                 )
             }
-            val playerCharacterSB: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
-              (CalibanPlayerCharacter.header(
-                CalibanPlayerCharacterHeader.campaignId ~
-                  CalibanPlayerCharacterHeader.id ~
-                  CalibanPlayerCharacterHeader.name ~
-                  CalibanPlayerCharacterHeader.playerName
-              ) ~ CalibanPlayerCharacter.jsonInfo).map {
-                (
-                  campaignId: Long,
-                  pcId:       Long,
-                  name:       String,
-                  playerName: Option[String],
-                  info:       Json
-                ) =>
-                  PlayerCharacter(
-                    PlayerCharacterHeader(
-                      id = PlayerCharacterId(pcId),
-                      campaignId = CampaignId(campaignId),
-                      name = name,
-                      playerName = playerName
-                    ),
-                    info
-                  )
-              }
 
-            val totalSB =
-              (Queries.campaign(id.value)(campaignSB) ~ Queries.playerCharacters(id.value)(playerCharacterSB)).map {
-                (
-                  cOpt,
-                  pcsOpt
-                ) =>
-                  for {
-                    c   <- cOpt
-                    pcs <- pcsOpt
-                  } yield (c, pcs)
-              }
-            asyncCalibanCall(totalSB)
+          val sceneSB: SelectionBuilder[CalibanScene, Scene] = (CalibanScene.header(
+            CalibanSceneHeader.id ~ CalibanSceneHeader.campaignId ~ CalibanSceneHeader.name ~ CalibanSceneHeader.order
+          ) ~ CalibanScene.jsonInfo).map {
+            (
+              id:         Long,
+              campaignId: Long,
+              name:       String,
+              order:      Int,
+              info:       Json
+            ) =>
+              Scene(
+                SceneHeader(SceneId(id), CampaignId(campaignId), name, order),
+                info
+              )
+          }
+
+          val totalSB =
+            (Queries.campaign(id.value)(campaignSB) ~ Queries.playerCharacters(id.value)(playerCharacterSB) ~ Queries
+              .scenes(id.value)(sceneSB)).map {
+              (
+                cOpt,
+                pcsOpt,
+                scenesOpt
+              ) =>
+                cOpt.map((_, pcsOpt.toList.flatten, scenesOpt.toList.flatten))
+            }
+          asyncCalibanCall(totalSB)
         }
         _ <- Callback.log(s"Campaign data (${campaign.fold("")(_._1.header.name)}) loaded from server").asAsyncCallback
 
@@ -180,13 +198,14 @@ object Content {
         val newCampaignState = campaign.map(
           (
             c,
-            pcs
+            pcs,
+            scenes
           ) =>
             s.dmScreenState.campaignState.fold(
               // Completely brand new
-              DND5eCampaignState(c, pcs)
+              DND5eCampaignState(campaign = c, pcs = pcs, scenes = scenes)
             ) { case oldCampaignState: DND5eCampaignState =>
-              oldCampaignState.copy(campaign = c, pcs = pcs)
+              oldCampaignState.copy(campaign = c, pcs = pcs, scenes = scenes)
             }
         )
 

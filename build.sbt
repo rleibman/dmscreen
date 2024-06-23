@@ -48,8 +48,8 @@ enablePlugins(
   GitVersioning
 )
 
-val calibanVersion = "2.7.1"
-val zioVersion = "2.1.3"
+val calibanVersion = "2.7.2"
+val zioVersion = "2.1.4"
 val quillVersion = "4.8.5"
 val zioHttpVersion = "3.0.0-RC8"
 val zioConfigVersion = "4.0.2"

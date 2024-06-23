@@ -91,15 +91,14 @@ object DashboardPage extends DMScreenTab {
                       pc,
                       i
                     ) =>
-                      val info = pc.info.toOption.get
                       Data(data =
                         js.Array(
-                          info.abilities.strength.overridenValue.toDouble,
-                          info.abilities.constitution.overridenValue.toDouble,
-                          info.abilities.dexterity.overridenValue.toDouble,
-                          info.abilities.intelligence.overridenValue.toDouble,
-                          info.abilities.wisdom.overridenValue.toDouble,
-                          info.abilities.charisma.overridenValue.toDouble
+                          pc.info.abilities.strength.overridenValue.toDouble,
+                          pc.info.abilities.constitution.overridenValue.toDouble,
+                          pc.info.abilities.dexterity.overridenValue.toDouble,
+                          pc.info.abilities.intelligence.overridenValue.toDouble,
+                          pc.info.abilities.wisdom.overridenValue.toDouble,
+                          pc.info.abilities.charisma.overridenValue.toDouble
                         )
                       )
                         .setName(pc.header.name)
@@ -128,15 +127,14 @@ object DashboardPage extends DMScreenTab {
                       pc,
                       i
                     ) =>
-                      val info = pc.info.toOption.get
                       Data(data =
                         js.Array(
-                          info.abilities.strength.savingThrow(info.proficiencyBonus).toDouble,
-                          info.abilities.constitution.savingThrow(info.proficiencyBonus).toDouble,
-                          info.abilities.dexterity.savingThrow(info.proficiencyBonus).toDouble,
-                          info.abilities.intelligence.savingThrow(info.proficiencyBonus).toDouble,
-                          info.abilities.wisdom.savingThrow(info.proficiencyBonus).toDouble,
-                          info.abilities.charisma.savingThrow(info.proficiencyBonus).toDouble
+                          pc.info.abilities.strength.savingThrow(pc.info.proficiencyBonus).toDouble,
+                          pc.info.abilities.constitution.savingThrow(pc.info.proficiencyBonus).toDouble,
+                          pc.info.abilities.dexterity.savingThrow(pc.info.proficiencyBonus).toDouble,
+                          pc.info.abilities.intelligence.savingThrow(pc.info.proficiencyBonus).toDouble,
+                          pc.info.abilities.wisdom.savingThrow(pc.info.proficiencyBonus).toDouble,
+                          pc.info.abilities.charisma.savingThrow(pc.info.proficiencyBonus).toDouble
                         )
                       )
                         .setName(pc.header.name)
@@ -165,12 +163,11 @@ object DashboardPage extends DMScreenTab {
                       pc,
                       i
                     ) =>
-                      val info = pc.info.toOption.get
                       Data(data =
                         js.Array(
-                          info.passiveInsight.toDouble,
-                          info.passivePerception.toDouble,
-                          info.passiveInvestigation.toDouble
+                          pc.info.passiveInsight.toDouble,
+                          pc.info.passivePerception.toDouble,
+                          pc.info.passiveInvestigation.toDouble
                         )
                       )
                         .setName(pc.header.name)
@@ -199,26 +196,25 @@ object DashboardPage extends DMScreenTab {
                       pc,
                       i
                     ) =>
-                      val info = pc.info.toOption.get
                       Data(data =
                         js.Array(
-                          info.skills.acrobatics.modifier(info.abilities).toDouble,
-                          info.skills.animalHandling.modifier(info.abilities).toDouble,
-                          info.skills.arcana.modifier(info.abilities).toDouble,
-                          info.skills.athletics.modifier(info.abilities).toDouble,
-                          info.skills.deception.modifier(info.abilities).toDouble,
-                          info.skills.history.modifier(info.abilities).toDouble,
-                          info.skills.insight.modifier(info.abilities).toDouble,
-                          info.skills.intimidation.modifier(info.abilities).toDouble,
-                          info.skills.investigation.modifier(info.abilities).toDouble,
-                          info.skills.medicine.modifier(info.abilities).toDouble,
-                          info.skills.nature.modifier(info.abilities).toDouble,
-                          info.skills.perception.modifier(info.abilities).toDouble,
-                          info.skills.performance.modifier(info.abilities).toDouble,
-                          info.skills.persuasion.modifier(info.abilities).toDouble,
-                          info.skills.religion.modifier(info.abilities).toDouble,
-                          info.skills.sleightOfHand.modifier(info.abilities).toDouble,
-                          info.skills.stealth.modifier(info.abilities).toDouble
+                          pc.info.skills.acrobatics.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.animalHandling.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.arcana.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.athletics.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.deception.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.history.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.insight.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.intimidation.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.investigation.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.medicine.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.nature.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.perception.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.performance.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.persuasion.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.religion.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.sleightOfHand.modifier(pc.info.abilities).toDouble,
+                          pc.info.skills.stealth.modifier(pc.info.abilities).toDouble
                         )
                       )
                         .setName(pc.header.name)
@@ -282,17 +278,16 @@ object DashboardPage extends DMScreenTab {
 
                   val (names, ratios, ratioStrings, lifeColors) = {
                     campaignState.pcs.map { pc =>
-                      val info = pc.info.toOption.get
-                      val currentHP = info.hitPoints.currentHitPoints match {
+                      val currentHP = pc.info.hitPoints.currentHitPoints match {
                         case _: DeathSave => 0
                         case i: Int       => i
                       }
-                      val ratio = currentHP.toDouble / info.hitPoints.currentMax.toDouble
+                      val ratio = currentHP.toDouble / pc.info.hitPoints.currentMax.toDouble
                       (
                         pc.header.name.take(10),
                         ratio,
-                        s"$currentHP/${info.hitPoints.currentMax}",
-                        info.hitPoints.lifeColor
+                        s"$currentHP/${pc.info.hitPoints.currentMax}",
+                        pc.info.hitPoints.lifeColor
                       )
                     }
                   }.unzip4
@@ -338,30 +333,26 @@ object DashboardPage extends DMScreenTab {
                     )
                 }
               ),
-              campaign.info.fold(
-                _ => EmptyVdom,
-                campaignInfo =>
-                  VdomArray(
-                    <.div(
-                      ^.className := "radarCard",
-                      ^.style     := js.Dictionary("width" -> "540px", "height" -> "310px"), // TODO move sizes to css
-                      <.h2("Campaign Notes"),
-                      ReactQuill
-                        .value(campaignInfo.notes)
-                        .style(CSSProperties().set("background-color", "#ced9e4").set("color", "#000000")) // TODO move colors to css
-                    ),
-                    if (state.scenes.isEmpty) EmptyVdom
-                    else
-                      <.div(
-                        ^.className := "radarCard",
-                        <.h2("Scene Notes"),
-                        state.scenes.map(_.header.name).mkString(",")
-                        //              campaignInfo.scenes
-                        //                .find(_.isActive).orElse(campaignInfo.scenes.headOption).map { scene =>
-                        //                  <.div(if (scene.isActive) "Current Scene" else "First Scene", scene.name, scene.notes)
-                        //                }.toVdomArray
+              VdomArray(
+                <.div(
+                  ^.className := "radarCard",
+                  ^.style     := js.Dictionary("width" -> "540px", "height" -> "310px"), // TODO move sizes to css
+                  <.h2("Campaign Notes"),
+                  ReactQuill
+                    .value(campaign.info.notes)
+                    .style(CSSProperties().set("background-color", "#ced9e4").set("color", "#000000")) // TODO move colors to css
+                ),
+                if (state.scenes.isEmpty) EmptyVdom
+                else
+                  <.div(
+                    ^.className := "radarCard",
+                    <.h2("Scene Notes"),
+                    state.scenes.map(_.header.name).mkString(",")
+                    //              campaignInfo.scenes
+                    //                .find(_.isActive).orElse(campaignInfo.scenes.headOption).map { scene =>
+                    //                  <.div(if (scene.isActive) "Current Scene" else "First Scene", scene.name, scene.notes)
+                    //                }.toVdomArray
 
-                      )
                   )
               )
             )

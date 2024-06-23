@@ -43,9 +43,10 @@ object SceneId {
 }
 
 case class SceneHeader(
-  id:   SceneId,
-  name: String
-  // TODO add scene order
+  id:         SceneId,
+  campaignId: CampaignId,
+  name:       String,
+  order:      Int
 ) extends HasId[SceneId]
 
 case class SceneInfo(

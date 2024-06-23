@@ -58,7 +58,7 @@ object EnvironmentBuilder {
         monstersWithIds <- ZIO.foreach(monsters)(monster =>
           repo.insert(monster.header, monster.jsonInfo).map(id => monster.copy(monster.header.copy(id = id)))
         )
-        encounters <- TestCreator.createEncounters(pcsWithIds, monstersWithIds)
+        encounters <- TestCreator.createEncounters(monstersWithIds)
         encountersWithIds <- ZIO.foreach(encounters)(encounter =>
           repo.insert(encounter.header, encounter.jsonInfo).map(id => encounter.copy(encounter.header.copy(id = id)))
         )

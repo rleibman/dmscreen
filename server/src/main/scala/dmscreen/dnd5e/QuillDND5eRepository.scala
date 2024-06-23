@@ -79,6 +79,29 @@ object QuillDND5eRepository {
 
   }
 
+  private case class SceneRow(
+    id:         Long,
+    campaignId: Long,
+    name:       String,
+    order:      Int,
+    info:       Json,
+    version:    String
+  ) {
+
+    def toModel: Scene =
+      Scene(
+        header = SceneHeader(
+          id = SceneId(id),
+          campaignId = CampaignId(campaignId),
+          name = name,
+          order = order
+        ),
+        jsonInfo = info,
+        version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
+      )
+
+  }
+
   private case class NonPlayerCharacterRow(
     id:         Long,
     campaignId: Long,
@@ -209,6 +232,10 @@ object QuillDND5eRepository {
             querySchema[CampaignRow]("campaign")
           }
 
+        inline private def qScenes =
+          quote {
+            querySchema[SceneRow]("scene")
+          }
         inline private def qPlayerCharacters =
           quote {
             querySchema[PlayerCharacterRow]("playerCharacter")
@@ -251,6 +278,12 @@ object QuillDND5eRepository {
             .map(_.headOption.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
+        override def scene(sceneId: SceneId): IO[DMScreenError, Option[Scene]] =
+          ctx
+            .run(qScenes.filter(_.id == lift(sceneId.value)))
+            .map(_.headOption.map(_.toModel))
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
 
         override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[DND5eCampaign]] =
           ctx
@@ -262,6 +295,12 @@ object QuillDND5eRepository {
         override def playerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[PlayerCharacter]] =
           ctx
             .run(qPlayerCharacters.filter(_.campaignId == lift(campaignId.value)))
+            .map(_.map(_.toModel))
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+        override def scenes(campaignId: CampaignId): IO[DMScreenError, Seq[Scene]] =
+          ctx
+            .run(qScenes.filter(_.campaignId == lift(campaignId.value)).sortBy(_.order))
             .map(_.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)

@@ -56,8 +56,6 @@ object StorageSpec extends ZIOSpecDefault {
           listAfterDelete  <- service.campaigns
           deletedObject    <- service.campaign(newId)
         } yield {
-          //          val info = campaign.get.info.toOption.get
-          //          val updatedInfo = updatedCampaign.get.info.toOption.get
           assertTrue(
             listAtStart.nonEmpty,
             startObject.isDefined,

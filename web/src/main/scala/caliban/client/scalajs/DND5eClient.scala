@@ -232,9 +232,9 @@ object DND5eClient {
     case object challengeRating extends MonsterSearchOrder { val value: String = "challengeRating" }
     case object monsterType extends MonsterSearchOrder { val value: String = "monsterType" }
     case object name extends MonsterSearchOrder { val value: String = "name" }
+    case object random extends MonsterSearchOrder { val value: String = "random" }
     case object size extends MonsterSearchOrder { val value: String = "size" }
     case object source extends MonsterSearchOrder { val value: String = "source" }
-    case object random extends MonsterSearchOrder { val value: String = "random" }
 
     implicit val decoder: ScalarDecoder[MonsterSearchOrder] = {
       case __StringValue("alignment")       => Right(MonsterSearchOrder.alignment)
@@ -242,9 +242,9 @@ object DND5eClient {
       case __StringValue("challengeRating") => Right(MonsterSearchOrder.challengeRating)
       case __StringValue("monsterType")     => Right(MonsterSearchOrder.monsterType)
       case __StringValue("name")            => Right(MonsterSearchOrder.name)
+      case __StringValue("random")          => Right(MonsterSearchOrder.random)
       case __StringValue("size")            => Right(MonsterSearchOrder.size)
       case __StringValue("source")          => Right(MonsterSearchOrder.source)
-      case __StringValue("random")          => Right(MonsterSearchOrder.random)
       case other                            => Left(DecodingError(s"Can't build MonsterSearchOrder from input $other"))
     }
     implicit val encoder: ArgEncoder[MonsterSearchOrder] = {
@@ -253,13 +253,13 @@ object DND5eClient {
       case MonsterSearchOrder.challengeRating => __EnumValue("challengeRating")
       case MonsterSearchOrder.monsterType     => __EnumValue("monsterType")
       case MonsterSearchOrder.name            => __EnumValue("name")
+      case MonsterSearchOrder.random          => __EnumValue("random")
       case MonsterSearchOrder.size            => __EnumValue("size")
       case MonsterSearchOrder.source          => __EnumValue("source")
-      case MonsterSearchOrder.random          => __EnumValue("random")
     }
 
     val values: scala.collection.immutable.Vector[MonsterSearchOrder] =
-      scala.collection.immutable.Vector(alignment, biome, challengeRating, monsterType, name, size, source, random)
+      scala.collection.immutable.Vector(alignment, biome, challengeRating, monsterType, name, random, size, source)
 
   }
 
@@ -594,6 +594,28 @@ object DND5eClient {
 
   }
 
+  type Scene
+  object Scene {
+
+    def header[A](innerSelection: SelectionBuilder[SceneHeader, A]): SelectionBuilder[Scene, A] =
+      _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
+    def jsonInfo: SelectionBuilder[Scene, zio.json.ast.Json] =
+      _root_.caliban.client.SelectionBuilder.Field("jsonInfo", Scalar())
+    def version: SelectionBuilder[Scene, String] = _root_.caliban.client.SelectionBuilder.Field("version", Scalar())
+
+  }
+
+  type SceneHeader
+  object SceneHeader {
+
+    def id: SelectionBuilder[SceneHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
+    def campaignId: SelectionBuilder[SceneHeader, Long] =
+      _root_.caliban.client.SelectionBuilder.Field("campaignId", Scalar())
+    def name:  SelectionBuilder[SceneHeader, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def order: SelectionBuilder[SceneHeader, Int] = _root_.caliban.client.SelectionBuilder.Field("order", Scalar())
+
+  }
+
   type Source
   object Source {
 
@@ -662,6 +684,13 @@ object DND5eClient {
     ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
       _root_.caliban.client.SelectionBuilder.Field(
         "playerCharacters",
+        OptionOf(ListOf(Obj(innerSelection))),
+        arguments = List(Argument("value", value, "Long!")(encoder0))
+      )
+    def scenes[A](value: Long)(innerSelection: SelectionBuilder[Scene, A])(implicit encoder0: ArgEncoder[Long])
+      : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "scenes",
         OptionOf(ListOf(Obj(innerSelection))),
         arguments = List(Argument("value", value, "Long!")(encoder0))
       )

@@ -64,6 +64,8 @@ trait DND5eRepository extends GameRepository {
 
   def campaign(campaignId: CampaignId): IO[DMScreenError, Option[DND5eCampaign]]
 
+  def scene(sceneId: SceneId): IO[DMScreenError, Option[Scene]]
+
   def applyOperations[IDType](
     entityType: EntityType,
     id:         IDType,
@@ -77,6 +79,8 @@ trait DND5eRepository extends GameRepository {
   ): IO[DMScreenError, Unit]
 
   def playerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[PlayerCharacter]]
+
+  def scenes(campaignId: CampaignId): IO[DMScreenError, Seq[Scene]]
 
   def playerCharacter(playerCharacterId: PlayerCharacterId): IO[DMScreenError, Option[PlayerCharacter]]
 

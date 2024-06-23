@@ -38,6 +38,8 @@ object GraphQLClientRepository {
       override def campaigns: IO[DMScreenError, Seq[CampaignHeader]] = ???
 
       override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[DND5eCampaign]] = ???
+      override def scene(sceneId:       SceneId):    zio.IO[DMScreenError, Option[Scene]] = ???
+      override def scenes(campaignId:   CampaignId): zio.IO[DMScreenError, Seq[Scene]] = ???
 
       override def insert(
         campaignHeader: CampaignHeader,

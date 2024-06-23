@@ -90,21 +90,18 @@ object DND5eAPI {
   private given ArgBuilder[CampaignEventsArgs] = ArgBuilder.gen[CampaignEventsArgs]
 
   case class Queries(
-    campaigns: ZIO[DND5eRepository, DMScreenError, Seq[CampaignHeader]],
-    campaign:  CampaignId => ZIO[DND5eRepository, DMScreenError, Option[DND5eCampaign]],
-    playerCharacters: CampaignId => ZIO[DND5eRepository, DMScreenError, Seq[
-      PlayerCharacter
-    ]],
-    nonPlayerCharacters: CampaignId => ZIO[DND5eRepository, DMScreenError, Seq[
-      NonPlayerCharacter
-    ]],
-    encounters:  CampaignId => ZIO[DND5eRepository, DMScreenError, Seq[Encounter]],
-    bestiary:    MonsterSearch => ZIO[DND5eRepository, DMScreenError, MonsterSearchResults],
-    sources:     ZIO[DND5eRepository, DMScreenError, Seq[Source]],
-    classes:     ZIO[DND5eRepository, DMScreenError, Seq[CharacterClass]],
-    races:       ZIO[DND5eRepository, DMScreenError, Seq[Race]],
-    backgrounds: ZIO[DND5eRepository, DMScreenError, Seq[Background]],
-    subclasses:  CharacterClassId => ZIO[DND5eRepository, DMScreenError, Seq[SubClass]]
+    campaigns:           ZIO[DND5eRepository, DMScreenError, Seq[CampaignHeader]],
+    campaign:            CampaignId => ZIO[DND5eRepository, DMScreenError, Option[DND5eCampaign]],
+    playerCharacters:    CampaignId => ZIO[DND5eRepository, DMScreenError, Seq[PlayerCharacter]],
+    scenes:              CampaignId => ZIO[DND5eRepository, DMScreenError, Seq[Scene]],
+    nonPlayerCharacters: CampaignId => ZIO[DND5eRepository, DMScreenError, Seq[NonPlayerCharacter]],
+    encounters:          CampaignId => ZIO[DND5eRepository, DMScreenError, Seq[Encounter]],
+    bestiary:            MonsterSearch => ZIO[DND5eRepository, DMScreenError, MonsterSearchResults],
+    sources:             ZIO[DND5eRepository, DMScreenError, Seq[Source]],
+    classes:             ZIO[DND5eRepository, DMScreenError, Seq[CharacterClass]],
+    races:               ZIO[DND5eRepository, DMScreenError, Seq[Race]],
+    backgrounds:         ZIO[DND5eRepository, DMScreenError, Seq[Background]],
+    subclasses:          CharacterClassId => ZIO[DND5eRepository, DMScreenError, Seq[SubClass]]
   )
   case class Mutations(
     applyOperations: CampaignEventsArgs => ZIO[DND5eRepository, DMScreenError, Unit]
@@ -125,6 +122,7 @@ object DND5eAPI {
           campaigns = ZIO.serviceWithZIO[DND5eRepository](_.campaigns),
           campaign = campaignId => ZIO.serviceWithZIO[DND5eRepository](_.campaign(campaignId)),
           playerCharacters = campaignId => ZIO.serviceWithZIO[DND5eRepository](_.playerCharacters(campaignId)),
+          scenes = campaignId => ZIO.serviceWithZIO[DND5eRepository](_.scenes(campaignId)),
           nonPlayerCharacters = campaignId => ZIO.serviceWithZIO[DND5eRepository](_.nonPlayerCharacters(campaignId)),
           encounters = campaignId => ZIO.serviceWithZIO[DND5eRepository](_.encounters(campaignId)),
           bestiary = search => ZIO.serviceWithZIO[DND5eRepository](_.bestiary(search)),

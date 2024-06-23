@@ -45,6 +45,10 @@ trait DMScreenEntity[Id, Header <: HasId[Id], Info: JsonEncoder: JsonDecoder] {
   def header:     Header
   def jsonInfo:   Json
   final def id = header.id
-  lazy val info: Either[DMScreenError, Info] = jsonInfo.as[Info].left.map(DMScreenError(_))
+  lazy val info: Info = jsonInfo
+    .as[Info].fold(
+      e => throw DMScreenError(e), // This should never be an error, if it is, something major has gone wrong
+      identity
+    )
 
 }

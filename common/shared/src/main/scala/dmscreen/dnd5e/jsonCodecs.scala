@@ -45,6 +45,7 @@ given JsonCodec[CharacterClassId] =
     _.toString
   )
 given JsonCodec[SourceId] = JsonCodec.string.transform(SourceId.apply, _.value)
+given JsonCodec[EntityId] = JsonCodec.long.transform(EntityId.apply, _.value)
 given JsonCodec[CampaignId] = JsonCodec.long.transform(CampaignId.apply, _.value)
 given JsonCodec[EncounterId] = JsonCodec.long.transform(EncounterId.apply, _.value)
 given JsonCodec[NonPlayerCharacterId] = JsonCodec.long.transform(NonPlayerCharacterId.apply, _.value)
@@ -109,6 +110,8 @@ given JsonCodec[MonsterHeader] = JsonCodec.derived[MonsterHeader]
 given JsonCodec[SceneHeader] = JsonCodec.derived[SceneHeader]
 given JsonCodec[SceneInfo] = JsonCodec.derived[SceneInfo]
 given JsonCodec[EncounterEntity] = JsonCodec.derived[EncounterEntity]
+given JsonCodec[MonsterEncounterEntity] = JsonCodec.derived[MonsterEncounterEntity]
+given JsonCodec[PlayerCharacterEncounterEntity] = JsonCodec.derived[PlayerCharacterEncounterEntity]
 given JsonCodec[EncounterDifficulty] = JsonCodec.derived[EncounterDifficulty]
 given JsonCodec[EncounterInfo] = JsonCodec.derived[EncounterInfo]
 

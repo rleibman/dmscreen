@@ -30,6 +30,7 @@ create table scene
 (
     `id`       int(11) NOT NULL AUTO_INCREMENT,
     campaignId int(11) not null,
+    `order`    int(11) not null,
     `name`     text    NOT NULL,
     info       json    not null,
     `version`  text    NOT NULL,
@@ -38,7 +39,6 @@ create table scene
     constraint scene_character_campaign foreign key (campaignId) references `campaign` (id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
-
 
 create table playerCharacter
 (

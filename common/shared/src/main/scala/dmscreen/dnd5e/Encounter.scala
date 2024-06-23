@@ -25,8 +25,26 @@ import dmscreen.{BuildInfo, CampaignId, DMScreenEntity, EntityType, HasId}
 import just.semver.SemVer
 import zio.json.ast.Json
 
+opaque type EntityId = Long
+
+object EntityId {
+
+  def empty: EntityId = EntityId(0)
+
+  def apply(entityId: Long): EntityId = entityId
+
+  extension (entityId: EntityId) {
+
+    def value: Long = entityId
+
+  }
+
+}
+
 sealed abstract class EncounterEntity(
 ) {
+
+  def id: EntityId
 
   def notes: String
 
@@ -39,6 +57,7 @@ sealed abstract class EncounterEntity(
 }
 
 case class MonsterEncounterEntity(
+  override val id:              EntityId,
   monsterHeader:                MonsterHeader,
   override val notes:           String,
   hitPoints:                    HitPoints,
@@ -55,12 +74,13 @@ case class MonsterEncounterEntity(
 case class Marker(name: String)
 
 case class PlayerCharacterEncounterEntity(
+  override val id:              EntityId,
   playerCharacterId:            PlayerCharacterId,
   override val notes:           String,
   override val initiative:      Int,
   override val otherMarkers:    Seq[Marker],
   override val initiativeBonus: Int
-) extends EncounterEntity()
+) extends EncounterEntity() {}
 
 opaque type EncounterId = Long
 

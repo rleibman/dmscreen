@@ -30,7 +30,6 @@ import zio.*
 import zio.json.*
 
 import java.io.File
-import java.net.URI
 
 object TestCreator extends ZIOApp {
 
@@ -92,10 +91,9 @@ object TestCreator extends ZIOApp {
     } yield monsters.toList
   }
 
-  def createEncounters(
-    pcs:      List[PlayerCharacter],
+  def createEncounter(
     monsters: List[Monster]
-  ): IO[DMScreenError, List[Encounter]] = {
+  ): UIO[Encounter] = {
     for {
       howManyDifferentMonsters <- ZIO.random.flatMap(_.nextIntBetween(1, 4))
       differentMonsterIndexes <- ZIO.foreach(1 to howManyDifferentMonsters) { _ =>
@@ -105,24 +103,14 @@ object TestCreator extends ZIOApp {
       monstersWithCounts <- ZIO.foreach(differentMonsters) { monster =>
         ZIO.random.flatMap(r => r.nextIntBetween(1, 4)).map(count => (monster, count))
       }
-      totalEntities = pcs.size + monstersWithCounts.map(_._2).sum
+      totalEntities = monstersWithCounts.map(_._2).sum
       initiatives <- ZIO.random.flatMap(r => ZIO.foreach(1 to (totalEntities + 1))(_ => r.nextIntBetween(1, 21)))
     } yield {
       def encounterInfo: EncounterInfo = {
-        val playerEntities: Seq[PlayerCharacterEncounterEntity] = pcs.map { pc =>
-          val info = pc.info.toOption.get
-          PlayerCharacterEncounterEntity(
-            playerCharacterId = pc.header.id,
-            notes = "These are some notes",
-            initiative = 1,
-            otherMarkers = Seq.empty,
-            initiativeBonus = info.initiativeBonus
-          )
-        }
-        val monsterEntities: Seq[MonsterEncounterEntity] = monstersWithCounts.flatMap { case (monster, count) =>
+        val entities: Seq[MonsterEncounterEntity] = monstersWithCounts.flatMap { case (monster, count) =>
           (1 to count).map { i =>
-            val info = monster.info.toOption.get
             MonsterEncounterEntity(
+              id = EntityId.empty,
               monsterHeader = monster.header,
               notes = "These are some notes",
               hitPoints = HitPoints(
@@ -134,43 +122,55 @@ object TestCreator extends ZIOApp {
               conditions = Set.empty,
               otherMarkers = Seq.empty,
               name = s"${monster.header.name} #$i",
-              initiativeBonus = info.initiativeBonus
+              initiativeBonus = monster.info.initiativeBonus
             )
           }
         }
 
-        val temp = EncounterInfo(
-          entities = (playerEntities ++ monsterEntities).toList
-        )
-        // Reset initiatives based on random values
-        temp.copy(entities = temp.entities.zip(initiatives.toList).map { case (entity, initiative) =>
-          entity match {
-            case pc: PlayerCharacterEncounterEntity =>
-              pc.copy(initiative = initiative + pc.initiativeBonus)
-            case monster: MonsterEncounterEntity => monster.copy(initiative = initiative + monster.initiativeBonus)
-          }
-        })
+        // Reset initiatives based on random values, set the id of the index
+        val modified = entities
+          .zip(initiatives.toList).zipWithIndex.map { case ((entity, initiative), index) =>
+            entity match {
+              case monster: MonsterEncounterEntity =>
+                monster.copy(id = EntityId(index), initiative = initiative + monster.initiativeBonus)
+            }
+          }.toList
+        EncounterInfo(entities = modified)
       }
 
-      (for {
-        encounterIndex <- 1 to 5
-      } yield {
-        Encounter(
-          header = EncounterHeader(
-            id = EncounterId.empty,
-            campaignId = CampaignId(1),
-            sceneId = None,
-            name = s"Encounter $encounterIndex",
-            status =
-              if (encounterIndex == 1) EncounterStatus.active
-              else if (encounterIndex >= 4) EncounterStatus.archived
-              else EncounterStatus.planned,
-            order = encounterIndex
-          ),
-          jsonInfo = encounterInfo.toJsonAST.toOption.get
-        )
-      }).toList
+      Encounter(
+        header = EncounterHeader(
+          id = EncounterId.empty,
+          campaignId = CampaignId(1),
+          sceneId = None,
+          name = s"Encounter",
+          status = EncounterStatus.planned,
+          order = 0
+        ),
+        jsonInfo = encounterInfo.toJsonAST.toOption.get
+      )
     }
+
+  }
+
+  def createEncounters(
+    monsters: List[Monster]
+  ): UIO[List[Encounter]] = {
+    ZIO
+      .foreach(1 to 10) { index =>
+        createEncounter(monsters).map(encounter =>
+          encounter.copy(
+            header = encounter.header.copy(
+              status =
+                if (index == 1) EncounterStatus.active
+                else if (index >= 4) EncounterStatus.archived
+                else EncounterStatus.planned,
+              name = s"Encounter $index",
+              order = index
+            )
+          )
+        )
+      }.map(_.toList)
   }
 
   override def run

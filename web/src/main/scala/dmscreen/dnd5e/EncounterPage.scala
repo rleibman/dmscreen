@@ -38,6 +38,8 @@ import caliban.client.scalajs.DND5eClient.{
   Queries
 }
 import caliban.client.scalajs.{*, given}
+import dmscreen.dnd5e.components.*
+import dmscreen.dnd5e.{*, given}
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
@@ -75,7 +77,8 @@ object EncounterPage extends DMScreenTab {
     monsterCount:       Long = 0,
     accordionState:     (Int, Int) = (0, 0),
     encounterMode:      EncounterMode = EncounterMode.combat,
-    currentEncounterId: Option[EncounterId] = None
+    currentEncounterId: Option[EncounterId] = None,
+    dialogOpen:         Boolean = false
   ) {
 
     def currentEncounter: Option[Encounter] = currentEncounterId.flatMap(id => encounters.find(_.header.id == id))
@@ -221,12 +224,30 @@ object EncounterPage extends DMScreenTab {
     def modMonsterSearch(f: MonsterSearch => MonsterSearch): Callback =
       $.modState(s => s.copy(monsterSearch = f(s.monsterSearch)), monsterSearch) // TODO change search
 
+    def delete(encounter: Encounter): Callback =
+      $.modState(s => s.copy(encounters = s.encounters.filterNot(_.header.id == encounter.header.id)) // TODO make it stick
+      )
+
     private def EncounterEditor(
+      dmScreenState: DMScreenState,
       campaignState: DND5eCampaignState,
       state:         State,
       encounter:     Encounter
     ) = {
-      val info = encounter.info.toOption.get
+      def modEncounter(
+        fn:       Encounter => Encounter,
+        callback: => Callback = Callback.empty
+      ): Callback = {
+
+        // TODO make it stick
+        $.modState(s =>
+          s.copy(encounters = s.encounters.map {
+            case e if e.header.id == encounter.header.id => fn(e)
+            case e                                       => e
+          })
+        )
+      }
+
       Container(
         Table(
           Table.Header(
@@ -234,14 +255,34 @@ object EncounterPage extends DMScreenTab {
               Table.HeaderCell.colSpan(3)(<.h2(s"${encounter.header.name}")),
               Table.HeaderCell
                 .colSpan(3).textAlign(semanticUiReactStrings.center)(
-                  s"Difficulty: ${info.difficulty}, xp: ${info.xp}"
+                  s"Difficulty: ${encounter.info.difficulty}, xp: ${encounter.info.xp}"
                 ),
               Table.HeaderCell
                 .colSpan(4)
                 .singleLine(true)
                 .textAlign(semanticUiReactStrings.right)(
-                  Button.compact(true).icon(true)(Icon.name(SemanticICONS.`archive`)),
-                  Button.compact(true).icon(true)(Icon.name(SemanticICONS.`delete`))
+                  Button
+                    .compact(true)
+                    .icon(true)
+                    .onClick(
+                      (
+                        _,
+                        _
+                      ) => modEncounter(e => e.copy(header = e.header.copy(status = EncounterStatus.archived)))
+                    )(Icon.name(SemanticICONS.`archive`)).when(encounter.header.status != EncounterStatus.archived),
+                  Button
+                    .compact(true)
+                    .icon(true)
+                    .onClick(
+                      (
+                        _,
+                        _
+                      ) =>
+                        _root_.components.Confirm.confirm(
+                          question = "Are you 100% sure you want to delete this encounter?",
+                          onConfirm = delete(encounter)
+                        )
+                    )(Icon.name(SemanticICONS.`delete`))
                 )
             ),
             Table.Row(
@@ -258,20 +299,115 @@ object EncounterPage extends DMScreenTab {
             )
           ),
           Table.Body(
-            info.entities.collect { case entity: MonsterEncounterEntity =>
+            encounter.info.entities.collect { case entity: MonsterEncounterEntity =>
               Table.Row(
-                Table.Cell(entity.name),
+                Table.Cell(
+                  EditableText(
+                    value = s"${entity.id.value}:${entity.name}",
+                    onChange = name =>
+                      modEncounter(encounter => {
+                        encounter
+                          .copy(jsonInfo =
+                            encounter.info
+                              .copy(entities = encounter.info.entities.map {
+                                case entity: MonsterEncounterEntity if entity.id == entity.id =>
+                                  entity.copy(name = name)
+                                case _ => entity
+                              }).toJsonAST.toOption.get // TODO this conversion is akward, change it
+                          )
+                      })
+                  )
+                ),
                 Table.Cell(entity.monsterHeader.monsterType.toString.capitalize),
                 Table.Cell(entity.monsterHeader.biome.fold("")(_.toString.capitalize)),
                 Table.Cell(entity.monsterHeader.alignment.fold("")(_.name)),
                 Table.Cell(entity.monsterHeader.cr.toString),
                 Table.Cell(entity.monsterHeader.xp),
-                Table.Cell(entity.monsterHeader.armorClass),
-                Table.Cell(entity.hitPoints.maxHitPoints),
+                Table.Cell(
+                  EditableNumber(
+                    value = entity.monsterHeader.armorClass,
+                    min = 0,
+                    max = 30,
+                    onChange = v =>
+                      modEncounter { encounter =>
+                        encounter
+                          .copy(jsonInfo =
+                            encounter.info
+                              .copy(entities = encounter.info.entities.map {
+                                case entity: MonsterEncounterEntity if entity.id == entity.id =>
+                                  entity.copy(armorClass = v.toInt)
+                                case _ => entity
+                              }).toJsonAST.toOption.get
+                          )
+                      }
+                  )
+                ),
+                Table.Cell(
+                  EditableNumber(
+                    value = entity.hitPoints.maxHitPoints,
+                    min = 0,
+                    max = 1000,
+                    onChange = v =>
+                      modEncounter { encounter =>
+                        encounter
+                          .copy(jsonInfo =
+                            encounter.info
+                              .copy(entities = encounter.info.entities.map {
+                                case entity: MonsterEncounterEntity if entity.id == entity.id =>
+                                  entity.copy(hitPoints = entity.hitPoints.copy(maxHitPoints = v.toInt))
+                                case _ => entity
+                              }).toJsonAST.toOption.get
+                          )
+                      }
+                  )
+                ),
                 Table.Cell(entity.monsterHeader.size.toString.capitalize),
                 Table.Cell.singleLine(true)(
-                  Button.compact(true).size(SemanticSIZES.mini).icon(true)(Icon.name(SemanticICONS.`delete`)),
-                  Button.compact(true).size(SemanticSIZES.mini).icon(true)(Icon.name(SemanticICONS.`clone outline`))
+                  Button
+                    .compact(true)
+                    .size(SemanticSIZES.mini)
+                    .icon(true)
+                    .onClick {
+                      (
+                        _,
+                        _
+                      ) =>
+                        modEncounter(encounter => {
+                          println(s"deleting ${entity.id}, name=${entity.name}")
+                          println(encounter.info.entities.map(_.id).mkString(","))
+                          val res = encounter
+                            .copy(jsonInfo =
+                              encounter.info
+                                .copy(entities = encounter.info.entities.filter(_.id != entity.id))
+                                .toJsonAST.toOption.get
+                            )
+                          println(res.info.entities.map(_.id).mkString(","))
+                          res
+                        })
+                    }(Icon.name(SemanticICONS.`delete`)),
+                  Button
+                    .compact(true)
+                    .size(SemanticSIZES.mini)
+                    .onClick {
+                      (
+                        _,
+                        _
+                      ) =>
+                        val newId = EntityId(encounter.info.entities.size)
+                        modEncounter(encounter => {
+                          encounter
+                            .copy(jsonInfo =
+                              encounter.info
+                                .copy(entities =
+                                  encounter.info.entities :+
+                                    entity.copy(id = newId)
+                                )
+                                .toJsonAST.toOption.get
+                            )
+
+                        })
+                    }
+                    .icon(true)(Icon.name(SemanticICONS.`clone outline`))
                 )
               )
             }*
@@ -279,7 +415,7 @@ object EncounterPage extends DMScreenTab {
         ),
         Table(
           Table.Header(
-            Table.Row(
+            Table.Row( // Search Row
               Table.Cell.colSpan(9)(
                 Form(
                   Form.Group(
@@ -487,7 +623,12 @@ object EncounterPage extends DMScreenTab {
                 Table.Cell(header.armorClass),
                 Table.Cell(header.maximumHitPoints),
                 Table.Cell(header.size.toString.capitalize),
-                Table.Cell(Button.size(SemanticSIZES.mini).compact(true).icon(true)(Icon.name(SemanticICONS.`add`)))
+                Table.Cell(
+                  Button
+                    .size(SemanticSIZES.mini)
+                    .compact(true)
+                    .icon(true)(Icon.name(SemanticICONS.`add`))
+                ) // TODO add monster
               )
             )*
           ),
@@ -495,6 +636,18 @@ object EncounterPage extends DMScreenTab {
             Table.Row(
               Table.Cell.colSpan(10)(
                 Pagination(state.monsterCount / state.monsterSearch.pageSize.toDouble)
+                  .onPageChange {
+                    (
+                      _,
+                      data
+                    ) =>
+                      val newVal = data.activePage match {
+                        case s: String => s.toInt
+                        case d: Double => d.toInt
+                      }
+
+                      modMonsterSearch(_.copy(page = newVal))
+                  }
                   .activePage(state.monsterSearch.page)
               )
             )
@@ -508,7 +661,16 @@ object EncounterPage extends DMScreenTab {
       state:         State,
       encounter:     Encounter
     ) = {
-      val info = encounter.info.toOption.get
+      def modEncounter(fn: Encounter => Encounter) = {
+        // TODO it may be ugly, but we have this in the EncounterEditor too, so we should probably merge them together
+        // TODO make it stick
+        $.modState(s =>
+          s.copy(encounters = s.encounters.map {
+            case e if e.header.id == encounter.header.id => fn(e)
+            case e                                       => e
+          })
+        )
+      }
 
       Table(
         Table.Header(
@@ -516,22 +678,37 @@ object EncounterPage extends DMScreenTab {
             Table.HeaderCell.colSpan(2)(<.h2(s"${encounter.header.name}")),
             Table.HeaderCell
               .colSpan(3).textAlign(semanticUiReactStrings.center)(
-                s"Difficulty: ${info.difficulty}, xp: ${info.xp}"
+                s"Difficulty: ${encounter.info.difficulty}, xp: ${encounter.info.xp}"
               ),
             Table.HeaderCell
               .colSpan(3)
               .singleLine(true)
               .textAlign(semanticUiReactStrings.right)(
-                Button.compact(true).icon(true)(Icon.className("d20icon")), // roll NPC initiative
-                Button.compact(true).icon(true)(Icon.className("clearIcon")), // clear NPC
-                Button.compact(true).icon(true)(Icon.name(SemanticICONS.`edit`)),
                 Button
-                  .compact(true).icon(true)(Icon.name(SemanticICONS.`angle double right`)).when(
-                    info.round > 0 && info.currentTurn == 0
-                  ),
-                Button.compact(true).icon(true)(Icon.name(SemanticICONS.`repeat`)), // reset
-                Button.compact(true).icon(true)(Icon.name(SemanticICONS.`archive`)),
-                Button.compact(true).icon(true)(Icon.name(SemanticICONS.`step forward`))
+                  .compact(true)
+                  .icon(true)(Icon.className("d20icon")), // TODO roll NPC initiative
+                Button
+                  .compact(true)
+                  .icon(true)(Icon.className("clearIcon")), // TODO clear NPC
+                Button
+                  .compact(true)
+                  .icon(true)(Icon.name(SemanticICONS.`edit`)), // TODO edit encounter
+                Button
+                  .compact(true)
+                  .icon(true)(Icon.name(SemanticICONS.`repeat`)), // TODO reset
+                Button
+                  .compact(true)
+                  .icon(true)
+                  .onClick(
+                    (
+                      _,
+                      _
+                    ) => modEncounter(e => e.copy(header = e.header.copy(status = EncounterStatus.archived)))
+                  )(Icon.name(SemanticICONS.`archive`))
+                  .when(encounter.header.status != EncounterStatus.archived),
+                Button
+                  .compact(true)
+                  .icon(true)(Icon.name(SemanticICONS.`step forward`)) // TODO next turn, or next round if it's the last turn
               )
           ),
           Table.Row(
@@ -546,35 +723,41 @@ object EncounterPage extends DMScreenTab {
           )
         ),
         Table.Body(
-          info.entities
+          encounter.info.entities
             .sortBy(-_.initiative)
             .zipWithIndex
             .map {
               case (entity: PlayerCharacterEncounterEntity, i: Int) =>
                 val pc = campaignState.pcs.find(_.header.id.value == entity.playerCharacterId.value).get
-                val pcInfo = pc.info.toOption.get
+                val pcInfo = pc.info
 
                 Table.Row.withKey(s"entity #$i")(
                   Table.Cell(
-                    Icon.name(SemanticICONS.`arrow right`).when(i == info.currentTurn),
+                    Icon.name(SemanticICONS.`arrow right`).when(i == encounter.info.currentTurn),
                     entity.initiative
-                  ), // Add and round > 0
+                  ), // TODO editable  // Add and round > 0
                   Table.Cell(pc.header.name),
                   Table.Cell(
                     Button("Heal")
-                      .compact(true).color(SemanticCOLORS.green).basic(true).size(
-                        SemanticSIZES.mini
-                      ).style(CSSProperties().set("width", 60.px)),
+                      .compact(true)
+                      .color(SemanticCOLORS.green)
+                      .basic(true)
+                      .size(SemanticSIZES.mini)
+                      // TODO heal
+                      .style(CSSProperties().set("width", 60.px)), // TODO to css
                     Input
                       .className("damageInput")
                       .size(SemanticSIZES.mini)
                       .`type`("number")
                       .min(0)
-                      .maxLength(4),
+                      .maxLength(4), // TODO connect to state
                     Button("Damage")
-                      .compact(true).color(SemanticCOLORS.red).basic(true).size(SemanticSIZES.mini).style(
-                        CSSProperties().set("width", 60.px) // TODO to css
-                      )
+                      .compact(true)
+                      .color(SemanticCOLORS.red)
+                      .basic(true)
+                      .size(SemanticSIZES.mini)
+                      // TODO damage
+                      .style(CSSProperties().set("width", 60.px)) // TODO to css
                   ),
                   Table.Cell
                     .singleLine(true).style(CSSProperties().set("background-color", pcInfo.hitPoints.lifeColor))(
@@ -582,45 +765,53 @@ object EncounterPage extends DMScreenTab {
                           case ds: DeathSave => 0
                           case i:  Int       => i
                         }} / ${pcInfo.hitPoints.maxHitPoints}"
-                    ),
-                  Table.Cell.textAlign(semanticUiReactStrings.center)(pcInfo.armorClass),
+                    ), // TODO editable
+                  Table.Cell.textAlign(semanticUiReactStrings.center)(pcInfo.armorClass), // TODO editable
                   Table.Cell.textAlign(semanticUiReactStrings.center)(
                     pcInfo.conditions.headOption.fold(
                       Icon.name(SemanticICONS.`plus circle`)
                     )(_ => Container(pcInfo.conditions.mkString(", ")))
-                  ),
+                  ), // TODO editable
                   Table.Cell.textAlign(semanticUiReactStrings.center)(
                     entity.otherMarkers.headOption.fold(
                       Icon.name(SemanticICONS.`plus circle`)
                     )(_ => Container(entity.otherMarkers.map(_.name).mkString(", ")))
-                  ),
+                  ), // TODO editable
                   Table.Cell.singleLine(true)(
                     Button
-                      .compact(true).size(SemanticSIZES.mini).icon(true)(Icon.name(SemanticICONS.`eye`))
+                      .compact(true)
+                      .size(SemanticSIZES.mini)
+                      .icon(true)(Icon.name(SemanticICONS.`eye`)) // TODO view character stats
                   )
                 )
               case (entity: MonsterEncounterEntity, i: Int) =>
                 Table.Row.withKey(s"entity #$i")(
                   Table.Cell(
-                    Icon.name(SemanticICONS.`arrow right`).when(i == info.currentTurn),
+                    Icon.name(SemanticICONS.`arrow right`).when(i == encounter.info.currentTurn),
                     entity.initiative
                   ), // Add and round > 0
-                  Table.Cell(entity.name),
+                  Table.Cell(entity.name), // TODO editable
                   Table.Cell(
                     Button("Heal")
-                      .compact(true).color(SemanticCOLORS.green).basic(true).size(
-                        SemanticSIZES.mini
-                      ).style(CSSProperties().set("width", 60.px)),
+                      .compact(true)
+                      .color(SemanticCOLORS.green)
+                      .basic(true)
+                      .size(SemanticSIZES.mini)
+                      // TODO heal
+                      .style(CSSProperties().set("width", 60.px)), // TODO to css
                     Input
                       .className("damageInput")
                       .size(SemanticSIZES.mini)
                       .`type`("number")
                       .min(0)
-                      .maxLength(4),
+                      .maxLength(4), // TODO connect to state
                     Button("Damage")
-                      .compact(true).color(SemanticCOLORS.red).basic(true).size(SemanticSIZES.mini).style(
-                        CSSProperties().set("width", 60.px) // TODO to css
-                      )
+                      .compact(true)
+                      .color(SemanticCOLORS.red)
+                      .basic(true)
+                      .size(SemanticSIZES.mini)
+                      // TODO damage
+                      .style(CSSProperties().set("width", 60.px)) // TODO to css
                   ),
                   Table.Cell
                     .singleLine(true).style(CSSProperties().set("background-color", entity.hitPoints.lifeColor))(
@@ -628,29 +819,31 @@ object EncounterPage extends DMScreenTab {
                           case ds: DeathSave => 0
                           case i:  Int       => i
                         }} / ${entity.hitPoints.maxHitPoints}"
-                    ),
-                  Table.Cell.textAlign(semanticUiReactStrings.center)(entity.armorClass),
+                    ), // TODO editable
+                  Table.Cell.textAlign(semanticUiReactStrings.center)(entity.armorClass), // TODO editable
                   Table.Cell.textAlign(semanticUiReactStrings.center)(
                     entity.conditions.headOption.fold(
                       Icon.name(SemanticICONS.`plus circle`)
                     )(_ => Container(entity.conditions.mkString(", ")))
-                  ),
+                  ), // TODO editable
                   Table.Cell.textAlign(semanticUiReactStrings.center)(
                     entity.otherMarkers.headOption.fold(
                       Icon.name(SemanticICONS.`plus circle`)
                     )(_ => Container(entity.otherMarkers.map(_.name).mkString(", ")))
-                  ),
+                  ), // TODO editable
                   Table.Cell.singleLine(true)(
                     Button
-                      .compact(true).size(SemanticSIZES.mini).icon(true)(
-                        Icon.name(SemanticICONS.`delete`)
-                      ),
+                      .compact(true)
+                      .size(SemanticSIZES.mini)
+                      .icon(true)(Icon.name(SemanticICONS.`delete`)), // TODO delete monster
                     Button
-                      .compact(true).size(SemanticSIZES.mini).icon(true)(
-                        Icon.name(SemanticICONS.`clone outline`)
-                      ),
+                      .compact(true)
+                      .size(SemanticSIZES.mini)
+                      .icon(true)(Icon.name(SemanticICONS.`clone outline`)), // TODO clone monster
                     Button
-                      .compact(true).size(SemanticSIZES.mini).icon(true)(Icon.name(SemanticICONS.`eye`))
+                      .compact(true)
+                      .size(SemanticSIZES.mini)
+                      .icon(true)(Icon.name(SemanticICONS.`eye`)) // View Monster Stats
                   )
                 )
             }*
@@ -673,20 +866,24 @@ object EncounterPage extends DMScreenTab {
                 .withKey("scenes")(
                   Accordion.Accordion
                     .styled(true)
-                    .fluid(true)(
-                      state.encounters
+                    .fluid(true)({
+                      val allEncounters = state.encounters
                         .sortBy(_.header.sceneId.map(_.value)) // TODO change to order by scene order
                         .groupBy(_.header.sceneId)
-                        .zipWithIndex
-                        .toList
-                        .map { case ((scene, encounters), sceneIndex) =>
+
+                      (None +: campaignState.scenes.map(Some.apply)).zipWithIndex.map {
+                        (
+                          sceneOpt,
+                          sceneIndex
+                        ) =>
+                          val encounters = allEncounters.get(sceneOpt.map(_.header.id)).toList.flatten
                           VdomArray(
                             Accordion.Title
                               .active(state.accordionState._1 == sceneIndex).onClick(
                                 onAccordionChange((sceneIndex, 0))
                               )(
-                                scene.fold("No Scene")(_.toString),
-                                Button.icon(true)(Icon.name(SemanticICONS.`plus circle`))
+                                sceneOpt.fold("No Scene")(_.header.name),
+                                Button.icon(true)(Icon.name(SemanticICONS.`plus circle`)) // TODO add encounter to scene
                               ),
                             Accordion.Content.active(state.accordionState._1 == sceneIndex)(
                               Accordion.Accordion
@@ -694,7 +891,7 @@ object EncounterPage extends DMScreenTab {
                                 .styled(true)(
                                   encounters.zipWithIndex
                                     .map { case (encounter, encounterIndex) =>
-                                      val encounterInfo = encounter.info.toOption.get
+                                      val encounterInfo = encounter.info
                                       VdomArray(
                                         Accordion.Title
                                           .active(state.accordionState == (sceneIndex, encounterIndex))
@@ -758,10 +955,17 @@ object EncounterPage extends DMScreenTab {
                                                       .compact(true)
                                                       .size(SemanticSIZES.tiny)
                                                       .icon(true)
-                                                      // TODO confirm, then change the encounter status to archived
-                                                      (
-                                                        Icon.name(SemanticICONS.`delete`)
-                                                      ),
+                                                      .onClick(
+                                                        (
+                                                          _,
+                                                          _
+                                                        ) =>
+                                                          _root_.components.Confirm.confirm(
+                                                            question =
+                                                              "Are you 100% sure you want to delete this encounter?",
+                                                            onConfirm = delete(encounter)
+                                                          )
+                                                      )(Icon.name(SemanticICONS.`delete`)),
                                                     Button
                                                       .compact(true)
                                                       .size(SemanticSIZES.tiny)
@@ -805,15 +1009,16 @@ object EncounterPage extends DMScreenTab {
                                 )
                             )
                           )
-                        }*
-                    )
+                      }
+
+                    }*)
                 ),
               Grid.Column
                 .width(SemanticWIDTHS.`8`)
                 .withKey("currentEncounter")(
                   state.currentEncounter.fold(Container.fluid(true)("Choose an encounter to edit or run"))(encounter =>
                     state.encounterMode match {
-                      case EncounterMode.edit   => EncounterEditor(campaignState, state, encounter)
+                      case EncounterMode.edit   => EncounterEditor(dmScreenState, campaignState, state, encounter)
                       case EncounterMode.combat => CombatRunner(campaignState, state, encounter)
                     }
                   )
@@ -840,7 +1045,7 @@ object EncounterPage extends DMScreenTab {
                           )
                         )
 
-                      } else <.div("Hello world")
+                      } else <.div()
                     )
                 )
             )
@@ -858,6 +1063,7 @@ object EncounterPage extends DMScreenTab {
       State()
     }
     .renderBackend[Backend]
+    .shouldComponentUpdatePure($ => ! $.nextState.dialogOpen)
     .componentDidMount(_.backend.load())
     .build
 
