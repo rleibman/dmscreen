@@ -57,7 +57,8 @@ object FeatsEditor {
             feat,
             i
           ) =>
-            Table.Row(
+            Table.Row
+              .withKey(feat.name)(
               Table.Cell(
                 Input
                   .value(feat.name)

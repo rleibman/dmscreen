@@ -134,10 +134,12 @@ object AppRouter {
         .className("mainMenu")(
           Grid
             .Column()
+            .withKey("mainMenu")
             .className("mainMenu")
             .width(SemanticWIDTHS.`2`)(renderMenu),
           Grid
             .Column()
+            .withKey("mainContent")
             .width(SemanticWIDTHS.`14`)(
               resolution.render()
             )

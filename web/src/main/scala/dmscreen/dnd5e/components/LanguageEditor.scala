@@ -57,7 +57,7 @@ object LanguageEditor {
             lang,
             i
           ) =>
-            Table.Row(
+            Table.Row.withKey(lang.name)(
               Table.Cell(
                 Input
                   .value(lang.name)

@@ -48,6 +48,7 @@ object PlayerPage extends DMScreenTab {
           VdomArray(
             <.div(
               ^.className := "pageActions",
+              ^.key       := "pageActions",
               Button.onClick(
                 (
                   _,
@@ -77,6 +78,7 @@ object PlayerPage extends DMScreenTab {
             ),
             <.div(
               ^.className := "pageContainer",
+              ^.key       := "pageContainer",
               campaignState.pcs
                 .map(pc =>
                   PlayerCharacterComponent( // Internally, make sure each item has a key!

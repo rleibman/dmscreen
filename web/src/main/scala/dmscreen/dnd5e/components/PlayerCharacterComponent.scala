@@ -352,12 +352,12 @@ object PlayerCharacterComponent {
                   <.table(
                     <.thead(
                       <.tr(
-                        pc.speeds.map(sp => <.th(sp.speedType.toString)).toVdomArray
+                        pc.speeds.map(sp => <.th(^.key := sp.speedType.toString, sp.speedType.toString)).toVdomArray
                       )
                     ),
                     <.tbody(
                       <.tr(
-                        pc.speeds.map(sp => <.th(sp.value.toString)).toVdomArray
+                        pc.speeds.map(sp => <.th(^.key := sp.speedType.toString, sp.value.toString)).toVdomArray
                       )
                     )
                   )
