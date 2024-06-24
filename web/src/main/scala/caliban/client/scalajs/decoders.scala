@@ -66,9 +66,9 @@ given creatureSizeConv: Conversion[Option[CreatureSize], Option[CalibanCreatureS
     creatureSizeOpt.flatMap(creatureSize => CalibanCreatureSize.values.find(_.toString == creatureSize.toString))
 
 given Conversion[MonsterSearchOrder, CalibanMonsterSearchOrder] =
-  order =>
+  orderCol =>
     CalibanMonsterSearchOrder.values
-      .find(_.toString == order.toString).getOrElse(CalibanMonsterSearchOrder.name)
+      .find(_.toString == orderCol.toString).getOrElse(CalibanMonsterSearchOrder.name)
 
 given Conversion[OrderDirection, CalibanOrderDirection] =
   dir =>

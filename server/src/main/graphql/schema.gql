@@ -69,7 +69,6 @@ enum MonsterSearchOrder {
   name
   random
   size
-  source
 }
 
 enum MonsterType {
@@ -149,7 +148,7 @@ type EncounterHeader {
   name: String!
   status: String!
   sceneId: Long
-  order: Int!
+  orderCol: Int!
 }
 
 type GeneralLog {
@@ -178,6 +177,7 @@ type MonsterHeader {
   armorClass: Int!
   maximumHitPoints: Int!
   size: CreatureSize!
+  initiativeBonus: Int!
 }
 
 type MonsterSearchResults {
@@ -226,7 +226,7 @@ type Queries {
   scenes(value: Long!): [Scene!]
   nonPlayerCharacters(value: Long!): [NonPlayerCharacter!]
   encounters(value: Long!): [Encounter!]
-  bestiary(name: String, challengeRating: Float, size: CreatureSize, alignment: Alignment, biome: Biome, monsterType: MonsterType, source: SourceInput, order: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): MonsterSearchResults
+  bestiary(name: String, challengeRating: Float, size: CreatureSize, alignment: Alignment, biome: Biome, monsterType: MonsterType, source: SourceInput, orderCol: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): MonsterSearchResults
   sources: [Source!]
   classes: [CharacterClass!]
   races: [Race!]
@@ -257,7 +257,7 @@ type SceneHeader {
   id: Long!
   campaignId: Long!
   name: String!
-  order: Int!
+  orderCol: Int!
 }
 
 type Source {

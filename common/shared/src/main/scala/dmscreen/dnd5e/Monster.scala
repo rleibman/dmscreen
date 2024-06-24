@@ -162,7 +162,8 @@ case class MonsterHeader(
   xp:               Long,
   armorClass:       Int,
   maximumHitPoints: Int,
-  size:             CreatureSize
+  size:             CreatureSize,
+  initiativeBonus:  Int
 ) extends HasId[MonsterId]
 
 case class Monster(

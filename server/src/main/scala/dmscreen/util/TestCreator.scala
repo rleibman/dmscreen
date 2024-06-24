@@ -145,7 +145,7 @@ object TestCreator extends ZIOApp {
           sceneId = None,
           name = s"Encounter",
           status = EncounterStatus.planned,
-          order = 0
+          orderCol = 0
         ),
         jsonInfo = encounterInfo.toJsonAST.toOption.get
       )
@@ -166,7 +166,7 @@ object TestCreator extends ZIOApp {
                 else if (index >= 4) EncounterStatus.archived
                 else EncounterStatus.planned,
               name = s"Encounter $index",
-              order = index
+              orderCol = index
             )
           )
         )

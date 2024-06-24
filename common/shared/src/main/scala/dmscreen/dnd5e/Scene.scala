@@ -46,7 +46,7 @@ case class SceneHeader(
   id:         SceneId,
   campaignId: CampaignId,
   name:       String,
-  order:      Int
+  orderCol:   Int
 ) extends HasId[SceneId]
 
 case class SceneInfo(

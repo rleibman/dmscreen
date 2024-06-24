@@ -44,6 +44,8 @@ object CreatureId {
 sealed abstract class EncounterCreature(
 ) {
 
+  def name: String
+
   def id: CreatureId
 
   def notes: String
@@ -59,13 +61,13 @@ sealed abstract class EncounterCreature(
 case class MonsterEncounterCreature(
   override val id:              CreatureId,
   monsterHeader:                MonsterHeader,
-  override val notes:           String,
+  override val name:            String,
+  override val notes:           String = "",
   hitPoints:                    HitPoints,
   armorClass:                   Int,
-  override val initiative:      Int,
-  conditions:                   Set[Condition],
-  override val otherMarkers:    List[Marker],
-  name:                         String,
+  override val initiative:      Int = 0,
+  conditions:                   Set[Condition] = Set.empty,
+  override val otherMarkers:    List[Marker] = List.empty,
   override val initiativeBonus: Int
 ) extends EncounterCreature()
 
@@ -75,6 +77,7 @@ case class Marker(name: String)
 
 case class PlayerCharacterEncounterCreature(
   override val id:              CreatureId,
+  override val name:            String,
   playerCharacterId:            PlayerCharacterId,
   override val notes:           String,
   override val initiative:      Int,
@@ -121,7 +124,7 @@ case class EncounterHeader(
   name:       String,
   status:     EncounterStatus,
   sceneId:    Option[SceneId],
-  order:      Int
+  orderCol:   Int
 ) extends HasId[EncounterId]
 
 case class EncounterInfo(

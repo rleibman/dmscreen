@@ -172,7 +172,8 @@ class SRDImporter extends DND5eImporter[File, File, File, File] {
               xp = xp, // Int,
               armorClass = armorClass, // Int,
               maximumHitPoints = maximumHitPoints, // Int,
-              size = size // CreatureSize,
+              size = size, // CreatureSize,
+              initiativeBonus = abilities.dexterity.modifier
             ),
             jsonInfo = MonsterInfo(
               hitDice = hitDice,

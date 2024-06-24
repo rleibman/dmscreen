@@ -234,7 +234,6 @@ object DND5eClient {
     case object name extends MonsterSearchOrder { val value: String = "name" }
     case object random extends MonsterSearchOrder { val value: String = "random" }
     case object size extends MonsterSearchOrder { val value: String = "size" }
-    case object source extends MonsterSearchOrder { val value: String = "source" }
 
     implicit val decoder: ScalarDecoder[MonsterSearchOrder] = {
       case __StringValue("alignment")       => Right(MonsterSearchOrder.alignment)
@@ -244,7 +243,6 @@ object DND5eClient {
       case __StringValue("name")            => Right(MonsterSearchOrder.name)
       case __StringValue("random")          => Right(MonsterSearchOrder.random)
       case __StringValue("size")            => Right(MonsterSearchOrder.size)
-      case __StringValue("source")          => Right(MonsterSearchOrder.source)
       case other                            => Left(DecodingError(s"Can't build MonsterSearchOrder from input $other"))
     }
     implicit val encoder: ArgEncoder[MonsterSearchOrder] = {
@@ -255,11 +253,10 @@ object DND5eClient {
       case MonsterSearchOrder.name            => __EnumValue("name")
       case MonsterSearchOrder.random          => __EnumValue("random")
       case MonsterSearchOrder.size            => __EnumValue("size")
-      case MonsterSearchOrder.source          => __EnumValue("source")
     }
 
     val values: scala.collection.immutable.Vector[MonsterSearchOrder] =
-      scala.collection.immutable.Vector(alignment, biome, challengeRating, monsterType, name, random, size, source)
+      scala.collection.immutable.Vector(alignment, biome, challengeRating, monsterType, name, random, size)
 
   }
 
@@ -445,7 +442,8 @@ object DND5eClient {
       _root_.caliban.client.SelectionBuilder.Field("status", Scalar())
     def sceneId: SelectionBuilder[EncounterHeader, scala.Option[Long]] =
       _root_.caliban.client.SelectionBuilder.Field("sceneId", OptionOf(Scalar()))
-    def order: SelectionBuilder[EncounterHeader, Int] = _root_.caliban.client.SelectionBuilder.Field("order", Scalar())
+    def orderCol: SelectionBuilder[EncounterHeader, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("orderCol", Scalar())
 
   }
 
@@ -496,6 +494,8 @@ object DND5eClient {
       _root_.caliban.client.SelectionBuilder.Field("maximumHitPoints", Scalar())
     def size: SelectionBuilder[MonsterHeader, CreatureSize] =
       _root_.caliban.client.SelectionBuilder.Field("size", Scalar())
+    def initiativeBonus: SelectionBuilder[MonsterHeader, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("initiativeBonus", Scalar())
 
   }
 
@@ -611,8 +611,9 @@ object DND5eClient {
     def id: SelectionBuilder[SceneHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def campaignId: SelectionBuilder[SceneHeader, Long] =
       _root_.caliban.client.SelectionBuilder.Field("campaignId", Scalar())
-    def name:  SelectionBuilder[SceneHeader, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
-    def order: SelectionBuilder[SceneHeader, Int] = _root_.caliban.client.SelectionBuilder.Field("order", Scalar())
+    def name: SelectionBuilder[SceneHeader, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def orderCol: SelectionBuilder[SceneHeader, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("orderCol", Scalar())
 
   }
 
@@ -720,7 +721,7 @@ object DND5eClient {
       biome:           scala.Option[Biome] = None,
       monsterType:     scala.Option[MonsterType] = None,
       source:          scala.Option[SourceInput] = None,
-      order:           MonsterSearchOrder,
+      orderCol:        MonsterSearchOrder,
       orderDir:        OrderDirection,
       page:            Int,
       pageSize:        Int
@@ -750,7 +751,7 @@ object DND5eClient {
           Argument("biome", biome, "Biome")(encoder4),
           Argument("monsterType", monsterType, "MonsterType")(encoder5),
           Argument("source", source, "SourceInput")(encoder6),
-          Argument("order", order, "MonsterSearchOrder!")(encoder7),
+          Argument("orderCol", orderCol, "MonsterSearchOrder!")(encoder7),
           Argument("orderDir", orderDir, "OrderDirection!")(encoder8),
           Argument("page", page, "Int!")(encoder9),
           Argument("pageSize", pageSize, "Int!")(encoder10)

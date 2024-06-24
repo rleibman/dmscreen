@@ -30,7 +30,7 @@ create table scene
 (
     `id`       int(11) NOT NULL AUTO_INCREMENT,
     campaignId int(11) not null,
-    `order`    int(11) not null,
+    `orderCol` int(11) not null,
     `name`     text    NOT NULL,
     info       json    not null,
     `version`  text    NOT NULL,
@@ -61,7 +61,7 @@ create table encounter
     sceneId    int(11) null,
     `name`     text    NOT NULL,
     `status`   text    NOT NULL,
-    `order`    int(11) null,
+    `orderCol` int(11) null,
     info       json    not null,
     `version`  text    NOT NULL,
     PRIMARY KEY (`id`),
@@ -89,18 +89,19 @@ create table nonPlayerCharacter
 
 create table monster
 (
-    `id`          int(11) NOT NULL AUTO_INCREMENT,
-    `name`        text    NOT NULL,
-    `monsterType` text    NOT NULL,
-    `biome`       text    NULL,
-    `alignment`   text    NULL,
-    `cr`          double  NOT NULL,
-    `xp`          bigint  NOT NULL,
-    `armorClass`  int(11) NOT NULL,
-    `hitPoints`   int(11) NOT NULL,
-    `size`        text    NOT NULL,
-    `info`        json    not null,
-    `version`     text    NOT NULL,
+    `id`              int(11) NOT NULL AUTO_INCREMENT,
+    `name`            text    NOT NULL,
+    `monsterType`     text    NOT NULL,
+    `biome`           text    NULL,
+    `alignment`       text    NULL,
+    `cr`              double  NOT NULL,
+    `xp`              bigint  NOT NULL,
+    `armorClass`      int(11) NOT NULL,
+    `hitPoints`       int(11) NOT NULL,
+    `size`            text    NOT NULL,
+    `initiativeBonus` int(11) NOT NULL,
+    `info`            json    not null,
+    `version`         text    NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;

@@ -136,3 +136,7 @@ i.icon.clearIcon:before {
 .encounterGrid {
     width: 100%;
 }
+
+.accordion { //TODO temp, until we get a theme
+    color: black;
+}

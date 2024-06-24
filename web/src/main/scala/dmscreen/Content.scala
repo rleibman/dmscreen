@@ -153,17 +153,17 @@ object Content {
             }
 
           val sceneSB: SelectionBuilder[CalibanScene, Scene] = (CalibanScene.header(
-            CalibanSceneHeader.id ~ CalibanSceneHeader.campaignId ~ CalibanSceneHeader.name ~ CalibanSceneHeader.order
+            CalibanSceneHeader.id ~ CalibanSceneHeader.campaignId ~ CalibanSceneHeader.name ~ CalibanSceneHeader.orderCol
           ) ~ CalibanScene.jsonInfo).map {
             (
               id:         Long,
               campaignId: Long,
               name:       String,
-              order:      Int,
+              orderCol:   Int,
               info:       Json
             ) =>
               Scene(
-                SceneHeader(SceneId(id), CampaignId(campaignId), name, order),
+                SceneHeader(SceneId(id), CampaignId(campaignId), name, orderCol),
                 info
               )
           }

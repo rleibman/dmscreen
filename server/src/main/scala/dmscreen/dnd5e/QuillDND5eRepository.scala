@@ -83,7 +83,7 @@ object QuillDND5eRepository {
     id:         Long,
     campaignId: Long,
     name:       String,
-    order:      Int,
+    orderCol:   Int,
     info:       Json,
     version:    String
   ) {
@@ -94,7 +94,7 @@ object QuillDND5eRepository {
           id = SceneId(id),
           campaignId = CampaignId(campaignId),
           name = name,
-          order = order
+          orderCol = orderCol
         ),
         jsonInfo = info,
         version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
@@ -129,7 +129,7 @@ object QuillDND5eRepository {
     sceneId:    Option[Long],
     name:       String,
     status:     String,
-    order:      Int,
+    orderCol:   Int,
     info:       Json,
     version:    String
   ) {
@@ -142,7 +142,7 @@ object QuillDND5eRepository {
           sceneId = sceneId.map(SceneId.apply),
           name = name,
           status = EncounterStatus.valueOf(status),
-          order = order
+          orderCol = orderCol
         ),
         jsonInfo = info,
         version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
@@ -151,18 +151,19 @@ object QuillDND5eRepository {
   }
 
   private case class MonsterRow(
-    id:          Long,
-    name:        String,
-    monsterType: String,
-    biome:       Option[String],
-    alignment:   Option[String],
-    cr:          Double,
-    xp:          Long,
-    armorClass:  Int,
-    hitPoints:   Int,
-    size:        String,
-    info:        Json,
-    version:     String
+    id:              Long,
+    name:            String,
+    monsterType:     String,
+    biome:           Option[String],
+    alignment:       Option[String],
+    cr:              Double,
+    xp:              Long,
+    armorClass:      Int,
+    hitPoints:       Int,
+    size:            String,
+    info:            Json,
+    version:         String,
+    initiativeBonus: Int
   ) {
 
     def toModel: Monster =
@@ -177,7 +178,8 @@ object QuillDND5eRepository {
           xp = xp,
           armorClass = armorClass,
           maximumHitPoints = hitPoints,
-          size = CreatureSize.valueOf(size)
+          size = CreatureSize.valueOf(size),
+          initiativeBonus = initiativeBonus
         ),
         jsonInfo = info,
         version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
@@ -300,7 +302,7 @@ object QuillDND5eRepository {
             .mapError(RepositoryError.apply)
         override def scenes(campaignId: CampaignId): IO[DMScreenError, Seq[Scene]] =
           ctx
-            .run(qScenes.filter(_.campaignId == lift(campaignId.value)).sortBy(_.order))
+            .run(qScenes.filter(_.campaignId == lift(campaignId.value)).sortBy(_.orderCol))
             .map(_.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
@@ -317,7 +319,7 @@ object QuillDND5eRepository {
             .run(
               qEncounters
                 .filter(_.campaignId == lift(campaignId.value)).map(a =>
-                  (a.id, a.campaignId, a.sceneId, a.name, a.status, a.order, a.info)
+                  (a.id, a.campaignId, a.sceneId, a.name, a.status, a.orderCol, a.info)
                 )
             )
             .map(
@@ -329,7 +331,7 @@ object QuillDND5eRepository {
                     sceneId = t._3.map(i => SceneId(i)),
                     name = t._4,
                     status = EncounterStatus.valueOf(t._5),
-                    order = t._6
+                    orderCol = t._6
                   ),
                   jsonInfo = t._7
                 )
@@ -351,8 +353,47 @@ object QuillDND5eRepository {
             search.alignment.fold(q4)(n => q4.filter(_.alignment.contains(lift(n.toString))))
           val q6: Quoted[EntityQuery[MonsterRow]] = search.size.fold(q5)(n => q5.filter(_.size == lift(n.toString)))
 
+          // If sort is random, then it's a bit more complex, for now, we do it the simple (but non-performing) way, read this
+          // https://jan.kneschke.de/projects/mysql/order-by-rand/
+          // ^^ use the stored procedure
+
+          val q7 = quote(
+            q6
+              .drop(lift(search.page * search.pageSize))
+              .take(lift(search.pageSize))
+          )
+
+          val q8: Quoted[Query[MonsterRow]] = (search.orderCol, search.orderDir) match {
+            case (MonsterSearchOrder.challengeRating, OrderDirection.asc) =>
+              quote(q7.sortBy(r => r.cr)(Ord.asc))
+            case (MonsterSearchOrder.challengeRating, OrderDirection.desc) =>
+              quote(q7.sortBy(r => r.cr)(Ord.desc))
+            case (MonsterSearchOrder.size, OrderDirection.asc) =>
+              quote(q7.sortBy(r => r.size)(Ord.asc))
+            case (MonsterSearchOrder.size, OrderDirection.desc) =>
+              quote(q7.sortBy(r => r.size)(Ord.desc))
+            case (MonsterSearchOrder.alignment, OrderDirection.asc) =>
+              quote(q7.sortBy(r => r.alignment)(Ord.asc))
+            case (MonsterSearchOrder.alignment, OrderDirection.desc) =>
+              quote(q7.sortBy(r => r.alignment)(Ord.desc))
+            case (MonsterSearchOrder.biome, OrderDirection.asc) =>
+              quote(q7.sortBy(r => r.biome)(Ord.asc))
+            case (MonsterSearchOrder.biome, OrderDirection.desc) =>
+              quote(q7.sortBy(r => r.biome)(Ord.desc))
+            case (MonsterSearchOrder.monsterType, OrderDirection.asc) =>
+              quote(q7.sortBy(r => r.monsterType)(Ord.asc))
+            case (MonsterSearchOrder.monsterType, OrderDirection.desc) =>
+              quote(q7.sortBy(r => r.monsterType)(Ord.desc))
+            case (MonsterSearchOrder.random, OrderDirection.asc) =>
+              quote(q7.sortBy(_ => infix"RAND()"))
+            case (_, OrderDirection.asc) =>
+              quote(q7.sortBy(r => r.name)(Ord.asc))
+            case (_, OrderDirection.desc) =>
+              quote(q7.sortBy(r => r.name)(Ord.desc))
+          }
+
           (for {
-            monsters <- ctx.run(q6.take(lift(search.pageSize)).drop(lift(search.page * search.pageSize)))
+            monsters <- ctx.run(q8)
             total    <- ctx.run(q6.size)
           } yield MonsterSearchResults(
             results = monsters.map(_.toModel),
@@ -627,6 +668,7 @@ object QuillDND5eRepository {
                         armorClass = header.armorClass,
                         hitPoints = header.maximumHitPoints,
                         size = header.size.toString,
+                        initiativeBonus = header.initiativeBonus,
                         info = info,
                         version = dmscreen.BuildInfo.version
                       )
@@ -664,7 +706,7 @@ object QuillDND5eRepository {
                         sceneId = header.sceneId.map(_.value),
                         name = header.name,
                         status = header.status.toString,
-                        order = header.order,
+                        orderCol = header.orderCol,
                         info = info,
                         version = dmscreen.BuildInfo.version
                       )

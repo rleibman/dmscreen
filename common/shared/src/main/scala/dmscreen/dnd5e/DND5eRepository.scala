@@ -31,11 +31,13 @@ enum OrderDirection {
 
   case asc, desc
 
+  def toggle: OrderDirection = if (this == OrderDirection.asc) OrderDirection.desc else OrderDirection.asc
+
 }
 
 enum MonsterSearchOrder {
 
-  case name, challengeRating, size, alignment, biome, monsterType, source, random
+  case name, challengeRating, size, alignment, biome, monsterType, random
 
 }
 
@@ -47,7 +49,7 @@ case class MonsterSearch(
   biome:           Option[Biome] = None,
   monsterType:     Option[MonsterType] = None,
   source:          Option[Source] = None,
-  order:           MonsterSearchOrder = MonsterSearchOrder.name,
+  orderCol:        MonsterSearchOrder = MonsterSearchOrder.name,
   orderDir:        OrderDirection = OrderDirection.asc,
   page:            Int = 0,
   pageSize:        Int = 10
