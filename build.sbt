@@ -12,7 +12,7 @@ lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time o
 // TODO switch to Mariadb
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
-lazy val SCALA = "3.5.0-RC1"
+lazy val SCALA = "3.4.2"
 Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
 Global / scalaVersion         := SCALA
@@ -38,7 +38,7 @@ lazy val scala3Opts = Seq(
   "-deprecation", // Emit warning and location for usages of deprecated APIs.
   //  "-explain-types", // Explain type errors in more detail.
   //  "-explain",
-  "-Yexplicit-nulls", // Make reference types non-nullable. Nullable types can be expressed with unions: e.g. String|Null.
+  // "-Yexplicit-nulls", // Make reference types non-nullable. Nullable types can be expressed with unions: e.g. String|Null.
   "-Xmax-inlines",
   "128",
   "-Yretain-trees" // Retain trees for debugging.

@@ -352,12 +352,12 @@ object PlayerCharacterComponent {
                   <.table(
                     <.thead(
                       <.tr(
-                        pc.speeds.map(sp => <.th(sp.speedType.toString)).toVdomArray
+                        pc.speeds.map(sp => <.th(^.key := sp.speedType.toString, sp.speedType.toString)).toVdomArray
                       )
                     ),
                     <.tbody(
                       <.tr(
-                        pc.speeds.map(sp => <.th(sp.value.toString)).toVdomArray
+                        pc.speeds.map(sp => <.th(^.key := sp.speedType.toString, sp.value.toString)).toVdomArray
                       )
                     )
                   )
@@ -513,7 +513,9 @@ object PlayerCharacterComponent {
     playerCharacter: PlayerCharacter,
     onDelete:        PlayerCharacter => Callback = _ => Callback.empty,
     onSync:          PlayerCharacter => Callback = _ => Callback.empty
-  ): Unmounted[Props, State, Backend] =
+  ): Unmounted[Props, State, Backend] = {
+    // Note the "withKey" here, this is to make sure that the component is properly updated when the key changes
     component.withKey(playerCharacter.header.id.value.toString)(Props(playerCharacter, onDelete, onSync))
+  }
 
 }

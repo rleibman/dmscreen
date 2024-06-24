@@ -25,17 +25,17 @@ import dmscreen.{BuildInfo, CampaignId, DMScreenEntity, EntityType, HasId}
 import just.semver.SemVer
 import zio.json.ast.Json
 
-opaque type EntityId = Long
+opaque type CreatureId = Long
 
-object EntityId {
+object CreatureId {
 
-  def empty: EntityId = EntityId(0)
+  def empty: CreatureId = CreatureId(0)
 
-  def apply(entityId: Long): EntityId = entityId
+  def apply(creatureId: Long): CreatureId = creatureId
 
-  extension (entityId: EntityId) {
+  extension (creatureId: CreatureId) {
 
-    def value: Long = entityId
+    def value: Long = creatureId
 
   }
 
@@ -44,7 +44,7 @@ object EntityId {
 sealed abstract class EncounterCreature(
 ) {
 
-  def id: EntityId
+  def id: CreatureId
 
   def notes: String
 
@@ -52,19 +52,19 @@ sealed abstract class EncounterCreature(
 
   def initiative: Int
 
-  def otherMarkers: Seq[Marker]
+  def otherMarkers: List[Marker]
 
 }
 
 case class MonsterEncounterCreature(
-  override val id:              EntityId,
+  override val id:              CreatureId,
   monsterHeader:                MonsterHeader,
   override val notes:           String,
   hitPoints:                    HitPoints,
   armorClass:                   Int,
   override val initiative:      Int,
   conditions:                   Set[Condition],
-  override val otherMarkers:    Seq[Marker],
+  override val otherMarkers:    List[Marker],
   name:                         String,
   override val initiativeBonus: Int
 ) extends EncounterCreature()
@@ -74,11 +74,11 @@ case class MonsterEncounterCreature(
 case class Marker(name: String)
 
 case class PlayerCharacterEncounterCreature(
-  override val id:              EntityId,
+  override val id:              CreatureId,
   playerCharacterId:            PlayerCharacterId,
   override val notes:           String,
   override val initiative:      Int,
-  override val otherMarkers:    Seq[Marker],
+  override val otherMarkers:    List[Marker],
   override val initiativeBonus: Int
 ) extends EncounterCreature() {}
 
@@ -136,7 +136,7 @@ case class EncounterInfo(
     m.monsterHeader.xp
   }.sum
 
-  def monsters: Seq[MonsterEncounterCreature] = creatures.collect { case m: MonsterEncounterCreature => m }
+  def monsters: List[MonsterEncounterCreature] = creatures.collect { case m: MonsterEncounterCreature => m }
 
 }
 

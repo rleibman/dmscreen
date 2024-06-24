@@ -21,15 +21,22 @@
 
 package dmscreen.dnd5e.components
 
+import dmscreen.*
 import dmscreen.dnd5e.*
 import japgolly.scalajs.react.Reusability
 
 import scala.language.unsafeNulls
 
+given Reusability[Marker] = Reusability.string.contramap(_.name)
+given Reusability[EncounterStatus] = Reusability.int.contramap(_.ordinal)
 given Reusability[AbilityType] = Reusability.int.contramap(_.ordinal)
 given Reusability[ProficiencyLevel] = Reusability.int.contramap(_.ordinal)
 given Reusability[CharacterClassId] = Reusability.int.contramap(_.ordinal)
-given Reusability[EntityId] = Reusability.long.contramap(_.value)
+given Reusability[EncounterId] = Reusability.long.contramap(_.value)
+given Reusability[CampaignId] = Reusability.long.contramap(_.value)
+given Reusability[SceneId] = Reusability.long.contramap(_.value)
+given Reusability[CreatureId] = Reusability.long.contramap(_.value)
+given Reusability[PlayerCharacterId] = Reusability.long.contramap(_.value)
 
 given Reusability[DeathSave] = Reusability.derive[DeathSave]
 given Reusability[DeathSave | Int] =

@@ -48,6 +48,7 @@ object PlayerPage extends DMScreenTab {
           VdomArray(
             <.div(
               ^.className := "pageActions",
+              ^.key       := "pageActions",
               Button.onClick(
                 (
                   _,
@@ -77,9 +78,10 @@ object PlayerPage extends DMScreenTab {
             ),
             <.div(
               ^.className := "pageContainer",
+              ^.key       := "pageContainer",
               campaignState.pcs
                 .map(pc =>
-                  PlayerCharacterComponent(
+                  PlayerCharacterComponent( // Internally, make sure each item has a key!
                     playerCharacter = pc,
                     onDelete = deleteMe =>
                       dmScreenState.onModifyCampaignState(

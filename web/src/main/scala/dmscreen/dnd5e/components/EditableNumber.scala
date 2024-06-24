@@ -44,10 +44,11 @@ object EditableNumber {
   )
 
   case class Props(
-    value:    Double,
-    min:      UndefOr[Double] = js.undefined,
-    max:      UndefOr[Double] = js.undefined,
-    onChange: Double => Callback = _ => Callback.empty
+    value:        Double,
+    allowEditing: Boolean,
+    min:          UndefOr[Double] = js.undefined,
+    max:          UndefOr[Double] = js.undefined,
+    onChange:     Double => Callback = _ => Callback.empty
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -85,10 +86,13 @@ object EditableNumber {
           }
           .onBlur(_ => doBlur)
       } else {
-        <.span(
-          ^.onClick --> $.modState(_.copy(isEditing = true)),
-          s.value
-        )
+        if (p.allowEditing)
+          <.span(
+            ^.onClick --> $.modState(_.copy(isEditing = true)),
+            s.value
+          )
+        else
+          <.span(s.value)
       }
     }
 
@@ -107,10 +111,11 @@ object EditableNumber {
     .build
 
   def apply(
-    value:    Double,
-    min:      UndefOr[Double] = js.undefined,
-    max:      UndefOr[Double] = js.undefined,
-    onChange: Double => Callback = _ => Callback.empty
-  ): VdomElement = component(Props(value, min, max, onChange))
+    value:        Double,
+    allowEditing: Boolean = true,
+    min:          UndefOr[Double] = js.undefined,
+    max:          UndefOr[Double] = js.undefined,
+    onChange:     Double => Callback = _ => Callback.empty
+  ): VdomElement = component(Props(value, allowEditing, min, max, onChange))
 
 }

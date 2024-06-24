@@ -336,6 +336,7 @@ object DashboardPage extends DMScreenTab {
               VdomArray(
                 <.div(
                   ^.className := "radarCard",
+                  ^.key       := "campaignNotes",
                   ^.style     := js.Dictionary("width" -> "540px", "height" -> "310px"), // TODO move sizes to css
                   <.h2("Campaign Notes"),
                   ReactQuill
@@ -346,6 +347,7 @@ object DashboardPage extends DMScreenTab {
                 else
                   <.div(
                     ^.className := "radarCard",
+                    ^.key       := "sceneNotes",
                     <.h2("Scene Notes"),
                     state.scenes.map(_.header.name).mkString(",")
                     //              campaignInfo.scenes
