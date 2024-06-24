@@ -141,14 +141,14 @@ object CombatRunner {
             .sortBy(-_.initiative)
             .zipWithIndex
             .map {
-              case (entity: PlayerCharacterEncounterCreature, i: Int) =>
-                val pc = props.pcs.find(_.header.id.value == entity.playerCharacterId.value).get
+              case (creature: PlayerCharacterEncounterCreature, i: Int) =>
+                val pc = props.pcs.find(_.header.id.value == creature.playerCharacterId.value).get
                 val pcInfo = pc.info
 
-                Table.Row.withKey(s"entity #$i")(
+                Table.Row.withKey(s"creature #$i")(
                   Table.Cell(
                     Icon.name(SemanticICONS.`arrow right`).when(i == encounter.info.currentTurn),
-                    entity.initiative
+                    creature.initiative
                   ), // TODO editable  // Add and round > 0
                   Table.Cell(pc.header.name),
                   Table.Cell(
@@ -187,9 +187,9 @@ object CombatRunner {
                     )(_ => Container(pcInfo.conditions.mkString(", ")))
                   ), // TODO editable
                   Table.Cell.textAlign(semanticUiReactStrings.center)(
-                    entity.otherMarkers.headOption.fold(
+                    creature.otherMarkers.headOption.fold(
                       Icon.name(SemanticICONS.`plus circle`)
-                    )(_ => Container(entity.otherMarkers.map(_.name).mkString(", ")))
+                    )(_ => Container(creature.otherMarkers.map(_.name).mkString(", ")))
                   ), // TODO editable
                   Table.Cell.singleLine(true)(
                     Button
@@ -198,13 +198,13 @@ object CombatRunner {
                       .icon(true)(Icon.name(SemanticICONS.`eye`)) // TODO view character stats
                   )
                 )
-              case (entity: MonsterEncounterCreature, i: Int) =>
-                Table.Row.withKey(s"entity #$i")(
+              case (creature: MonsterEncounterCreature, i: Int) =>
+                Table.Row.withKey(s"creature #$i")(
                   Table.Cell(
                     Icon.name(SemanticICONS.`arrow right`).when(i == encounter.info.currentTurn),
-                    entity.initiative
+                    creature.initiative
                   ), // Add and round > 0
-                  Table.Cell(entity.name), // TODO editable
+                  Table.Cell(creature.name), // TODO editable
                   Table.Cell(
                     Button("Heal")
                       .compact(true)
@@ -228,22 +228,22 @@ object CombatRunner {
                       .style(CSSProperties().set("width", 60.px)) // TODO to css
                   ),
                   Table.Cell
-                    .singleLine(true).style(CSSProperties().set("background-color", entity.hitPoints.lifeColor))(
-                      s"${entity.hitPoints.currentHitPoints match {
+                    .singleLine(true).style(CSSProperties().set("background-color", creature.hitPoints.lifeColor))(
+                      s"${creature.hitPoints.currentHitPoints match {
                           case ds: DeathSave => 0
                           case i:  Int       => i
-                        }} / ${entity.hitPoints.maxHitPoints}"
+                        }} / ${creature.hitPoints.maxHitPoints}"
                     ), // TODO editable
-                  Table.Cell.textAlign(semanticUiReactStrings.center)(entity.armorClass), // TODO editable
+                  Table.Cell.textAlign(semanticUiReactStrings.center)(creature.armorClass), // TODO editable
                   Table.Cell.textAlign(semanticUiReactStrings.center)(
-                    entity.conditions.headOption.fold(
+                    creature.conditions.headOption.fold(
                       Icon.name(SemanticICONS.`plus circle`)
-                    )(_ => Container(entity.conditions.mkString(", ")))
+                    )(_ => Container(creature.conditions.mkString(", ")))
                   ), // TODO editable
                   Table.Cell.textAlign(semanticUiReactStrings.center)(
-                    entity.otherMarkers.headOption.fold(
+                    creature.otherMarkers.headOption.fold(
                       Icon.name(SemanticICONS.`plus circle`)
-                    )(_ => Container(entity.otherMarkers.map(_.name).mkString(", ")))
+                    )(_ => Container(creature.otherMarkers.map(_.name).mkString(", ")))
                   ), // TODO editable
                   Table.Cell.singleLine(true)(
                     Button

@@ -54,13 +54,13 @@ object FeatsEditor {
       Table(
         Table.Body(state.feats.zipWithIndex.map {
           (
-            lang,
+            feat,
             i
           ) =>
             Table.Row(
               Table.Cell(
                 Input
-                  .value(lang.name)
+                  .value(feat.name)
                   .onChange(
                     (
                       _,
@@ -68,10 +68,10 @@ object FeatsEditor {
                     ) => {
                       val newVal = data.value match {
                         case s: String => s
-                        case _ => lang.name
+                        case _ => feat.name
                       }
                       $.modState(
-                        s => s.copy(feats = s.feats.updated(i, lang.copy(name = newVal))),
+                        s => s.copy(feats = s.feats.updated(i, feat.copy(name = newVal))),
                         $.state.flatMap(s => props.onChange(s.feats.filter(_.name.trim.nonEmpty)))
                       )
                     }
@@ -85,7 +85,7 @@ object FeatsEditor {
                       _
                     ) =>
                       $.modState(
-                        s => s.copy(feats = s.feats.filter(_ != lang)),
+                        s => s.copy(feats = s.feats.filter(_ != feat)),
                         $.state.flatMap(s => props.onChange(s.feats))
                       )
                   }(Icon.name(SemanticICONS.delete))

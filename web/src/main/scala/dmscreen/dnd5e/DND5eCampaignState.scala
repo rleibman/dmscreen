@@ -25,7 +25,8 @@ import dmscreen.{Campaign, CampaignState}
 
 case class DND5eCampaignState(
   campaign: DND5eCampaign,
-  pcs:      List[PlayerCharacter] = List.empty,
-  npcs:     List[NonPlayerCharacter] = List.empty,
-  scenes:   List[Scene] = List.empty
+  // If you need the campaign encounters globally, add them here, but so far they're only needed in the encounter page.
+  pcs:    List[PlayerCharacter] = List.empty,
+  npcs:   List[NonPlayerCharacter] = List.empty,
+  scenes: List[Scene] = List.empty
 ) extends CampaignState

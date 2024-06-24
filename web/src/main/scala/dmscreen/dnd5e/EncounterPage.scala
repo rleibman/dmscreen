@@ -24,32 +24,21 @@ package dmscreen.dnd5e
 import caliban.ScalaJSClientAdapter.*
 import caliban.client.SelectionBuilder
 import caliban.client.scalajs.DND5eClient.{
-  Alignment as CalibanAlignment,
-  Biome as CalibanBiome,
-  CreatureSize as CalibanCreatureSize,
   Encounter as CalibanEncounter,
   EncounterHeader as CalibanEncounterHeader,
   Queries
 }
-import caliban.client.scalajs.{*, given}
+import caliban.client.scalajs.given
 import dmscreen.dnd5e.components.*
-import dmscreen.dnd5e.{*, given}
+import dmscreen.dnd5e.given
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
-import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}
-import net.leibman.dmscreen.semanticUiReact.distCommonjsAddonsPaginationPaginationMod.PaginationProps
-import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{
-  SemanticCOLORS,
-  SemanticICONS,
-  SemanticSIZES,
-  SemanticWIDTHS
-}
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES, SemanticWIDTHS}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesAccordionAccordionTitleMod.*
-import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
 import org.scalajs.dom.*
 import zio.json.*
 import zio.json.ast.Json
@@ -76,9 +65,6 @@ object EncounterPage extends DMScreenTab {
   }
 
   class Backend($ : BackendScope[Unit, State]) {
-
-    val crs: List[(String, Double)] =
-      List("0" -> 0.0, "1/8" -> .125, "1/4" -> .25, "1/2" -> .5) ++ (1 to 30).map(i => i.toString -> i.toDouble).toList
 
     def load(): Callback = {
       val ajax = for {
@@ -178,7 +164,8 @@ object EncounterPage extends DMScreenTab {
                                 sceneOpt.fold("No Scene")(_.header.name),
                                 Button.icon(true)(Icon.name(SemanticICONS.`plus circle`)) // TODO add encounter to scene
                               ),
-                            Accordion.Content.active(state.accordionState._1 == sceneIndex)(
+                            Accordion.Content
+                              .active(state.accordionState._1 == sceneIndex)(
                               Accordion.Accordion
                                 .fluid(true)
                                 .styled(true)(
@@ -241,7 +228,12 @@ object EncounterPage extends DMScreenTab {
                                                             )
                                                           )
                                                       )(
-                                                        Icon.name(SemanticICONS.`edit`)
+                                                          Icon.name(
+                                                            if (encounter.header.status != EncounterStatus.archived)
+                                                              SemanticICONS.`edit`
+                                                            else
+                                                              SemanticICONS.`eye`
+                                                          )
                                                       ),
                                                     Button
                                                       .compact(true)
@@ -290,10 +282,8 @@ object EncounterPage extends DMScreenTab {
                                           ),
                                         Accordion.Content
                                           .active(state.accordionState == ((sceneIndex, encounterIndex)))(
-                                            VdomArray(
                                               encounterInfo.monsters.map(_.name).mkString(", "),
-                                              s"Notes: ${encounterInfo.notes}"
-                                            )
+                                              <.div(s"Notes: ${encounterInfo.notes}")
                                           )
                                       )
 

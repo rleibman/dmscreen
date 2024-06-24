@@ -79,7 +79,7 @@ object PlayerPage extends DMScreenTab {
               ^.className := "pageContainer",
               campaignState.pcs
                 .map(pc =>
-                  PlayerCharacterComponent(
+                  PlayerCharacterComponent( // Internally, make sure each item has a key!
                     playerCharacter = pc,
                     onDelete = deleteMe =>
                       dmScreenState.onModifyCampaignState(

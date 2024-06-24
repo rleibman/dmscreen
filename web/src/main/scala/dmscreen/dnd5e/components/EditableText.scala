@@ -42,8 +42,9 @@ object EditableText {
   )
 
   case class Props(
-    value:    String,
-    onChange: String => Callback = _ => Callback.empty
+    value:        String,
+    allowEditing: Boolean,
+    onChange:     String => Callback = _ => Callback.empty
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -70,10 +71,13 @@ object EditableText {
           }
           .onBlur(_ => doBlur)
       } else {
-        <.span(
-          ^.onClick --> $.modState(_.copy(isEditing = true)),
-          s.value
-        )
+        if (p.allowEditing)
+          <.span(
+            ^.onClick --> $.modState(_.copy(isEditing = true)),
+            s.value
+          )
+        else
+          <.span(s.value)
       }
     }
 
@@ -92,8 +96,9 @@ object EditableText {
     .build
 
   def apply(
-    value:    String,
-    onChange: String => Callback = _ => Callback.empty
-  ): VdomElement = component(Props(value, onChange))
+    value:        String,
+    allowEditing: Boolean = true,
+    onChange:     String => Callback = _ => Callback.empty
+  ): VdomElement = component(Props(value, allowEditing, onChange))
 
 }

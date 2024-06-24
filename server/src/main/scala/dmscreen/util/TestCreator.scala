@@ -110,7 +110,7 @@ object TestCreator extends ZIOApp {
         val entities: Seq[MonsterEncounterCreature] = monstersWithCounts.flatMap { case (monster, count) =>
           (1 to count).map { i =>
             MonsterEncounterCreature(
-              id = EntityId.empty,
+              id = CreatureId.empty,
               monsterHeader = monster.header,
               notes = "These are some notes",
               hitPoints = HitPoints(
@@ -120,7 +120,7 @@ object TestCreator extends ZIOApp {
               armorClass = monster.header.armorClass,
               initiative = 1,
               conditions = Set.empty,
-              otherMarkers = Seq.empty,
+              otherMarkers = List.empty,
               name = s"${monster.header.name} #$i",
               initiativeBonus = monster.info.initiativeBonus
             )
@@ -132,7 +132,7 @@ object TestCreator extends ZIOApp {
           .zip(initiatives.toList).zipWithIndex.map { case ((entity, initiative), index) =>
             entity match {
               case monster: MonsterEncounterCreature =>
-                monster.copy(id = EntityId(index), initiative = initiative + monster.initiativeBonus)
+                monster.copy(id = CreatureId(index), initiative = initiative + monster.initiativeBonus)
             }
           }.toList
         EncounterInfo(creatures = modified)
