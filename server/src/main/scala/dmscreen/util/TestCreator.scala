@@ -166,17 +166,21 @@ object TestCreator extends ZIOApp {
                 else if (index >= 4) EncounterStatus.archived
                 else EncounterStatus.planned,
               name = s"Encounter $index",
-              orderCol = index
+              orderCol = index - 1
             )
           )
         )
       }.map(_.toList)
   }
 
-  def createScenes = {
+  def createScenes: UIO[IndexedSeq[Scene]] = {
     ZIO.succeed(
       (1 to 5).map { index =>
-        Scene(SceneHeader(SceneId.empty, CampaignId(1), s"Scene #$index", index), SceneInfo().toJsonAST.toOption.get)
+        Scene(
+          header =
+            SceneHeader(id = SceneId.empty, campaignId = CampaignId(1), name = s"Scene #$index", orderCol = index - 1),
+          jsonInfo = SceneInfo().toJsonAST.toOption.get
+        )
       }
     )
   }

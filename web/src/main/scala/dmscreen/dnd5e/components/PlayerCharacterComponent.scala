@@ -482,7 +482,7 @@ object PlayerCharacterComponent {
                   ^.dangerouslySetInnerHtml := pc.notes.trim.headOption.fold("Click here to add")(_ => pc.notes)
                 ),
                 edit = {
-                  NotesEditor(
+                  PlayerCharacterNotesEditor(
                     pc.notes,
                     onChange = (
                       notes,

@@ -38,6 +38,7 @@ import scala.reflect.Selectable.reflectiveSelectable
 import scala.collection.StrictOptimizedIterableOps
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
+import zio.json.*
 
 @js.native
 trait FormattingOptions extends js.Object {
@@ -342,6 +343,19 @@ object DashboardPage extends DMScreenTab {
                   ReactQuill
                     .value(campaign.info.notes)
                     .style(CSSProperties().set("background-color", "#ced9e4").set("color", "#000000")) // TODO move colors to css
+                    .onChange(
+                      (
+                        newValue,
+                        deltaStatic,
+                        sources,
+                        editor
+                      ) =>
+                        dmScreenState.onModifyCampaignState(
+                          campaignState.copy(campaign =
+                            campaign.copy(jsonInfo = campaign.info.copy(notes = newValue).toJsonAST.toOption.get)
+                          )
+                        )
+                    )
                 ),
                 if (state.scenes.isEmpty) EmptyVdom
                 else

@@ -22,6 +22,7 @@
 package dmscreen.dnd5e
 
 import dmscreen.*
+import japgolly.scalajs.react.callback.AsyncCallback
 import zio.*
 import zio.json.ast.Json
 
@@ -117,6 +118,8 @@ object GraphQLClientRepository {
 
 }
 
-//given Conversion[IO[Throwable, A], AsynCallback[A]] = { zio =>
-//  ???
-//}
+class NonFreeDND5eRepositoryImpl2 extends FreeDND5eRepository[AsyncCallback] {
+
+  override def campaigns: AsyncCallback[Seq[CampaignHeader]] = ???
+
+}

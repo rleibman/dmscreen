@@ -33,7 +33,7 @@ import net.leibman.dmscreen.semanticUiReact.components.*
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
 
-object NotesEditor {
+object PlayerCharacterNotesEditor {
 
   case class State(
     notes: String,
@@ -84,7 +84,7 @@ object NotesEditor {
   given Reusability[Props] = Reusability.by((_: Props).notes)
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
-    .builder[Props]("NotesDialog")
+    .builder[Props]("PlayerCharacterNotesEditor")
     .initialStateFromProps(p => State(p.notes))
     .renderBackend[Backend]
     .componentDidMount($ => Callback.empty)
