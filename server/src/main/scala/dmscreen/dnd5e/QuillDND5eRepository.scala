@@ -84,6 +84,7 @@ object QuillDND5eRepository {
     campaignId: Long,
     name:       String,
     orderCol:   Int,
+    isActive:   Boolean,
     info:       Json,
     version:    String
   ) {
@@ -94,7 +95,8 @@ object QuillDND5eRepository {
           id = SceneId(id),
           campaignId = CampaignId(campaignId),
           name = name,
-          orderCol = orderCol
+          orderCol = orderCol,
+          isActive = isActive
         ),
         jsonInfo = info,
         version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
@@ -557,7 +559,7 @@ object QuillDND5eRepository {
 
         override def spells: IO[DMScreenError, Seq[Spell]] = ???
 
-        override def insert(
+        override def upsert(
           header: CampaignHeader,
           info:   Json
         ): IO[DMScreenError, CampaignId] =
@@ -586,7 +588,7 @@ object QuillDND5eRepository {
               .mapError(RepositoryError.apply)
           }
 
-        override def insert(
+        override def upsert(
           header: PlayerCharacterHeader,
           info:   Json
         ): IO[DMScreenError, PlayerCharacterId] =
@@ -615,7 +617,7 @@ object QuillDND5eRepository {
               .mapError(RepositoryError.apply)
           }
 
-        override def insert(
+        override def upsert(
           header: NonPlayerCharacterHeader,
           info:   Json
         ): IO[DMScreenError, NonPlayerCharacterId] = {
@@ -645,7 +647,7 @@ object QuillDND5eRepository {
           }
         }
 
-        override def insert(
+        override def upsert(
           header: MonsterHeader,
           info:   Json
         ): IO[DMScreenError, MonsterId] = {
@@ -683,12 +685,12 @@ object QuillDND5eRepository {
           }
         }
 
-        override def insert(
+        override def upsert(
           header: SpellHeader,
           info:   Json
         ): IO[DMScreenError, SpellId] = ???
 
-        override def insert(
+        override def upsert(
           header: EncounterHeader,
           info:   Json
         ): IO[DMScreenError, EncounterId] = {
@@ -721,6 +723,36 @@ object QuillDND5eRepository {
           }
 
         }
+
+        override def upsert(
+          header: SceneHeader,
+          info:   Json
+        ): IO[DMScreenError, SceneId] =
+          if (header.id != SceneId.empty) {
+            ZIO.fail(DMScreenError("Can't insert a scene with an id"))
+          } else {
+            ctx
+              .run(
+                qScenes
+                  .insertValue(
+                    lift(
+                      SceneRow(
+                        id = SceneId.empty.value,
+                        campaignId = header.campaignId.value,
+                        name = header.name,
+                        orderCol = header.orderCol,
+                        isActive = header.isActive,
+                        info = info,
+                        version = dmscreen.BuildInfo.version
+                      )
+                    )
+                  )
+                  .returningGenerated(_.id)
+              )
+              .map(SceneId.apply)
+              .provideLayer(dataSourceLayer)
+              .mapError(RepositoryError.apply)
+          }
 
       }
     }

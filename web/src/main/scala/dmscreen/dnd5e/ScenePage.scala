@@ -23,21 +23,17 @@ package dmscreen.dnd5e
 
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
 import dmscreen.dnd5e.NPCPage.State
-import dmscreen.dnd5e.components.PlayerCharacterComponent
+import dmscreen.dnd5e.components.{EditableText, PlayerCharacterComponent}
 import japgolly.scalajs.react.{BackendScope, Callback, Reusability, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
 import japgolly.scalajs.react.vdom.html_<^.*
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES}
 
 object ScenePage extends DMScreenTab {
 
-  case class Thing(
-    value1: String,
-    value2: String
-  )
-
-  case class State(things: Seq[Thing] = Seq.empty)
+  case class State()
 
   class Backend($ : BackendScope[Unit, State]) {
 
@@ -48,25 +44,68 @@ object ScenePage extends DMScreenTab {
         } { case campaignState: DND5eCampaignState =>
           val campaign = campaignState.campaign
           Table(
-            Table.Row(
-              Table.HeaderCell("Value1"),
-              Table.HeaderCell("Value2"),
-              Table.HeaderCell("")
+            Table.Header(
+              Table.Row(
+                Table.HeaderCell.colSpan(2)("Scenes"),
+                Table.HeaderCell(Button.title("Add Scene").icon(true)(Icon.name(SemanticICONS.`plus circle`))) // TODO add encounter
+              ),
+              Table.Row(
+                Table.HeaderCell("Active"),
+                Table.HeaderCell("Name"),
+                Table.HeaderCell("")
+              )
             ),
             Table.Body(
-              s.things.map(thing => {
+              campaignState.scenes.map(scene => {
+
+                def modScene(fn: Scene => Scene): Callback = {
+                  dmScreenState.onModifyCampaignState {
+                    campaignState.copy(
+                      scenes = campaignState.scenes.map(s => if (s.header.id == scene.header.id) fn(s) else s)
+                    )
+                  } // TODO make it stick
+                }
+
                 Table.Row(
-                  Table.Cell(thing.value1),
-                  Table.Cell(thing.value2),
+                  Table.Cell(Radio.checked(scene.header.isActive).onChange {
+                    (
+                      _,
+                      d
+                    ) =>
+                      dmScreenState.onModifyCampaignState {
+                        campaignState.copy(
+                          scenes = campaignState.scenes.map(s =>
+                            if (s.header.id == scene.header.id && d.checked.getOrElse(false))
+                              s.copy(header = s.header.copy(isActive = true))
+                            else
+                              s.copy(s.header.copy(isActive = false))
+                          )
+                        )
+                      }
+                  }), // TODO make it stick
                   Table.Cell(
-                    Button
-                      .onClick(
-                        (
-                          _,
-                          _
-                        ) => $.modState(s => s.copy(things = s.things.filterNot(_ == thing)))
-                      )
-                      .value("Delete")
+                    EditableText(
+                      value = scene.header.name,
+                      onChange = newValue => modScene(s => s.copy(header = s.header.copy(name = newValue)))
+                    )
+                  ), // TODO editable name
+                  Table.Cell(
+                    Button()
+                      .compact(true).size(SemanticSIZES.mini).icon(true)(Icon.name(SemanticICONS.`edit`)).title(
+                        "Edit Scene"
+                      ), // TODO edit
+                    Button()
+                      .compact(true).size(SemanticSIZES.mini).icon(true)(Icon.name(SemanticICONS.`delete`)).title(
+                        "Delete Scene"
+                      ), // TODO delete
+                    Button()
+                      .compact(true).size(SemanticSIZES.mini).icon(true)(Icon.name(SemanticICONS.`arrow up`)).title(
+                        "Move Up"
+                      ), // TODO move up
+                    Button()
+                      .compact(true).size(SemanticSIZES.mini).icon(true)(Icon.name(SemanticICONS.`arrow down`)).title(
+                        "Move Down"
+                      ) // TODO move down
                   )
                 )
               })*
@@ -81,17 +120,7 @@ object ScenePage extends DMScreenTab {
   private val component = ScalaComponent
     .builder[Unit]("router")
     .initialState {
-      State(
-        things = Seq(
-          Thing("1", "2"),
-          Thing("3", "4"),
-          Thing("5", "6"),
-          Thing("7", "8"),
-          Thing("9", "10"),
-          Thing("11", "12"),
-          Thing("13", "14")
-        )
-      )
+      State()
     }
     .renderBackend[Backend]
     .componentDidMount(

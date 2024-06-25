@@ -86,183 +86,204 @@ object CombatRunner {
           callback >> $.state.flatMap(s => props.onChange(s.encounter))
         )
 
-      Table(
-        Table.Header(
-          Table.Row(
-            Table.HeaderCell.colSpan(2)(<.h2(s"${encounter.header.name}")),
-            Table.HeaderCell
-              .colSpan(3).textAlign(semanticUiReactStrings.center)(
-                s"Difficulty: ${encounter.info.difficulty}, xp: ${encounter.info.xp}"
-              ),
-            Table.HeaderCell
-              .colSpan(3)
-              .singleLine(true)
-              .textAlign(semanticUiReactStrings.right)(
-                Button
-                  .compact(true)
-                  .icon(true)(Icon.className("d20icon")), // TODO roll NPC initiative
-                Button
-                  .compact(true)
-                  .icon(true)(Icon.className("clearIcon")), // TODO clear NPC
-                Button
-                  .compact(true)
-                  .icon(true)(Icon.name(SemanticICONS.`edit`)), // TODO edit encounter
-                Button
-                  .compact(true)
-                  .icon(true)(Icon.name(SemanticICONS.`repeat`)), // TODO reset
-                Button
-                  .compact(true)
-                  .icon(true)
-                  .onClick(
-                    (
-                      _,
-                      _
-                    ) => modEncounter(e => e.copy(header = e.header.copy(status = EncounterStatus.archived)))
-                  )(Icon.name(SemanticICONS.`archive`))
-                  .when(encounter.header.status != EncounterStatus.archived),
-                Button
-                  .compact(true)
-                  .icon(true)(Icon.name(SemanticICONS.`step forward`)) // TODO next turn, or next round if it's the last turn
-              )
+      DMScreenState.ctx.consume { dmScreenState =>
+        val pcs = dmScreenState.campaignState.fold(List.empty[PlayerCharacter])(_.asInstanceOf[DND5eCampaignState].pcs)
+        Table(
+          Table.Header(
+            Table.Row(
+              Table.HeaderCell.colSpan(2)(<.h2(s"${encounter.header.name}")),
+              Table.HeaderCell
+                .colSpan(2).textAlign(semanticUiReactStrings.center)(
+                  s"Difficulty: ${encounter.calculateDifficulty(pcs)}, xp: ${encounter.info.xp}"
+                ),
+              Table.HeaderCell
+                .colSpan(2).textAlign(semanticUiReactStrings.center)(
+                  s"Round: 1 (10 seconds)" // TODO add this to encounter
+                ),
+              Table.HeaderCell
+                .colSpan(2)
+                .singleLine(true)
+                .textAlign(semanticUiReactStrings.right)(
+                  Button
+                    .compact(true)
+                    .title("Roll Initiative for all NPCs")
+                    .icon(true)(Icon.className("d20icon")), // TODO roll NPC initiative
+                  Button
+                    .compact(true)
+                    .title("Clear all NPC stats to beginning of combat")
+                    .icon(true)(Icon.className("clearIcon")), // TODO clear NPC
+                  Button
+                    .compact(true)
+                    .title("Edit encounter")
+                    .icon(true)(Icon.name(SemanticICONS.`edit`)), // TODO edit encounter
+                  Button
+                    .compact(true)
+                    .title("Reset encounter")
+                    .icon(true)(Icon.name(SemanticICONS.`repeat`)), // TODO reset
+                  Button
+                    .compact(true)
+                    .title("Archive Encounter")
+                    .icon(true)
+                    .onClick(
+                      (
+                        _,
+                        _
+                      ) => modEncounter(e => e.copy(header = e.header.copy(status = EncounterStatus.archived)))
+                    )(Icon.name(SemanticICONS.`archive`))
+                    .when(encounter.header.status != EncounterStatus.archived),
+                  Button
+                    .compact(true)
+                    .title("Next turn")
+                    .icon(true)(Icon.name(SemanticICONS.`step forward`)) // TODO next turn, or next round if it's the last turn
+                )
+            ),
+            Table.Row(
+              Table.HeaderCell("Initiative"),
+              Table.HeaderCell("Name"),
+              Table.HeaderCell("Damage"),
+              Table.HeaderCell("HP"),
+              Table.HeaderCell("AC"),
+              Table.HeaderCell("Conditions"),
+              Table.HeaderCell("Other"),
+              Table.HeaderCell( /*For actions*/ )
+            )
           ),
-          Table.Row(
-            Table.HeaderCell("Initiative"),
-            Table.HeaderCell("Name"),
-            Table.HeaderCell("Damage"),
-            Table.HeaderCell("HP"),
-            Table.HeaderCell("AC"),
-            Table.HeaderCell("Conditions"),
-            Table.HeaderCell("Other"),
-            Table.HeaderCell( /*For actions*/ )
-          )
-        ),
-        Table.Body(
-          encounter.info.creatures
-            .sortBy(-_.initiative)
-            .zipWithIndex
-            .map {
-              case (creature: PlayerCharacterEncounterCreature, i: Int) =>
-                val pc = props.pcs.find(_.header.id.value == creature.playerCharacterId.value).get
-                val pcInfo = pc.info
+          Table.Body(
+            encounter.info.creatures
+              .sortBy(-_.initiative)
+              .zipWithIndex
+              .map {
+                case (creature: PlayerCharacterEncounterCreature, i: Int) =>
+                  val pc = props.pcs.find(_.header.id.value == creature.playerCharacterId.value).get
+                  val pcInfo = pc.info
 
-                Table.Row.withKey(s"creature #$i")(
-                  Table.Cell(
-                    Icon.name(SemanticICONS.`arrow right`).when(i == encounter.info.currentTurn),
-                    creature.initiative
-                  ), // TODO editable  // Add and round > 0
-                  Table.Cell(pc.header.name),
-                  Table.Cell(
-                    Button("Heal")
-                      .compact(true)
-                      .color(SemanticCOLORS.green)
-                      .basic(true)
-                      .size(SemanticSIZES.mini)
-                      // TODO heal
-                      .style(CSSProperties().set("width", 60.px)), // TODO to css
-                    Input
-                      .className("damageInput")
-                      .size(SemanticSIZES.mini)
-                      .`type`("number")
-                      .min(0)
-                      .maxLength(4), // TODO connect to state
-                    Button("Damage")
-                      .compact(true)
-                      .color(SemanticCOLORS.red)
-                      .basic(true)
-                      .size(SemanticSIZES.mini)
-                      // TODO damage
-                      .style(CSSProperties().set("width", 60.px)) // TODO to css
-                  ),
-                  Table.Cell
-                    .singleLine(true).style(CSSProperties().set("background-color", pcInfo.hitPoints.lifeColor))(
-                      s"${pcInfo.hitPoints.currentHitPoints match {
-                          case ds: DeathSave => 0
-                          case i:  Int       => i
-                        }} / ${pcInfo.hitPoints.maxHitPoints}"
+                  Table.Row.withKey(s"creature #$i")(
+                    Table.Cell(
+                      Icon.name(SemanticICONS.`arrow right`).when(i == encounter.info.currentTurn),
+                      creature.initiative
+                    ), // TODO editable  // Add and round > 0
+                    Table.Cell(pc.header.name),
+                    Table.Cell(
+                      Button("Heal")
+                        .compact(true)
+                        .title("Enter points in the damage box and click here to heal")
+                        .color(SemanticCOLORS.green)
+                        .basic(true)
+                        .size(SemanticSIZES.mini)
+                        // TODO heal
+                        .style(CSSProperties().set("width", 60.px)), // TODO to css
+                      Input
+                        .className("damageInput")
+                        .size(SemanticSIZES.mini)
+                        .`type`("number")
+                        .min(0)
+                        .maxLength(4), // TODO connect to state
+                      Button("Damage")
+                        .compact(true)
+                        .title("Enter points in the damage box and click here for damage")
+                        .color(SemanticCOLORS.red)
+                        .basic(true)
+                        .size(SemanticSIZES.mini)
+                        // TODO damage
+                        .style(CSSProperties().set("width", 60.px)) // TODO to css
+                    ),
+                    Table.Cell
+                      .singleLine(true).style(CSSProperties().set("background-color", pcInfo.hitPoints.lifeColor))(
+                        s"${pcInfo.hitPoints.currentHitPoints match {
+                            case ds: DeathSave => 0
+                            case i:  Int       => i
+                          }} / ${pcInfo.hitPoints.maxHitPoints}"
+                      ), // TODO editable
+                    Table.Cell.textAlign(semanticUiReactStrings.center)(pcInfo.armorClass), // TODO editable
+                    Table.Cell.textAlign(semanticUiReactStrings.center)(
+                      pcInfo.conditions.headOption.fold(
+                        Icon.name(SemanticICONS.`plus circle`)
+                      )(_ => Container(pcInfo.conditions.mkString(", ")))
                     ), // TODO editable
-                  Table.Cell.textAlign(semanticUiReactStrings.center)(pcInfo.armorClass), // TODO editable
-                  Table.Cell.textAlign(semanticUiReactStrings.center)(
-                    pcInfo.conditions.headOption.fold(
-                      Icon.name(SemanticICONS.`plus circle`)
-                    )(_ => Container(pcInfo.conditions.mkString(", ")))
-                  ), // TODO editable
-                  Table.Cell.textAlign(semanticUiReactStrings.center)(
-                    creature.otherMarkers.headOption.fold(
-                      Icon.name(SemanticICONS.`plus circle`)
-                    )(_ => Container(creature.otherMarkers.map(_.name).mkString(", ")))
-                  ), // TODO editable
-                  Table.Cell.singleLine(true)(
-                    Button
-                      .compact(true)
-                      .size(SemanticSIZES.mini)
-                      .icon(true)(Icon.name(SemanticICONS.`eye`)) // TODO view character stats
-                  )
-                )
-              case (creature: MonsterEncounterCreature, i: Int) =>
-                Table.Row.withKey(s"creature #$i")(
-                  Table.Cell(
-                    Icon.name(SemanticICONS.`arrow right`).when(i == encounter.info.currentTurn),
-                    creature.initiative
-                  ), // Add and round > 0
-                  Table.Cell(creature.name), // TODO editable
-                  Table.Cell(
-                    Button("Heal")
-                      .compact(true)
-                      .color(SemanticCOLORS.green)
-                      .basic(true)
-                      .size(SemanticSIZES.mini)
-                      // TODO heal
-                      .style(CSSProperties().set("width", 60.px)), // TODO to css
-                    Input
-                      .className("damageInput")
-                      .size(SemanticSIZES.mini)
-                      .`type`("number")
-                      .min(0)
-                      .maxLength(4), // TODO connect to state
-                    Button("Damage")
-                      .compact(true)
-                      .color(SemanticCOLORS.red)
-                      .basic(true)
-                      .size(SemanticSIZES.mini)
-                      // TODO damage
-                      .style(CSSProperties().set("width", 60.px)) // TODO to css
-                  ),
-                  Table.Cell
-                    .singleLine(true).style(CSSProperties().set("background-color", creature.hitPoints.lifeColor))(
-                      s"${creature.hitPoints.currentHitPoints match {
-                          case ds: DeathSave => 0
-                          case i:  Int       => i
-                        }} / ${creature.hitPoints.maxHitPoints}"
+                    Table.Cell.textAlign(semanticUiReactStrings.center)(
+                      creature.otherMarkers.headOption.fold(
+                        Icon.name(SemanticICONS.`plus circle`)
+                      )(_ => Container(creature.otherMarkers.map(_.name).mkString(", ")))
                     ), // TODO editable
-                  Table.Cell.textAlign(semanticUiReactStrings.center)(creature.armorClass), // TODO editable
-                  Table.Cell.textAlign(semanticUiReactStrings.center)(
-                    creature.conditions.headOption.fold(
-                      Icon.name(SemanticICONS.`plus circle`)
-                    )(_ => Container(creature.conditions.mkString(", ")))
-                  ), // TODO editable
-                  Table.Cell.textAlign(semanticUiReactStrings.center)(
-                    creature.otherMarkers.headOption.fold(
-                      Icon.name(SemanticICONS.`plus circle`)
-                    )(_ => Container(creature.otherMarkers.map(_.name).mkString(", ")))
-                  ), // TODO editable
-                  Table.Cell.singleLine(true)(
-                    Button
-                      .compact(true)
-                      .size(SemanticSIZES.mini)
-                      .icon(true)(Icon.name(SemanticICONS.`delete`)), // TODO delete monster
-                    Button
-                      .compact(true)
-                      .size(SemanticSIZES.mini)
-                      .icon(true)(Icon.name(SemanticICONS.`clone outline`)), // TODO clone monster
-                    Button
-                      .compact(true)
-                      .size(SemanticSIZES.mini)
-                      .icon(true)(Icon.name(SemanticICONS.`eye`)) // View Monster Stats
+                    Table.Cell.singleLine(true)(
+                      Button
+                        .title("View character stats")
+                        .compact(true)
+                        .size(SemanticSIZES.mini)
+                        .icon(true)(Icon.name(SemanticICONS.`eye`)) // TODO view character stats
+                    )
                   )
-                )
-            }*
+                case (creature: MonsterEncounterCreature, i: Int) =>
+                  Table.Row.withKey(s"creature #$i")(
+                    Table.Cell(
+                      Icon.name(SemanticICONS.`arrow right`).when(i == encounter.info.currentTurn),
+                      creature.initiative
+                    ), // Add and round > 0
+                    Table.Cell(creature.name), // TODO editable
+                    Table.Cell(
+                      Button("Heal")
+                        .compact(true)
+                        .title("Enter points in the damage box and click here to heal")
+                        .color(SemanticCOLORS.green)
+                        .basic(true)
+                        .size(SemanticSIZES.mini)
+                        // TODO heal
+                        .style(CSSProperties().set("width", 60.px)), // TODO to css
+                      Input
+                        .className("damageInput")
+                        .size(SemanticSIZES.mini)
+                        .`type`("number")
+                        .min(0)
+                        .maxLength(4), // TODO connect to state
+                      Button("Damage")
+                        .compact(true)
+                        .title("Enter points in the damage box and click here for damage")
+                        .color(SemanticCOLORS.red)
+                        .basic(true)
+                        .size(SemanticSIZES.mini)
+                        // TODO damage
+                        .style(CSSProperties().set("width", 60.px)) // TODO to css
+                    ),
+                    Table.Cell
+                      .singleLine(true).style(CSSProperties().set("background-color", creature.hitPoints.lifeColor))(
+                        s"${creature.hitPoints.currentHitPoints match {
+                            case ds: DeathSave => 0
+                            case i:  Int       => i
+                          }} / ${creature.hitPoints.maxHitPoints}"
+                      ), // TODO editable
+                    Table.Cell.textAlign(semanticUiReactStrings.center)(creature.armorClass), // TODO editable
+                    Table.Cell.textAlign(semanticUiReactStrings.center)(
+                      creature.conditions.headOption.fold(
+                        Icon.name(SemanticICONS.`plus circle`)
+                      )(_ => Container(creature.conditions.mkString(", ")))
+                    ), // TODO editable
+                    Table.Cell.textAlign(semanticUiReactStrings.center)(
+                      creature.otherMarkers.headOption.fold(
+                        Icon.name(SemanticICONS.`plus circle`)
+                      )(_ => Container(creature.otherMarkers.map(_.name).mkString(", ")))
+                    ), // TODO editable
+                    Table.Cell.singleLine(true)(
+                      Button
+                        .compact(true)
+                        .title("Delete Monster")
+                        .size(SemanticSIZES.mini)
+                        .icon(true)(Icon.name(SemanticICONS.`delete`)), // TODO delete monster
+                      Button
+                        .compact(true)
+                        .title("Add another monster of this type, more monsters!")
+                        .size(SemanticSIZES.mini)
+                        .icon(true)(Icon.name(SemanticICONS.`clone outline`)), // TODO clone monster
+                      Button
+                        .compact(true)
+                        .title("View monster stats")
+                        .size(SemanticSIZES.mini)
+                        .icon(true)(Icon.name(SemanticICONS.`eye`)) // View Monster Stats
+                    )
+                  )
+              }*
+          )
         )
-      )
+      }
     }
 
   }

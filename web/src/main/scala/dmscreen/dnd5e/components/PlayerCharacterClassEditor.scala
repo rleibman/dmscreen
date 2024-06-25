@@ -225,6 +225,7 @@ object PlayerCharacterClassEditor {
                   ),
                   Table.Cell(
                     Button
+                      .title("Delete this class")
                       .icon(true).onClick {
                         (
                           _,
@@ -244,6 +245,7 @@ object PlayerCharacterClassEditor {
             Table.Row(
               Table.Cell.colSpan(4)(
                 Button
+                  .title("Add another class")
                   .icon(true).onClick(
                     (
                       _,

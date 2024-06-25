@@ -106,30 +106,34 @@ trait DND5eRepository extends GameRepository {
 
   def spells: IO[DMScreenError, Seq[Spell]]
 
-  def insert(
+  def upsert(
     campaignHeader: CampaignHeader,
     info:           Json
   ): IO[DMScreenError, CampaignId]
-  def insert(
+  def upsert(
     playerCharacterHeader: PlayerCharacterHeader,
     info:                  Json
   ): IO[DMScreenError, PlayerCharacterId]
-  def insert(
+  def upsert(
     nonPlayerCharacterHeader: NonPlayerCharacterHeader,
     info:                     Json
   ): IO[DMScreenError, NonPlayerCharacterId]
-  def insert(
+  def upsert(
     monsterHeader: MonsterHeader,
     info:          Json
   ): IO[DMScreenError, MonsterId]
-  def insert(
+  def upsert(
     spellHeader: SpellHeader,
     info:        Json
   ): IO[DMScreenError, SpellId]
-  def insert(
+  def upsert(
     encounterHeader: EncounterHeader,
     info:            Json
   ): IO[DMScreenError, EncounterId]
+  def upsert(
+    sceneHeader: SceneHeader,
+    info:        Json
+  ): IO[DMScreenError, SceneId]
 
 }
 

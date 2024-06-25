@@ -34,6 +34,7 @@ create table scene
     `name`     text    NOT NULL,
     info       json    not null,
     `version`  text    NOT NULL,
+    `isActive` boolean not null,
     PRIMARY KEY (`id`),
     key scene_character_campaign (campaignId),
     constraint scene_character_campaign foreign key (campaignId) references `campaign` (id)

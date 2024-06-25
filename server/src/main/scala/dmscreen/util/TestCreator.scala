@@ -173,6 +173,14 @@ object TestCreator extends ZIOApp {
       }.map(_.toList)
   }
 
+  def createScenes = {
+    ZIO.succeed(
+      (1 to 5).map { index =>
+        Scene(SceneHeader(SceneId.empty, CampaignId(1), s"Scene #$index", index), SceneInfo().toJsonAST.toOption.get)
+      }
+    )
+  }
+
   override def run
     : ZIO[DNDBeyondImporter & FifthEditionCharacterSheetImporter & ZIOAppArgs & Scope, DMScreenError, Unit] = {
     for {

@@ -80,6 +80,7 @@ object FeatsEditor {
                 ),
                 Table.Cell(
                   Button
+                    .title("Delete this feat")
                     .icon(true).onClick {
                       (
                         _,
@@ -97,6 +98,7 @@ object FeatsEditor {
           Table.Row(
             Table.Cell.colSpan(4)(
               Button
+                .title("Add a feat")
                 .icon(true).onClick(
                   (
                     _,

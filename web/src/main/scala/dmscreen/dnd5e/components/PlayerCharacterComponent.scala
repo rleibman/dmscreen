@@ -93,6 +93,7 @@ object PlayerCharacterComponent {
           <.div(
             ^.className := "characterCard",
             Button("Delete")
+              .title("Delete this character")
               .size(SemanticSIZES.tiny).compact(true).onClick(
                 (
                   _,
@@ -103,7 +104,9 @@ object PlayerCharacterComponent {
                     onConfirm = p.onDelete(p.playerCharacter)
                   )
               ),
-            Button("Sync").size(SemanticSIZES.tiny).compact(true).when(pc.source != DMScreenSource), // Only if the character originally came from a synchable source
+            Button("Sync")
+              .title("Refresh this character with data from it's original source")
+              .size(SemanticSIZES.tiny).compact(true).when(pc.source != DMScreenSource), // Only if the character originally came from a synchable source
             <.div(
               ^.className := "characterHeader",
               <.h2(EditableText(s.playerCharacter.header.name)),

@@ -38,13 +38,8 @@ object GraphQLClientRepository {
       override def campaigns: IO[DMScreenError, Seq[CampaignHeader]] = ???
 
       override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[DND5eCampaign]] = ???
-      override def scene(sceneId:       SceneId):    zio.IO[DMScreenError, Option[Scene]] = ???
-      override def scenes(campaignId:   CampaignId): zio.IO[DMScreenError, Seq[Scene]] = ???
 
-      override def insert(
-        campaignHeader: CampaignHeader,
-        info:           Json
-      ): IO[DMScreenError, CampaignId] = ???
+      override def scene(sceneId: SceneId): IO[DMScreenError, Option[Scene]] = ???
 
       override def applyOperations[IDType](
         entityType: EntityType,
@@ -52,7 +47,18 @@ object GraphQLClientRepository {
         operations: DMScreenEvent*
       ): IO[DMScreenError, Unit] = ???
 
+      override def deleteEntity[IDType](
+        entityType: EntityType,
+        id:         IDType,
+        softDelete: Boolean
+      ): IO[DMScreenError, Unit] = ???
+
       override def playerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[PlayerCharacter]] = ???
+
+      override def scenes(campaignId: CampaignId): IO[DMScreenError, Seq[Scene]] = ???
+
+      override def playerCharacter(playerCharacterId: PlayerCharacterId): IO[DMScreenError, Option[PlayerCharacter]] =
+        ???
 
       override def nonPlayerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[NonPlayerCharacter]] = ???
 
@@ -68,45 +74,44 @@ object GraphQLClientRepository {
 
       override def backgrounds: IO[DMScreenError, Seq[Background]] = ???
 
-      override def subClasses(characterClass: CharacterClassId): IO[DMScreenError, Seq[SubClass]] = {
-        ZIO.succeed(Seq(SubClass("Oath of Vengance")))
-      }
+      override def subClasses(characterClass: CharacterClassId): IO[DMScreenError, Seq[SubClass]] = ???
 
       override def spells: IO[DMScreenError, Seq[Spell]] = ???
 
-      override def insert(
+      override def upsert(
+        campaignHeader: CampaignHeader,
+        info:           Json
+      ): IO[DMScreenError, CampaignId] = ???
+
+      override def upsert(
         playerCharacterHeader: PlayerCharacterHeader,
         info:                  Json
       ): IO[DMScreenError, PlayerCharacterId] = ???
 
-      override def insert(
+      override def upsert(
         nonPlayerCharacterHeader: NonPlayerCharacterHeader,
         info:                     Json
       ): IO[DMScreenError, NonPlayerCharacterId] = ???
 
-      override def insert(
+      override def upsert(
         monsterHeader: MonsterHeader,
         info:          Json
       ): IO[DMScreenError, MonsterId] = ???
 
-      override def insert(
+      override def upsert(
         spellHeader: SpellHeader,
         info:        Json
       ): IO[DMScreenError, SpellId] = ???
 
-      override def insert(
+      override def upsert(
         encounterHeader: EncounterHeader,
         info:            Json
       ): IO[DMScreenError, EncounterId] = ???
 
-      override def deleteEntity[IDType](
-        entityType: EntityType,
-        id:         IDType,
-        softDelete: Boolean = true
-      ): IO[DMScreenError, Unit] = ???
-
-      override def playerCharacter(playerCharacterId: PlayerCharacterId): IO[DMScreenError, Option[PlayerCharacter]] =
-        ???
+      override def upsert(
+        sceneHeader: SceneHeader,
+        info:        Json
+      ): IO[DMScreenError, SceneId] = ???
     }
   })
 

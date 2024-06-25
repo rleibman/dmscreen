@@ -162,7 +162,10 @@ object EncounterPage extends DMScreenTab {
                                 onAccordionChange((sceneIndex, 0))
                               )(
                                 sceneOpt.fold("No Scene")(_.header.name),
-                                Button.icon(true)(Icon.name(SemanticICONS.`plus circle`)) // TODO add encounter to scene
+                                Button
+                                  .title("Add Encounter to Scene")
+                                  .icon(true)(Icon.name(SemanticICONS.`plus circle`)) // TODO add encounter to scene
+                                // TODO add "don't show archived" checkbox, default to true
                               ),
                             Accordion.Content
                               .active(state.accordionState._1 == sceneIndex)(
@@ -195,6 +198,7 @@ object EncounterPage extends DMScreenTab {
                                                       Button
                                                         .compact(true)
                                                         .size(SemanticSIZES.tiny)
+                                                        .title("Run combat!")
                                                         .icon(true)
                                                         .onClick(
                                                           (
@@ -215,6 +219,7 @@ object EncounterPage extends DMScreenTab {
                                                       Button
                                                         .compact(true)
                                                         .size(SemanticSIZES.tiny)
+                                                        .title("Edit encounter")
                                                         .icon(true)
                                                         .onClick(
                                                           (
@@ -238,6 +243,7 @@ object EncounterPage extends DMScreenTab {
                                                       Button
                                                         .compact(true)
                                                         .size(SemanticSIZES.tiny)
+                                                        .title("Delete Encounter")
                                                         .icon(true)
                                                         .onClick(
                                                           (
@@ -253,6 +259,7 @@ object EncounterPage extends DMScreenTab {
                                                       Button
                                                         .compact(true)
                                                         .size(SemanticSIZES.tiny)
+                                                        .title("Move encounter up")
                                                         .icon(true)
                                                         // TODO Move the encounter to earlier in the list, or to the previous scene if it's at the beginning of the scene
                                                         (
@@ -261,6 +268,7 @@ object EncounterPage extends DMScreenTab {
                                                       Button
                                                         .compact(true)
                                                         .size(SemanticSIZES.tiny)
+                                                        .title("Move encounter down")
                                                         .icon(true)
                                                         // TODO move the encounter to later in the list, or to the next scene if it's at the end of this scene
                                                         (
@@ -269,6 +277,7 @@ object EncounterPage extends DMScreenTab {
                                                       ,
                                                       Button
                                                         .compact(true)
+                                                        .title("clone encounter")
                                                         .size(SemanticSIZES.tiny)
                                                         .icon(true)
                                                         // TODO Make an exact copy of this ecounter, put it immediately after this one.
@@ -343,13 +352,13 @@ object EncounterPage extends DMScreenTab {
                           ),
                           Container(
                             <.h2("Dice Roller"),
-                            Button("d4"),
-                            Button("d6"),
-                            Button("d10"),
-                            Button("d12"),
-                            Button("d20"),
-                            Button("d100"),
-                            Input.action(Button("Roll")()).value("2d20")
+                            Button.compact(true).fluid(true).title("Roll a d4")("d4"),
+                            Button.compact(true).fluid(true).title("Roll a d6")("d6"),
+                            Button.compact(true).fluid(true).title("Roll a d10")("d10"),
+                            Button.compact(true).fluid(true).title("Roll a d12")("d12"),
+                            Button.compact(true).fluid(true).title("Roll a d20")("d20"),
+                            Button.compact(true).fluid(true).title("Roll a percentile dice")("d100"),
+                            Input.title("Roll a bunch of dice").action(Button("Roll")()).value("2d20")
                           )
                         )
 

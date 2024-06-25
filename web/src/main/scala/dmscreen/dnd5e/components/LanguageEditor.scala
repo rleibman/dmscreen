@@ -79,6 +79,7 @@ object LanguageEditor {
               ),
               Table.Cell(
                 Button
+                  .title("Delete this language")
                   .icon(true).onClick {
                     (
                       _,
@@ -96,6 +97,7 @@ object LanguageEditor {
           Table.Row(
             Table.Cell.colSpan(4)(
               Button
+                .title("Add a language")
                 .icon(true).onClick(
                   (
                     _,

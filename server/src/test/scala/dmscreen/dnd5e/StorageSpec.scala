@@ -39,7 +39,7 @@ object StorageSpec extends ZIOSpecDefault {
           service     <- ZIO.service[DND5eRepository]
           listAtStart <- service.campaigns
           startObject <- service.campaign(listAtStart.head.id)
-          newId <- service.insert(
+          newId <- service.upsert(
             CampaignHeader(CampaignId.empty, testUser, "Test Campaign 2"),
             DND5eCampaignInfo(notes = "These are some notes").toJsonAST.getOrElse(Json.Null)
           )
@@ -74,7 +74,7 @@ object StorageSpec extends ZIOSpecDefault {
         for {
           service         <- ZIO.service[DND5eRepository]
           startCharacters <- service.playerCharacters(testCampaignId)
-          newId <- service.insert(
+          newId <- service.upsert(
             PlayerCharacterHeader(PlayerCharacterId.empty, testCampaignId, "Test Character 2", Some("Test Player 2")),
             PlayerCharacterInfo(
               hitPoints = HitPoints(

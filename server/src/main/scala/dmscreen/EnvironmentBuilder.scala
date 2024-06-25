@@ -52,15 +52,19 @@ object EnvironmentBuilder {
         pcs  <- TestCreator.createPcs
         repo <- ZIO.service[DND5eRepository]
         pcsWithIds <- ZIO.foreach(pcs)(pc =>
-          repo.insert(pc.header, pc.jsonInfo).map(id => pc.copy(pc.header.copy(id = id)))
+          repo.upsert(pc.header, pc.jsonInfo).map(id => pc.copy(pc.header.copy(id = id)))
         )
         monsters <- TestCreator.createMonsters
         monstersWithIds <- ZIO.foreach(monsters)(monster =>
-          repo.insert(monster.header, monster.jsonInfo).map(id => monster.copy(monster.header.copy(id = id)))
+          repo.upsert(monster.header, monster.jsonInfo).map(id => monster.copy(monster.header.copy(id = id)))
         )
         encounters <- TestCreator.createEncounters(monstersWithIds)
         encountersWithIds <- ZIO.foreach(encounters)(encounter =>
-          repo.insert(encounter.header, encounter.jsonInfo).map(id => encounter.copy(encounter.header.copy(id = id)))
+          repo.upsert(encounter.header, encounter.jsonInfo).map(id => encounter.copy(encounter.header.copy(id = id)))
+        )
+        scenes <- TestCreator.createScenes
+        scenesWithIds <- ZIO.foreach(scenes)(scene =>
+          repo.upsert(scene.header, scene.jsonInfo).map(id => scene.copy(scene.header.copy(id = id)))
         )
       } yield InitializingLayer()
 

@@ -49,28 +49,29 @@ object PlayerPage extends DMScreenTab {
             <.div(
               ^.className := "pageActions",
               ^.key       := "pageActions",
-              Button.onClick(
-                (
-                  _,
-                  _
-                ) => {
-                  // new player
-                  val newPC = PlayerCharacter(
-                    header = PlayerCharacterHeader(
-                      id = PlayerCharacterId.empty,
-                      campaignId = campaign.header.id,
-                      name = "New Character"
-                    ),
-                    jsonInfo = PlayerCharacterInfo(
-                      hitPoints = HitPoints(0, 0),
-                      armorClass = 10,
-                      classes = List.empty
-                    ).toJsonAST.toOption.get
-                  )
-                  dmScreenState.onModifyCampaignState(campaignState.copy(pcs = campaignState.pcs :+ newPC))
-                  // TODO send to server
-                }
-              )("Add Character"),
+              Button
+                .title("Add new player character").onClick(
+                  (
+                    _,
+                    _
+                  ) => {
+                    // new player
+                    val newPC = PlayerCharacter(
+                      header = PlayerCharacterHeader(
+                        id = PlayerCharacterId.empty,
+                        campaignId = campaign.header.id,
+                        name = "New Character"
+                      ),
+                      jsonInfo = PlayerCharacterInfo(
+                        hitPoints = HitPoints(0, 0),
+                        armorClass = 10,
+                        classes = List.empty
+                      ).toJsonAST.toOption.get
+                    )
+                    dmScreenState.onModifyCampaignState(campaignState.copy(pcs = campaignState.pcs :+ newPC))
+                    // TODO send to server
+                  }
+                )("Add Character"),
               Button("Import from dndbeyond.com"), // TODO
               Button("Import from 5th Edition Tools"), // TODO
               Button("Short Rest"), // TODO short rest

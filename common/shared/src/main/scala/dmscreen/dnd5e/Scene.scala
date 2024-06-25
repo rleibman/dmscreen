@@ -46,11 +46,11 @@ case class SceneHeader(
   id:         SceneId,
   campaignId: CampaignId,
   name:       String,
-  orderCol:   Int
+  orderCol:   Int,
+  isActive:   Boolean = false
 ) extends HasId[SceneId]
 
 case class SceneInfo(
-  isActive: Boolean = false,
   notes:    String = "",
   npcs:     List[NonPlayerCharacterId] = List.empty,
   treasure: List[String] = List.empty

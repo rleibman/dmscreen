@@ -219,198 +219,255 @@ object EncounterEditor {
           callback >> $.state.flatMap(s => props.onChange(s.encounter))
         )
 
-      val encounter = props.encounter
+      DMScreenState.ctx.consume { dmScreenState =>
+        val pcs = dmScreenState.campaignState.fold(List.empty[PlayerCharacter])(_.asInstanceOf[DND5eCampaignState].pcs)
+        val encounter = props.encounter
 
-      Container(
-        Table(
-          Table.Header(
-            Table.Row(
-              Table.HeaderCell.colSpan(3)(<.h2(s"${encounter.header.name}")),
-              Table.HeaderCell
-                .colSpan(3).textAlign(semanticUiReactStrings.center)(
-                  s"Difficulty: ${encounter.info.difficulty}, XP: ${encounter.info.xp}"
-                ),
-              Table.HeaderCell
-                .colSpan(4)
-                .singleLine(true)
-                .textAlign(semanticUiReactStrings.right)(
-                  Button
-                    .compact(true)
-                    .icon(true)
-                    .onClick(
-                      (
-                        _,
-                        _
-                      ) => modEncounter(e => e.copy(header = e.header.copy(status = EncounterStatus.archived)))
-                    )(Icon.name(SemanticICONS.`archive`)).when(
-                      encounter.header.status != EncounterStatus.archived
-                    ),
-                  Button
-                    .compact(true)
-                    .icon(true)
-                    .onClick(
-                      (
-                        _,
-                        _
-                      ) =>
-                        _root_.components.Confirm.confirm(
-                          question = "Are you 100% sure you want to delete this encounter?",
-                          onConfirm = props.onDelete(encounter)
-                        )
-                    )(Icon.name(SemanticICONS.`delete`))
-                )
+        Container(
+          Table(
+            Table.Header(
+              Table.Row(
+                Table.HeaderCell.colSpan(3)(<.h2(s"${encounter.header.name}")),
+                Table.HeaderCell
+                  .colSpan(3).textAlign(semanticUiReactStrings.center)(
+                    s"Difficulty: ${encounter.calculateDifficulty(pcs)}, XP: ${encounter.info.xp}"
+                  ),
+                Table.HeaderCell
+                  .colSpan(4)
+                  .singleLine(true)
+                  .textAlign(semanticUiReactStrings.right)(
+                    Button
+                      .compact(true)
+                      .icon(true)
+                      .title("Archive this encounter")
+                      .onClick(
+                        (
+                          _,
+                          _
+                        ) => modEncounter(e => e.copy(header = e.header.copy(status = EncounterStatus.archived)))
+                      )(Icon.name(SemanticICONS.`archive`)).when(
+                        encounter.header.status != EncounterStatus.archived
+                      ),
+                    Button
+                      .compact(true)
+                      .icon(true)
+                      .title("Delete this encounter")
+                      .onClick(
+                        (
+                          _,
+                          _
+                        ) =>
+                          _root_.components.Confirm.confirm(
+                            question = "Are you 100% sure you want to delete this encounter?",
+                            onConfirm = props.onDelete(encounter)
+                          )
+                      )(Icon.name(SemanticICONS.`delete`))
+                  )
+              ),
+              Table.Row(
+                Table.HeaderCell("Name"),
+                Table.HeaderCell("Type"),
+                Table.HeaderCell("Biome"),
+                Table.HeaderCell("Alignment"),
+                Table.HeaderCell("CR"),
+                Table.HeaderCell("XP"),
+                Table.HeaderCell("AC"),
+                Table.HeaderCell("HP"),
+                Table.HeaderCell("Size"),
+                Table.HeaderCell( /*For actions*/ )
+              )
             ),
-            Table.Row(
-              Table.HeaderCell("Name"),
-              Table.HeaderCell("Type"),
-              Table.HeaderCell("Biome"),
-              Table.HeaderCell("Alignment"),
-              Table.HeaderCell("CR"),
-              Table.HeaderCell("XP"),
-              Table.HeaderCell("AC"),
-              Table.HeaderCell("HP"),
-              Table.HeaderCell("Size"),
-              Table.HeaderCell( /*For actions*/ )
-            )
-          ),
-          Table.Body(
-            encounter.info.creatures
-              .sortBy {
-                case creature: MonsterEncounterCreature         => creature.name
-                case creature: PlayerCharacterEncounterCreature => creature.name // Not really important
-              }.collect { case creature: MonsterEncounterCreature =>
-                Table.Row
-                  .withKey(s"creature ${creature.id}")(
-                    Table.Cell(
-                      EditableText(
-                        value = creature.name,
-                        allowEditing = encounter.header.status != EncounterStatus.archived,
-                        onChange = name =>
-                          modEncounter(e => {
-                            e
-                              .copy(jsonInfo =
-                                e.info
-                                  .copy(creatures = e.info.creatures.map {
-                                    case creature: MonsterEncounterCreature if creature.id == creature.id =>
-                                      creature.copy(name = name)
-                                    case _ => creature
-                                  }).toJsonAST.toOption.get // TODO this conversion is akward, it would be nice to change it, but how?
-                              )
-                          })
-                      )
-                    ),
-                    Table.Cell(creature.monsterHeader.monsterType.toString.capitalize),
-                    Table.Cell(creature.monsterHeader.biome.fold("")(_.toString.capitalize)),
-                    Table.Cell(creature.monsterHeader.alignment.fold("")(_.name)),
-                    Table.Cell(creature.monsterHeader.cr.toString),
-                    Table.Cell(creature.monsterHeader.xp),
-                    Table.Cell(
-                      EditableNumber(
-                        value = creature.monsterHeader.armorClass,
-                        allowEditing = encounter.header.status != EncounterStatus.archived,
-                        min = 0,
-                        max = 30,
-                        onChange = v =>
-                          modEncounter { e =>
-                            e
-                              .copy(jsonInfo =
-                                e.info
-                                  .copy(creatures = e.info.creatures.map {
-                                    case creature: MonsterEncounterCreature if creature.id == creature.id =>
-                                      creature.copy(armorClass = v.toInt)
-                                    case _ => creature
-                                  }).toJsonAST.toOption.get
-                              )
-                          }
-                      )
-                    ),
-                    Table.Cell(
-                      EditableNumber(
-                        value = creature.hitPoints.maxHitPoints,
-                        allowEditing = encounter.header.status != EncounterStatus.archived,
-                        min = 0,
-                        max = 1000,
-                        onChange = v =>
-                          modEncounter { e =>
-                            e
-                              .copy(jsonInfo =
-                                e.info
-                                  .copy(creatures = e.info.creatures.map {
-                                    case creature: MonsterEncounterCreature if creature.id == creature.id =>
-                                      creature.copy(hitPoints = creature.hitPoints.copy(maxHitPoints = v.toInt))
-                                    case _ => creature
-                                  }).toJsonAST.toOption.get
-                              )
-                          }
-                      )
-                    ),
-                    Table.Cell(creature.monsterHeader.size.toString.capitalize),
-                    Table.Cell.singleLine(true)(
-                      Button
-                        .compact(true)
-                        .size(SemanticSIZES.mini)
-                        .icon(true)
-                        .onClick {
-                          (
-                            _,
-                            _
-                          ) =>
-                            modEncounter(
-                              e => {
+            Table.Body(
+              encounter.info.creatures
+                .sortBy {
+                  case creature: MonsterEncounterCreature         => creature.name
+                  case creature: PlayerCharacterEncounterCreature => creature.name // Not really important
+                }.collect { case creature: MonsterEncounterCreature =>
+                  Table.Row
+                    .withKey(s"creature ${creature.id}")(
+                      Table.Cell(
+                        EditableText(
+                          value = creature.name,
+                          allowEditing = encounter.header.status != EncounterStatus.archived,
+                          onChange = name =>
+                            modEncounter(e => {
+                              e
+                                .copy(jsonInfo =
+                                  e.info
+                                    .copy(creatures = e.info.creatures.map {
+                                      case creature: MonsterEncounterCreature if creature.id == creature.id =>
+                                        creature.copy(name = name)
+                                      case _ => creature
+                                    }).toJsonAST.toOption.get // TODO this conversion is akward, it would be nice to change it, but how?
+                                )
+                            })
+                        )
+                      ),
+                      Table.Cell(creature.monsterHeader.monsterType.toString.capitalize),
+                      Table.Cell(creature.monsterHeader.biome.fold("")(_.toString.capitalize)),
+                      Table.Cell(creature.monsterHeader.alignment.fold("")(_.name)),
+                      Table.Cell(creature.monsterHeader.cr.toString),
+                      Table.Cell(creature.monsterHeader.xp),
+                      Table.Cell(
+                        EditableNumber(
+                          value = creature.monsterHeader.armorClass,
+                          allowEditing = encounter.header.status != EncounterStatus.archived,
+                          min = 0,
+                          max = 30,
+                          onChange = v =>
+                            modEncounter { e =>
+                              e
+                                .copy(jsonInfo =
+                                  e.info
+                                    .copy(creatures = e.info.creatures.map {
+                                      case creature: MonsterEncounterCreature if creature.id == creature.id =>
+                                        creature.copy(armorClass = v.toInt)
+                                      case _ => creature
+                                    }).toJsonAST.toOption.get
+                                )
+                            }
+                        )
+                      ),
+                      Table.Cell(
+                        EditableNumber(
+                          value = creature.hitPoints.maxHitPoints,
+                          allowEditing = encounter.header.status != EncounterStatus.archived,
+                          min = 0,
+                          max = 1000,
+                          onChange = v =>
+                            modEncounter { e =>
+                              e
+                                .copy(jsonInfo =
+                                  e.info
+                                    .copy(creatures = e.info.creatures.map {
+                                      case creature: MonsterEncounterCreature if creature.id == creature.id =>
+                                        creature.copy(hitPoints = creature.hitPoints.copy(maxHitPoints = v.toInt))
+                                      case _ => creature
+                                    }).toJsonAST.toOption.get
+                                )
+                            }
+                        )
+                      ),
+                      Table.Cell(creature.monsterHeader.size.toString.capitalize),
+                      Table.Cell.singleLine(true)(
+                        Button
+                          .compact(true)
+                          .size(SemanticSIZES.mini)
+                          .title("Delete this creature from the encounter")
+                          .icon(true)
+                          .onClick {
+                            (
+                              _,
+                              _
+                            ) =>
+                              modEncounter(e => {
                                 e
                                   .copy(jsonInfo =
                                     e.info
                                       .copy(creatures = e.info.creatures.filter(_.id != creature.id))
                                       .toJsonAST.toOption.get
                                   )
-                              },
-                              $.state.flatMap(state =>
-                                Callback.log(s"deleted creature ${creature.name}, newState = ${encounter.info.creatures.map(_.asInstanceOf[MonsterEncounterCreature].name)}")
-                              )
-                            )
-                        }(Icon.name(SemanticICONS.`delete`))
-                        .when(encounter.header.status != EncounterStatus.archived),
-                      Button
-                        .compact(true)
-                        .size(SemanticSIZES.mini)
-                        .onClick {
-                          (
-                            _,
-                            _
-                          ) =>
-                            val newId = CreatureId(encounter.info.creatures.size)
-                            modEncounter(encounter => {
-                              encounter
-                                .copy(jsonInfo =
-                                  encounter.info
-                                    .copy(creatures =
-                                      encounter.info.creatures :+
-                                        createMonsterCreature(encounter, creature.monsterHeader)
-                                    )
-                                    .toJsonAST.toOption.get
-                                )
+                              })
+                          }(Icon.name(SemanticICONS.`delete`))
+                          .when(encounter.header.status != EncounterStatus.archived),
+                        Button
+                          .compact(true)
+                          .size(SemanticSIZES.mini)
+                          .title("More of this creature!")
+                          .onClick {
+                            (
+                              _,
+                              _
+                            ) =>
+                              val newId = CreatureId(encounter.info.creatures.size)
+                              modEncounter(encounter => {
+                                encounter
+                                  .copy(jsonInfo =
+                                    encounter.info
+                                      .copy(creatures =
+                                        encounter.info.creatures :+
+                                          createMonsterCreature(encounter, creature.monsterHeader)
+                                      )
+                                      .toJsonAST.toOption.get
+                                  )
 
-                            })
-                        }
-                        .icon(true)(Icon.name(SemanticICONS.`clone outline`))
-                        .when(state.encounter.header.status != EncounterStatus.archived)
+                              })
+                          }
+                          .icon(true)(Icon.name(SemanticICONS.`clone outline`))
+                          .when(state.encounter.header.status != EncounterStatus.archived)
+                      )
                     )
-                  )
-              }*
-          )
-        ),
-        Table
-          .sortable(true)(
-            Table.Header(
-              Table.Row( // Search Row
-                Table.Cell.colSpan(10)(
-                  Form(
-                    Form.Group
-                      .inline(true)(
+                }*
+            )
+          ),
+          Table
+            .sortable(true)(
+              Table.Header(
+                Table.Row( // Search Row
+                  Table.Cell.colSpan(10)(
+                    Form(
+                      Form.Group
+                        .inline(true)(
+                          Form.Field(
+                            Input
+                              .size(semanticUiReactStrings.mini)
+                              .label("Name")
+                              .onChange {
+                                (
+                                  _,
+                                  data
+                                ) =>
+                                  val newVal = data.value match {
+                                    case s: String if s.trim.isEmpty => None
+                                    case s: String                   => Some(s)
+                                    case _ => None
+
+                                  }
+
+                                  modMonsterSearch(_.copy(name = newVal))
+                              }
+                              .value(state.monsterSearch.name.getOrElse(""))
+                          ),
+                          <.div(^.width := 100.pct, ""), // This is just a spacer
+                          Button
+                            .title("Clear the search criteria")
+                            .compact(true)
+                            .icon(true)
+                            .onClick(
+                              (
+                                _,
+                                _
+                              ) => modMonsterSearch(_ => MonsterSearch())
+                            )(
+                              Icon.className("clearIcon")
+                            ),
+                          Button
+                            .compact(true)
+                            .title("Random search based on currently selected criteria")
+                            .icon(true)
+                            .onClick(
+                              (
+                                _,
+                                _
+                              ) => modMonsterSearch(_ => MonsterSearch())
+                            )(
+                              Icon.name(SemanticICONS.`random`) // Add random creature that matches the results
+                            )
+                        ),
+                      Form.Group(
                         Form.Field(
-                          Input
-                            .size(semanticUiReactStrings.mini)
-                            .label("Name")
+                          Label("Type"),
+                          Dropdown
+                            .compact(true)
+                            .search(false)
+                            .clearable(true)
+                            .placeholder("All")
+                            .options(
+                              MonsterType.values
+                                .map(s =>
+                                  DropdownItemProps().setValue(s.toString.capitalize).setText(s.toString.capitalize)
+                                ).toJSArray
+                            )
                             .onChange {
                               (
                                 _,
@@ -418,269 +475,221 @@ object EncounterEditor {
                               ) =>
                                 val newVal = data.value match {
                                   case s: String if s.trim.isEmpty => None
-                                  case s: String                   => Some(s)
+                                  case s: String => MonsterType.values.find(_.toString.equalsIgnoreCase(s))
                                   case _ => None
-
                                 }
 
-                                modMonsterSearch(_.copy(name = newVal))
+                                modMonsterSearch(_.copy(monsterType = newVal))
                             }
-                            .value(state.monsterSearch.name.getOrElse(""))
+                            .value(state.monsterSearch.monsterType.fold("")(_.toString.capitalize))
                         ),
-                        <.div(^.width := 100.pct, ""), // This is just a spacer
-                        Button // TODO move these buttons to the right
-                          .compact(true).icon(true).onClick(
-                            (
-                              _,
-                              _
-                            ) => modMonsterSearch(_ => MonsterSearch())
-                          )(
-                            Icon.className("clearIcon")
-                          ),
-                        Button
-                          .compact(true).icon(true).onClick(
-                            (
-                              _,
-                              _
-                            ) => modMonsterSearch(_ => MonsterSearch())
-                          )(
-                            Icon.name(SemanticICONS.`random`) // Add random creature that matches the results
-                          )
-                      ),
-                    Form.Group(
-                      Form.Field(
-                        Label("Type"),
-                        Dropdown
-                          .compact(true)
-                          .search(false)
-                          .clearable(true)
-                          .placeholder("All")
-                          .options(
-                            MonsterType.values
-                              .map(s =>
-                                DropdownItemProps().setValue(s.toString.capitalize).setText(s.toString.capitalize)
-                              ).toJSArray
-                          )
-                          .onChange {
-                            (
-                              _,
-                              data
-                            ) =>
-                              val newVal = data.value match {
-                                case s: String if s.trim.isEmpty => None
-                                case s: String => MonsterType.values.find(_.toString.equalsIgnoreCase(s))
-                                case _ => None
-                              }
+                        Form.Field(
+                          Label("Biome"),
+                          Dropdown()
+                            .compact(true)
+                            .search(false)
+                            .clearable(true)
+                            .placeholder("All")
+                            .options(
+                              Biome.values
+                                .map(s =>
+                                  DropdownItemProps().setValue(s.toString.capitalize).setText(s.toString.capitalize)
+                                ).toJSArray
+                            )
+                            .onChange {
+                              (
+                                _,
+                                data
+                              ) =>
+                                val newVal = data.value match {
+                                  case s: String if s.trim.isEmpty => None
+                                  case s: String                   => Biome.values.find(_.toString.equalsIgnoreCase(s))
+                                  case _ => None
+                                }
 
-                              modMonsterSearch(_.copy(monsterType = newVal))
-                          }
-                          .value(state.monsterSearch.monsterType.fold("")(_.toString.capitalize))
-                      ),
-                      Form.Field(
-                        Label("Biome"),
-                        Dropdown()
-                          .compact(true)
-                          .search(false)
-                          .clearable(true)
-                          .placeholder("All")
-                          .options(
-                            Biome.values
-                              .map(s =>
-                                DropdownItemProps().setValue(s.toString.capitalize).setText(s.toString.capitalize)
-                              ).toJSArray
-                          )
-                          .onChange {
-                            (
-                              _,
-                              data
-                            ) =>
-                              val newVal = data.value match {
-                                case s: String if s.trim.isEmpty => None
-                                case s: String                   => Biome.values.find(_.toString.equalsIgnoreCase(s))
-                                case _ => None
-                              }
+                                modMonsterSearch(_.copy(biome = newVal))
+                            }
+                            .value(state.monsterSearch.biome.fold("")(_.toString.capitalize))
+                        ),
+                        Form.Field(
+                          Label("Aligment"),
+                          Dropdown()
+                            .compact(true)
+                            .search(false)
+                            .clearable(true)
+                            .placeholder("All")
+                            .options(
+                              Alignment.values.map(s => DropdownItemProps().setValue(s.name).setText(s.name)).toJSArray
+                            )
+                            .onChange {
+                              (
+                                _,
+                                data
+                              ) =>
+                                val newVal = data.value match {
+                                  case s: String if s.trim.isEmpty => None
+                                  case s: String                   => Alignment.values.find(_.name.equalsIgnoreCase(s))
+                                  case _ => None
+                                }
 
-                              modMonsterSearch(_.copy(biome = newVal))
-                          }
-                          .value(state.monsterSearch.biome.fold("")(_.toString.capitalize))
-                      ),
-                      Form.Field(
-                        Label("Aligment"),
-                        Dropdown()
-                          .compact(true)
-                          .search(false)
-                          .clearable(true)
-                          .placeholder("All")
-                          .options(
-                            Alignment.values.map(s => DropdownItemProps().setValue(s.name).setText(s.name)).toJSArray
-                          )
-                          .onChange {
-                            (
-                              _,
-                              data
-                            ) =>
-                              val newVal = data.value match {
-                                case s: String if s.trim.isEmpty => None
-                                case s: String                   => Alignment.values.find(_.name.equalsIgnoreCase(s))
-                                case _ => None
-                              }
+                                modMonsterSearch(_.copy(alignment = newVal))
+                            }
+                            .value(state.monsterSearch.alignment.fold("")(_.name))
+                        ),
+                        Form.Field(
+                          Label("CR"),
+                          Dropdown()
+                            .compact(true)
+                            .search(false)
+                            .clearable(true)
+                            .placeholder("All")
+                            .options(
+                              ChallengeRating.values
+                                .map(s => DropdownItemProps().setValue(s.toString).setText(s.toString)).toJSArray
+                            )
+                            .onChange {
+                              (
+                                _,
+                                data
+                              ) =>
+                                val newVal = data.value match {
+                                  case s: String if s.trim.isEmpty => None
+                                  case s: String => ChallengeRating.values.find(_.toString.equalsIgnoreCase(s))
+                                  case _ => None
+                                }
 
-                              modMonsterSearch(_.copy(alignment = newVal))
-                          }
-                          .value(state.monsterSearch.alignment.fold("")(_.name))
-                      ),
-                      Form.Field(
-                        Label("CR"),
-                        Dropdown()
-                          .compact(true)
-                          .search(false)
-                          .clearable(true)
-                          .placeholder("All")
-                          .options(
-                            ChallengeRating.values
-                              .map(s => DropdownItemProps().setValue(s.toString).setText(s.toString)).toJSArray
-                          )
-                          .onChange {
-                            (
-                              _,
-                              data
-                            ) =>
-                              val newVal = data.value match {
-                                case s: String if s.trim.isEmpty => None
-                                case s: String => ChallengeRating.values.find(_.toString.equalsIgnoreCase(s))
-                                case _ => None
-                              }
+                                modMonsterSearch(_.copy(challengeRating = newVal))
+                            }
+                            .value(state.monsterSearch.challengeRating.fold("")(_.toString))
+                        ),
+                        Form.Field(
+                          Label("Size"),
+                          Dropdown()
+                            .compact(true)
+                            .search(false)
+                            .clearable(true)
+                            .placeholder("All")
+                            .options(
+                              CreatureSize.values
+                                .map(s =>
+                                  DropdownItemProps().setValue(s.toString.capitalize).setText(s.toString.capitalize)
+                                ).toJSArray
+                            )
+                            .onChange {
+                              (
+                                _,
+                                data
+                              ) =>
+                                val newVal = data.value match {
+                                  case s: String if s.trim.isEmpty => None
+                                  case s: String => CreatureSize.values.find(_.toString.equalsIgnoreCase(s))
+                                  case _ => None
+                                }
 
-                              modMonsterSearch(_.copy(challengeRating = newVal))
-                          }
-                          .value(state.monsterSearch.challengeRating.fold("")(_.toString))
-                      ),
-                      Form.Field(
-                        Label("Size"),
-                        Dropdown()
-                          .compact(true)
-                          .search(false)
-                          .clearable(true)
-                          .placeholder("All")
-                          .options(
-                            CreatureSize.values
-                              .map(s =>
-                                DropdownItemProps().setValue(s.toString.capitalize).setText(s.toString.capitalize)
-                              ).toJSArray
-                          )
-                          .onChange {
-                            (
-                              _,
-                              data
-                            ) =>
-                              val newVal = data.value match {
-                                case s: String if s.trim.isEmpty => None
-                                case s: String => CreatureSize.values.find(_.toString.equalsIgnoreCase(s))
-                                case _ => None
-                              }
-
-                              modMonsterSearch(_.copy(size = newVal))
-                          }
-                          .value(state.monsterSearch.size.fold("")(_.toString.capitalize))
+                                modMonsterSearch(_.copy(size = newVal))
+                            }
+                            .value(state.monsterSearch.size.fold("")(_.toString.capitalize))
+                        )
                       )
                     )
                   )
+                ),
+                Table.Row(
+                  Table.HeaderCell
+                    .sorted(
+                      state.monsterSearch.orderCol
+                        .toReactSoreDirection(MonsterSearchOrder.name, state.monsterSearch.orderDir)
+                    ).onClick(_ => changeSort(MonsterSearchOrder.name))("Name"),
+                  Table.HeaderCell
+                    .sorted(
+                      state.monsterSearch.orderCol
+                        .toReactSoreDirection(MonsterSearchOrder.monsterType, state.monsterSearch.orderDir)
+                    ).onClick(_ => changeSort(MonsterSearchOrder.monsterType))("Type"),
+                  Table.HeaderCell
+                    .sorted(
+                      state.monsterSearch.orderCol
+                        .toReactSoreDirection(MonsterSearchOrder.biome, state.monsterSearch.orderDir)
+                    ).onClick(_ => changeSort(MonsterSearchOrder.biome))("Biome"),
+                  Table.HeaderCell
+                    .sorted(
+                      state.monsterSearch.orderCol
+                        .toReactSoreDirection(MonsterSearchOrder.alignment, state.monsterSearch.orderDir)
+                    ).onClick(_ => changeSort(MonsterSearchOrder.alignment))("Alignment"),
+                  Table.HeaderCell
+                    .sorted(
+                      state.monsterSearch.orderCol
+                        .toReactSoreDirection(MonsterSearchOrder.challengeRating, state.monsterSearch.orderDir)
+                    ).onClick(_ => changeSort(MonsterSearchOrder.challengeRating))("CR"),
+                  Table.HeaderCell("XP"),
+                  Table.HeaderCell("AC"),
+                  Table.HeaderCell("HP"),
+                  Table.HeaderCell
+                    .sorted(
+                      state.monsterSearch.orderCol
+                        .toReactSoreDirection(MonsterSearchOrder.size, state.monsterSearch.orderDir)
+                    ).onClick(_ => changeSort(MonsterSearchOrder.size))("Size"),
+                  Table.HeaderCell( /*For actions*/ )
                 )
               ),
-              Table.Row(
-                Table.HeaderCell
-                  .sorted(
-                    state.monsterSearch.orderCol
-                      .toReactSoreDirection(MonsterSearchOrder.name, state.monsterSearch.orderDir)
-                  ).onClick(_ => changeSort(MonsterSearchOrder.name))("Name"),
-                Table.HeaderCell
-                  .sorted(
-                    state.monsterSearch.orderCol
-                      .toReactSoreDirection(MonsterSearchOrder.monsterType, state.monsterSearch.orderDir)
-                  ).onClick(_ => changeSort(MonsterSearchOrder.monsterType))("Type"),
-                Table.HeaderCell
-                  .sorted(
-                    state.monsterSearch.orderCol
-                      .toReactSoreDirection(MonsterSearchOrder.biome, state.monsterSearch.orderDir)
-                  ).onClick(_ => changeSort(MonsterSearchOrder.biome))("Biome"),
-                Table.HeaderCell
-                  .sorted(
-                    state.monsterSearch.orderCol
-                      .toReactSoreDirection(MonsterSearchOrder.alignment, state.monsterSearch.orderDir)
-                  ).onClick(_ => changeSort(MonsterSearchOrder.alignment))("Alignment"),
-                Table.HeaderCell
-                  .sorted(
-                    state.monsterSearch.orderCol
-                      .toReactSoreDirection(MonsterSearchOrder.challengeRating, state.monsterSearch.orderDir)
-                  ).onClick(_ => changeSort(MonsterSearchOrder.challengeRating))("CR"),
-                Table.HeaderCell("XP"),
-                Table.HeaderCell("AC"),
-                Table.HeaderCell("HP"),
-                Table.HeaderCell
-                  .sorted(
-                    state.monsterSearch.orderCol
-                      .toReactSoreDirection(MonsterSearchOrder.size, state.monsterSearch.orderDir)
-                  ).onClick(_ => changeSort(MonsterSearchOrder.size))("Size"),
-                Table.HeaderCell( /*For actions*/ )
-              )
-            ),
-            Table.Body(
-              state.monsters.map(header =>
+              Table.Body(
+                state.monsters.map(header =>
+                  Table.Row(
+                    Table.Cell(header.name),
+                    Table.Cell(header.monsterType.toString.capitalize),
+                    Table.Cell(header.biome.fold("")(_.toString.capitalize)),
+                    Table.Cell(header.alignment.fold("")(_.name)),
+                    Table.Cell(header.cr.toString),
+                    Table.Cell(header.xp),
+                    Table.Cell(header.armorClass),
+                    Table.Cell(header.maximumHitPoints),
+                    Table.Cell(header.size.toString.capitalize),
+                    Table.Cell(
+                      Button
+                        .size(SemanticSIZES.mini)
+                        .compact(true)
+                        .title("Add this creature to the encounter")
+                        .onClick(
+                          (
+                            _,
+                            _
+                          ) =>
+                            modEncounter { e =>
+                              e
+                                .copy(jsonInfo =
+                                  e.info
+                                    .copy(creatures = e.info.creatures :+ createMonsterCreature(e, header))
+                                    .toJsonAST.toOption.get
+                                )
+                            }
+                        )
+                        .icon(true)(Icon.name(SemanticICONS.`add`))
+                    )
+                  )
+                )*
+              ),
+              Table.Footer(
                 Table.Row(
-                  Table.Cell(header.name),
-                  Table.Cell(header.monsterType.toString.capitalize),
-                  Table.Cell(header.biome.fold("")(_.toString.capitalize)),
-                  Table.Cell(header.alignment.fold("")(_.name)),
-                  Table.Cell(header.cr.toString),
-                  Table.Cell(header.xp),
-                  Table.Cell(header.armorClass),
-                  Table.Cell(header.maximumHitPoints),
-                  Table.Cell(header.size.toString.capitalize),
-                  Table.Cell(
-                    Button
-                      .size(SemanticSIZES.mini)
-                      .compact(true)
-                      .onClick(
+                  Table.Cell.colSpan(10)(
+                    Pagination(state.monsterCount / state.monsterSearch.pageSize.toDouble)
+                      .onPageChange {
                         (
                           _,
-                          _
+                          data
                         ) =>
-                          modEncounter { e =>
-                            e
-                              .copy(jsonInfo =
-                                e.info
-                                  .copy(creatures = e.info.creatures :+ createMonsterCreature(e, header))
-                                  .toJsonAST.toOption.get
-                              )
+                          val newVal = data.activePage match {
+                            case s: String => s.toInt
+                            case d: Double => d.toInt
                           }
-                      )
-                      .icon(true)(Icon.name(SemanticICONS.`add`))
+
+                          modMonsterSearch(_.copy(page = newVal - 1))
+                      }
+                      .activePage(state.monsterSearch.page + 1)
                   )
                 )
-              )*
-            ),
-            Table.Footer(
-              Table.Row(
-                Table.Cell.colSpan(10)(
-                  Pagination(state.monsterCount / state.monsterSearch.pageSize.toDouble)
-                    .onPageChange {
-                      (
-                        _,
-                        data
-                      ) =>
-                        val newVal = data.activePage match {
-                          case s: String => s.toInt
-                          case d: Double => d.toInt
-                        }
-
-                        modMonsterSearch(_.copy(page = newVal))
-                    }
-                    .activePage(state.monsterSearch.page)
-                )
               )
-            )
-          ).when(state.encounter.header.status != EncounterStatus.archived)
-      )
+            ).when(state.encounter.header.status != EncounterStatus.archived)
+        )
+      }
     }
 
   }
