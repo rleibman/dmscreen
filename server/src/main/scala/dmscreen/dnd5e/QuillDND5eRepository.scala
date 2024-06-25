@@ -202,7 +202,9 @@ object QuillDND5eRepository {
 
   }
 
-  def db: ZLayer[ConfigurationService, DMScreenError, DND5eRepository] =
+  trait DND5eZIORepository extends DND5eRepository[DMScreenTask]
+
+  def db: ZLayer[ConfigurationService, DMScreenError, DND5eZIORepository] =
     ZLayer.fromZIO {
       for {
         config                  <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
@@ -212,7 +214,7 @@ object QuillDND5eRepository {
         cachedRaces             <- readFromResource[Seq[Race]]("/data/races.json")
         cachedBackgrounds       <- readFromResource[Seq[Background]]("/data/backgrounds.json")
 
-      } yield new DND5eRepository() {
+      } yield new DND5eZIORepository() {
 
         private object ctx extends MysqlZioJdbcContext(MysqlEscape)
 

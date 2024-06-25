@@ -22,15 +22,16 @@
 package dmscreen
 
 import dmscreen.dnd5e.{DND5eRepository, GraphQLClientRepository}
+import japgolly.scalajs.react.AsyncCallback
 import zio.ZLayer
 
-type DMScreenClientEnvironment = DND5eRepository
+type DMScreenClientEnvironment = DND5eRepository[AsyncCallback] & ClientConfiguration
 
 object EnvironmentBuilder {
 
   def live =
     ZLayer
-      .make[DND5eRepository](
+      .make[DMScreenClientEnvironment](
         ClientConfiguration.live,
         GraphQLClientRepository.live
       )

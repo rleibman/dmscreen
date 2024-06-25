@@ -31,95 +31,88 @@ import scala.reflect.ClassTag
 
 object GraphQLClientRepository {
 
-  val live: ZLayer[ClientConfiguration, Nothing, DND5eRepository] = ZLayer.fromZIO(for {
+  val live: ZLayer[ClientConfiguration, Nothing, DND5eRepository[AsyncCallback]] = ZLayer.fromZIO(for {
     config <- ZIO.service[ClientConfiguration]
   } yield {
 
-    new DND5eRepository {
-      override def campaigns: IO[DMScreenError, Seq[CampaignHeader]] = ???
+    new DND5eRepository[AsyncCallback] {
+      override def campaigns: AsyncCallback[Seq[CampaignHeader]] = ???
 
-      override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[DND5eCampaign]] = ???
+      override def campaign(campaignId: CampaignId): AsyncCallback[Option[DND5eCampaign]] = ???
 
-      override def scene(sceneId: SceneId): IO[DMScreenError, Option[Scene]] = ???
+      override def scene(sceneId: SceneId): AsyncCallback[Option[Scene]] = ???
 
       override def applyOperations[IDType](
         entityType: EntityType,
         id:         IDType,
         operations: DMScreenEvent*
-      ): IO[DMScreenError, Unit] = ???
+      ): AsyncCallback[Unit] = ???
 
       override def deleteEntity[IDType](
         entityType: EntityType,
         id:         IDType,
         softDelete: Boolean
-      ): IO[DMScreenError, Unit] = ???
+      ): AsyncCallback[Unit] = ???
 
-      override def playerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[PlayerCharacter]] = ???
+      override def playerCharacters(campaignId: CampaignId): AsyncCallback[Seq[PlayerCharacter]] = ???
 
-      override def scenes(campaignId: CampaignId): IO[DMScreenError, Seq[Scene]] = ???
+      override def scenes(campaignId: CampaignId): AsyncCallback[Seq[Scene]] = ???
 
-      override def playerCharacter(playerCharacterId: PlayerCharacterId): IO[DMScreenError, Option[PlayerCharacter]] =
-        ???
+      override def playerCharacter(playerCharacterId: PlayerCharacterId): AsyncCallback[Option[PlayerCharacter]] = ???
 
-      override def nonPlayerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[NonPlayerCharacter]] = ???
+      override def nonPlayerCharacters(campaignId: CampaignId): AsyncCallback[Seq[NonPlayerCharacter]] = ???
 
-      override def encounters(campaignId: CampaignId): IO[DMScreenError, Seq[Encounter]] = ???
+      override def encounters(campaignId: CampaignId): AsyncCallback[Seq[Encounter]] = ???
 
-      override def bestiary(search: MonsterSearch): IO[DMScreenError, MonsterSearchResults] = ???
+      override def bestiary(search: MonsterSearch): AsyncCallback[MonsterSearchResults] = ???
 
-      override def sources: IO[DMScreenError, Seq[Source]] = ???
+      override def sources: AsyncCallback[Seq[Source]] = ???
 
-      override def classes: IO[DMScreenError, Seq[CharacterClass]] = ???
+      override def classes: AsyncCallback[Seq[CharacterClass]] = ???
 
-      override def races: IO[DMScreenError, Seq[Race]] = ???
+      override def races: AsyncCallback[Seq[Race]] = ???
 
-      override def backgrounds: IO[DMScreenError, Seq[Background]] = ???
+      override def backgrounds: AsyncCallback[Seq[Background]] = ???
 
-      override def subClasses(characterClass: CharacterClassId): IO[DMScreenError, Seq[SubClass]] = ???
+      override def subClasses(characterClass: CharacterClassId): AsyncCallback[Seq[SubClass]] = ???
 
-      override def spells: IO[DMScreenError, Seq[Spell]] = ???
+      override def spells: AsyncCallback[Seq[Spell]] = ???
 
       override def upsert(
         campaignHeader: CampaignHeader,
         info:           Json
-      ): IO[DMScreenError, CampaignId] = ???
+      ): AsyncCallback[CampaignId] = ???
 
       override def upsert(
         playerCharacterHeader: PlayerCharacterHeader,
         info:                  Json
-      ): IO[DMScreenError, PlayerCharacterId] = ???
+      ): AsyncCallback[PlayerCharacterId] = ???
 
       override def upsert(
         nonPlayerCharacterHeader: NonPlayerCharacterHeader,
         info:                     Json
-      ): IO[DMScreenError, NonPlayerCharacterId] = ???
+      ): AsyncCallback[NonPlayerCharacterId] = ???
 
       override def upsert(
         monsterHeader: MonsterHeader,
         info:          Json
-      ): IO[DMScreenError, MonsterId] = ???
+      ): AsyncCallback[MonsterId] = ???
 
       override def upsert(
         spellHeader: SpellHeader,
         info:        Json
-      ): IO[DMScreenError, SpellId] = ???
+      ): AsyncCallback[SpellId] = ???
 
       override def upsert(
         encounterHeader: EncounterHeader,
         info:            Json
-      ): IO[DMScreenError, EncounterId] = ???
+      ): AsyncCallback[EncounterId] = ???
 
       override def upsert(
         sceneHeader: SceneHeader,
         info:        Json
-      ): IO[DMScreenError, SceneId] = ???
+      ): AsyncCallback[SceneId] = ???
     }
   })
-
-}
-
-class NonFreeDND5eRepositoryImpl2 extends FreeDND5eRepository[AsyncCallback] {
-
-  override def campaigns: AsyncCallback[Seq[CampaignHeader]] = ???
 
 }

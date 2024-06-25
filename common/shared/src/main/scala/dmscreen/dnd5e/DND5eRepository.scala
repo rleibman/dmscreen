@@ -60,85 +60,79 @@ case class MonsterSearchResults(
   total:   Long
 )
 
-trait DND5eRepository extends GameRepository {
+trait DND5eRepository[F[_]] extends GameRepository {
 
-  def campaigns: IO[DMScreenError, Seq[CampaignHeader]]
+  def campaigns: F[Seq[CampaignHeader]]
 
-  def campaign(campaignId: CampaignId): IO[DMScreenError, Option[DND5eCampaign]]
+  def campaign(campaignId: CampaignId): F[Option[DND5eCampaign]]
 
-  def scene(sceneId: SceneId): IO[DMScreenError, Option[Scene]]
+  def scene(sceneId: SceneId): F[Option[Scene]]
 
   def applyOperations[IDType](
     entityType: EntityType,
     id:         IDType,
     operations: DMScreenEvent*
-  ): IO[DMScreenError, Unit]
+  ): F[Unit]
 
   def deleteEntity[IDType](
     entityType: EntityType,
     id:         IDType,
     softDelete: Boolean = true
-  ): IO[DMScreenError, Unit]
+  ): F[Unit]
 
-  def playerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[PlayerCharacter]]
+  def playerCharacters(campaignId: CampaignId): F[Seq[PlayerCharacter]]
 
-  def scenes(campaignId: CampaignId): IO[DMScreenError, Seq[Scene]]
+  def scenes(campaignId: CampaignId): F[Seq[Scene]]
 
-  def playerCharacter(playerCharacterId: PlayerCharacterId): IO[DMScreenError, Option[PlayerCharacter]]
+  def playerCharacter(playerCharacterId: PlayerCharacterId): F[Option[PlayerCharacter]]
 
-  def nonPlayerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[NonPlayerCharacter]]
+  def nonPlayerCharacters(campaignId: CampaignId): F[Seq[NonPlayerCharacter]]
 
-  def encounters(campaignId: CampaignId): IO[DMScreenError, Seq[Encounter]]
+  def encounters(campaignId: CampaignId): F[Seq[Encounter]]
 
   // Stuff that's generic to all campaigns
 
-  def bestiary(search: MonsterSearch): IO[DMScreenError, MonsterSearchResults]
+  def bestiary(search: MonsterSearch): F[MonsterSearchResults]
 
-  def sources: IO[DMScreenError, Seq[Source]]
+  def sources: F[Seq[Source]]
 
-  def classes: IO[DMScreenError, Seq[CharacterClass]]
+  def classes: F[Seq[CharacterClass]]
 
-  def races: IO[DMScreenError, Seq[Race]]
+  def races: F[Seq[Race]]
 
-  def backgrounds: IO[DMScreenError, Seq[Background]]
+  def backgrounds: F[Seq[Background]]
 
-  def subClasses(characterClass: CharacterClassId): IO[DMScreenError, Seq[SubClass]]
+  def subClasses(characterClass: CharacterClassId): F[Seq[SubClass]]
 
-  def spells: IO[DMScreenError, Seq[Spell]]
+  def spells: F[Seq[Spell]]
 
   def upsert(
     campaignHeader: CampaignHeader,
     info:           Json
-  ): IO[DMScreenError, CampaignId]
+  ): F[CampaignId]
   def upsert(
     playerCharacterHeader: PlayerCharacterHeader,
     info:                  Json
-  ): IO[DMScreenError, PlayerCharacterId]
+  ): F[PlayerCharacterId]
   def upsert(
     nonPlayerCharacterHeader: NonPlayerCharacterHeader,
     info:                     Json
-  ): IO[DMScreenError, NonPlayerCharacterId]
+  ): F[NonPlayerCharacterId]
   def upsert(
     monsterHeader: MonsterHeader,
     info:          Json
-  ): IO[DMScreenError, MonsterId]
+  ): F[MonsterId]
   def upsert(
     spellHeader: SpellHeader,
     info:        Json
-  ): IO[DMScreenError, SpellId]
+  ): F[SpellId]
   def upsert(
     encounterHeader: EncounterHeader,
     info:            Json
-  ): IO[DMScreenError, EncounterId]
+  ): F[EncounterId]
   def upsert(
     sceneHeader: SceneHeader,
     info:        Json
-  ): IO[DMScreenError, SceneId]
-
-}
-
-trait EncounterRunner {
-
-  def encounter: Encounter
+  ): F[SceneId]
 
 }

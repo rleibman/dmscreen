@@ -22,6 +22,7 @@
 package dmscreen.dnd5e
 
 import dmscreen.*
+import dmscreen.dnd5e.QuillDND5eRepository.DND5eZIORepository
 import zio.*
 import zio.test.*
 import zio.json.*
@@ -36,7 +37,7 @@ object StorageSpec extends ZIOSpecDefault {
     suite("Testing Storage")(
       test("Should be able to store and retrieve a campaign") {
         for {
-          service     <- ZIO.service[DND5eRepository]
+          service     <- ZIO.service[DND5eZIORepository]
           listAtStart <- service.campaigns
           startObject <- service.campaign(listAtStart.head.id)
           newId <- service.upsert(
@@ -72,7 +73,7 @@ object StorageSpec extends ZIOSpecDefault {
       },
       test("characters") {
         for {
-          service         <- ZIO.service[DND5eRepository]
+          service         <- ZIO.service[DND5eZIORepository]
           startCharacters <- service.playerCharacters(testCampaignId)
           newId <- service.upsert(
             PlayerCharacterHeader(PlayerCharacterId.empty, testCampaignId, "Test Character 2", Some("Test Player 2")),

@@ -21,6 +21,7 @@
 
 package dmscreen
 
+import dmscreen.dnd5e.QuillDND5eRepository.DND5eZIORepository
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
 import dmscreen.dnd5e.fifthEditionCharacterSheet.FifthEditionCharacterSheetImporter
 import dmscreen.dnd5e.srd.SRDImporter
@@ -28,13 +29,15 @@ import dmscreen.dnd5e.{DND5eRepository, QuillDND5eRepository, RepositoryError}
 import dmscreen.util.TestCreator
 import zio.*
 
-type DMScreenServerEnvironment = DND5eRepository & DNDBeyondImporter
+type DMScreenTask[+A] = ZIO[Any, DMScreenError, A] // Succeed with an `A`, may fail with `Throwable`, no requirements.
+
+type DMScreenServerEnvironment = DND5eZIORepository & DNDBeyondImporter
 
 object EnvironmentBuilder {
 
   def live =
     ZLayer
-      .make[DND5eRepository & ConfigurationService & DNDBeyondImporter](
+      .make[DND5eZIORepository & ConfigurationService & DNDBeyondImporter](
         ConfigurationService.live,
         QuillDND5eRepository.db,
         DNDBeyondImporter.live
@@ -43,14 +46,14 @@ object EnvironmentBuilder {
   case class InitializingLayer()
 
   private val initializingLayer: ZLayer[
-    DND5eRepository & SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter,
+    DND5eZIORepository & SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter,
     DMScreenError,
     InitializingLayer
   ] =
     ZLayer.fromZIO {
       for {
         pcs  <- TestCreator.createPcs
-        repo <- ZIO.service[DND5eRepository]
+        repo <- ZIO.service[DND5eZIORepository]
         pcsWithIds <- ZIO.foreach(pcs)(pc =>
           repo.upsert(pc.header, pc.jsonInfo).map(id => pc.copy(pc.header.copy(id = id)))
         )
@@ -72,7 +75,7 @@ object EnvironmentBuilder {
 
   def withContainer = {
     ZLayer
-      .make[DND5eRepository & ConfigurationService & DNDBeyondImporter & InitializingLayer](
+      .make[DND5eZIORepository & ConfigurationService & DNDBeyondImporter & InitializingLayer](
         DMScreenContainer.containerLayer,
         ConfigurationService.live >>> DMScreenContainer.configLayer,
         QuillDND5eRepository.db,
