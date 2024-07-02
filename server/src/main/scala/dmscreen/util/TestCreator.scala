@@ -107,10 +107,10 @@ object TestCreator extends ZIOApp {
       initiatives <- ZIO.random.flatMap(r => ZIO.foreach(1 to (totalEntities + 1))(_ => r.nextIntBetween(1, 21)))
     } yield {
       def encounterInfo: EncounterInfo = {
-        val entities: Seq[MonsterEncounterCreature] = monstersWithCounts.flatMap { case (monster, count) =>
+        val entities: Seq[MonsterCombatant] = monstersWithCounts.flatMap { case (monster, count) =>
           (1 to count).map { i =>
-            MonsterEncounterCreature(
-              id = CreatureId.empty,
+            MonsterCombatant(
+              id = CombatantId.empty,
               monsterHeader = monster.header,
               notes = "These are some notes",
               hitPoints = HitPoints(
@@ -131,11 +131,11 @@ object TestCreator extends ZIOApp {
         val modified = entities
           .zip(initiatives.toList).zipWithIndex.map { case ((entity, initiative), index) =>
             entity match {
-              case monster: MonsterEncounterCreature =>
-                monster.copy(id = CreatureId(index), initiative = initiative + monster.initiativeBonus)
+              case monster: MonsterCombatant =>
+                monster.copy(id = CombatantId(index), initiative = initiative + monster.initiativeBonus)
             }
           }.toList
-        EncounterInfo(creatures = modified)
+        EncounterInfo(combatants = modified)
       }
 
       Encounter(

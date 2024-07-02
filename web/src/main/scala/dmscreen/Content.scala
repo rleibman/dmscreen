@@ -21,11 +21,16 @@
 
 package dmscreen
 
+import caliban.ScalaJSClientAdapter.*
+import caliban.client.CalibanClientError.DecodingError
+import caliban.client.Operations.RootQuery
 import caliban.client.scalajs.DND5eClient.{
   Background as CalibanBackground,
   CampaignHeader as CalibanCampaignHeader,
   CharacterClass as CalibanCharacterClass,
   DND5eCampaign as CalibanDND5eCampaign,
+  Encounter as CalibanEncounter,
+  EncounterHeader as CalibanEncounterHeader,
   GameSystem as CalibanGameSystem,
   PlayerCharacter as CalibanPlayerCharacter,
   PlayerCharacterHeader as CalibanPlayerCharacterHeader,
@@ -33,9 +38,6 @@ import caliban.client.scalajs.DND5eClient.{
   Scene as CalibanScene,
   SceneHeader as CalibanSceneHeader
 }
-import caliban.ScalaJSClientAdapter.*
-import caliban.client.CalibanClientError.DecodingError
-import caliban.client.Operations.RootQuery
 import caliban.client.{ScalarDecoder, SelectionBuilder}
 import components.*
 import dmscreen.dnd5e.*
@@ -45,11 +47,13 @@ import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.vdom.html_<^.*
 import org.scalajs.dom.*
+import zio.json.*
+import zio.json.ast.Json
 
 import java.net.URI
 import java.util.UUID
-import zio.json.*
-import zio.json.ast.Json
+import scala.scalajs.js
+import scala.scalajs.js.UndefOr
 
 object Content {
 
@@ -58,6 +62,38 @@ object Content {
   case class State(dmScreenState: DMScreenState)
 
   class Backend($ : BackendScope[Unit, State]) {
+
+    private val saveCheckIntervalMS: Int = 8000 // TODO move to config
+
+    private var interval: js.UndefOr[js.timers.SetIntervalHandle] = js.undefined
+
+    private def saveAll: Callback = {
+      // Here's where the magic happens, we need to check if anything needs to be saved, if it does, we save it
+      // Pick up the change stack from the state
+      // We might want to stop the ticker while we do the save
+      val ajax = for {
+        state <- $.state.map(_.dmScreenState).asAsyncCallback
+        _     <- Callback.log("Checking for changes to save").asAsyncCallback
+        state <- AsyncCallback.traverse(state.campaignState)(_.saveChanges())
+        _     <- stopSaveTicker.asAsyncCallback
+      } yield Callback.empty
+      // TODO we only need to change the current state if there's expected differences in the state
+      // $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(campaignState = state.headOption)))
+
+      ajax.completeWith(_.get)
+
+    }
+
+    private def startSaveTicker: Callback =
+      Callback {
+        interval = js.timers.setInterval(saveCheckIntervalMS)(saveAll.runNow())
+      }
+
+    def stopSaveTicker =
+      Callback {
+        interval.foreach(js.timers.clearInterval)
+        interval = js.undefined
+      }
 
     def render(s: State): VdomElement = {
       DMScreenState.ctx.provide(s.dmScreenState) {
@@ -71,9 +107,10 @@ object Content {
       }
     }
 
-    def refresh(initial: Boolean): Callback = {
+    def initialize: Callback = {
       val params = URL(window.location.href).searchParams
 
+      // TODO this needs to be moved somewhere that's DND5e specific, so that we can have different game systems
       val ajax = for {
         oldState <- $.state.asAsyncCallback
         currentCampaignId <- AsyncCallback.pure {
@@ -109,7 +146,7 @@ object Content {
           asyncCalibanCall(sb).map(_.toList.flatten)
         }
         campaign <- currentCampaignId.fold(
-          AsyncCallback.pure(None: Option[(DND5eCampaign, List[PlayerCharacter], List[Scene])])
+          AsyncCallback.pure(None: Option[(DND5eCampaign, List[PlayerCharacter], List[Scene], List[Encounter])])
         ) { id =>
           // TODO move the sb declarations to common code
           val campaignSB: SelectionBuilder[CalibanDND5eCampaign, DND5eCampaign] = (CalibanDND5eCampaign.header(
@@ -168,48 +205,69 @@ object Content {
               )
           }
 
+          val encounterSB: SelectionBuilder[CalibanEncounter, Encounter] = (CalibanEncounter.header(
+            CalibanEncounterHeader.id ~
+              CalibanEncounterHeader.campaignId ~
+              CalibanEncounterHeader.name ~
+              CalibanEncounterHeader.status ~
+              CalibanEncounterHeader.sceneId ~
+              CalibanEncounterHeader.orderCol
+          ) ~ CalibanEncounter.jsonInfo).map {
+            (
+              id:         Long,
+              campaignId: Long,
+              name:       String,
+              status:     String,
+              sceneId:    Option[Long],
+              orderCol:   Int,
+              info:       Json
+            ) =>
+              Encounter(
+                EncounterHeader(
+                  EncounterId(id),
+                  CampaignId(campaignId),
+                  name,
+                  EncounterStatus.valueOf(status),
+                  sceneId.map(SceneId.apply),
+                  orderCol
+                ),
+                info
+              )
+          }
+
           val totalSB =
             (Queries.campaign(id.value)(campaignSB) ~ Queries.playerCharacters(id.value)(playerCharacterSB) ~ Queries
-              .scenes(id.value)(sceneSB)).map {
+              .scenes(id.value)(sceneSB) ~ Queries.encounters(CampaignId(1).value)(encounterSB)).map {
               (
                 cOpt,
                 pcsOpt,
-                scenesOpt
+                scenesOpt,
+                encountersOpt
               ) =>
-                cOpt.map((_, pcsOpt.toList.flatten, scenesOpt.toList.flatten))
+                cOpt.map((_, pcsOpt.toList.flatten, scenesOpt.toList.flatten, encountersOpt.toList.flatten))
             }
           asyncCalibanCall(totalSB)
         }
         _ <- Callback.log(s"Campaign data (${campaign.fold("")(_._1.header.name)}) loaded from server").asAsyncCallback
-
-        // TODO use asyncCalibanCall to get all the pieces of data needed to create a new global state
       } yield $.modState { s =>
         import scala.language.unsafeNulls
-        val copy = if (initial) {
-          // Special stuff needs to be done on initalization:
-          // - Create the userStream and connect to it
-          // - Set all methods that will be used by users of DMState to update pieces of the state, think of these as application level methods
-          // - Set the global User
-          s.copy()
-        } else {
-          s
-        }
 
         val newCampaignState = campaign.map(
           (
             c,
             pcs,
-            scenes
+            scenes,
+            encounters
           ) =>
             s.dmScreenState.campaignState.fold(
               // Completely brand new
-              DND5eCampaignState(campaign = c, pcs = pcs, scenes = scenes)
+              DND5eCampaignState(campaign = c, pcs = pcs, scenes = scenes, encounters = encounters)
             ) { case oldCampaignState: DND5eCampaignState =>
-              oldCampaignState.copy(campaign = c, pcs = pcs, scenes = scenes)
+              oldCampaignState.copy(campaign = c, pcs = pcs, scenes = scenes, encounters = encounters)
             }
         )
 
-        copy.copy(dmScreenState =
+        s.copy(dmScreenState =
           s.dmScreenState
             .copy(
               campaignState = newCampaignState,
@@ -217,15 +275,23 @@ object Content {
                 backgrounds = backgrounds,
                 classes = classes
               ),
+              changeDialogMode =
+                newMode => $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(dialogMode = newMode))),
               onModifyCampaignState = newState =>
-                $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(campaignState = Some(newState))))
+                // if the ticker is on, do nothing, otherwise start it
+                $.modState(
+                  s => s.copy(dmScreenState = s.dmScreenState.copy(campaignState = Some(newState))),
+                  if (interval.isEmpty) {
+                    startSaveTicker
+                  } else {
+                    Callback.empty
+                  }
+                )
             )
         )
       }
       for {
-        _ <- Callback.log(
-          if (initial) "Initializing Content Component" else "Refreshing Content Component"
-        )
+        _          <- Callback.log("Initializing Content Component")
         modedState <- ajax.completeWith(_.get)
       } yield modedState
     }
@@ -239,9 +305,12 @@ object Content {
       State(dmScreenState = DMScreenState())
     }
     .renderBackend[Backend]
-    .componentDidMount(_.backend.refresh(initial = true))
+    .componentDidMount($ => $.backend.initialize)
+    .shouldComponentUpdatePure { $ =>
+      $.nextState.dmScreenState.dialogMode == DialogMode.closed
+    }
     .componentWillUnmount($ =>
-      Callback.log("Closing down operationStream")
+      $.backend.stopSaveTicker >> Callback.log("Closing down operationStream")
 //        >>
 //        $.state.dmScreenState.operationStream.fold(Callback.empty)(_.close())
     )

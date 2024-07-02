@@ -137,6 +137,14 @@ i.icon.clearIcon:before {
     width: 100%;
 }
 
-.accordion { //TODO temp, until we get a theme
-    color: black;
+.accordion {
+/ / TODO temp, until we get a theme color: black;
+}
+
+.healButton {
+    width: 60px;
+}
+
+.damageButton {
+    width: 60px;
 }

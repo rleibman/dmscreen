@@ -446,8 +446,10 @@ case class Skills(
 
 case class Language(name: String)
 
+object DeadDead
+
 case class HitPoints(
-  currentHitPoints:     DeathSave | Int,
+  currentHitPoints:     DeathSave | Int, // TODO or DeadDead
   maxHitPoints:         Int,
   overrideMaxHitPoints: Option[Int] = None,
   temporaryHitPoints:   Int = 0

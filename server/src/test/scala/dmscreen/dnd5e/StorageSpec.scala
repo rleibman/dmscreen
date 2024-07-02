@@ -22,7 +22,7 @@
 package dmscreen.dnd5e
 
 import dmscreen.*
-import dmscreen.dnd5e.QuillDND5eRepository.DND5eZIORepository
+import dmscreen.dnd5e.DND5eZIORepository
 import zio.*
 import zio.test.*
 import zio.json.*

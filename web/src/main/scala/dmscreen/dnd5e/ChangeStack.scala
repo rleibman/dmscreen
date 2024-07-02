@@ -24,7 +24,8 @@ package dmscreen.dnd5e
 import japgolly.scalajs.react.CallbackTo
 
 case class ChangeStack(
-  campaign:   Boolean = true,
+  clear:      Boolean = true,
+  campaign:   Boolean = false,
   pcs:        Set[PlayerCharacterId] = Set.empty,
   npcs:       Set[NonPlayerCharacterId] = Set.empty,
   scenes:     Set[SceneId] = Set.empty,
@@ -32,27 +33,23 @@ case class ChangeStack(
   monsters:   Set[MonsterId] = Set.empty
 ) {
 
-  def saveAll(DND5eCampaignState: DND5eCampaignState): CallbackTo[ChangeStack] = {
-    CallbackTo(ChangeStack())
-  }
-
   def logCampaignChange(): ChangeStack = {
-    copy(campaign = true)
+    copy(campaign = true, clear = false)
   }
-  def logPCChange(playerCharacterId: PlayerCharacterId): ChangeStack = {
-    copy(pcs = pcs + playerCharacterId)
+  def logPCChanges(playerCharacterIds: PlayerCharacterId*): ChangeStack = {
+    copy(pcs = pcs ++ playerCharacterIds, clear = false)
   }
-  def logNPCChange(nonPlayerCharacterId: NonPlayerCharacterId): ChangeStack = {
-    copy(npcs = npcs + nonPlayerCharacterId)
+  def logNPCChanges(nonPlayerCharacterIds: NonPlayerCharacterId*): ChangeStack = {
+    copy(npcs = npcs ++ nonPlayerCharacterIds, clear = false)
   }
-  def logSceneChange(sceneId: SceneId): ChangeStack = {
-    copy(scenes = scenes + sceneId)
+  def logSceneChanges(sceneIds: SceneId*): ChangeStack = {
+    copy(scenes = scenes ++ sceneIds, clear = false)
   }
-  def logEncounterChange(encounterId: EncounterId): ChangeStack = {
-    copy(encounters = encounters + encounterId)
+  def logEncounterChanges(encounterIds: EncounterId*): ChangeStack = {
+    copy(encounters = encounters ++ encounterIds, clear = false)
   }
-  def logMonsterChange(monsterId: MonsterId): ChangeStack = {
-    copy(monsters = monsters + monsterId)
+  def logMonsterChanges(monsterIds: MonsterId*): ChangeStack = {
+    copy(monsters = monsters ++ monsterIds, clear = false)
   }
 
   // TODO add to this a stream that will let us know when other uses have made changes

@@ -60,6 +60,26 @@ import zio.json.ast.Json
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
 
+def createMonsterCombatant(
+                            e: Encounter,
+                            header: MonsterHeader
+                          ): MonsterCombatant = {
+  val number =
+    e.info.combatants.collect { case c: MonsterCombatant if c.monsterHeader.id == header.id => c }.size + 1
+
+  MonsterCombatant(
+    id = CombatantId(e.info.combatants.size),
+    monsterHeader = header,
+    hitPoints = HitPoints(
+      currentHitPoints = header.maximumHitPoints,
+      maxHitPoints = header.maximumHitPoints
+    ),
+    armorClass = header.armorClass,
+    name = s"${header.name} #$number",
+    initiativeBonus = header.initiativeBonus
+  )
+}
+
 object EncounterEditor {
 
   extension (orderCol: MonsterSearchOrder) {
@@ -94,26 +114,6 @@ object EncounterEditor {
     onDelete:  Encounter => Callback,
     onChange:  Encounter => Callback
   )
-
-  def createMonsterCreature(
-    e:      Encounter,
-    header: MonsterHeader
-  ): MonsterEncounterCreature = {
-    val number =
-      e.info.creatures.collect { case c: MonsterEncounterCreature if c.monsterHeader.id == header.id => c }.size + 1
-
-    MonsterEncounterCreature(
-      id = CreatureId(e.info.creatures.size),
-      monsterHeader = header,
-      hitPoints = HitPoints(
-        currentHitPoints = header.maximumHitPoints,
-        maxHitPoints = header.maximumHitPoints
-      ),
-      armorClass = header.armorClass,
-      name = s"${header.name} #$number",
-      initiativeBonus = header.initiativeBonus
-    )
-  }
 
   case class Backend($ : BackendScope[Props, State]) {
 
@@ -185,9 +185,7 @@ object EncounterEditor {
         s.copy(monsters = searchResults.fold(List.empty)(_._1), monsterCount = searchResults.fold(0L)(_._2))
       )
 
-      for {
-        modedState <- ajax.completeWith(_.get)
-      } yield modedState
+      ajax.completeWith(_.get)
 
     }
 
@@ -261,7 +259,7 @@ object EncounterEditor {
                             question = "Are you 100% sure you want to delete this encounter?",
                             onConfirm = props.onDelete(encounter)
                           )
-                      )(Icon.name(SemanticICONS.`delete`))
+                      )(Icon.name(SemanticICONS.`trash`))
                   )
               ),
               Table.Row(
@@ -278,39 +276,39 @@ object EncounterEditor {
               )
             ),
             Table.Body(
-              encounter.info.creatures
+              encounter.info.combatants
                 .sortBy {
-                  case creature: MonsterEncounterCreature         => creature.name
-                  case creature: PlayerCharacterEncounterCreature => creature.name // Not really important
-                }.collect { case creature: MonsterEncounterCreature =>
+                  case combatant: MonsterCombatant         => combatant.name
+                  case combatant: PlayerCharacterCombatant => combatant.name // Not really important
+                }.collect { case combatant: MonsterCombatant =>
                   Table.Row
-                    .withKey(s"creature ${creature.id}")(
+                    .withKey(s"combatant ${combatant.id.value}")(
                       Table.Cell(
                         EditableText(
-                          value = creature.name,
+                          value = combatant.name,
                           allowEditing = encounter.header.status != EncounterStatus.archived,
                           onChange = name =>
                             modEncounter(e => {
                               e
                                 .copy(jsonInfo =
                                   e.info
-                                    .copy(creatures = e.info.creatures.map {
-                                      case creature: MonsterEncounterCreature if creature.id == creature.id =>
-                                        creature.copy(name = name)
-                                      case _ => creature
+                                    .copy(combatants = e.info.combatants.map {
+                                      case combatant: MonsterCombatant if combatant.id == combatant.id =>
+                                        combatant.copy(name = name)
+                                      case _ => combatant
                                     }).toJsonAST.toOption.get // TODO this conversion is akward, it would be nice to change it, but how?
                                 )
                             })
                         )
                       ),
-                      Table.Cell(creature.monsterHeader.monsterType.toString.capitalize),
-                      Table.Cell(creature.monsterHeader.biome.fold("")(_.toString.capitalize)),
-                      Table.Cell(creature.monsterHeader.alignment.fold("")(_.name)),
-                      Table.Cell(creature.monsterHeader.cr.toString),
-                      Table.Cell(creature.monsterHeader.xp),
+                      Table.Cell(combatant.monsterHeader.monsterType.toString.capitalize),
+                      Table.Cell(combatant.monsterHeader.biome.fold("")(_.toString.capitalize)),
+                      Table.Cell(combatant.monsterHeader.alignment.fold("")(_.name)),
+                      Table.Cell(combatant.monsterHeader.cr.toString),
+                      Table.Cell(combatant.monsterHeader.xp),
                       Table.Cell(
                         EditableNumber(
-                          value = creature.monsterHeader.armorClass,
+                          value = combatant.monsterHeader.armorClass,
                           allowEditing = encounter.header.status != EncounterStatus.archived,
                           min = 0,
                           max = 30,
@@ -319,10 +317,10 @@ object EncounterEditor {
                               e
                                 .copy(jsonInfo =
                                   e.info
-                                    .copy(creatures = e.info.creatures.map {
-                                      case creature: MonsterEncounterCreature if creature.id == creature.id =>
-                                        creature.copy(armorClass = v.toInt)
-                                      case _ => creature
+                                    .copy(combatants = e.info.combatants.map {
+                                      case combatant: MonsterCombatant if combatant.id == combatant.id =>
+                                        combatant.copy(armorClass = v.toInt)
+                                      case _ => combatant
                                     }).toJsonAST.toOption.get
                                 )
                             }
@@ -330,7 +328,7 @@ object EncounterEditor {
                       ),
                       Table.Cell(
                         EditableNumber(
-                          value = creature.hitPoints.maxHitPoints,
+                          value = combatant.hitPoints.maxHitPoints,
                           allowEditing = encounter.header.status != EncounterStatus.archived,
                           min = 0,
                           max = 1000,
@@ -339,21 +337,21 @@ object EncounterEditor {
                               e
                                 .copy(jsonInfo =
                                   e.info
-                                    .copy(creatures = e.info.creatures.map {
-                                      case creature: MonsterEncounterCreature if creature.id == creature.id =>
-                                        creature.copy(hitPoints = creature.hitPoints.copy(maxHitPoints = v.toInt))
-                                      case _ => creature
+                                    .copy(combatants = e.info.combatants.map {
+                                      case combatant: MonsterCombatant if combatant.id == combatant.id =>
+                                        combatant.copy(hitPoints = combatant.hitPoints.copy(maxHitPoints = v.toInt))
+                                      case _ => combatant
                                     }).toJsonAST.toOption.get
                                 )
                             }
                         )
                       ),
-                      Table.Cell(creature.monsterHeader.size.toString.capitalize),
+                      Table.Cell(combatant.monsterHeader.size.toString.capitalize),
                       Table.Cell.singleLine(true)(
                         Button
                           .compact(true)
                           .size(SemanticSIZES.mini)
-                          .title("Delete this creature from the encounter")
+                          .title("Delete this combatant from the encounter")
                           .icon(true)
                           .onClick {
                             (
@@ -364,29 +362,29 @@ object EncounterEditor {
                                 e
                                   .copy(jsonInfo =
                                     e.info
-                                      .copy(creatures = e.info.creatures.filter(_.id != creature.id))
+                                      .copy(combatants = e.info.combatants.filter(_.id != combatant.id))
                                       .toJsonAST.toOption.get
                                   )
                               })
-                          }(Icon.name(SemanticICONS.`delete`))
+                          }(Icon.name(SemanticICONS.`trash`))
                           .when(encounter.header.status != EncounterStatus.archived),
                         Button
                           .compact(true)
                           .size(SemanticSIZES.mini)
-                          .title("More of this creature!")
+                          .title("More of this combatant!")
                           .onClick {
                             (
                               _,
                               _
                             ) =>
-                              val newId = CreatureId(encounter.info.creatures.size)
+                              val newId = CombatantId(encounter.info.combatants.size)
                               modEncounter(encounter => {
                                 encounter
                                   .copy(jsonInfo =
                                     encounter.info
-                                      .copy(creatures =
-                                        encounter.info.creatures :+
-                                          createMonsterCreature(encounter, creature.monsterHeader)
+                                      .copy(combatants =
+                                        encounter.info.combatants :+
+                                          createMonsterCombatant(encounter, combatant.monsterHeader)
                                       )
                                       .toJsonAST.toOption.get
                                   )
@@ -451,7 +449,7 @@ object EncounterEditor {
                                 _
                               ) => modMonsterSearch(_ => MonsterSearch())
                             )(
-                              Icon.name(SemanticICONS.`random`) // Add random creature that matches the results
+                              Icon.name(SemanticICONS.`random`) // Add random combatant that matches the results
                             )
                         ),
                       Form.Group(
@@ -647,7 +645,7 @@ object EncounterEditor {
                       Button
                         .size(SemanticSIZES.mini)
                         .compact(true)
-                        .title("Add this creature to the encounter")
+                        .title("Add this combatant to the encounter")
                         .onClick(
                           (
                             _,
@@ -657,7 +655,7 @@ object EncounterEditor {
                               e
                                 .copy(jsonInfo =
                                   e.info
-                                    .copy(creatures = e.info.creatures :+ createMonsterCreature(e, header))
+                                    .copy(combatants = e.info.combatants :+ createMonsterCombatant(e, header))
                                     .toJsonAST.toOption.get
                                 )
                             }
@@ -697,7 +695,6 @@ object EncounterEditor {
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
     .builder[Props]("EncounterEditor")
     .initialStateFromProps { p =>
-      println(s"starting with = ${p.encounter.info.creatures.map(_.asInstanceOf[MonsterEncounterCreature].name)}")
       State(p.encounter)
     }
     .renderBackend[Backend]

@@ -93,6 +93,57 @@ enum OrderDirection {
   desc
 }
 
+input CampaignHeaderInput {
+  id: Long!
+  dmUserId: Long!
+  name: String!
+  gameSystem: GameSystem!
+}
+
+input EncounterHeaderInput {
+  id: Long!
+  campaignId: Long!
+  name: String!
+  status: String!
+  sceneId: Long
+  orderCol: Int!
+}
+
+input MonsterHeaderInput {
+  id: Long!
+  name: String!
+  monsterType: MonsterType!
+  biome: Biome
+  alignment: Alignment
+  cr: Float!
+  xp: Long!
+  armorClass: Int!
+  maximumHitPoints: Int!
+  size: CreatureSize!
+  initiativeBonus: Int!
+}
+
+input NonPlayerCharacterHeaderInput {
+  id: Long!
+  campaignId: Long!
+  name: String!
+}
+
+input PlayerCharacterHeaderInput {
+  id: Long!
+  campaignId: Long!
+  name: String!
+  playerName: String
+}
+
+input SceneHeaderInput {
+  id: Long!
+  campaignId: Long!
+  name: String!
+  orderCol: Int!
+  isActive: Boolean!
+}
+
 input SourceInput {
   name: String!
   id: String!
@@ -191,6 +242,12 @@ type Move {
 }
 
 type Mutations {
+  upsertCampaign(header: CampaignHeaderInput!, jsonInfo: Json!, version: String!): Long
+  upsertScene(header: SceneHeaderInput!, jsonInfo: Json!, version: String!): Long
+  upsertPlayerCharacter(header: PlayerCharacterHeaderInput!, jsonInfo: Json!, version: String!): Long
+  upsertNonPlayerCharacter(header: NonPlayerCharacterHeaderInput!, jsonInfo: Json!, version: String!): Long
+  upsertMonster(header: MonsterHeaderInput!, jsonInfo: Json!, version: String!): Long
+  upsertEncounter(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): Long
   applyOperations(entityType: DND5eEntityType!, id: Long!, events: [Json!]!): Unit
 }
 
@@ -258,6 +315,7 @@ type SceneHeader {
   campaignId: Long!
   name: String!
   orderCol: Int!
+  isActive: Boolean!
 }
 
 type Source {

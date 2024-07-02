@@ -4,6 +4,8 @@
   - Work on first app page, retrieve a campaign
   - Dice: https://www.npmjs.com/package/@3d-dice/dice-box
   - Modal component CSS
+  - Error handling, errors are not being displayed, logged, or anything!
+  - Move the campaign stuff out of the dnd5e module and into a general module
 - StorageSpec 
   - Campaign
   - Player Character

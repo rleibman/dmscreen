@@ -21,11 +21,11 @@
 
 package dmscreen
 
-import dmscreen.dnd5e.QuillDND5eRepository.DND5eZIORepository
+import dmscreen.dnd5e.DND5eZIORepository
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
 import dmscreen.dnd5e.fifthEditionCharacterSheet.FifthEditionCharacterSheetImporter
 import dmscreen.dnd5e.srd.SRDImporter
-import dmscreen.dnd5e.{DND5eRepository, QuillDND5eRepository, RepositoryError}
+import dmscreen.dnd5e.{DND5eRepository, QuillRepository, RepositoryError}
 import dmscreen.util.TestCreator
 import zio.*
 
@@ -39,7 +39,7 @@ object EnvironmentBuilder {
     ZLayer
       .make[DND5eZIORepository & ConfigurationService & DNDBeyondImporter](
         ConfigurationService.live,
-        QuillDND5eRepository.db,
+        QuillRepository.db,
         DNDBeyondImporter.live
       ).orDie
 
@@ -78,7 +78,7 @@ object EnvironmentBuilder {
       .make[DND5eZIORepository & ConfigurationService & DNDBeyondImporter & InitializingLayer](
         DMScreenContainer.containerLayer,
         ConfigurationService.live >>> DMScreenContainer.configLayer,
-        QuillDND5eRepository.db,
+        QuillRepository.db,
         DNDBeyondImporter.live,
         FifthEditionCharacterSheetImporter.live,
         SRDImporter.live,

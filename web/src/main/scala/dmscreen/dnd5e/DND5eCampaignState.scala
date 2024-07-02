@@ -22,11 +22,58 @@
 package dmscreen.dnd5e
 
 import dmscreen.{Campaign, CampaignState}
+import japgolly.scalajs.react.callback.*
 
 case class DND5eCampaignState(
-  campaign: DND5eCampaign,
-  // If you need the campaign encounters globally, add them here, but so far they're only needed in the encounter page.
-  pcs:    List[PlayerCharacter] = List.empty,
-  npcs:   List[NonPlayerCharacter] = List.empty,
-  scenes: List[Scene] = List.empty
-) extends CampaignState
+  campaign:    DND5eCampaign,
+  pcs:         List[PlayerCharacter] = List.empty,
+  npcs:        List[NonPlayerCharacter] = List.empty,
+  scenes:      List[Scene] = List.empty,
+  encounters:  List[Encounter] = List.empty, // TODO add campaign encounters globally, instead of the encounter page
+  changeStack: ChangeStack = ChangeStack()
+
+  // NOTES,
+  // adding an entry into one of the above lists doesn't save it to the server, in fact... you should probably allow ajax to add it to the list AFTER it's been saved to the server
+  // and has a proper id
+  // If you delete an entry from the above lists, you should also make sure the entry doesn't exist in the changeStack
+) extends CampaignState {
+
+  override def saveChanges(): AsyncCallback[CampaignState] = {
+    for {
+      campaign <- GraphQLRepository.live
+        .upsert(campaign.header, campaign.jsonInfo)
+        .when(changeStack.campaign)
+      _ <- AsyncCallback.traverse(changeStack.pcs)(pcId =>
+        pcs
+          .find(_.id == pcId)
+          .fold(AsyncCallback.throwException(RuntimeException("Attempted to save a pc that doesn't exist")))(pc =>
+            GraphQLRepository.live.upsert(pc.header, pc.jsonInfo)
+          )
+      )
+      _ <- AsyncCallback.traverse(changeStack.npcs)(npcId =>
+        npcs
+          .find(_.id == npcId)
+          .fold(AsyncCallback.throwException(RuntimeException("Attempted to save a npc that doesn't exist")))(npc =>
+            GraphQLRepository.live.upsert(npc.header, npc.jsonInfo)
+          )
+      )
+      _ <- AsyncCallback.traverse(changeStack.scenes)(sceneId =>
+        scenes
+          .find(_.id == sceneId)
+          .fold(AsyncCallback.throwException(RuntimeException("Attempted to save a scene that doesn't exist")))(scene =>
+            GraphQLRepository.live.upsert(scene.header, scene.jsonInfo)
+          )
+      )
+      _ <- AsyncCallback.traverse(changeStack.encounters)(encounterId =>
+        encounters
+          .find(_.id == encounterId)
+          .fold(AsyncCallback.throwException(RuntimeException("Attempted to save an encounter that doesn't exist")))(
+            encounter => GraphQLRepository.live.upsert(encounter.header, encounter.jsonInfo)
+          )
+      )
+    } yield copy(changeStack = ChangeStack())
+  }
+
+  override def loadChanges(): AsyncCallback[CampaignState] = ???
+
+}

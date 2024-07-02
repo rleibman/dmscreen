@@ -36,6 +36,7 @@ import org.scalajs.dom.html.Span
 
 object ConditionsEditor {
 
+  // TODO add button for "clear All"
   case class State(
     conditions: Set[Condition]
   )

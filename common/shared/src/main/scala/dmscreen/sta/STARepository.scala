@@ -19,44 +19,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen
+package dmscreen.sta
 
-import dmscreen.dnd5e.*
-import japgolly.scalajs.react.React.Context
-import japgolly.scalajs.react.callback.AsyncCallback
-import japgolly.scalajs.react.{Callback, React}
-import org.scalajs.dom.window
+import dmscreen.GameRepository
 
-trait CampaignState {
-
-  def saveChanges(): AsyncCallback[CampaignState]
-  def loadChanges(): AsyncCallback[CampaignState]
-
-}
-
-enum DialogMode {
-
-  case open, closed
-
-}
-
-case class DND5eState(
-  backgrounds: Seq[Background] = Seq.empty,
-  classes:     Seq[CharacterClass] = Seq.empty
-)
-
-case class DMScreenState(
-  user:                  Option[User] = None,
-  campaignState:         Option[CampaignState] = None,
-  dnd5e:                 DND5eState = DND5eState(),
-  onModifyCampaignState: CampaignState => Callback = _ => Callback.empty,
-  dialogMode:            DialogMode = DialogMode.closed,
-  changeDialogMode:      DialogMode => Callback = _ => Callback.empty
-  //  operationStream: Option[WebSocketHandler] = None
-)
-
-object DMScreenState {
-
-  val ctx: Context[DMScreenState] = React.createContext(DMScreenState())
-
-}
+trait STARepository[F[_]] extends GameRepository {}

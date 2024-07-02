@@ -25,28 +25,28 @@ import dmscreen.{BuildInfo, CampaignId, DMScreenEntity, EntityType, HasId}
 import just.semver.SemVer
 import zio.json.ast.Json
 
-opaque type CreatureId = Long
+opaque type CombatantId = Long
 
-object CreatureId {
+object CombatantId {
 
-  def empty: CreatureId = CreatureId(0)
+  def empty: CombatantId = CombatantId(0)
 
-  def apply(creatureId: Long): CreatureId = creatureId
+  def apply(combatantId: Long): CombatantId = combatantId
 
-  extension (creatureId: CreatureId) {
+  extension (combatantId: CombatantId) {
 
-    def value: Long = creatureId
+    def value: Long = combatantId
 
   }
 
 }
 
-sealed abstract class EncounterCreature(
+sealed abstract class EncounterCombatant(
 ) {
 
   def name: String
 
-  def id: CreatureId
+  def id: CombatantId
 
   def notes: String
 
@@ -58,8 +58,8 @@ sealed abstract class EncounterCreature(
 
 }
 
-case class MonsterEncounterCreature(
-  override val id:              CreatureId,
+case class MonsterCombatant(
+  override val id:              CombatantId,
   monsterHeader:                MonsterHeader,
   override val name:            String,
   override val notes:           String = "",
@@ -69,21 +69,21 @@ case class MonsterEncounterCreature(
   conditions:                   Set[Condition] = Set.empty,
   override val otherMarkers:    List[Marker] = List.empty,
   override val initiativeBonus: Int
-) extends EncounterCreature()
+) extends EncounterCombatant()
 
 /** Used for things like Hunter's Mark, Hex, Hidden, concentration, etc.
   */
 case class Marker(name: String)
 
-case class PlayerCharacterEncounterCreature(
-  override val id:              CreatureId,
+case class PlayerCharacterCombatant(
+  override val id:              CombatantId,
   override val name:            String,
   playerCharacterId:            PlayerCharacterId,
   override val notes:           String,
   override val initiative:      Int,
-  override val otherMarkers:    List[Marker],
-  override val initiativeBonus: Int
-) extends EncounterCreature() {}
+  override val initiativeBonus: Int,
+  override val otherMarkers:    List[Marker] = List.empty
+) extends EncounterCombatant() {}
 
 opaque type EncounterId = Long
 
@@ -128,17 +128,17 @@ case class EncounterHeader(
 ) extends HasId[EncounterId]
 
 case class EncounterInfo(
-  creatures:   List[EncounterCreature],
+  combatants:  List[EncounterCombatant],
   currentTurn: Int = 0,
   round:       Int = 0,
   notes:       String = ""
 ) {
 
-  lazy val xp = creatures.collect { case m: MonsterEncounterCreature =>
+  lazy val xp = combatants.collect { case m: MonsterCombatant =>
     m.monsterHeader.xp
   }.sum
 
-  def monsters: List[MonsterEncounterCreature] = creatures.collect { case m: MonsterEncounterCreature => m }
+  def monsters: List[MonsterCombatant] = combatants.collect { case m: MonsterCombatant => m }
 
 }
 

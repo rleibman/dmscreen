@@ -35,6 +35,7 @@ import caliban.client.scalajs.DND5eClient.{
   OrderDirection as CalibanOrderDirection,
   Queries
 }
+import caliban.client.ArgEncoder
 import caliban.client.CalibanClientError.DecodingError
 import caliban.client.__Value.__ObjectValue
 import caliban.client.{ScalarDecoder, __Value}
@@ -51,6 +52,24 @@ given ScalarDecoder[Json] = {
   case _ => Left(DecodingError("Expected an object"))
 }
 
+/*
+Note, this will only work if json is guaranteed to be an object, we need to do something like this:
+(json0: Json) => {
+  def loop(json: Json): __Value = {
+    case Json.Obj(fields) => __Value.__ObjectValue(fields.map(v => v._1 -> loop(v._2)).toList)
+    case Json.Arr(values) => __Value.__ListValue(values.map(loop).toList)
+    case Json.Num(bigDecimal) => __Value.__NumberValue(bigDecimal)
+    // ...
+  }
+
+  loop(json0)
+}
+ */
+given ArgEncoder[Json] = { (json: Json) =>
+  ArgEncoder.json.encode {
+    readFromString[__ObjectValue](json.toJson)
+  }
+}
 given monsterTypeConv: Conversion[Option[MonsterType], Option[CalibanMonsterType]] =
   monsterTypeOpt =>
     monsterTypeOpt.flatMap(monsterType => CalibanMonsterType.values.find(_.toString == monsterType.toString))

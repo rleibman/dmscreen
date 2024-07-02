@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e.components
 
-import dmscreen.DMScreenState
+import dmscreen.*
 import dmscreen.dnd5e.{*, given}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 
@@ -61,24 +61,21 @@ object PlayerCharacterComponent {
         case ProficiencyLevel.expert     => "**"
       }
 
-    extension (b: BackendScope[Props, State]) {
-
-      // This is doing json-info/info-json way too much, we need to change it to just store the info in the object
-      // And then every so often accumulate the changes and send 'em to the server
-      def modPCInfo(fn: PlayerCharacterInfo => PlayerCharacterInfo): Callback = {
-        b.modState { s =>
-          s.copy(playerCharacter = s.playerCharacter.copy(jsonInfo = fn(s.playerCharacter.info).toJsonAST.toOption.get)) // do something with the error
-        }
-      }
-
-    }
-
     def render(
       p: Props,
       s: State
     ): VdomElement = {
       DMScreenState.ctx.consume { dmScreenState =>
         {
+          def modPCInfo(fn: PlayerCharacterInfo => PlayerCharacterInfo): Callback = {
+            $.modState { s =>
+              s.copy(playerCharacter =
+                s.playerCharacter.copy(jsonInfo = fn(s.playerCharacter.info).toJsonAST.toOption.get)
+              ) // do something with the error
+            }
+            // TODO this needs to change the player character in the database
+          }
+
           val pc = s.playerCharacter.info
           def allBackgrounds =
             (dmScreenState.dnd5e.backgrounds ++ pc.background.fold(Seq.empty)(bk =>
@@ -136,10 +133,14 @@ object PlayerCharacterComponent {
                         ),
                         edit = PlayerCharacterClassEditor(
                           pc.classes,
-                          onChange = classes => $.modPCInfo(info => info.copy(classes = classes))
+                          onChange = classes => modPCInfo(info => info.copy(classes = classes))
                         ),
                         title = "Classes/Subclasses/Levels",
-                        onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                        onModeChange = mode =>
+                          $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
+                            dmScreenState.changeDialogMode(
+                              if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                            )
                       )
                     )
                   ),
@@ -165,7 +166,7 @@ object PlayerCharacterComponent {
                             _,
                             changedData
                           ) =>
-                            $.modPCInfo(info =>
+                            modPCInfo(info =>
                               info.copy(background = changedData.value match {
                                 case s: String if s.isEmpty => None
                                 case s: String =>
@@ -184,10 +185,14 @@ object PlayerCharacterComponent {
                         view = <.div(pc.armorClass),
                         edit = ArmorClassEditor(
                           pc.armorClass,
-                          onChange = armorClass => $.modPCInfo(info => info.copy(armorClass = armorClass))
+                          onChange = armorClass => modPCInfo(info => info.copy(armorClass = armorClass))
                         ),
                         title = "Armor Class",
-                        onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                        onModeChange = mode =>
+                          $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
+                            dmScreenState.changeDialogMode(
+                              if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                            )
                       )
                     )
                   ),
@@ -207,7 +212,7 @@ object PlayerCharacterComponent {
                           (
                             _,
                             data
-                          ) => $.modPCInfo(info => info.copy(inspiration = data.checked.getOrElse(pc.inspiration)))
+                          ) => modPCInfo(info => info.copy(inspiration = data.checked.getOrElse(pc.inspiration)))
                         )
                     )
                   )
@@ -239,10 +244,14 @@ object PlayerCharacterComponent {
                 ),
                 edit = HitPointsEditor(
                   pc.hitPoints,
-                  onChange = hitPoints => $.modPCInfo(info => info.copy(hitPoints = hitPoints))
+                  onChange = hitPoints => modPCInfo(info => info.copy(hitPoints = hitPoints))
                 ),
                 title = "Hit Points",
-                onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                onModeChange = mode =>
+                  $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
+                    dmScreenState.changeDialogMode(
+                      if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                    )
               )
             ),
             <.div(
@@ -301,10 +310,14 @@ object PlayerCharacterComponent {
                 ),
                 edit = AbilitiesEditor(
                   pc.abilities,
-                  onChange = abilities => $.modPCInfo(info => info.copy(abilities = abilities))
+                  onChange = abilities => modPCInfo(info => info.copy(abilities = abilities))
                 ),
                 title = "Abilities",
-                onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                onModeChange = mode =>
+                  $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
+                    dmScreenState.changeDialogMode(
+                      if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                    )
               )
             ),
             <.div(
@@ -337,10 +350,14 @@ object PlayerCharacterComponent {
                 ),
                 edit = ConditionsEditor(
                   pc.conditions,
-                  onChange = conditions => $.modPCInfo(info => info.copy(conditions = conditions))
+                  onChange = conditions => modPCInfo(info => info.copy(conditions = conditions))
                 ),
                 title = "Conditions",
-                onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                onModeChange = mode =>
+                  $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
+                    dmScreenState.changeDialogMode(
+                      if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                    )
               )
             ),
             <.div(
@@ -349,7 +366,7 @@ object PlayerCharacterComponent {
               EditableComponent(
                 edit = SpeedsEditor(
                   pc.speeds,
-                  speeds => $.modPCInfo(info => info.copy(speeds = speeds))
+                  speeds => modPCInfo(info => info.copy(speeds = speeds))
                 ),
                 view = pc.speeds.headOption.fold(<.div("Click to add")) { _ =>
                   <.table(
@@ -366,7 +383,11 @@ object PlayerCharacterComponent {
                   )
                 },
                 title = "Speeds",
-                onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                onModeChange = mode =>
+                  $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
+                    dmScreenState.changeDialogMode(
+                      if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                    )
               )
             ),
             <.div(
@@ -435,10 +456,14 @@ object PlayerCharacterComponent {
                 edit = SkillsEditor(
                   pc.skills,
                   pc.abilities,
-                  onChange = skills => $.modPCInfo(info => info.copy(skills = skills))
+                  onChange = skills => modPCInfo(info => info.copy(skills = skills))
                 ),
                 title = "Skills",
-                onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                onModeChange = mode =>
+                  $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
+                    dmScreenState.changeDialogMode(
+                      if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                    )
               )
             ),
             <.div(
@@ -446,9 +471,13 @@ object PlayerCharacterComponent {
               <.div(^.className := "sectionTitle", "Languages"),
               EditableComponent(
                 view = pc.languages.headOption.fold("Click to add")(_ => pc.languages.map(_.name).mkString(", ")),
-                edit = LanguageEditor(pc.languages, languages => $.modPCInfo(info => info.copy(languages = languages))),
+                edit = LanguageEditor(pc.languages, languages => modPCInfo(info => info.copy(languages = languages))),
                 title = "Languages",
-                onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                onModeChange = mode =>
+                  $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
+                    dmScreenState.changeDialogMode(
+                      if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                    )
               )
             ),
             <.div(
@@ -456,9 +485,13 @@ object PlayerCharacterComponent {
               <.div(^.className := "sectionTitle", "Feats"),
               EditableComponent(
                 view = pc.feats.headOption.fold("Click to add")(_ => pc.feats.map(_.name).mkString(", ")),
-                edit = FeatsEditor(pc.feats, feats => $.modPCInfo(info => info.copy(feats = feats))),
+                edit = FeatsEditor(pc.feats, feats => modPCInfo(info => info.copy(feats = feats))),
                 title = "Feats",
-                onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                onModeChange = mode =>
+                  $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
+                    dmScreenState.changeDialogMode(
+                      if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                    )
               )
             ),
             <.div(
@@ -468,9 +501,13 @@ object PlayerCharacterComponent {
                 view = <.div(pc.senses.headOption.fold("Click to add") { _ =>
                   pc.senses.map(s => s"${s.sense} ${s.range}").mkString(", ")
                 }),
-                edit = SensesEditor(pc.senses, senses => $.modPCInfo(info => info.copy(senses = senses))),
+                edit = SensesEditor(pc.senses, senses => modPCInfo(info => info.copy(senses = senses))),
                 title = "Senses",
-                onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                onModeChange = mode =>
+                  $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
+                    dmScreenState.changeDialogMode(
+                      if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                    )
               )
             ),
             <.div(
@@ -490,11 +527,15 @@ object PlayerCharacterComponent {
                       ideals,
                       bonds,
                       flaws
-                    ) => $.modPCInfo(info => info.copy(notes = notes))
+                    ) => modPCInfo(info => info.copy(notes = notes))
                   )
                 },
                 title = "Notes",
-                onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                onModeChange = mode =>
+                  $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
+                    dmScreenState.changeDialogMode(
+                      if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                    )
               )
             )
           )

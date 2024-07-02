@@ -12,7 +12,7 @@ lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time o
 // TODO switch to Mariadb
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
-lazy val SCALA = "3.5.0-RC1"
+lazy val SCALA = "3.5.0-RC2"
 Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
 Global / scalaVersion         := SCALA
@@ -33,6 +33,7 @@ lazy val scala3Opts = Seq(
   "-language:existentials", // Existential types (besides wildcard types) can be written and inferred
   "-language:implicitConversions",
   "-language:higherKinds", // Allow higher-kinded types
+//  "-language:strictEquality",
   "-unchecked", // Enable additional warnings where generated code depends on assumptions.
   "-Xfatal-warnings", // Fail the compilation if there are any warnings.
   "-deprecation", // Emit warning and location for usages of deprecated APIs.
@@ -41,19 +42,19 @@ lazy val scala3Opts = Seq(
   "-Yexplicit-nulls", // Make reference types non-nullable. Nullable types can be expressed with unions: e.g. String|Null.
   "-Xmax-inlines",
   "128",
-  "-Yretain-trees" // Retain trees for debugging.
+  "-Yretain-trees" // Retain trees for debugging.,
 )
 
 enablePlugins(
   GitVersioning
 )
 
-val calibanVersion = "2.7.2"
-val zioVersion = "2.1.4"
+val calibanVersion = "2.8.0"
+val zioVersion = "2.1.5"
 val quillVersion = "4.8.5"
-val zioHttpVersion = "3.0.0-RC8"
+val zioHttpVersion = "3.0.0-RC9"
 val zioConfigVersion = "4.0.2"
-val zioJsonVersion = "0.7.0"
+val zioJsonVersion = "0.7.1"
 val testContainerVersion = "0.41.4"
 val tapirVersion = "1.10.8"
 

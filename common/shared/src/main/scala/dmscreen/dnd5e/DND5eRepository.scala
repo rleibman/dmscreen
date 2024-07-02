@@ -31,7 +31,7 @@ enum OrderDirection {
 
   case asc, desc
 
-  def toggle: OrderDirection = if (this == OrderDirection.asc) OrderDirection.desc else OrderDirection.asc
+  def toggle: OrderDirection = if (ordinal == OrderDirection.asc.ordinal) OrderDirection.desc else OrderDirection.asc
 
 }
 

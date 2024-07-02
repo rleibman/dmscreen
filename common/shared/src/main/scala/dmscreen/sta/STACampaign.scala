@@ -19,21 +19,34 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen
+package dmscreen.sta
 
-import dmscreen.dnd5e.{DND5eRepository, GraphQLClientRepository}
-import japgolly.scalajs.react.AsyncCallback
-import zio.ZLayer
+import dmscreen.*
+import just.semver.SemVer
+import zio.json.ast.Json
 
-type DMScreenClientEnvironment = DND5eRepository[AsyncCallback] & ClientConfiguration
+case class STACampaignInfo(
+  era:   Era,
+  notes: String
+)
 
-object EnvironmentBuilder {
+case class STACampaign(
+  override val header:   CampaignHeader,
+  override val jsonInfo: Json,
+  override val version:  SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
+) extends Campaign[STACampaignInfo] {
 
-  def live =
-    ZLayer
-      .make[DMScreenClientEnvironment](
-        ClientConfiguration.live,
-        GraphQLClientRepository.live
-      )
+  override val entityType: EntityType = STAEntityType.campaign
+
+}
+
+enum STAEntityType(val name: String) {
+
+  case campaign extends STAEntityType("campaign") with EntityType
+  case encounter extends STAEntityType("encounter") with EntityType
+  case character extends STAEntityType("character") with EntityType
+  case starship extends STAEntityType("starship") with EntityType
+  case nonPlayerCharacter extends STAEntityType("nonPlayerCharacter") with EntityType
+  case scene extends STAEntityType("scene") with EntityType
 
 }

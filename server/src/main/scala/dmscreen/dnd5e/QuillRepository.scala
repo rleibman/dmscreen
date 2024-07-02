@@ -22,9 +22,9 @@
 package dmscreen.dnd5e
 
 import dmscreen.*
+import io.getquill.*
 import io.getquill.extras.*
 import io.getquill.jdbczio.Quill
-import io.getquill.{query as qquery, *}
 import just.semver.SemVer
 import zio.*
 import zio.json.*
@@ -36,8 +36,27 @@ import javax.sql.DataSource
 import scala.annotation.nowarn
 import scala.reflect.ClassTag
 
-object QuillDND5eRepository {
+trait DND5eZIORepository extends DND5eRepository[DMScreenTask]
 
+object QuillRepository {
+
+  private object CampaignRow {
+
+    def fromModel(
+      header:   CampaignHeader,
+      jsonInfo: Json
+    ): CampaignRow = {
+      CampaignRow(
+        id = header.id.value,
+        name = header.name,
+        dmUserId = header.dmUserId.value,
+        gameSystem = header.gameSystem.toString,
+        info = jsonInfo,
+        version = dmscreen.BuildInfo.version
+      )
+    }
+
+  }
   private case class CampaignRow(
     id:         Long,
     name:       String,
@@ -53,6 +72,24 @@ object QuillDND5eRepository {
         jsonInfo = info,
         version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
       )
+
+  }
+
+  private object PlayerCharacterRow {
+
+    def fromModel(
+      header:   PlayerCharacterHeader,
+      jsonInfo: Json
+    ): PlayerCharacterRow = {
+      PlayerCharacterRow(
+        id = header.id.value,
+        campaignId = header.campaignId.value,
+        name = header.name,
+        playerName = header.playerName,
+        info = jsonInfo,
+        version = dmscreen.BuildInfo.version
+      )
+    }
 
   }
 
@@ -76,6 +113,25 @@ object QuillDND5eRepository {
         jsonInfo = info,
         version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
       )
+
+  }
+
+  private object SceneRow {
+
+    def fromModel(
+      header:   SceneHeader,
+      jsonInfo: Json
+    ): SceneRow = {
+      SceneRow(
+        id = header.id.value,
+        campaignId = header.campaignId.value,
+        name = header.name,
+        orderCol = header.orderCol,
+        isActive = header.isActive,
+        info = jsonInfo,
+        version = dmscreen.BuildInfo.version
+      )
+    }
 
   }
 
@@ -104,6 +160,23 @@ object QuillDND5eRepository {
 
   }
 
+  private object NonPlayerCharacterRow {
+
+    def fromModel(
+      header:   NonPlayerCharacterHeader,
+      jsonInfo: Json
+    ): NonPlayerCharacterRow = {
+      NonPlayerCharacterRow(
+        id = header.id.value,
+        campaignId = header.campaignId.value,
+        name = header.name,
+        info = jsonInfo,
+        version = dmscreen.BuildInfo.version
+      )
+    }
+
+  }
+
   private case class NonPlayerCharacterRow(
     id:         Long,
     campaignId: Long,
@@ -122,6 +195,26 @@ object QuillDND5eRepository {
         jsonInfo = info,
         version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
       )
+
+  }
+
+  private object EncounterRow {
+
+    def fromModel(
+      header:   EncounterHeader,
+      jsonInfo: Json
+    ): EncounterRow = {
+      EncounterRow(
+        id = header.id.value,
+        campaignId = header.campaignId.value,
+        sceneId = header.sceneId.map(_.value),
+        name = header.name,
+        status = header.status.toString,
+        orderCol = header.orderCol,
+        info = jsonInfo,
+        version = dmscreen.BuildInfo.version
+      )
+    }
 
   }
 
@@ -149,6 +242,31 @@ object QuillDND5eRepository {
         jsonInfo = info,
         version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
       )
+
+  }
+
+  private object MonsterRow {
+
+    def fromModel(
+      header:   MonsterHeader,
+      jsonInfo: Json
+    ): MonsterRow = {
+      MonsterRow(
+        id = header.id.value,
+        name = header.name,
+        monsterType = header.monsterType.toString,
+        biome = header.biome.map(_.toString),
+        alignment = header.alignment.map(_.toString),
+        cr = header.cr.value,
+        xp = header.xp,
+        armorClass = header.armorClass,
+        hitPoints = header.maximumHitPoints,
+        size = header.size.toString,
+        initiativeBonus = header.initiativeBonus,
+        info = jsonInfo,
+        version = dmscreen.BuildInfo.version
+      )
+    }
 
   }
 
@@ -201,8 +319,6 @@ object QuillDND5eRepository {
       .flatMap(ZIO.fromEither)
 
   }
-
-  trait DND5eZIORepository extends DND5eRepository[DMScreenTask]
 
   def db: ZLayer[ConfigurationService, DMScreenError, DND5eZIORepository] =
     ZLayer.fromZIO {
@@ -277,6 +393,7 @@ object QuillDND5eRepository {
             )
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def playerCharacter(playerCharacterId: PlayerCharacterId): IO[DMScreenError, Option[PlayerCharacter]] =
           ctx
@@ -284,12 +401,14 @@ object QuillDND5eRepository {
             .map(_.headOption.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
         override def scene(sceneId: SceneId): IO[DMScreenError, Option[Scene]] =
           ctx
             .run(qScenes.filter(_.id == lift(sceneId.value)))
             .map(_.headOption.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[DND5eCampaign]] =
           ctx
@@ -297,6 +416,7 @@ object QuillDND5eRepository {
             .map(_.headOption.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def playerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[PlayerCharacter]] =
           ctx
@@ -304,12 +424,14 @@ object QuillDND5eRepository {
             .map(_.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
         override def scenes(campaignId: CampaignId): IO[DMScreenError, Seq[Scene]] =
           ctx
             .run(qScenes.filter(_.campaignId == lift(campaignId.value)).sortBy(_.orderCol))
             .map(_.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def nonPlayerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[NonPlayerCharacter]] =
           ctx
@@ -317,6 +439,7 @@ object QuillDND5eRepository {
             .map(_.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def encounters(campaignId: CampaignId): IO[DMScreenError, Seq[Encounter]] =
           ctx
@@ -343,6 +466,7 @@ object QuillDND5eRepository {
             )
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def bestiary(search: MonsterSearch): IO[DMScreenError, MonsterSearchResults] = {
           val q0: Quoted[EntityQuery[MonsterRow]] = qMonsters
@@ -405,6 +529,7 @@ object QuillDND5eRepository {
           ))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
         }
 
         override def sources: IO[DMScreenError, Seq[Source]] = ZIO.succeed(cachedSources)
@@ -494,6 +619,7 @@ object QuillDND5eRepository {
                 }.unit
             }.provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         def applyOperationsPlayerCharacter(
           playerCharacterId: PlayerCharacterId,
@@ -535,6 +661,7 @@ object QuillDND5eRepository {
                 }.unit
             }.provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def deleteEntity[IDType](
           entityType: EntityType,
@@ -549,12 +676,14 @@ object QuillDND5eRepository {
                 .unit
                 .provideLayer(dataSourceLayer)
                 .mapError(RepositoryError.apply)
+                .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
             case DND5eEntityType.playerCharacter =>
               ctx
                 .run(qPlayerCharacters.filter(_.id == lift(id.asInstanceOf[PlayerCharacterId].value)).delete)
                 .unit
                 .provideLayer(dataSourceLayer)
                 .mapError(RepositoryError.apply)
+                .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
             case _ => ZIO.fail(DMScreenError(s"Don't know how to delete ${entityType.name}"))
           }
         }
@@ -565,127 +694,151 @@ object QuillDND5eRepository {
           header: CampaignHeader,
           info:   Json
         ): IO[DMScreenError, CampaignId] =
-          if (header.id != CampaignId.empty) {
-            ZIO.fail(DMScreenError("Can't insert a campaign with an id"))
-          } else {
-            ctx
-              .run(
-                qCampaigns
-                  .insertValue(
-                    lift(
-                      CampaignRow(
-                        id = CampaignId.empty.value,
-                        name = header.name,
-                        dmUserId = header.dmUserId.value,
-                        gameSystem = header.gameSystem.toString,
-                        info = info,
-                        version = dmscreen.BuildInfo.version
-                      )
-                    )
-                  )
-                  .returningGenerated(_.id)
-              )
-              .map(CampaignId.apply)
-              .provideLayer(dataSourceLayer)
-              .mapError(RepositoryError.apply)
-          }
+          (if (header.id != CampaignId.empty) {
+             ctx
+               .run(
+                 qCampaigns
+                   .filter(_.id == lift(header.id.value))
+                   .updateValue(lift(CampaignRow.fromModel(header, info)))
+               )
+               .as(header.id)
+           } else {
+             ctx
+               .run(
+                 qCampaigns
+                   .insertValue(
+                     lift(
+                       CampaignRow(
+                         id = CampaignId.empty.value,
+                         name = header.name,
+                         dmUserId = header.dmUserId.value,
+                         gameSystem = header.gameSystem.toString,
+                         info = info,
+                         version = dmscreen.BuildInfo.version
+                       )
+                     )
+                   )
+                   .returningGenerated(_.id)
+               )
+               .map(CampaignId.apply)
+           })
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def upsert(
           header: PlayerCharacterHeader,
           info:   Json
         ): IO[DMScreenError, PlayerCharacterId] =
-          if (header.id != PlayerCharacterId.empty) {
-            ZIO.fail(DMScreenError("Can't insert a player character with an id"))
-          } else {
-            ctx
-              .run(
-                qPlayerCharacters
-                  .insertValue(
-                    lift(
-                      PlayerCharacterRow(
-                        id = PlayerCharacterId.empty.value,
-                        campaignId = header.campaignId.value,
-                        name = header.name,
-                        playerName = header.playerName,
-                        info = info,
-                        version = dmscreen.BuildInfo.version
-                      )
-                    )
-                  )
-                  .returningGenerated(_.id)
-              )
-              .map(PlayerCharacterId.apply)
-              .provideLayer(dataSourceLayer)
-              .mapError(RepositoryError.apply)
-          }
+          (if (header.id != PlayerCharacterId.empty) {
+             ctx
+               .run(
+                 qPlayerCharacters
+                   .filter(_.id == lift(header.id.value))
+                   .updateValue(lift(PlayerCharacterRow.fromModel(header, info)))
+               )
+               .as(header.id)
+           } else {
+             ctx
+               .run(
+                 qPlayerCharacters
+                   .insertValue(
+                     lift(
+                       PlayerCharacterRow(
+                         id = PlayerCharacterId.empty.value,
+                         campaignId = header.campaignId.value,
+                         name = header.name,
+                         playerName = header.playerName,
+                         info = info,
+                         version = dmscreen.BuildInfo.version
+                       )
+                     )
+                   )
+                   .returningGenerated(_.id)
+               )
+               .map(PlayerCharacterId.apply)
+           })
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def upsert(
           header: NonPlayerCharacterHeader,
           info:   Json
-        ): IO[DMScreenError, NonPlayerCharacterId] = {
-          if (header.id != NonPlayerCharacterId.empty) {
-            ZIO.fail(DMScreenError("Can't insert an NPC with an id"))
-          } else {
-            ctx
-              .run(
-                qNonPlayerCharacters
-                  .insertValue(
-                    lift(
-                      NonPlayerCharacterRow(
-                        id = NonPlayerCharacterId.empty.value,
-                        campaignId = header.campaignId.value,
-                        name = header.name,
-                        info = info,
-                        version = dmscreen.BuildInfo.version
-                      )
-                    )
-                  )
-                  .returningGenerated(_.id)
-              )
-              .map(NonPlayerCharacterId.apply)
-              .provideLayer(dataSourceLayer)
-              .mapError(RepositoryError.apply)
-
-          }
-        }
+        ): IO[DMScreenError, NonPlayerCharacterId] =
+          (if (header.id != NonPlayerCharacterId.empty) {
+             ctx
+               .run(
+                 qNonPlayerCharacters
+                   .filter(_.id == lift(header.id.value))
+                   .updateValue(lift(NonPlayerCharacterRow.fromModel(header, info)))
+               )
+               .as(header.id)
+           } else {
+             ctx
+               .run(
+                 qNonPlayerCharacters
+                   .insertValue(
+                     lift(
+                       NonPlayerCharacterRow(
+                         id = NonPlayerCharacterId.empty.value,
+                         campaignId = header.campaignId.value,
+                         name = header.name,
+                         info = info,
+                         version = dmscreen.BuildInfo.version
+                       )
+                     )
+                   )
+                   .returningGenerated(_.id)
+               )
+               .map(NonPlayerCharacterId.apply)
+           })
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def upsert(
           header: MonsterHeader,
           info:   Json
-        ): IO[DMScreenError, MonsterId] = {
-          if (header.id != MonsterId.empty) {
-            ZIO.fail(DMScreenError("Can't insert a monster character with an id"))
-          } else {
-            ctx
-              .run(
-                qMonsters
-                  .insertValue(
-                    lift(
-                      MonsterRow(
-                        id = MonsterId.empty.value,
-                        name = header.name,
-                        monsterType = header.monsterType.toString,
-                        biome = header.biome.map(_.toString),
-                        alignment = header.alignment.map(_.toString),
-                        cr = header.cr.value,
-                        xp = header.xp,
-                        armorClass = header.armorClass,
-                        hitPoints = header.maximumHitPoints,
-                        size = header.size.toString,
-                        initiativeBonus = header.initiativeBonus,
-                        info = info,
-                        version = dmscreen.BuildInfo.version
-                      )
-                    )
-                  )
-                  .returningGenerated(_.id)
-              )
-              .map(MonsterId.apply)
-              .provideLayer(dataSourceLayer)
-              .mapError(RepositoryError.apply)
-
-          }
-        }
+        ): IO[DMScreenError, MonsterId] =
+          (if (header.id != MonsterId.empty) {
+             ctx
+               .run(
+                 qMonsters
+                   .filter(_.id == lift(header.id.value))
+                   .updateValue(lift(MonsterRow.fromModel(header, info)))
+               )
+               .as(header.id)
+           } else {
+             ctx
+               .run(
+                 qMonsters
+                   .insertValue(
+                     lift(
+                       MonsterRow(
+                         id = MonsterId.empty.value,
+                         name = header.name,
+                         monsterType = header.monsterType.toString,
+                         biome = header.biome.map(_.toString),
+                         alignment = header.alignment.map(_.toString),
+                         cr = header.cr.value,
+                         xp = header.xp,
+                         armorClass = header.armorClass,
+                         hitPoints = header.maximumHitPoints,
+                         size = header.size.toString,
+                         initiativeBonus = header.initiativeBonus,
+                         info = info,
+                         version = dmscreen.BuildInfo.version
+                       )
+                     )
+                   )
+                   .returningGenerated(_.id)
+               )
+               .map(MonsterId.apply)
+           })
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def upsert(
           header: SpellHeader,
@@ -695,66 +848,78 @@ object QuillDND5eRepository {
         override def upsert(
           header: EncounterHeader,
           info:   Json
-        ): IO[DMScreenError, EncounterId] = {
-          if (header.id != EncounterId.empty) {
-            ZIO.fail(DMScreenError("Can't insert an encounter with an id"))
-          } else {
-            ctx
-              .run(
-                qEncounters
-                  .insertValue(
-                    lift(
-                      EncounterRow(
-                        id = EncounterId.empty.value,
-                        campaignId = header.campaignId.value,
-                        sceneId = header.sceneId.map(_.value),
-                        name = header.name,
-                        status = header.status.toString,
-                        orderCol = header.orderCol,
-                        info = info,
-                        version = dmscreen.BuildInfo.version
-                      )
-                    )
-                  )
-                  .returningGenerated(_.id)
-              )
-              .map(EncounterId.apply)
-              .provideLayer(dataSourceLayer)
-              .mapError(RepositoryError.apply)
+        ): IO[DMScreenError, EncounterId] =
+          (if (header.id != EncounterId.empty) {
+             ctx
+               .run(
+                 qEncounters
+                   .filter(_.id == lift(header.id.value))
+                   .updateValue(lift(EncounterRow.fromModel(header, info)))
+               )
+               .as(header.id)
+           } else {
+             ctx
+               .run(
+                 qEncounters
+                   .insertValue(
+                     lift(
+                       EncounterRow(
+                         id = EncounterId.empty.value,
+                         campaignId = header.campaignId.value,
+                         sceneId = header.sceneId.map(_.value),
+                         name = header.name,
+                         status = header.status.toString,
+                         orderCol = header.orderCol,
+                         info = info,
+                         version = dmscreen.BuildInfo.version
+                       )
+                     )
+                   )
+                   .returningGenerated(_.id)
+               )
+               .map(EncounterId.apply)
 
-          }
-
-        }
+           })
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def upsert(
           header: SceneHeader,
           info:   Json
         ): IO[DMScreenError, SceneId] =
-          if (header.id != SceneId.empty) {
-            ZIO.fail(DMScreenError("Can't insert a scene with an id"))
-          } else {
-            ctx
-              .run(
-                qScenes
-                  .insertValue(
-                    lift(
-                      SceneRow(
-                        id = SceneId.empty.value,
-                        campaignId = header.campaignId.value,
-                        name = header.name,
-                        orderCol = header.orderCol,
-                        isActive = header.isActive,
-                        info = info,
-                        version = dmscreen.BuildInfo.version
-                      )
-                    )
-                  )
-                  .returningGenerated(_.id)
-              )
-              .map(SceneId.apply)
-              .provideLayer(dataSourceLayer)
-              .mapError(RepositoryError.apply)
-          }
+          (if (header.id != SceneId.empty) {
+             ctx
+               .run(
+                 qScenes
+                   .filter(_.id == lift(header.id.value))
+                   .updateValue(lift(SceneRow.fromModel(header, info)))
+               )
+               .as(header.id)
+           } else {
+             ctx
+               .run(
+                 qScenes
+                   .insertValue(
+                     lift(
+                       SceneRow(
+                         id = SceneId.empty.value,
+                         campaignId = header.campaignId.value,
+                         name = header.name,
+                         orderCol = header.orderCol,
+                         isActive = header.isActive,
+                         info = info,
+                         version = dmscreen.BuildInfo.version
+                       )
+                     )
+                   )
+                   .returningGenerated(_.id)
+               )
+               .map(SceneId.apply)
+           })
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
       }
     }

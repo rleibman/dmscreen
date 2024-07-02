@@ -48,10 +48,11 @@ object ScenePage extends DMScreenTab {
         dmScreenState.campaignState.fold {
           <.div("Campaign Loading")
         } { case campaignState: DND5eCampaignState =>
-          def modScene(scene: Scene)(fn: Scene => Scene): Callback = {
+          def modScene(scene: Scene): Callback = {
             dmScreenState.onModifyCampaignState {
               campaignState.copy(
-                scenes = campaignState.scenes.map(s => if (s.header.id == scene.header.id) fn(s) else s)
+                scenes = campaignState.scenes.map(s => if (s.header.id == scene.header.id) scene else s),
+                changeStack = campaignState.changeStack.logSceneChanges(scene.header.id)
               )
             } // TODO make it stick
           }
@@ -80,8 +81,7 @@ object ScenePage extends DMScreenTab {
                           deltaStatic,
                           sources,
                           editor
-                        ) =>
-                          modScene(scene)(s => s.copy(jsonInfo = s.info.copy(notes = newValue).toJsonAST.toOption.get))
+                        ) => modScene(scene.copy(jsonInfo = scene.info.copy(notes = newValue).toJsonAST.toOption.get))
                       )
                   )
                 ),
@@ -124,7 +124,7 @@ object ScenePage extends DMScreenTab {
                           )
 
                           dmScreenState
-                            .onModifyCampaignState(campaignState.copy(scenes = campaignState.scenes :+ newScene))
+                            .onModifyCampaignState(campaignState.copy(scenes = campaignState.scenes :+ newScene)) // TODO make this stick
                         }
                       )
                       .icon(true)(Icon.name(SemanticICONS.`plus circle`))
@@ -163,7 +163,7 @@ object ScenePage extends DMScreenTab {
                       Table.Cell(
                         EditableText(
                           value = scene.header.name,
-                          onChange = newValue => modScene(scene)(s => s.copy(header = s.header.copy(name = newValue)))
+                          onChange = newValue => modScene(scene.copy(header = scene.header.copy(name = newValue)))
                         )
                       ),
                       Table.Cell(
@@ -210,15 +210,25 @@ object ScenePage extends DMScreenTab {
                               _
                             ) =>
                               dmScreenState.onModifyCampaignState {
+
+                                val changedScenes: List[(Scene, List[SceneId])] = campaignState.scenes.map(s =>
+                                  if (s.header.orderCol == scene.header.orderCol)
+                                    (
+                                      s.copy(header = s.header.copy(orderCol = s.header.orderCol - 1)),
+                                      List(s.header.id)
+                                    )
+                                  else if (s.header.orderCol == scene.header.orderCol - 1)
+                                    (
+                                      s.copy(header = s.header.copy(orderCol = s.header.orderCol + 1)),
+                                      List(s.header.id)
+                                    )
+                                  else
+                                    (s, List.empty)
+                                )
+
                                 campaignState.copy(
-                                  scenes = campaignState.scenes.map(s =>
-                                    if (s.header.orderCol == scene.header.orderCol)
-                                      s.copy(header = s.header.copy(orderCol = s.header.orderCol - 1))
-                                    else if (s.header.orderCol == scene.header.orderCol - 1)
-                                      s.copy(header = s.header.copy(orderCol = s.header.orderCol + 1))
-                                    else
-                                      s
-                                  )
+                                  scenes = changedScenes.map(_._1),
+                                  changeStack = campaignState.changeStack.logSceneChanges(changedScenes.flatMap(_._2)*)
                                 )
                               }
                           )(Icon.name(SemanticICONS.`arrow up`)).title(
@@ -231,15 +241,24 @@ object ScenePage extends DMScreenTab {
                               _
                             ) =>
                               dmScreenState.onModifyCampaignState {
+                                val changedScenes: List[(Scene, List[SceneId])] = campaignState.scenes.map(s =>
+                                  if (s.header.orderCol == scene.header.orderCol)
+                                    (
+                                      s.copy(header = s.header.copy(orderCol = s.header.orderCol + 1)),
+                                      List(s.header.id)
+                                    )
+                                  else if (s.header.orderCol == scene.header.orderCol + 1)
+                                    (
+                                      s.copy(header = s.header.copy(orderCol = s.header.orderCol - 1)),
+                                      List(s.header.id)
+                                    )
+                                  else
+                                    (s, List.empty)
+                                )
+
                                 campaignState.copy(
-                                  scenes = campaignState.scenes.map(s =>
-                                    if (s.header.orderCol == scene.header.orderCol)
-                                      s.copy(header = s.header.copy(orderCol = s.header.orderCol + 1))
-                                    else if (s.header.orderCol == scene.header.orderCol + 1)
-                                      s.copy(header = s.header.copy(orderCol = s.header.orderCol - 1))
-                                    else
-                                      s
-                                  )
+                                  scenes = changedScenes.map(_._1),
+                                  changeStack = campaignState.changeStack.logSceneChanges(changedScenes.flatMap(_._2)*)
                                 )
                               }
                           )(Icon.name(SemanticICONS.`arrow down`)).title(

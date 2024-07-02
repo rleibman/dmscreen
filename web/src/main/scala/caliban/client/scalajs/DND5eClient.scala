@@ -295,6 +295,7 @@ object DND5eClient {
       case __StringValue("Undead")      => Right(MonsterType.Undead)
       case other                        => Left(DecodingError(s"Can't build MonsterType from input $other"))
     }
+
     implicit val encoder: ArgEncoder[MonsterType] = {
       case MonsterType.Aberration  => __EnumValue("Aberration")
       case MonsterType.Beast       => __EnumValue("Beast")
@@ -614,6 +615,8 @@ object DND5eClient {
     def name: SelectionBuilder[SceneHeader, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
     def orderCol: SelectionBuilder[SceneHeader, Int] =
       _root_.caliban.client.SelectionBuilder.Field("orderCol", Scalar())
+    def isActive: SelectionBuilder[SceneHeader, Boolean] =
+      _root_.caliban.client.SelectionBuilder.Field("isActive", Scalar())
 
   }
 
@@ -644,6 +647,154 @@ object DND5eClient {
 
   }
 
+  final case class CampaignHeaderInput(
+    id:         Long,
+    dmUserId:   Long,
+    name:       String,
+    gameSystem: GameSystem
+  )
+  object CampaignHeaderInput {
+
+    implicit val encoder: ArgEncoder[CampaignHeaderInput] = new ArgEncoder[CampaignHeaderInput] {
+      override def encode(value: CampaignHeaderInput): __Value =
+        __ObjectValue(
+          List(
+            "id"         -> implicitly[ArgEncoder[Long]].encode(value.id),
+            "dmUserId"   -> implicitly[ArgEncoder[Long]].encode(value.dmUserId),
+            "name"       -> implicitly[ArgEncoder[String]].encode(value.name),
+            "gameSystem" -> implicitly[ArgEncoder[GameSystem]].encode(value.gameSystem)
+          )
+        )
+    }
+
+  }
+  final case class EncounterHeaderInput(
+    id:         Long,
+    campaignId: Long,
+    name:       String,
+    status:     String,
+    sceneId:    scala.Option[Long] = None,
+    orderCol:   Int
+  )
+  object EncounterHeaderInput {
+
+    implicit val encoder: ArgEncoder[EncounterHeaderInput] = new ArgEncoder[EncounterHeaderInput] {
+      override def encode(value: EncounterHeaderInput): __Value =
+        __ObjectValue(
+          List(
+            "id"         -> implicitly[ArgEncoder[Long]].encode(value.id),
+            "campaignId" -> implicitly[ArgEncoder[Long]].encode(value.campaignId),
+            "name"       -> implicitly[ArgEncoder[String]].encode(value.name),
+            "status"     -> implicitly[ArgEncoder[String]].encode(value.status),
+            "sceneId"  -> value.sceneId.fold(__NullValue: __Value)(value => implicitly[ArgEncoder[Long]].encode(value)),
+            "orderCol" -> implicitly[ArgEncoder[Int]].encode(value.orderCol)
+          )
+        )
+    }
+
+  }
+  final case class MonsterHeaderInput(
+    id:               Long,
+    name:             String,
+    monsterType:      MonsterType,
+    biome:            scala.Option[Biome] = None,
+    alignment:        scala.Option[Alignment] = None,
+    cr:               Double,
+    xp:               Long,
+    armorClass:       Int,
+    maximumHitPoints: Int,
+    size:             CreatureSize,
+    initiativeBonus:  Int
+  )
+  object MonsterHeaderInput {
+
+    implicit val encoder: ArgEncoder[MonsterHeaderInput] = new ArgEncoder[MonsterHeaderInput] {
+      override def encode(value: MonsterHeaderInput): __Value =
+        __ObjectValue(
+          List(
+            "id"          -> implicitly[ArgEncoder[Long]].encode(value.id),
+            "name"        -> implicitly[ArgEncoder[String]].encode(value.name),
+            "monsterType" -> implicitly[ArgEncoder[MonsterType]].encode(value.monsterType),
+            "biome" -> value.biome.fold(__NullValue: __Value)(value => implicitly[ArgEncoder[Biome]].encode(value)),
+            "alignment" -> value.alignment.fold(__NullValue: __Value)(value =>
+              implicitly[ArgEncoder[Alignment]].encode(value)
+            ),
+            "cr"               -> implicitly[ArgEncoder[Double]].encode(value.cr),
+            "xp"               -> implicitly[ArgEncoder[Long]].encode(value.xp),
+            "armorClass"       -> implicitly[ArgEncoder[Int]].encode(value.armorClass),
+            "maximumHitPoints" -> implicitly[ArgEncoder[Int]].encode(value.maximumHitPoints),
+            "size"             -> implicitly[ArgEncoder[CreatureSize]].encode(value.size),
+            "initiativeBonus"  -> implicitly[ArgEncoder[Int]].encode(value.initiativeBonus)
+          )
+        )
+    }
+
+  }
+  final case class NonPlayerCharacterHeaderInput(
+    id:         Long,
+    campaignId: Long,
+    name:       String
+  )
+  object NonPlayerCharacterHeaderInput {
+
+    implicit val encoder: ArgEncoder[NonPlayerCharacterHeaderInput] = new ArgEncoder[NonPlayerCharacterHeaderInput] {
+      override def encode(value: NonPlayerCharacterHeaderInput): __Value =
+        __ObjectValue(
+          List(
+            "id"         -> implicitly[ArgEncoder[Long]].encode(value.id),
+            "campaignId" -> implicitly[ArgEncoder[Long]].encode(value.campaignId),
+            "name"       -> implicitly[ArgEncoder[String]].encode(value.name)
+          )
+        )
+    }
+
+  }
+  final case class PlayerCharacterHeaderInput(
+    id:         Long,
+    campaignId: Long,
+    name:       String,
+    playerName: scala.Option[String] = None
+  )
+  object PlayerCharacterHeaderInput {
+
+    implicit val encoder: ArgEncoder[PlayerCharacterHeaderInput] = new ArgEncoder[PlayerCharacterHeaderInput] {
+      override def encode(value: PlayerCharacterHeaderInput): __Value =
+        __ObjectValue(
+          List(
+            "id"         -> implicitly[ArgEncoder[Long]].encode(value.id),
+            "campaignId" -> implicitly[ArgEncoder[Long]].encode(value.campaignId),
+            "name"       -> implicitly[ArgEncoder[String]].encode(value.name),
+            "playerName" -> value.playerName.fold(__NullValue: __Value)(value =>
+              implicitly[ArgEncoder[String]].encode(value)
+            )
+          )
+        )
+    }
+
+  }
+  final case class SceneHeaderInput(
+    id:         Long,
+    campaignId: Long,
+    name:       String,
+    orderCol:   Int,
+    isActive:   Boolean
+  )
+  object SceneHeaderInput {
+
+    implicit val encoder: ArgEncoder[SceneHeaderInput] = new ArgEncoder[SceneHeaderInput] {
+      override def encode(value: SceneHeaderInput): __Value =
+        __ObjectValue(
+          List(
+            "id"         -> implicitly[ArgEncoder[Long]].encode(value.id),
+            "campaignId" -> implicitly[ArgEncoder[Long]].encode(value.campaignId),
+            "name"       -> implicitly[ArgEncoder[String]].encode(value.name),
+            "orderCol"   -> implicitly[ArgEncoder[Int]].encode(value.orderCol),
+            "isActive"   -> implicitly[ArgEncoder[Boolean]].encode(value.isActive)
+          )
+        )
+    }
+
+  }
   final case class SourceInput(
     name: String,
     id:   String,
@@ -786,6 +937,114 @@ object DND5eClient {
   type Mutations = _root_.caliban.client.Operations.RootMutation
   object Mutations {
 
+    def upsertCampaign(
+      header:   CampaignHeaderInput,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )(implicit
+      encoder0: ArgEncoder[CampaignHeaderInput],
+      encoder1: ArgEncoder[zio.json.ast.Json],
+      encoder2: ArgEncoder[String]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "upsertCampaign",
+        OptionOf(Scalar()),
+        arguments = List(
+          Argument("header", header, "CampaignHeaderInput!")(encoder0),
+          Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
+          Argument("version", version, "String!")(encoder2)
+        )
+      )
+    def upsertScene(
+      header:   SceneHeaderInput,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )(implicit
+      encoder0: ArgEncoder[SceneHeaderInput],
+      encoder1: ArgEncoder[zio.json.ast.Json],
+      encoder2: ArgEncoder[String]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "upsertScene",
+        OptionOf(Scalar()),
+        arguments = List(
+          Argument("header", header, "SceneHeaderInput!")(encoder0),
+          Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
+          Argument("version", version, "String!")(encoder2)
+        )
+      )
+    def upsertPlayerCharacter(
+      header:   PlayerCharacterHeaderInput,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )(implicit
+      encoder0: ArgEncoder[PlayerCharacterHeaderInput],
+      encoder1: ArgEncoder[zio.json.ast.Json],
+      encoder2: ArgEncoder[String]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "upsertPlayerCharacter",
+        OptionOf(Scalar()),
+        arguments = List(
+          Argument("header", header, "PlayerCharacterHeaderInput!")(encoder0),
+          Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
+          Argument("version", version, "String!")(encoder2)
+        )
+      )
+    def upsertNonPlayerCharacter(
+      header:   NonPlayerCharacterHeaderInput,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )(implicit
+      encoder0: ArgEncoder[NonPlayerCharacterHeaderInput],
+      encoder1: ArgEncoder[zio.json.ast.Json],
+      encoder2: ArgEncoder[String]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "upsertNonPlayerCharacter",
+        OptionOf(Scalar()),
+        arguments = List(
+          Argument("header", header, "NonPlayerCharacterHeaderInput!")(encoder0),
+          Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
+          Argument("version", version, "String!")(encoder2)
+        )
+      )
+    def upsertMonster(
+      header:   MonsterHeaderInput,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )(implicit
+      encoder0: ArgEncoder[MonsterHeaderInput],
+      encoder1: ArgEncoder[zio.json.ast.Json],
+      encoder2: ArgEncoder[String]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "upsertMonster",
+        OptionOf(Scalar()),
+        arguments = List(
+          Argument("header", header, "MonsterHeaderInput!")(encoder0),
+          Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
+          Argument("version", version, "String!")(encoder2)
+        )
+      )
+    def upsertEncounter(
+      header:   EncounterHeaderInput,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )(implicit
+      encoder0: ArgEncoder[EncounterHeaderInput],
+      encoder1: ArgEncoder[zio.json.ast.Json],
+      encoder2: ArgEncoder[String]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "upsertEncounter",
+        OptionOf(Scalar()),
+        arguments = List(
+          Argument("header", header, "EncounterHeaderInput!")(encoder0),
+          Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
+          Argument("version", version, "String!")(encoder2)
+        )
+      )
     def applyOperations(
       entityType: DND5eEntityType,
       id:         Long,

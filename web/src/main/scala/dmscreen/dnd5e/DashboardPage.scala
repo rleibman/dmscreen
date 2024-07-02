@@ -32,6 +32,8 @@ import net.leibman.dmscreen.apexcharts.*
 import net.leibman.dmscreen.apexcharts.ApexCharts.*
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.reactQuill.components.ReactQuill
+import net.leibman.dmscreen.semanticUiReact.*
+import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
 import org.scalablytyped.runtime.StringDictionary
 
 import scala.reflect.Selectable.reflectiveSelectable
@@ -351,8 +353,10 @@ object DashboardPage extends DMScreenTab {
                         editor
                       ) =>
                         dmScreenState.onModifyCampaignState(
-                          campaignState.copy(campaign =
-                            campaign.copy(jsonInfo = campaign.info.copy(notes = newValue).toJsonAST.toOption.get)
+                          campaignState.copy(
+                            campaign =
+                              campaign.copy(jsonInfo = campaign.info.copy(notes = newValue).toJsonAST.toOption.get),
+                            changeStack = campaignState.changeStack.logCampaignChange()
                           )
                         )
                     )

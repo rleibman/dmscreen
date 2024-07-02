@@ -19,44 +19,30 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen
+package dmscreen.sta
 
-import dmscreen.dnd5e.*
-import japgolly.scalajs.react.React.Context
-import japgolly.scalajs.react.callback.AsyncCallback
-import japgolly.scalajs.react.{Callback, React}
-import org.scalajs.dom.window
+import caliban.*
+import caliban.interop.zio.*
+import caliban.interop.zio.json.*
+import caliban.introspection.adt.__Type
+import caliban.schema.*
+import caliban.schema.ArgBuilder.auto.*
+import caliban.schema.Schema.auto.*
 
-trait CampaignState {
+import dmscreen.*
 
-  def saveChanges(): AsyncCallback[CampaignState]
-  def loadChanges(): AsyncCallback[CampaignState]
+object STAAPI {
 
-}
+  case class Queries()
+  case class Mutations()
+  case class Subscriptions()
 
-enum DialogMode {
-
-  case open, closed
-
-}
-
-case class DND5eState(
-  backgrounds: Seq[Background] = Seq.empty,
-  classes:     Seq[CharacterClass] = Seq.empty
-)
-
-case class DMScreenState(
-  user:                  Option[User] = None,
-  campaignState:         Option[CampaignState] = None,
-  dnd5e:                 DND5eState = DND5eState(),
-  onModifyCampaignState: CampaignState => Callback = _ => Callback.empty,
-  dialogMode:            DialogMode = DialogMode.closed,
-  changeDialogMode:      DialogMode => Callback = _ => Callback.empty
-  //  operationStream: Option[WebSocketHandler] = None
-)
-
-object DMScreenState {
-
-  val ctx: Context[DMScreenState] = React.createContext(DMScreenState())
+  lazy val api: GraphQL[DMScreenServerEnvironment] =
+    graphQL[
+      DMScreenServerEnvironment,
+      Queries,
+      Mutations,
+      Subscriptions
+    ](RootResolver(Queries(), Mutations(), Subscriptions()))
 
 }

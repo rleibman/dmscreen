@@ -19,44 +19,33 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen
+package dmscreen.routes
 
-import dmscreen.dnd5e.*
-import japgolly.scalajs.react.React.Context
-import japgolly.scalajs.react.callback.AsyncCallback
-import japgolly.scalajs.react.{Callback, React}
-import org.scalajs.dom.window
+import caliban.*
+import caliban.schema.GenericSchema
+import dmscreen.DMScreenServerEnvironment
+import dmscreen.sta.{STAAPI, STARepository}
+import zio.http.*
+import zio.{IO, ZIO}
 
-trait CampaignState {
+object STARoutes {
 
-  def saveChanges(): AsyncCallback[CampaignState]
-  def loadChanges(): AsyncCallback[CampaignState]
+  lazy private val interpreter = STAAPI.api.interpreter
 
-}
-
-enum DialogMode {
-
-  case open, closed
-
-}
-
-case class DND5eState(
-  backgrounds: Seq[Background] = Seq.empty,
-  classes:     Seq[CharacterClass] = Seq.empty
-)
-
-case class DMScreenState(
-  user:                  Option[User] = None,
-  campaignState:         Option[CampaignState] = None,
-  dnd5e:                 DND5eState = DND5eState(),
-  onModifyCampaignState: CampaignState => Callback = _ => Callback.empty,
-  dialogMode:            DialogMode = DialogMode.closed,
-  changeDialogMode:      DialogMode => Callback = _ => Callback.empty
-  //  operationStream: Option[WebSocketHandler] = None
-)
-
-object DMScreenState {
-
-  val ctx: Context[DMScreenState] = React.createContext(DMScreenState())
+  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment, Nothing]] =
+    for {
+      interpreter <- interpreter
+    } yield {
+      Routes(
+        Method.ANY / "api" / "sta" ->
+          QuickAdapter(interpreter).handlers.api,
+        Method.ANY / "api" / "sta" / "graphiql" ->
+          GraphiQLHandler.handler(apiPath = "/api/sta", graphiqlPath = "/api/sta/graphiql"),
+        Method.GET / "api" / "sta" / "schema" ->
+          Handler.fromBody(Body.fromCharSequence(STAAPI.api.render)),
+        Method.POST / "api" / "sta" / "upload" ->
+          QuickAdapter(interpreter).handlers.upload
+      )
+    }
 
 }
