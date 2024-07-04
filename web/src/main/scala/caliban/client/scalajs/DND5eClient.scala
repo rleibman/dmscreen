@@ -276,6 +276,7 @@ object DND5eClient {
     case object Monstrosity extends MonsterType { val value: String = "Monstrosity" }
     case object Ooze extends MonsterType { val value: String = "Ooze" }
     case object Plant extends MonsterType { val value: String = "Plant" }
+    case object Swarm extends MonsterType { val value: String = "Swarm" }
     case object Undead extends MonsterType { val value: String = "Undead" }
 
     implicit val decoder: ScalarDecoder[MonsterType] = {
@@ -292,10 +293,10 @@ object DND5eClient {
       case __StringValue("Monstrosity") => Right(MonsterType.Monstrosity)
       case __StringValue("Ooze")        => Right(MonsterType.Ooze)
       case __StringValue("Plant")       => Right(MonsterType.Plant)
+      case __StringValue("Swarm")       => Right(MonsterType.Swarm)
       case __StringValue("Undead")      => Right(MonsterType.Undead)
       case other                        => Left(DecodingError(s"Can't build MonsterType from input $other"))
     }
-
     implicit val encoder: ArgEncoder[MonsterType] = {
       case MonsterType.Aberration  => __EnumValue("Aberration")
       case MonsterType.Beast       => __EnumValue("Beast")
@@ -310,6 +311,7 @@ object DND5eClient {
       case MonsterType.Monstrosity => __EnumValue("Monstrosity")
       case MonsterType.Ooze        => __EnumValue("Ooze")
       case MonsterType.Plant       => __EnumValue("Plant")
+      case MonsterType.Swarm       => __EnumValue("Swarm")
       case MonsterType.Undead      => __EnumValue("Undead")
     }
 
@@ -327,6 +329,7 @@ object DND5eClient {
       Monstrosity,
       Ooze,
       Plant,
+      Swarm,
       Undead
     )
 
@@ -385,8 +388,8 @@ object DND5eClient {
   object CharacterClass {
 
     def id: SelectionBuilder[CharacterClass, String] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
-    def hitDice: SelectionBuilder[CharacterClass, String] =
-      _root_.caliban.client.SelectionBuilder.Field("hitDice", Scalar())
+    def hitDice[A](innerSelection: SelectionBuilder[DiceRoll, A]): SelectionBuilder[CharacterClass, A] =
+      _root_.caliban.client.SelectionBuilder.Field("hitDice", Obj(innerSelection))
 
   }
 
@@ -418,6 +421,13 @@ object DND5eClient {
       _root_.caliban.client.SelectionBuilder.Field("jsonInfo", Scalar())
     def version: SelectionBuilder[DND5eCampaign, String] =
       _root_.caliban.client.SelectionBuilder.Field("version", Scalar())
+
+  }
+
+  type DiceRoll
+  object DiceRoll {
+
+    def roll: SelectionBuilder[DiceRoll, String] = _root_.caliban.client.SelectionBuilder.Field("roll", Scalar())
 
   }
 
@@ -828,6 +838,10 @@ object DND5eClient {
     ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
       _root_.caliban.client.SelectionBuilder
         .Field("campaign", OptionOf(Obj(innerSelection)), arguments = List(Argument("value", value, "Long!")(encoder0)))
+    def monster[A](value: Long)(innerSelection: SelectionBuilder[Monster, A])(implicit encoder0: ArgEncoder[Long])
+      : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder
+        .Field("monster", OptionOf(Obj(innerSelection)), arguments = List(Argument("value", value, "Long!")(encoder0)))
     def playerCharacters[A](
       value: Long
     )(

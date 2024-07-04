@@ -33,10 +33,11 @@ import java.io.File
 
 object TestCreator extends ZIOApp {
 
-  override type Environment = DNDBeyondImporter & FifthEditionCharacterSheetImporter
+  override type Environment = SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter
   override def environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
-  override def bootstrap: ZLayer[ZIOAppArgs, Any, DNDBeyondImporter & FifthEditionCharacterSheetImporter] = {
-    ZLayer.make[Environment](DNDBeyondImporter.live, FifthEditionCharacterSheetImporter.live)
+  override def bootstrap
+    : ZLayer[ZIOAppArgs, Any, SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter] = {
+    ZLayer.make[Environment](DNDBeyondImporter.live, FifthEditionCharacterSheetImporter.live, SRDImporter.live)
   }
 
   private val `Chr'zyzx` = PlayerCharacter(
@@ -185,14 +186,22 @@ object TestCreator extends ZIOApp {
     )
   }
 
-  override def run
-    : ZIO[DNDBeyondImporter & FifthEditionCharacterSheetImporter & ZIOAppArgs & Scope, DMScreenError, Unit] = {
-    for {
+  override def run: ZIO[
+    SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter & ZIOAppArgs & Scope,
+    DMScreenError,
+    Unit
+  ] = {
+    (for {
+      monsters <- createMonsters
+      _ <- ZIO.foreachDiscard(monsters) { m =>
+        ZIO.logInfo(m.header.toString + ": " + m.jsonInfo.toJsonPretty)
+      }
       pcs <- createPcs
       _ <- ZIO.foreachDiscard(pcs) { c =>
         ZIO.logInfo(c.header.toString + ": " + c.jsonInfo.toJsonPretty)
       }
-    } yield ()
+    } yield ())
+      .tapErrorCause(e => ZIO.logError(e.prettyPrint))
   }
 
 }

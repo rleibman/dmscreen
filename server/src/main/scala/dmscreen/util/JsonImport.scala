@@ -60,7 +60,8 @@ def jsonStream[Data: JsonDecoder](file: File): ZStream[Any, Throwable, Data] = {
           val jsonString = newBuilder.toString()
           jsonString.fromJson[Data] match {
             case Right(data) => ((new StringBuilder(), 0, true), Chunk(data))
-            case Left(_)     => ((newBuilder, newOpenBraces, true), Chunk.empty)
+            case Left(e)     => throw new RuntimeException(e)
+//              ((newBuilder, newOpenBraces, true), Chunk.empty)
           }
         } else {
           ((newBuilder, newOpenBraces, true), Chunk.empty)

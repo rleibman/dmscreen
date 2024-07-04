@@ -106,6 +106,7 @@ object DND5eAPI {
   case class Queries(
     campaigns:           ZIO[DND5eZIORepository, DMScreenError, Seq[CampaignHeader]],
     campaign:            CampaignId => ZIO[DND5eZIORepository, DMScreenError, Option[DND5eCampaign]],
+    monster:             MonsterId => ZIO[DND5eZIORepository, DMScreenError, Option[Monster]],
     playerCharacters:    CampaignId => ZIO[DND5eZIORepository, DMScreenError, Seq[PlayerCharacter]],
     scenes:              CampaignId => ZIO[DND5eZIORepository, DMScreenError, Seq[Scene]],
     nonPlayerCharacters: CampaignId => ZIO[DND5eZIORepository, DMScreenError, Seq[NonPlayerCharacter]],
@@ -143,6 +144,7 @@ object DND5eAPI {
         Queries(
           campaigns = ZIO.serviceWithZIO[DND5eZIORepository](_.campaigns),
           campaign = campaignId => ZIO.serviceWithZIO[DND5eZIORepository](_.campaign(campaignId)),
+          monster = monsterId => ZIO.serviceWithZIO[DND5eZIORepository](_.monster(monsterId)),
           playerCharacters = campaignId => ZIO.serviceWithZIO[DND5eZIORepository](_.playerCharacters(campaignId)),
           scenes = campaignId => ZIO.serviceWithZIO[DND5eZIORepository](_.scenes(campaignId)),
           nonPlayerCharacters = campaignId => ZIO.serviceWithZIO[DND5eZIORepository](_.nonPlayerCharacters(campaignId)),

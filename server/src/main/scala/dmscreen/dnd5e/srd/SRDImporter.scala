@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e.srd
 
-import dmscreen.DMScreenError
+import dmscreen.{DMScreenError, DiceRoll}
 import dmscreen.dnd5e.{*, given}
 import dmscreen.util.*
 import zio.json.*
@@ -54,6 +54,86 @@ class SRDImporter extends DND5eImporter[File, File, File, File] {
         }
     }
 
+    enum MultiAttackType {
+      case actions, action_options
+    }
+
+    given JsonDecoder[MultiAttackType] = JsonDecoder.string.map(MultiAttackType.valueOf)
+
+    given JsonDecoder[ActionDamage] =
+      JsonDecoder[Json.Obj].mapOrFail { json =>
+        for {
+          damageType <- json
+            .getEitherOption[Json.Obj]("damage_type").map(
+              _.flatMap(_.getOption[DamageType]("index"))
+                .getOrElse(DamageType("Unknown or multiple damage type, see original sources"))
+            )
+          damageDice <- json.getEitherOption[DiceRoll]("damage_dice").map(_.getOrElse(DiceRoll("")))
+        } yield ActionDamage(damageType, damageDice)
+      }
+
+    given JsonDecoder[Condition] =
+      JsonDecoder[Json.Obj].mapOrFail { json =>
+        json
+          .getValue[String]("index").flatMap(s =>
+            Condition.values.find(_.toString.equalsIgnoreCase(s)).toRight(s"Invalid condition: $s")
+          )
+      }
+
+    given JsonCodec[MonsterType] =
+      JsonCodec.string.transformOrFail(
+        s =>
+          if (s.toLowerCase.contains("swarm")) Right(MonsterType.Swarm)
+          else
+            MonsterType.values.find(a => s.equalsIgnoreCase(a.toString)).toRight(s"Invalid monster type: $s"),
+        _.toString
+      )
+    given JsonDecoder[Action] = {
+
+      case class InternalAction(
+        `type`:      ActionType,
+        action_name: String,
+        desc:        Option[String]
+      ) {
+        def toSingleAction: SingleAction = SingleAction(actionType = `type`, name = action_name, description = desc)
+      }
+
+      given JsonDecoder[InternalAction] = JsonDecoder.derived[InternalAction]
+
+      JsonDecoder[Json.Obj].mapOrFail { json =>
+        val res = for {
+          multiAttackType <- json.getEitherOption[MultiAttackType]("multiattack_type")
+          name            <- json.getValue[String]("name")
+          desc            <- json.getEitherOption[String]("desc")
+          actions <- json.getEitherOption[Seq[InternalAction]]("actions").map(_.toSeq.flatten.map(_.toSingleAction))
+//          actionOptions <- json
+//            .getEitherOption[Seq[InternalAction]]("action_options").map(_.toSeq.flatten.map(_.toSingleAction))
+          actionType  <- json.getEitherOption[ActionType]("type")
+          attackBonus <- json.getEitherOption[Int]("attack_bonus")
+          damages     <- json.getEitherOption[Seq[ActionDamage]]("damage")
+        } yield {
+          multiAttackType match {
+            case None =>
+              SingleAction(actionType = actionType.getOrElse(ActionType.Melee), name = name, description = desc)
+            case Some(MultiAttackType.actions) =>
+              MultiAction(name = name, description = desc, actions = actions)
+            case Some(MultiAttackType.action_options) =>
+              MultiAction(
+                name = name,
+                description = Some(desc.getOrElse("") + "\nLook up Action Options in original source"),
+                actions = Seq.empty
+              )
+          }
+        }
+        if (res.isLeft)
+          println("hello")
+        else
+          ()
+
+        res
+      }
+    }
+
     given JsonDecoder[Monster] =
       JsonDecoder[Json.Obj].mapOrFail { json =>
         for {
@@ -62,10 +142,7 @@ class SRDImporter extends DND5eImporter[File, File, File, File] {
             .getValue[String]("size").flatMap(s =>
               CreatureSize.values.find(a => s.equalsIgnoreCase(a.toString)).toRight(s"Invalid size: $s")
             )
-          monsterType <- json
-            .getValue[String]("type").flatMap(s =>
-              MonsterType.values.find(a => s.equalsIgnoreCase(a.toString)).toRight(s"Invalid monsterType: $s")
-            )
+          monsterType <- json.getValue[MonsterType]("type")
           alignment <- json
             .getEitherOption[String]("alignment").map(
               _.flatMap(s => Alignment.values.find(a => s.equalsIgnoreCase(a.name) || s.equalsIgnoreCase(a.toString)))
@@ -75,7 +152,7 @@ class SRDImporter extends DND5eImporter[File, File, File, File] {
               arr.elements.map(o => o.asObject.toRight("Not an object").flatMap(_.getValue[Int]("value"))).head
             )
           maximumHitPoints <- json.getValue[Int]("hit_points")
-          hitDice          <- json.getEitherOption[String]("hit_points_roll")
+          hitDice          <- json.getEitherOption[DiceRoll]("hit_points_roll")
           speeds <- json
             .getEitherOption[Json.Obj]("speed").map {
               _.map { spObj =>
@@ -122,16 +199,17 @@ class SRDImporter extends DND5eImporter[File, File, File, File] {
               charisma = Ability(AbilityType.charisma, charisma, None)
             )
           }
-          cr        <- json.getValue[Double]("challenge_rating")
-          xp        <- json.getValue[Long]("xp")
-          languages <- json.getValue[String]("languages").map(_.split(",").map(Language(_)).toSeq)
-          //          "damage_vulnerabilities": [],
-          //          "damage_resistances": [],
-          //          "damage_immunities": [
-          // proficiencies
-          // hit dice
-          // actions
-          // reactions
+          cr                    <- json.getValue[Double]("challenge_rating")
+          xp                    <- json.getValue[Long]("xp")
+          languages             <- json.getValue[String]("languages").map(_.split(",").map(Language(_)).toSeq)
+          damageVulnerabilities <- json.getEitherOption[Seq[DamageType]]("damage_vulnerabilities").map(_.toSeq.flatten)
+          damageResistances     <- json.getEitherOption[Seq[DamageType]]("damage_resistances").map(_.toSeq.flatten)
+          damageImmunities      <- json.getEitherOption[Seq[DamageType]]("damage_immunities").map(_.toSeq.flatten)
+          conditionImmunities   <- json.getEitherOption[Seq[Condition]]("condition_immunities").map(_.toSeq.flatten)
+          specialAbilities      <- json.getEitherOption[Seq[SpecialAbility]]("special_abilities").map(_.toSeq.flatten)
+          proficiencyBonus      <- json.getValue[Int]("proficiency_bonus")
+          actions               <- json.getEitherOption[Seq[Action]]("actions").map(_.toSeq.flatten)
+          reactions             <- json.getEitherOption[Seq[Action]]("reactions").map(_.toSeq.flatten)
           senses <- json.getEitherOption[Json.Obj]("senses").map {
             _.map { s =>
               val sight = s
@@ -177,12 +255,17 @@ class SRDImporter extends DND5eImporter[File, File, File, File] {
             ),
             jsonInfo = MonsterInfo(
               hitDice = hitDice,
-              speeds = speeds, // :    Seq[Speed],
-              abilities = abilities, // : Abilities,
-              languages = languages, // : Seq[Language],
-              actions = Seq.empty, // :   Seq[String],
-              reactions = Seq.empty, // : String,
-              senses = senses // :    Seq[SenseRange]
+              speeds = speeds,
+              abilities = abilities,
+              languages = languages,
+              actions = actions,
+              reactions = reactions,
+              senses = senses,
+              damageVulnerabilities = damageVulnerabilities,
+              damageResistances = damageResistances,
+              damageImmunities = damageImmunities,
+              conditionImmunities = conditionImmunities,
+              proficiencyBonus = proficiencyBonus
             ).toJsonAST.toOption.get
           )
         }
@@ -201,7 +284,8 @@ object MonsterImport extends ZIOAppDefault {
 
     ZIO
       .serviceWithZIO[SRDImporter](
-        _.importMonsters(file).take(5).runCollect.map(_.foreach(data => println(data)))
+        _.importMonsters(file)
+          .tap(m => zio.Console.printLine(m.header.name)).take(500).runCollect.map(_.foreach(data => println(data)))
       ).provideLayer(SRDImporter.live)
 
   }

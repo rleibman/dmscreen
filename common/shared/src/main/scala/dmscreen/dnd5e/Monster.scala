@@ -119,6 +119,7 @@ enum MonsterType {
   case Ooze
   case Plant
   case Undead
+  case Swarm
 
 }
 
@@ -138,14 +139,108 @@ enum Biome {
 
 }
 
+case class ActionDC(
+  dcType:  AbilityType,
+  dcValue: Int
+)
+
+case class ActionDamage(
+  damageType: DamageType,
+  damageDice: DiceRoll
+)
+
+enum ActionType {
+
+  case Melee
+  case Ranged
+  case Spell
+  case Ability
+
+}
+
+sealed trait Action {
+
+  def name:        String
+  def description: Option[String]
+
+}
+
+case class SingleAction(
+  actionType:               ActionType,
+  override val name:        String,
+  override val description: Option[String],
+  attackBonus:              Option[Int] = None,
+  damage:                   Option[DiceRoll] = None,
+  dc:                       Option[ActionDC] = None
+) extends Action
+
+case class MultiAction(
+  override val name:        String,
+  override val description: Option[String],
+  actions:                  Seq[SingleAction]
+) extends Action
+
+object DamageType {
+
+  val acid:        DamageType = DamageType("acid")
+  val bludgeoning: DamageType = DamageType("bludgeoning")
+  val cold:        DamageType = DamageType("cold")
+  val fire:        DamageType = DamageType("fire")
+  val force:       DamageType = DamageType("force")
+  val lightning:   DamageType = DamageType("lightning")
+  val necrotic:    DamageType = DamageType("necrotic")
+  val piercing:    DamageType = DamageType("piercing")
+  val poison:      DamageType = DamageType("poison")
+  val psychic:     DamageType = DamageType("psychic")
+  val radiant:     DamageType = DamageType("radiant")
+  val slashing:    DamageType = DamageType("slashing")
+  val thunder:     DamageType = DamageType("thunder")
+  val values = Seq(
+    acid,
+    bludgeoning,
+    cold,
+    fire,
+    force,
+    lightning,
+    necrotic,
+    piercing,
+    poison,
+    psychic,
+    radiant,
+    slashing,
+    thunder
+  )
+
+  def valueOf(name: String): DamageType = values.find(_.description.equalsIgnoreCase(name)).getOrElse(DamageType(name))
+
+}
+
+case class DamageType(description: String) {
+
+  override def toString: String = description
+
+}
+
+case class SpecialAbility(
+  name:        String,
+  description: Option[String]
+)
+
 case class MonsterInfo(
-  abilities: Abilities,
-  hitDice:   Option[String] = None,
-  speeds:    Seq[Speed] = Seq.empty,
-  languages: Seq[Language] = Seq.empty,
-  actions:   Seq[String] = Seq.empty,
-  reactions: Seq[String] = Seq.empty,
-  senses:    Seq[SenseRange] = Seq.empty
+  abilities:             Abilities,
+  hitDice:               Option[DiceRoll] = None,
+  speeds:                Seq[Speed] = Seq.empty,
+  languages:             Seq[Language] = Seq.empty,
+  actions:               Seq[Action] = Seq.empty,
+  reactions:             Seq[Action] = Seq.empty,
+  legendaryActions:      Seq[Action] = Seq.empty,
+  senses:                Seq[SenseRange] = Seq.empty,
+  conditionImmunities:   Seq[Condition] = Seq.empty,
+  damageVulnerabilities: Seq[DamageType] = Seq.empty,
+  damageResistances:     Seq[DamageType] = Seq.empty,
+  damageImmunities:      Seq[DamageType] = Seq.empty,
+  specialAbilities:      Seq[SpecialAbility] = Seq.empty,
+  proficiencyBonus:      Int = 0
 ) {
 
   def initiativeBonus: Int = abilities.dexterity.modifier

@@ -19,6 +19,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e.components
+package dmscreen
 
-object MonsterComponent {}
+case class DiceRoll(roll: String) {}

@@ -29,6 +29,7 @@ import caliban.client.scalajs.DND5eClient.{
   CampaignHeader as CalibanCampaignHeader,
   CharacterClass as CalibanCharacterClass,
   DND5eCampaign as CalibanDND5eCampaign,
+  DiceRoll as CalibanDiceRoll,
   Encounter as CalibanEncounter,
   EncounterHeader as CalibanEncounterHeader,
   GameSystem as CalibanGameSystem,
@@ -132,14 +133,14 @@ object Content {
         }
         classes <- {
           val sb = Queries.classes(
-            (CalibanCharacterClass.id ~ CalibanCharacterClass.hitDice).map(
+            (CalibanCharacterClass.id ~ CalibanCharacterClass.hitDice(CalibanDiceRoll.roll)).map(
               (
                 id,
                 hd
               ) =>
                 CharacterClass(
                   CharacterClassId.values.find(_.name.equalsIgnoreCase(id)).getOrElse(CharacterClassId.unknown),
-                  hd
+                  DiceRoll(hd)
                 )
             )
           )

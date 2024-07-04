@@ -85,6 +85,7 @@ enum MonsterType {
   Monstrosity
   Ooze
   Plant
+  Swarm
   Undead
 }
 
@@ -168,7 +169,7 @@ type CampaignHeader {
 
 type CharacterClass {
   id: String!
-  hitDice: String!
+  hitDice: DiceRoll!
 }
 
 type CombatLog {
@@ -185,6 +186,10 @@ type DND5eCampaign {
   header: CampaignHeader!
   jsonInfo: Json!
   version: String!
+}
+
+type DiceRoll {
+  roll: String!
 }
 
 type Encounter {
@@ -279,6 +284,7 @@ type PlayerCharacterHeader {
 type Queries {
   campaigns: [CampaignHeader!]
   campaign(value: Long!): DND5eCampaign
+  monster(value: Long!): Monster
   playerCharacters(value: Long!): [PlayerCharacter!]
   scenes(value: Long!): [Scene!]
   nonPlayerCharacters(value: Long!): [NonPlayerCharacter!]

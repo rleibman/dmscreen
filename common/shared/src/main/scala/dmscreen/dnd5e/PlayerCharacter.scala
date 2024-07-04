@@ -22,7 +22,7 @@
 package dmscreen.dnd5e
 
 import dmscreen.dnd5e.CreatureSize.medium
-import dmscreen.{CampaignId, DMScreenEntity, EntityType, HasId}
+import dmscreen.{CampaignId, DMScreenEntity, DiceRoll, EntityType, HasId}
 import just.semver.SemVer
 import zio.json.ast.Json
 
@@ -95,7 +95,7 @@ enum CharacterClassId(val name: String) {
 
 case class CharacterClass(
   id:      CharacterClassId,
-  hitDice: String
+  hitDice: DiceRoll
 )
 
 opaque type SourceId = String
@@ -252,7 +252,7 @@ case class InventoryItem(
 enum Condition {
 
   case blinded, charmed, deafened, frightened, grappled, incapacitated, invisible, paralyzed, petrified, poisoned,
-    prone, restrained, stunned, unconscious
+    prone, restrained, stunned, unconscious, exhaustion
 
 }
 
@@ -267,8 +267,6 @@ case class SpellSlots(
   used:      Int,
   available: Int
 )
-
-case class Action(str: String)
 
 case class Creature(
   name:         String,

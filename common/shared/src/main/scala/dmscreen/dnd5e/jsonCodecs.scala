@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.CampaignId
+import dmscreen.{CampaignId, DiceRoll}
 import zio.json.*
 import zio.json.ast.Json
 
@@ -68,7 +68,14 @@ given JsonCodec[AbilityType] = JsonCodec.string.transform(AbilityType.valueOf, _
 given JsonCodec[Condition] = JsonCodec.string.transform(Condition.valueOf, _.toString)
 given JsonCodec[Sense] = JsonCodec.string.transform(Sense.valueOf, _.toString)
 given JsonCodec[SpeedType] = JsonCodec.string.transform(SpeedType.valueOf, _.toString)
+given JsonCodec[DamageType] = JsonCodec.string.transform(DamageType.valueOf, _.toString)
+given JsonCodec[ActionType] =
+  JsonCodec.string.transformOrFail(
+    s => ActionType.values.find(_.toString.equalsIgnoreCase(s)).toRight(s"Could not find an ActionType of $s"),
+    _.toString
+  )
 
+given JsonCodec[DiceRoll] = JsonCodec.string.transform(DiceRoll.apply, _.roll)
 given JsonCodec[Source] = JsonCodec.derived[Source]
 given JsonCodec[SubClass] = JsonCodec.derived[SubClass]
 given JsonCodec[CharacterClass] = JsonCodec.derived[CharacterClass]
@@ -94,6 +101,8 @@ given JsonCodec[Skill] = JsonCodec.derived[Skill]
 given JsonCodec[Skills] = JsonCodec.derived[Skills]
 given JsonCodec[Marker] = JsonCodec.derived[Marker]
 given JsonCodec[Language] = JsonCodec.string.transform(Language.fromName, _.name)
+given JsonCodec[ActionDC] = JsonCodec.derived[ActionDC]
+given JsonCodec[SingleAction] = JsonCodec.derived[SingleAction]
 given JsonCodec[Action] = JsonCodec.derived[Action]
 given JsonCodec[SpellHeader] = JsonCodec.derived[SpellHeader]
 given JsonCodec[Speed] = JsonCodec.derived[Speed]
@@ -101,6 +110,7 @@ given JsonCodec[PlayerCharacterInfo] = JsonCodec.derived[PlayerCharacterInfo]
 
 given JsonCodec[NonPlayerCharacterInfo] = JsonCodec.derived[NonPlayerCharacterInfo]
 
+given JsonCodec[SpecialAbility] = JsonCodec.derived[SpecialAbility]
 given JsonCodec[MonsterInfo] = JsonCodec.derived[MonsterInfo]
 
 given JsonCodec[SpellInfo] = JsonCodec.derived[SpellInfo]

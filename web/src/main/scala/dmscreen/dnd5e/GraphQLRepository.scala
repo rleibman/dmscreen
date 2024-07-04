@@ -22,15 +22,22 @@
 package dmscreen.dnd5e
 
 import caliban.ScalaJSClientAdapter.asyncCalibanCall
-import caliban.client.ArgEncoder
+import caliban.client.{ArgEncoder, SelectionBuilder}
 import caliban.client.scalajs.DND5eClient.{
+  Alignment as CalibanAlignment,
+  Biome as CalibanBiome,
   CampaignHeaderInput,
+  CreatureSize as CalibanCreatureSize,
   EncounterHeaderInput,
   GameSystem as CalibanGameSystem,
+  Monster as CalibanMonster,
+  MonsterHeader as CalibanMonsterHeader,
   MonsterHeaderInput,
+  MonsterType as CalibanMonsterType,
   Mutations,
   NonPlayerCharacterHeaderInput,
   PlayerCharacterHeaderInput,
+  Queries,
   SceneHeaderInput
 }
 import caliban.client.scalajs.{DND5eClient, given}
@@ -194,6 +201,55 @@ object GraphQLRepository {
       val sb = Mutations.upsertScene(headerInput, info, dmscreen.BuildInfo.version)
       asyncCalibanCall(sb).map(_.fold(SceneId.empty)(SceneId.apply))
 
+    }
+
+    override def monster(monsterId: MonsterId): AsyncCallback[Option[Monster]] = {
+      val monsterSB: SelectionBuilder[CalibanMonster, Monster] = (CalibanMonster.header(
+        CalibanMonsterHeader.id ~
+          CalibanMonsterHeader.name ~
+          CalibanMonsterHeader.monsterType ~
+          CalibanMonsterHeader.biome ~
+          CalibanMonsterHeader.alignment ~
+          CalibanMonsterHeader.cr ~
+          CalibanMonsterHeader.xp ~
+          CalibanMonsterHeader.armorClass ~
+          CalibanMonsterHeader.maximumHitPoints ~
+          CalibanMonsterHeader.size ~
+          CalibanMonsterHeader.initiativeBonus
+      ) ~ CalibanMonster.jsonInfo).map {
+        case (
+              id:               Long,
+              name:             String,
+              monsterType:      CalibanMonsterType,
+              biome:            Option[CalibanBiome],
+              alignment:        Option[CalibanAlignment],
+              cr:               Double,
+              xp:               Long,
+              armorClass:       Int,
+              maximumHitPoints: Int,
+              size:             CalibanCreatureSize,
+              initiativeBonus:  Int,
+              info:             Json
+            ) =>
+          Monster(
+            MonsterHeader(
+              id = MonsterId(id),
+              name = name,
+              monsterType = MonsterType.valueOf(monsterType.value),
+              biome = biome.map(a => Biome.valueOf(a.value)),
+              alignment = alignment.map(a => Alignment.valueOf(a.value)),
+              cr = ChallengeRating.fromDouble(cr).getOrElse(ChallengeRating.`0`),
+              xp = xp,
+              armorClass = armorClass,
+              maximumHitPoints = maximumHitPoints,
+              size = CreatureSize.valueOf(size.value),
+              initiativeBonus = initiativeBonus
+            ),
+            info
+          )
+      }
+
+      asyncCalibanCall(Queries.monster(monsterId.value)(monsterSB))
     }
   }
 

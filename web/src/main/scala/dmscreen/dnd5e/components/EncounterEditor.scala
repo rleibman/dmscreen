@@ -61,9 +61,9 @@ import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
 
 def createMonsterCombatant(
-                            e: Encounter,
-                            header: MonsterHeader
-                          ): MonsterCombatant = {
+  e:      Encounter,
+  header: MonsterHeader
+): MonsterCombatant = {
   val number =
     e.info.combatants.collect { case c: MonsterCombatant if c.monsterHeader.id == header.id => c }.size + 1
 

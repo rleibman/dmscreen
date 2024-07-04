@@ -921,6 +921,14 @@ object QuillRepository {
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
+        override def monster(monsterId: MonsterId): DMScreenTask[Option[Monster]] =
+          ctx
+            .run(qMonsters.filter(_.id == lift(monsterId.value)))
+            .map(_.headOption.map(_.toModel))
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+
       }
     }
 
