@@ -46,12 +46,16 @@ case class DND5eState(
 )
 
 case class DMScreenState(
-  user:                  Option[User] = None,
-  campaignState:         Option[CampaignState] = None,
-  dnd5e:                 DND5eState = DND5eState(),
-  onModifyCampaignState: CampaignState => Callback = _ => Callback.empty,
-  dialogMode:            DialogMode = DialogMode.closed,
-  changeDialogMode:      DialogMode => Callback = _ => Callback.empty
+  user:          Option[User] = None,
+  campaignState: Option[CampaignState] = None,
+  dnd5e:         DND5eState = DND5eState(),
+  onModifyCampaignState: (CampaignState, String) => Callback = (
+    _,
+    _
+  ) => Callback.empty,
+  dialogMode:       DialogMode = DialogMode.closed,
+  changeDialogMode: DialogMode => Callback = _ => Callback.empty,
+  campaignLog:      Seq[String] = Seq.empty
   //  operationStream: Option[WebSocketHandler] = None
 )
 

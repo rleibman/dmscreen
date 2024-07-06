@@ -68,7 +68,8 @@ object PlayerPage extends DMScreenTab {
                         classes = List.empty
                       ).toJsonAST.toOption.get
                     )
-                    dmScreenState.onModifyCampaignState(campaignState.copy(pcs = campaignState.pcs :+ newPC))
+                    dmScreenState
+                      .onModifyCampaignState(campaignState.copy(pcs = campaignState.pcs :+ newPC), "Added new PC")
                     // TODO send to server
                   }
                 )("Add Character"),
@@ -86,7 +87,8 @@ object PlayerPage extends DMScreenTab {
                     playerCharacter = pc,
                     onDelete = deleteMe =>
                       dmScreenState.onModifyCampaignState(
-                        campaignState.copy(pcs = campaignState.pcs.filter(_.header.id != deleteMe.header.id))
+                        campaignState.copy(pcs = campaignState.pcs.filter(_.header.id != deleteMe.header.id)),
+                        s"Deleted player character ${pc.header.name}"
                         // TODO delete from server
                       )
                   )

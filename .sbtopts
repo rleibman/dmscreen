@@ -9,6 +9,6 @@
 #-J-XX:MaxMetaspaceSize=1024m
 # effectively adds GC to Perm space
 # must be enabled for CMSClassUnloadingEnabled to work
--J-Xmx4G
+-J-Xmx5G
 -J-Xss1024M
 -J-XX:+UseG1GC

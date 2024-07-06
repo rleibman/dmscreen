@@ -446,6 +446,8 @@ case class Language(name: String)
 
 object DeadDead
 
+final private val deadColor = "hsl(0, 100%, 25%, 0.8)"
+
 case class HitPoints(
   currentHitPoints:     DeathSave | Int, // TODO or DeadDead
   maxHitPoints:         Int,
@@ -454,12 +456,17 @@ case class HitPoints(
 ) {
 
   def currentMax: Int = overrideMaxHitPoints.getOrElse(maxHitPoints)
-  def lifeColor: String = {
-    s"hsl(${currentHitPoints match {
-        case DeathSave(_, _, _) => 0
-        case i: Int => (i * 120.0) / currentMax
-      }}, 85%, 50%, 0.8)"
-  }
+  def lifeColor: String =
+    currentHitPoints match {
+      case DeathSave(_, _, _) => deadColor
+      case i: Int => if (i <= 0) deadColor else s"hsl(${(i * 120.0) / currentMax}, 85%, 50%, 0.8)"
+    }
+
+  def isDead: Boolean =
+    currentHitPoints match {
+      case DeathSave(_, _, _) => true
+      case i: Int => i <= 0
+    }
 
 }
 

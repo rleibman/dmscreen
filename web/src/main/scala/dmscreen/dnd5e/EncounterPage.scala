@@ -30,6 +30,7 @@ import dmscreen.{CampaignId, DMScreenState, DMScreenTab, DialogMode}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
+import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES, SemanticWIDTHS}
@@ -106,7 +107,7 @@ object EncounterPage extends DMScreenTab {
                     round = if (encounter.info.round == 0) 1 else encounter.info.round // This is the first time we're running this encounter
                   ).toJsonAST.toOption.get
               )
-            modEncounter(modifiedEncounter) >> $.modState(
+            modEncounter(modifiedEncounter, "") >> $.modState(
               _.copy(
                 currentEncounterId = Some(encounter.header.id),
                 encounterMode = EncounterMode.combat
@@ -117,11 +118,15 @@ object EncounterPage extends DMScreenTab {
           def doDelete(deleteMe: Encounter): Callback =
             dmScreenState.onModifyCampaignState(
               campaignState
-                .copy(encounters = campaignState.encounters.filter(_.header.id != deleteMe.header.id))
-                // TODO delete from server
+                .copy(encounters = campaignState.encounters.filter(_.header.id != deleteMe.header.id)),
+              s"Deleted encounter ${deleteMe.header.name}"
+              // TODO delete from server
             )
 
-          def modEncounter(encounter: Encounter): Callback = {
+          def modEncounter(
+            encounter: Encounter,
+            log:       String
+          ): Callback = {
             dmScreenState.onModifyCampaignState(
               campaignState.copy(
                 encounters = campaignState.encounters.map {
@@ -129,7 +134,8 @@ object EncounterPage extends DMScreenTab {
                   case e                                       => e
                 },
                 changeStack = campaignState.changeStack.logEncounterChanges(encounter.header.id)
-              )
+              ),
+              log
             )
           }
 
@@ -309,7 +315,7 @@ object EncounterPage extends DMScreenTab {
                           EncounterEditor(
                             encounter,
                             onDelete = deleteMe => doDelete(deleteMe),
-                            onChange = encounter => modEncounter(encounter)
+                            onChange = encounter => modEncounter(encounter, "")
                           )
                         )
                       case EncounterMode.combat =>
@@ -317,8 +323,10 @@ object EncounterPage extends DMScreenTab {
                           CombatRunner(
                             encounter = encounter,
                             pcs = campaignState.pcs,
-                            onChange = encounter => modEncounter(encounter),
-                            logChange = s => Callback.log(s), // TODO add to encounter log
+                            onChange = (
+                              encounter,
+                              log
+                            ) => modEncounter(encounter, log),
                             onModeChange = mode =>
                               dmScreenState.changeDialogMode(
                                 if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
@@ -329,40 +337,39 @@ object EncounterPage extends DMScreenTab {
                                   currentEncounterId = Some(encounter.header.id),
                                   encounterMode = EncounterMode.edit
                                 )
-                              ), // TODO test this
+                              ),
                             onArchiveEncounter = encounter =>
                               modEncounter(
-                                encounter.copy(header = encounter.header.copy(status = EncounterStatus.archived))
+                                encounter.copy(header = encounter.header.copy(status = EncounterStatus.archived)),
+                                s"Archived encounter ${encounter.header.name}"
                               ) >> $.modState(
                                 _.copy(currentEncounterId = None)
-                              ) // TODO test this
+                              )
                           )
                         )
                     }
                   )
                 ),
               Grid.Column
-                .withKey("encounterLog")
+                .withKey("campaignLog")
                 .width(SemanticWIDTHS.`2`)(
                   Container
+                    .className("campaignLogContainer")
                     .fluid(true)(
                       if (state.encounterMode == EncounterMode.combat && currentEncounter.nonEmpty) {
                         VdomArray(
-                          Container(
-                            <.h2("Encounter Log")
-                          ),
-                          Container(
-                            <.h2("Dice Roller"),
-                            Button.compact(true).fluid(true).title("Roll a d4")("d4"), // TODO connect this
-                            Button.compact(true).fluid(true).title("Roll a d6")("d6"), // TODO connect this
-                            Button.compact(true).fluid(true).title("Roll a d10")("d10"), // TODO connect this
-                            Button.compact(true).fluid(true).title("Roll a d12")("d12"), // TODO connect this
-                            Button.compact(true).fluid(true).title("Roll a d20")("d20"), // TODO connect this
-                            Button.compact(true).fluid(true).title("Roll a percentile dice")("d100"), // TODO connect this
-                            Input
-                              .id("diceRollerInput").title("Roll a bunch of dice").value(
-                                "2d20"
-                              ) // TODO connect this, and paint a button
+                          <.h2("Campaign Log"),
+                          Container.className("campaignLog")(
+                            <.table(
+                              ^.className := "campaignLog", // TODO make this pretty, make it a fixed size, give it a scrollbar, etc
+                              <.tbody(
+                                dmScreenState.campaignLog.map(logEntry =>
+                                  <.tr(
+                                    <.td(logEntry)
+                                  )
+                                )*
+                              )
+                            )
                           )
                         )
 

@@ -49,7 +49,7 @@ enablePlugins(
   GitVersioning
 )
 
-val calibanVersion = "2.8.0"
+val calibanVersion = "2.8.1"
 val zioVersion = "2.1.5"
 val quillVersion = "4.8.5"
 val zioHttpVersion = "3.0.0-RC9"
@@ -111,8 +111,8 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
       "io.megl" %%% "zio-json-diffson"                                    % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.kevinlee" %%% "just-semver-core"                                % "0.13.0" withSources (),
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.30.1",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.30.1"
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.30.3",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.30.3"
     )
   )
 
@@ -192,6 +192,12 @@ val scalajsReactVersion = "2.1.1"
 lazy val bundlerSettings: Project => Project =
   _.enablePlugins(ScalaJSBundlerPlugin)
     .settings(
+      Compile / npmDependencies ++= Seq(
+        "@3d-dice/dice-ui"               -> "^0.4.0",
+        "@3d-dice/dice-parser-interface" -> "^0.2.0",
+        "@3d-dice/dice-box"              -> "^1.0.0",
+        "babylonjs-gltf2interface"       -> "^5.22.0"
+      ),
       webpack / version := "5.91.0",
       Compile / fastOptJS / artifactPath := ((Compile / fastOptJS / crossTarget).value /
         ((fastOptJS / moduleName).value + "-opt.js")),
@@ -239,7 +245,7 @@ lazy val web: Project = project
           case Some(relFile) => debugFolder / relFile.toString
         }
 
-        println(s"Trying to copy ${artifact.data.toPath} to ${target.toPath}")
+//        println(s"Trying to copy ${artifact.data.toPath} to ${target.toPath}")
         Files.copy(artifact.data.toPath, target.toPath, REPLACE_EXISTING)
       }
 
@@ -260,7 +266,7 @@ lazy val web: Project = project
           case Some(relFile) => distFolder / relFile.toString
         }
 
-        println(s"Trying to copy ${artifact.data.toPath} to ${target.toPath}")
+//        println(s"Trying to copy ${artifact.data.toPath} to ${target.toPath}")
         Files.copy(artifact.data.toPath, target.toPath, REPLACE_EXISTING)
       }
 
@@ -271,7 +277,7 @@ lazy val web: Project = project
 lazy val commonWeb: Project => Project =
   _.settings(
     libraryDependencies ++= Seq(
-      "net.leibman" %%% "dmscreen-stlib"              % "0.3.0-SNAPSHOT" withSources (),
+      "net.leibman" %%% "dmscreen-stlib"              % "0.4.0-SNAPSHOT" withSources (),
       "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
       "dev.zio" %%% "zio"                             % zioVersion withSources (),
       "com.softwaremill.sttp.client3" %%% "core"      % "3.9.7" withSources (),

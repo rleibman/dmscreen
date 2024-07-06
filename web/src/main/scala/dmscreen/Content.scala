@@ -278,10 +278,20 @@ object Content {
               ),
               changeDialogMode =
                 newMode => $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(dialogMode = newMode))),
-              onModifyCampaignState = newState =>
+              onModifyCampaignState = (
+                newState,
+                log
+              ) =>
                 // if the ticker is on, do nothing, otherwise start it
+                // TODO add to campaign log
                 $.modState(
-                  s => s.copy(dmScreenState = s.dmScreenState.copy(campaignState = Some(newState))),
+                  s =>
+                    s.copy(
+                      dmScreenState = s.dmScreenState.copy(
+                        campaignState = Some(newState),
+                        campaignLog = log.trim.headOption.map(_ => log.trim).toSeq ++ s.dmScreenState.campaignLog
+                      )
+                    ),
                   if (interval.isEmpty) {
                     startSaveTicker
                   } else {

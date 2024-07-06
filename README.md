@@ -36,6 +36,14 @@ Come chat with us on [![Badge-Discord]][Link-Discord].
 [Badge-Stage]: https://img.shields.io/badge/Project%20Stage-Concept-red.svg
 [Link-Stage-Page]: https://github.com/zio/zio/wiki/Project-Stages
 
+# stat block css
+We got it from https://codepen.io/retractedhack/pen/gPLpWe
+
+# Dice stuff
+Attempting to use this: https://fantasticdice.games/docs/0.6/intro.
+
+Example here: https://codesandbox.io/s/react-roller-advanced-notation-v1-0-5-rz0nmr?file=/src/App.js
+
 # graphql schema generation
 http://localhost:8079/api/dnd5e/schema
 

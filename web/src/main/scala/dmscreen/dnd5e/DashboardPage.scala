@@ -357,7 +357,8 @@ object DashboardPage extends DMScreenTab {
                             campaign =
                               campaign.copy(jsonInfo = campaign.info.copy(notes = newValue).toJsonAST.toOption.get),
                             changeStack = campaignState.changeStack.logCampaignChange()
-                          )
+                          ),
+                          ""
                         )
                     )
                 ),

@@ -205,7 +205,7 @@ object MonsterStatBlock {
               )
             )
           ),
-          <.hr(^.className := "orange-border")
+          <.hr(^.className := "orange-border bottom")
         )
       }
     }

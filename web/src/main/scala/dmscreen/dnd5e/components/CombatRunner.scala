@@ -69,8 +69,7 @@ object CombatRunner {
   case class Props(
     encounter:          Encounter,
     pcs:                Seq[PlayerCharacter],
-    onChange:           Encounter => Callback,
-    logChange:          String => Callback,
+    onChange:           (Encounter, String) => Callback,
     onEditEncounter:    Encounter => Callback,
     onArchiveEncounter: Encounter => Callback,
     onModeChange:       Mode => Callback
@@ -85,22 +84,23 @@ object CombatRunner {
       val encounter = state.encounter
 
       def modEncounter(
-        f:        Encounter => Encounter,
-        callback: => Callback = Callback.empty
+        f:   Encounter => Encounter,
+        log: String
       ) =
         $.modState(
           s => s.copy(encounter = f(s.encounter)),
-          callback >> $.state.flatMap(s => props.onChange(s.encounter))
+          $.state.flatMap(s => props.onChange(s.encounter, log))
         )
 
       def modEncounterInfo(
-        f:        EncounterInfo => EncounterInfo,
-        callback: Callback = Callback.empty
-      ) = modEncounter(e => e.copy(jsonInfo = f(e.info).toJsonAST.toOption.get))
+        f:   EncounterInfo => EncounterInfo,
+        log: String
+      ) = modEncounter(e => e.copy(jsonInfo = f(e.info).toJsonAST.toOption.get), log)
 
       DMScreenState.ctx.consume { dmScreenState =>
         def modPC(
-          pc: PlayerCharacter
+          pc:  PlayerCharacter,
+          log: String
         ) =
           dmScreenState.campaignState.fold(Callback.empty) { case dnd5eCampaignState: DND5eCampaignState =>
             dmScreenState.onModifyCampaignState(
@@ -110,7 +110,8 @@ object CombatRunner {
                   case p                                => p
                 },
                 changeStack = dnd5eCampaignState.changeStack.logPCChanges(pc.header.id)
-              )
+              ),
+              log
             )
           }
 
@@ -159,13 +160,15 @@ object CombatRunner {
                           _,
                           _
                         ) =>
-                          modEncounterInfo(info =>
-                            info
-                              .copy(combatants = info.combatants.map {
-                                case m: MonsterCombatant =>
-                                  m.copy(initiative = scala.util.Random.between(1, 21) + m.initiativeBonus)
-                                case pc => pc
-                              })
+                          modEncounterInfo(
+                            info =>
+                              info
+                                .copy(combatants = info.combatants.map {
+                                  case m: MonsterCombatant =>
+                                    m.copy(initiative = scala.util.Random.between(1, 21) + m.initiativeBonus)
+                                  case pc => pc
+                                }),
+                            "Rolled initiative for all NPCs"
                           )
                       )
                       .icon(true)(Icon.className("d20icon")),
@@ -177,25 +180,27 @@ object CombatRunner {
                           _,
                           _
                         ) =>
-                          modEncounterInfo(info =>
-                            info
-                              .copy(
-                                round = 1,
-                                combatants = info.combatants.map {
-                                  case m: MonsterCombatant =>
-                                    m.copy(
-                                      hitPoints = m.hitPoints.copy(currentHitPoints = m.hitPoints.maxHitPoints),
-                                      initiative = scala.util.Random.between(1, 21) + m.initiativeBonus,
-                                      conditions = Set.empty,
-                                      otherMarkers = List.empty
-                                    )
-                                  case pc: PlayerCharacterCombatant =>
-                                    pc.copy(otherMarkers = List.empty)
-                                }
-                              )
+                          modEncounterInfo(
+                            info =>
+                              info
+                                .copy(
+                                  round = 1,
+                                  combatants = info.combatants.map {
+                                    case m: MonsterCombatant =>
+                                      m.copy(
+                                        hitPoints = m.hitPoints.copy(currentHitPoints = m.hitPoints.maxHitPoints),
+                                        initiative = scala.util.Random.between(1, 21) + m.initiativeBonus,
+                                        conditions = Set.empty,
+                                        otherMarkers = List.empty
+                                      )
+                                    case pc: PlayerCharacterCombatant =>
+                                      pc.copy(otherMarkers = List.empty)
+                                  }
+                                ),
+                            "Cleared all NPC stats to beginning of combat"
                           )
                       )
-                      .icon(true)(Icon.className("clearIcon")), // TODO test this after I work on damage, conditions, markers
+                      .icon(true)(Icon.className("clearIcon")),
                     Button
                       .compact(true)
                       .title("Edit encounter")
@@ -227,13 +232,15 @@ object CombatRunner {
                           _,
                           _
                         ) =>
-                          modEncounterInfo { info =>
-                            if (info.currentTurn == info.combatants.length - 1) {
-                              info.copy(round = info.round + 1, currentTurn = 0)
-                            } else {
-                              info.copy(currentTurn = info.currentTurn + 1)
-                            }
-                          }
+                          modEncounterInfo(
+                            info =>
+                              if (info.currentTurn == info.combatants.length - 1) {
+                                info.copy(round = info.round + 1, currentTurn = 0)
+                              } else {
+                                info.copy(currentTurn = info.currentTurn + 1)
+                              },
+                            ""
+                          )
                       )
                       .title("Next turn")
                       .icon(true)(Icon.name(SemanticICONS.`step forward`))
@@ -268,12 +275,14 @@ object CombatRunner {
                             min = 1,
                             max = 30,
                             onChange = v =>
-                              modEncounterInfo(info =>
-                                info.copy(
-                                  currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
-                                  combatants = info.combatants.filter(_.id.value != combatant.id.value) :+ combatant
-                                    .copy(initiative = v.toInt)
-                                )
+                              modEncounterInfo(
+                                info =>
+                                  info.copy(
+                                    currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
+                                    combatants = info.combatants.filter(_.id.value != combatant.id.value) :+ combatant
+                                      .copy(initiative = v.toInt)
+                                  ),
+                                s"Setting initiative for ${combatant.name} to $v"
                               )
                           )
                         ),
@@ -286,6 +295,7 @@ object CombatRunner {
                             .color(SemanticCOLORS.green)
                             .basic(true)
                             .size(SemanticSIZES.mini)
+                            .disabled(!state.healOrDamage.contains(combatant.id))
                             .onClick(
                               (
                                 _,
@@ -301,11 +311,9 @@ object CombatRunner {
                                             case i: Int       => i + state.healOrDamage(combatant.id)
                                           })
                                       ).toJsonAST.toOption.get
-                                  )
+                                  ),
+                                  s"${combatant.name} healed ${state.healOrDamage(combatant.id)} points"
                                 ) >> $.modState(s => s.copy(healOrDamage = s.healOrDamage.filter(_._1 != combatant.id)))
-                                  >> $.props.flatMap(
-                                    _.logChange(s"${combatant.name} healed ${state.healOrDamage(combatant.id)} points")
-                                  )
                                 // TODO if healed from incapacited, log to the combat log
 
                             ),
@@ -335,6 +343,7 @@ object CombatRunner {
                             .color(SemanticCOLORS.red)
                             .basic(true)
                             .size(SemanticSIZES.mini)
+                            .disabled(!state.healOrDamage.contains(combatant.id))
                             .onClick(
                               (
                                 _,
@@ -350,13 +359,9 @@ object CombatRunner {
                                             case i: Int       => i - state.healOrDamage(combatant.id)
                                           })
                                       ).toJsonAST.toOption.get
-                                  )
+                                  ),
+                                  s"${pc.header.name} got ${state.healOrDamage(combatant.id)} points of damage"
                                 ) >> $.modState(s => s.copy(healOrDamage = s.healOrDamage.filter(_._1 != combatant.id)))
-                                  >> $.props.flatMap(
-                                    _.logChange(
-                                      s"${pc.header.name} got ${state.healOrDamage(combatant.id)} points of damage"
-                                    )
-                                  )
                             )
                           // TODO damage
                           // TODO death saves
@@ -364,7 +369,7 @@ object CombatRunner {
                           // TODO if incapacitated or dead, log to the combat log
                         ),
                         Table.Cell
-                          .singleLine(true).style(CSSProperties().set("background-color", pcInfo.hitPoints.lifeColor))(
+                          .singleLine(true).style(CSSProperties().set("backgroundColor", pcInfo.hitPoints.lifeColor))(
                             EditableComponent(
                               view = s"${pcInfo.hitPoints.currentHitPoints match {
                                   case ds: DeathSave => 0
@@ -374,7 +379,8 @@ object CombatRunner {
                                 pcInfo.hitPoints,
                                 hp =>
                                   modPC(
-                                    pc.copy(jsonInfo = pcInfo.copy(hitPoints = hp).toJsonAST.toOption.get)
+                                    pc.copy(jsonInfo = pcInfo.copy(hitPoints = hp).toJsonAST.toOption.get),
+                                    s"Setting hit points for ${pc.header.name} to $hp"
                                   )
                               ),
                               title = "Hit points",
@@ -389,8 +395,11 @@ object CombatRunner {
                             value = pcInfo.armorClass,
                             min = 1,
                             max = 30,
-                            onChange =
-                              v => modPC(pc.copy(jsonInfo = pcInfo.copy(armorClass = v.toInt).toJsonAST.toOption.get))
+                            onChange = v =>
+                              modPC(
+                                pc.copy(jsonInfo = pcInfo.copy(armorClass = v.toInt).toJsonAST.toOption.get),
+                                s"Setting armor class for ${pc.header.name} to $v"
+                              )
                           )
                         ),
                         Table.Cell.textAlign(semanticUiReactStrings.center)(
@@ -400,8 +409,13 @@ object CombatRunner {
                             )(_ => VdomNode(pcInfo.conditions.mkString(", "))),
                             edit = ConditionsEditor(
                               conditions = pcInfo.conditions,
-                              onChange =
-                                c => modPC(pc.copy(jsonInfo = pcInfo.copy(conditions = c).toJsonAST.toOption.get))
+                              onChange = c =>
+                                modPC(
+                                  pc.copy(jsonInfo = pcInfo.copy(conditions = c).toJsonAST.toOption.get),
+                                  if (c.isEmpty) s"Removing all conditions from ${pc.header.name}"
+                                  else
+                                    s"Setting conditions for ${pc.header.name} to ${c.map(_.toString).mkString(", ")}"
+                                )
                             ),
                             title = "Conditions",
                             onModeChange = mode =>
@@ -419,14 +433,18 @@ object CombatRunner {
                             edit = OtherMarkersEditor(
                               otherMarkers = combatant.otherMarkers,
                               onChange = m =>
-                                modEncounterInfo(info =>
-                                  info.copy(
-                                    combatants = info.combatants.map {
-                                      case pc: PlayerCharacterCombatant if pc.id == combatant.id =>
-                                        pc.copy(otherMarkers = m)
-                                      case c => c
-                                    }
-                                  )
+                                modEncounterInfo(
+                                  info =>
+                                    info.copy(
+                                      combatants = info.combatants.map {
+                                        case pc: PlayerCharacterCombatant if pc.id == combatant.id =>
+                                          pc.copy(otherMarkers = m)
+                                        case c => c
+                                      }
+                                    ),
+                                  if (m.isEmpty) s"Removing all other markers from ${combatant.name}"
+                                  else
+                                    s"Setting other markers for ${combatant.name} to ${m.map(_.name).mkString(", ")}"
                                 )
                             ),
                             title = "Other Markers",
@@ -458,13 +476,15 @@ object CombatRunner {
                             min = 1,
                             max = 30,
                             onChange = v =>
-                              modEncounterInfo(info =>
-                                info
-                                  .copy(
-                                    currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
-                                    combatants = info.combatants.filter(_.id.value != combatant.id.value) :+ combatant
-                                      .copy(initiative = v.toInt)
-                                  )
+                              modEncounterInfo(
+                                info =>
+                                  info
+                                    .copy(
+                                      currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
+                                      combatants = info.combatants.filter(_.id.value != combatant.id.value) :+ combatant
+                                        .copy(initiative = v.toInt)
+                                    ),
+                                s"Setting initiative for ${combatant.name} to $v"
                               )
                           )
                         ), // Add and round > 0
@@ -472,13 +492,15 @@ object CombatRunner {
                           EditableText(
                             value = combatant.name,
                             onChange = name =>
-                              modEncounterInfo(info =>
-                                info.copy(
-                                  combatants = info.combatants.map {
-                                    case m: MonsterCombatant if m.id == combatant.id => m.copy(name = name)
-                                    case c => c
-                                  }
-                                )
+                              modEncounterInfo(
+                                info =>
+                                  info.copy(
+                                    combatants = info.combatants.map {
+                                      case m: MonsterCombatant if m.id == combatant.id => m.copy(name = name)
+                                      case c => c
+                                    }
+                                  ),
+                                ""
                               )
                           )
                         ),
@@ -490,26 +512,26 @@ object CombatRunner {
                             .color(SemanticCOLORS.green)
                             .basic(true)
                             .size(SemanticSIZES.mini)
+                            .disabled(!state.healOrDamage.contains(combatant.id))
                             .onClick(
                               (
                                 _,
                                 _
                               ) =>
-                                modEncounterInfo(info =>
-                                  info.copy(combatants = info.combatants.map {
-                                    case m: MonsterCombatant if m.id == combatant.id =>
-                                      m.copy(hitPoints =
-                                        m.hitPoints.copy(currentHitPoints = m.hitPoints.currentHitPoints match {
-                                          case d: DeathSave => state.healOrDamage(combatant.id)
-                                          case i: Int       => i + state.healOrDamage(combatant.id)
-                                        })
-                                      )
-                                    case c => c
-                                  })
+                                modEncounterInfo(
+                                  info =>
+                                    info.copy(combatants = info.combatants.map {
+                                      case m: MonsterCombatant if m.id == combatant.id =>
+                                        m.copy(hitPoints =
+                                          m.hitPoints.copy(currentHitPoints = m.hitPoints.currentHitPoints match {
+                                            case d: DeathSave => state.healOrDamage(combatant.id)
+                                            case i: Int       => i + state.healOrDamage(combatant.id)
+                                          })
+                                        )
+                                      case c => c
+                                    }),
+                                  s"${combatant.name} healed ${state.healOrDamage(combatant.id)} points"
                                 ) >> $.modState(s => s.copy(healOrDamage = s.healOrDamage.filter(_._1 != combatant.id)))
-                                  >> $.props.flatMap(
-                                    _.logChange(s"${combatant.name} healed ${state.healOrDamage(combatant.id)} points")
-                                  )
                                 // TODO if healed from dead, add that to the combat log
                             ),
                           Input
@@ -538,33 +560,39 @@ object CombatRunner {
                             .color(SemanticCOLORS.red)
                             .basic(true)
                             .size(SemanticSIZES.mini)
+                            .disabled(!state.healOrDamage.contains(combatant.id))
                             .onClick(
                               (
                                 _,
                                 _
                               ) =>
-                                modEncounterInfo(info =>
-                                  info.copy(combatants = info.combatants.map {
-                                    case m: MonsterCombatant if m.id == combatant.id =>
-                                      m.copy(hitPoints =
-                                        m.hitPoints.copy(currentHitPoints = m.hitPoints.currentHitPoints match {
-                                          case d: DeathSave => state.healOrDamage(combatant.id)
-                                          case i: Int       => i - state.healOrDamage(combatant.id)
-                                        })
-                                      )
-                                    case c => c
-                                  })
-                                ) >> $.modState(s => s.copy(healOrDamage = s.healOrDamage.filter(_._1 != combatant.id)))
-                                  >> $.props.flatMap(
-                                    _.logChange(
-                                      s"${combatant.name} got ${state.healOrDamage(combatant.id)} points of damage"
-                                    )
-                                  ) // TODO if dead, add that to the combat log
+                                modEncounterInfo(
+                                  info =>
+                                    info.copy(combatants = info.combatants.map {
+                                      case m: MonsterCombatant if m.id == combatant.id =>
+                                        m.copy(hitPoints =
+                                          m.hitPoints.copy(currentHitPoints = m.hitPoints.currentHitPoints match {
+                                            case d: DeathSave => state.healOrDamage(combatant.id)
+                                            case i: Int       => i - state.healOrDamage(combatant.id)
+                                          })
+                                        )
+                                      case c => c
+                                    }),
+                                  ""
+                                )
+//                                    s.encounter.info.combatants
+//                                      .collectFirst {
+//                                        case c: MonsterCombatant if c.id == combatant.id && c.hitPoints.isDead => c
+//                                      }.fold(s"${combatant.name} got ${state.healOrDamage(combatant.id)} points of damage")(changed =>
+//                                            s"${combatant.name} got ${state.healOrDamage(combatant.id)} points of damage, ${changed.name} is finished! (${changed.hitPoints.currentHitPoints})"
+//                                        )
+//                                  )
+                                  >> $.modState(s => s.copy(healOrDamage = s.healOrDamage.filter(_._1 != combatant.id)))
                             )
                         ),
                         Table.Cell
                           .singleLine(true).style(
-                            CSSProperties().set("background-color", combatant.hitPoints.lifeColor)
+                            CSSProperties().set("backgroundColor", combatant.hitPoints.lifeColor)
                           )(
                             s"${combatant.hitPoints.currentHitPoints match {
                                 case ds: DeathSave => 0
@@ -577,11 +605,13 @@ object CombatRunner {
                             min = 1,
                             max = 30,
                             onChange = v =>
-                              modEncounterInfo(info =>
-                                info.copy(combatants = info.combatants.map {
-                                  case m: MonsterCombatant if m.id == combatant.id => m.copy(armorClass = v.toInt)
-                                  case c => c
-                                })
+                              modEncounterInfo(
+                                info =>
+                                  info.copy(combatants = info.combatants.map {
+                                    case m: MonsterCombatant if m.id == combatant.id => m.copy(armorClass = v.toInt)
+                                    case c => c
+                                  }),
+                                ""
                               )
                           )
                         ),
@@ -593,14 +623,18 @@ object CombatRunner {
                             edit = ConditionsEditor(
                               conditions = combatant.conditions,
                               onChange = c =>
-                                modEncounterInfo(info =>
-                                  info.copy(
-                                    combatants = info.combatants.map {
-                                      case m: MonsterCombatant if m.id == combatant.id =>
-                                        m.copy(conditions = c)
-                                      case c => c
-                                    }
-                                  )
+                                modEncounterInfo(
+                                  info =>
+                                    info.copy(
+                                      combatants = info.combatants.map {
+                                        case m: MonsterCombatant if m.id == combatant.id =>
+                                          m.copy(conditions = c)
+                                        case c => c
+                                      }
+                                    ),
+                                  if (c.isEmpty) s"Removing all conditions from ${combatant.name}"
+                                  else
+                                    s"Setting conditions for ${combatant.name} to ${c.map(_.toString).mkString(", ")}"
                                 )
                             ),
                             title = "Conditions",
@@ -619,14 +653,19 @@ object CombatRunner {
                             edit = OtherMarkersEditor(
                               otherMarkers = combatant.otherMarkers,
                               onChange = m =>
-                                modEncounterInfo(info =>
-                                  info.copy(
-                                    combatants = info.combatants.map {
-                                      case pc: PlayerCharacterCombatant if pc.id == combatant.id =>
-                                        pc.copy(otherMarkers = m)
-                                      case c => c
-                                    }
-                                  )
+                                modEncounterInfo(
+                                  info =>
+                                    info.copy(
+                                      combatants = info.combatants.map {
+                                        case pc: PlayerCharacterCombatant if pc.id == combatant.id =>
+                                          pc.copy(otherMarkers = m)
+                                        case c => c
+                                      }
+                                    ),
+                                  if (m.isEmpty)
+                                    s"Removing all other markers from ${combatant.name}"
+                                  else
+                                    s"Setting other markers for ${combatant.name} to ${m.map(_.name).mkString(", ")}"
                                 )
                             ),
                             title = "Other Markers",
@@ -651,9 +690,11 @@ object CombatRunner {
                                 _,
                                 _
                               ) =>
-                                modEncounterInfo(info =>
-                                  info.copy(combatants = info.combatants.filter(_.id.value != combatant.id.value))
-                                ) >> $.props.flatMap(_.logChange(s"${combatant.name} was removed from the encounter"))
+                                modEncounterInfo(
+                                  info =>
+                                    info.copy(combatants = info.combatants.filter(_.id.value != combatant.id.value)),
+                                  s"${combatant.name} was removed from the encounter"
+                                )
                             ),
                           Button
                             .compact(true)
@@ -665,14 +706,16 @@ object CombatRunner {
                                 _,
                                 _
                               ) =>
-                                modEncounterInfo(info =>
-                                  combatant match {
-                                    case m: MonsterCombatant =>
-                                      info.copy(combatants =
-                                        info.combatants :+
-                                          createMonsterCombatant(encounter, m.monsterHeader)
-                                      )
-                                  }
+                                modEncounterInfo(
+                                  info =>
+                                    combatant match {
+                                      case m: MonsterCombatant =>
+                                        info.copy(combatants =
+                                          info.combatants :+
+                                            createMonsterCombatant(encounter, m.monsterHeader)
+                                        )
+                                    },
+                                  s"Added another ${combatant.name} to the encounter"
                                 )
                             ),
                           Button
@@ -707,17 +750,19 @@ object CombatRunner {
     .build
 
   def apply(
-    encounter:          Encounter,
-    pcs:                Seq[PlayerCharacter],
-    onChange:           Encounter => Callback = _ => Callback.empty,
-    logChange:          String => Callback = _ => Callback.empty,
+    encounter: Encounter,
+    pcs:       Seq[PlayerCharacter],
+    onChange: (Encounter, String) => Callback = (
+      _,
+      _
+    ) => Callback.empty,
     onEditEncounter:    Encounter => Callback = _ => Callback.empty,
     onArchiveEncounter: Encounter => Callback = _ => Callback.empty,
     onModeChange:       Mode => Callback = _ => Callback.empty
   ): Unmounted[Props, State, Backend] =
     component
       .withKey(encounter.header.id.value.toString)(
-        Props(encounter, pcs, onChange, logChange, onEditEncounter, onArchiveEncounter, onModeChange)
+        Props(encounter, pcs, onChange, onEditEncounter, onArchiveEncounter, onModeChange)
       )
 
 }

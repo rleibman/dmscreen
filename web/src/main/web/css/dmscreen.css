@@ -100,20 +100,74 @@ alabel {
     text-align: center;
 }
 
-.notesSection {
-    margin-bottom: 3px;
-    border-bottom: 1px solid #7f8c8d;
-    overflow: auto;
-    scrollbar-width: thin;
+i.icon.d4icon:before {
+    content: url("/images/d4.svg");
+    position: relative;
+}
 
+i.icon.d6icon:before {
+    content: url("/images/d6.svg");
+    position: relative;
+}
+
+i.icon.d8icon:before {
+    content: url("/images/d8.svg");
+    position: relative;
+}
+
+i.icon.d10icon:before {
+    content: url("/images/d10.svg");
+    position: relative;
+}
+
+i.icon.d12icon:before {
+    content: url("/images/d12.svg");
+    position: relative;
 }
 
 i.icon.d20icon:before {
-    content: url("/images/d20_small.svg");
+    content: url("/images/d20.svg");
     position: relative;
-    top: -5px;
-    left: -2px;
 }
+
+i.icon.d4icon {
+    width: 70px;
+    vertical-align: inherit !important;
+}
+
+i.icon.d6icon {
+    width: 70px;
+    vertical-align: inherit !important;
+}
+
+i.icon.d8icon {
+    width: 70px;
+    vertical-align: inherit !important;
+}
+
+i.icon.d10icon {
+    width: 70px;
+    vertical-align: inherit !important;
+}
+
+i.icon.d12icon {
+    width: 70px;
+    vertical-align: inherit !important;
+}
+
+i.icon.d20icon {
+    width: 70px;
+    vertical-align: inherit !important;
+}
+
+button.diceButton {
+    width: 74px;
+    height: 74px;
+    padding: 0px !important;
+    color: white;
+    background-color: black;
+}
+
 
 i.icon.clearIcon:before {
     content: url("/images/clear_small.svg");
@@ -138,7 +192,8 @@ i.icon.clearIcon:before {
 }
 
 .accordion {
-/ / TODO temp, until we get a theme color: black;
+    /* TODO temp, until we get a theme */
+    color: black;
 }
 
 .healButton {
@@ -148,3 +203,45 @@ i.icon.clearIcon:before {
 .damageButton {
     width: 60px;
 }
+
+.ui.container.campaignLogContainer {
+    height: 100%;
+}
+
+.campaignLog {
+    background-color: #34495e;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    box-sizing: border-box;
+    transition: transform 0.2s;
+    overflow: scroll;
+    height: 100%;
+}
+
+.campaignLog td {
+    font-size: 8pt;
+}
+
+.campaignLog table {
+    border: 0px;
+}
+
+.notesSection {
+    margin-bottom: 3px;
+    border-bottom: 1px solid #7f8c8d;
+    overflow: auto;
+    scrollbar-width: thin;
+}
+
+#dice-box,
+#dice-box canvas {
+    position: fixed;
+    pointer-events: none;
+    z-index: 100;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 12.5%;
+}
+

@@ -126,7 +126,8 @@ object AppRouter {
                 ) =>
                   page.setEH(AppPage.about)(event.asInstanceOf[ReactEvent])
 
-              }("About")
+              }("About"),
+            <.div(^.width := 100.pct, ^.textAlign := "center", ^.display := "inline-block", DiceRoller())
           )
 
       }
