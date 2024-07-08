@@ -33,12 +33,12 @@ case class ClientConfiguration() {
         else ""
       }"
 
+  val saveCheckIntervalMS: Int = 4000
+
 }
 
 object ClientConfiguration {
 
-  val config = ClientConfiguration()
-
-  val live: ULayer[ClientConfiguration] = ZLayer.succeed(config)
+  val live = ClientConfiguration()
 
 }

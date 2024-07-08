@@ -44,7 +44,7 @@ object CharacterId {
 final case class CharacterHeader(
   id:         CharacterId,
   campaignId: CampaignId,
-  name:       String, // TODO make it optional
+  name:       Option[String],
   playerName: Option[String] = None
 ) extends HasId[CharacterId]
 

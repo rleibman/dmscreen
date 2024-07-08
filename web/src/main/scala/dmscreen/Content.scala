@@ -64,8 +64,6 @@ object Content {
 
   class Backend($ : BackendScope[Unit, State]) {
 
-    private val saveCheckIntervalMS: Int = 8000 // TODO move to config
-
     private var interval: js.UndefOr[js.timers.SetIntervalHandle] = js.undefined
 
     private def saveAll: Callback = {
@@ -87,7 +85,7 @@ object Content {
 
     private def startSaveTicker: Callback =
       Callback {
-        interval = js.timers.setInterval(saveCheckIntervalMS)(saveAll.runNow())
+        interval = js.timers.setInterval(ClientConfiguration.live.saveCheckIntervalMS)(saveAll.runNow())
       }
 
     def stopSaveTicker =
@@ -96,8 +94,8 @@ object Content {
         interval = js.undefined
       }
 
-    def render(s: State): VdomElement = {
-      DMScreenState.ctx.provide(s.dmScreenState) {
+    def render(state: State): VdomNode = {
+      DMScreenState.ctx.provide(state.dmScreenState) {
         <.div(
           ^.key    := "contentDiv",
           ^.height := 100.pct,
@@ -191,17 +189,24 @@ object Content {
             }
 
           val sceneSB: SelectionBuilder[CalibanScene, Scene] = (CalibanScene.header(
-            CalibanSceneHeader.id ~ CalibanSceneHeader.campaignId ~ CalibanSceneHeader.name ~ CalibanSceneHeader.orderCol
+            CalibanSceneHeader.id ~ CalibanSceneHeader.campaignId ~ CalibanSceneHeader.name ~ CalibanSceneHeader.orderCol ~ CalibanSceneHeader.isActive
           ) ~ CalibanScene.jsonInfo).map {
             (
               id:         Long,
               campaignId: Long,
               name:       String,
               orderCol:   Int,
+              isActive:   Boolean,
               info:       Json
             ) =>
               Scene(
-                SceneHeader(SceneId(id), CampaignId(campaignId), name, orderCol),
+                SceneHeader(
+                  id = SceneId(id),
+                  campaignId = CampaignId(campaignId),
+                  name = name,
+                  orderCol = orderCol,
+                  isActive = isActive
+                ),
                 info
               )
           }

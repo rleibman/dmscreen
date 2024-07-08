@@ -84,7 +84,7 @@ given JsonEncoder[GraphQLRequest] = JsonEncoder.derived[GraphQLRequest]
 
 object ScalaJSClientAdapter extends TimerSupport {
 
-  val serverUri = uri"http://${ClientConfiguration.config.host}/api/dnd5e"
+  val serverUri = uri"http://${ClientConfiguration.live.host}/api/dnd5e"
 
   given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
 

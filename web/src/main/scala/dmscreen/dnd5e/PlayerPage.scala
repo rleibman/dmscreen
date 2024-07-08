@@ -38,7 +38,7 @@ object PlayerPage extends DMScreenTab {
 
   class Backend($ : BackendScope[Unit, State]) {
 
-    def render(s: State) = {
+    def render(state: State) = {
       DMScreenState.ctx.consume { dmScreenState =>
         dmScreenState.campaignState.fold {
           <.div("Campaign Loading")

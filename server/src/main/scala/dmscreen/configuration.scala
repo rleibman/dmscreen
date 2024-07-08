@@ -71,7 +71,6 @@ case class AppConfig(
 ) {
 
   lazy val dataSource: HikariDataSource = {
-    println("Creating data source")
     val dsConfig = HikariConfig()
     dsConfig.setDriverClassName(dmscreen.db.dataSource.driver)
     dsConfig.setJdbcUrl(dmscreen.db.dataSource.url)

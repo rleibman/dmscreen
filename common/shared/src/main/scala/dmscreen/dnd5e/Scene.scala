@@ -47,7 +47,7 @@ case class SceneHeader(
   campaignId: CampaignId,
   name:       String,
   orderCol:   Int,
-  isActive:   Boolean = false
+  isActive:   Boolean
 ) extends HasId[SceneId]
 
 case class SceneInfo(

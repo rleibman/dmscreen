@@ -109,32 +109,32 @@ trait DND5eRepository[F[_]] extends GameRepository {
   def spells: F[Seq[Spell]]
 
   def upsert(
-    campaignHeader: CampaignHeader,
-    info:           Json
+    header: CampaignHeader,
+    info:   Json
   ): F[CampaignId]
   def upsert(
-    playerCharacterHeader: PlayerCharacterHeader,
-    info:                  Json
+    header: PlayerCharacterHeader,
+    info:   Json
   ): F[PlayerCharacterId]
   def upsert(
-    nonPlayerCharacterHeader: NonPlayerCharacterHeader,
-    info:                     Json
+    header: NonPlayerCharacterHeader,
+    info:   Json
   ): F[NonPlayerCharacterId]
   def upsert(
-    monsterHeader: MonsterHeader,
-    info:          Json
+    header: MonsterHeader,
+    info:   Json
   ): F[MonsterId]
   def upsert(
-    spellHeader: SpellHeader,
-    info:        Json
+    header: SpellHeader,
+    info:   Json
   ): F[SpellId]
   def upsert(
-    encounterHeader: EncounterHeader,
-    info:            Json
+    header: EncounterHeader,
+    info:   Json
   ): F[EncounterId]
   def upsert(
-    sceneHeader: SceneHeader,
-    info:        Json
+    header: SceneHeader,
+    info:   Json
   ): F[SceneId]
 
 }

@@ -71,7 +71,7 @@ object ArmorClassEditor {
               )
           )
           .value(state.armorClass)
-          // TODO add explanation of Armor class here, and maybe split the ac into multiple inputs, but frankly it's too complicated to
+          // ENHANCEMENT add explanation of Armor class here, and maybe split the ac into multiple inputs, but frankly it's too complicated to
           // calculate all of that here for now
       )
     }

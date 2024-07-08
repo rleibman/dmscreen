@@ -47,7 +47,7 @@ case class CampaignHeader(
   id:         CampaignId,
   dmUserId:   UserId,
   name:       String,
-  gameSystem: GameSystem = GameSystem.dnd5e
+  gameSystem: GameSystem
 ) extends HasId[CampaignId]
 
 trait Campaign[CampaignInfo] extends DMScreenEntity[CampaignId, CampaignHeader, CampaignInfo]

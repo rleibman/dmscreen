@@ -22,6 +22,7 @@
 package dmscreen.dnd5e
 
 import dmscreen.*
+import dmscreen.GameSystem.dnd5e
 import dmscreen.dnd5e.DND5eZIORepository
 import zio.*
 import zio.test.*
@@ -41,7 +42,7 @@ object StorageSpec extends ZIOSpecDefault {
           listAtStart <- service.campaigns
           startObject <- service.campaign(listAtStart.head.id)
           newId <- service.upsert(
-            CampaignHeader(CampaignId.empty, testUser, "Test Campaign 2"),
+            CampaignHeader(CampaignId.empty, testUser, "Test Campaign 2", gameSystem = dnd5e),
             DND5eCampaignInfo(notes = "These are some notes").toJsonAST.getOrElse(Json.Null)
           )
           listAfterInsert <- service.campaigns

@@ -352,7 +352,7 @@ object DiceRoller extends DMScreenTab {
               $.state.diceBox
                 .fold(Callback.empty) { db =>
                   Callback {
-                    println(s"onRollComplete = $results, ${scala.scalajs.js.JSON.stringify(results)}")
+//                    println(s"onRollComplete = $results, ${scala.scalajs.js.JSON.stringify(results)}")
                     db.hide().clear()
                   }
                 } >>

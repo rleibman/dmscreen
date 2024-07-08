@@ -125,10 +125,6 @@ class SRDImporter extends DND5eImporter[File, File, File, File] {
               )
           }
         }
-        if (res.isLeft)
-          println("hello")
-        else
-          ()
 
         res
       }

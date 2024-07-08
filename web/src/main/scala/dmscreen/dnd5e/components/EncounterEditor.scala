@@ -498,7 +498,7 @@ object EncounterEditor {
                                 _
                               ) => modMonsterSearch(_.copy(orderCol = MonsterSearchOrder.random))
                             )(
-                              Icon.name(SemanticICONS.`random`) 
+                              Icon.name(SemanticICONS.`random`)
                             ),
                           Button
                             .compact(true)

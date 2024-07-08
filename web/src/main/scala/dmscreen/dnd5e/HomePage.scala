@@ -33,7 +33,7 @@ object HomePage extends DMScreenTab {
 
   class Backend($ : BackendScope[Unit, State]) {
 
-    def render(s: State) = {
+    def render(state: State) = {
       <.div("Coming soon")
     }
 

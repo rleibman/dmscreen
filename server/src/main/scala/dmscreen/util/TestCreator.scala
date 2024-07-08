@@ -178,8 +178,13 @@ object TestCreator extends ZIOApp {
     ZIO.succeed(
       (1 to 5).map { index =>
         Scene(
-          header =
-            SceneHeader(id = SceneId.empty, campaignId = CampaignId(1), name = s"Scene #$index", orderCol = index - 1),
+          header = SceneHeader(
+            id = SceneId.empty,
+            campaignId = CampaignId(1),
+            name = s"Scene #$index",
+            orderCol = index - 1,
+            isActive = false
+          ),
           jsonInfo = SceneInfo().toJsonAST.toOption.get
         )
       }

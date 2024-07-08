@@ -70,7 +70,12 @@ object QuillRepository {
 
     def toModel: DND5eCampaign =
       DND5eCampaign(
-        header = CampaignHeader(id = CampaignId(id), dmUserId = UserId(dmUserId), name = name),
+        header = CampaignHeader(
+          id = CampaignId(id),
+          dmUserId = UserId(dmUserId),
+          name = name,
+          gameSystem = GameSystem.valueOf(gameSystem)
+        ),
         jsonInfo = info,
         version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
       )
@@ -952,7 +957,7 @@ object QuillRepository {
         override def upsert(
           header: SceneHeader,
           info:   Json
-        ): IO[DMScreenError, SceneId] =
+        ): IO[DMScreenError, SceneId] = {
           (if (header.id != SceneId.empty) {
              ctx
                .run(
@@ -986,6 +991,7 @@ object QuillRepository {
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+        }
 
       }
     }
