@@ -125,7 +125,7 @@ object PlayerCharacterClassEditor {
                                         playerCharacterClass.copy(
                                           characterClass = CharacterClassId.values
                                             .find(_.name == str).getOrElse(
-                                              throw new RuntimeException(
+                                              throw RuntimeException(
                                                 s"Bad data trying to find a characterClassId with ${changedData.value}"
                                               )
                                             ),
@@ -172,7 +172,7 @@ object PlayerCharacterClassEditor {
                                   Seq(playerCharacterClass.copy(subclass = changedData.value match {
                                     case s: String if s.isEmpty => None
                                     case s: String              => Some(SubClass(s))
-                                    case _ => throw new RuntimeException("Unexpected value")
+                                    case _ => throw RuntimeException("Unexpected value")
                                   })),
                                   1
                                 )

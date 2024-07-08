@@ -18,6 +18,7 @@ create table campaign
     dmUserId   int(11)                                              not null,
     `name`     text                                                 NOT NULL,
     `version`  text                                                 NOT NULL,
+    `deleted`  tinyint(4)                                           NOT NULL DEFAULT '0',
     info       json                                                 not null,
     gameSystem enum ('dnd5e', 'pathfinder2e', 'starTrekAdventures') not null,
     key campaign_dm (dmUserId),
@@ -28,13 +29,14 @@ create table campaign
 
 create table scene
 (
-    `id`       int(11) NOT NULL AUTO_INCREMENT,
-    campaignId int(11) not null,
-    `orderCol` int(11) not null,
-    `name`     text    NOT NULL,
-    info       json    not null,
-    `version`  text    NOT NULL,
-    `isActive` boolean not null,
+    `id`       int(11)    NOT NULL AUTO_INCREMENT,
+    campaignId int(11)    not null,
+    `orderCol` int(11)    not null,
+    `name`     text       NOT NULL,
+    info       json       not null,
+    `version`  text       NOT NULL,
+    `deleted`  tinyint(4) NOT NULL DEFAULT '0',
+    `isActive` boolean    not null,
     PRIMARY KEY (`id`),
     key scene_character_campaign (campaignId),
     constraint scene_character_campaign foreign key (campaignId) references `campaign` (id)
@@ -43,12 +45,13 @@ create table scene
 
 create table playerCharacter
 (
-    `id`         int(11) NOT NULL AUTO_INCREMENT,
-    campaignId   int(11) not null,
-    `name`       text    NOT NULL,
-    `playerName` text    NULL, -- TODO change to foreign key to user
-    info         json    not null,
-    `version`    text    NOT NULL,
+    `id`         int(11)    NOT NULL AUTO_INCREMENT,
+    campaignId   int(11)    not null,
+    `name`       text       NOT NULL,
+    `playerName` text       NULL, -- TODO change to foreign key to user
+    info         json       not null,
+    `version`    text       NOT NULL,
+    `deleted`    tinyint(4) NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
     key player_character_campaign (campaignId),
     constraint player_character_campaign foreign key (campaignId) references `campaign` (id)
@@ -57,14 +60,15 @@ create table playerCharacter
 
 create table encounter
 (
-    `id`       int(11) NOT NULL AUTO_INCREMENT,
-    campaignId int(11) not null,
-    sceneId    int(11) null,
-    `name`     text    NOT NULL,
-    `status`   text    NOT NULL,
-    `orderCol` int(11) null,
-    info       json    not null,
-    `version`  text    NOT NULL,
+    `id`       int(11)    NOT NULL AUTO_INCREMENT,
+    campaignId int(11)    not null,
+    sceneId    int(11)    null,
+    `name`     text       NOT NULL,
+    `status`   text       NOT NULL,
+    `orderCol` int(11)    null,
+    info       json       not null,
+    `version`  text       NOT NULL,
+    `deleted`  tinyint(4) NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
     key encounter_campaign (campaignId),
     constraint encounter_campaign foreign key (campaignId) references `campaign` (id),
@@ -76,11 +80,12 @@ create table encounter
 
 create table nonPlayerCharacter
 (
-    `id`       int(11) NOT NULL AUTO_INCREMENT,
-    campaignId int(11) not null,
-    `name`     text    NOT NULL,
-    info       json    not null,
-    `version`  text    NOT NULL,
+    `id`       int(11)    NOT NULL AUTO_INCREMENT,
+    campaignId int(11)    not null,
+    `name`     text       NOT NULL,
+    info       json       not null,
+    `version`  text       NOT NULL,
+    `deleted`  tinyint(4) NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
     key non_player_character_campaign (campaignId),
     constraint non_player_character_campaign foreign key (campaignId) references `campaign` (id)
@@ -90,19 +95,21 @@ create table nonPlayerCharacter
 
 create table monster
 (
-    `id`              int(11) NOT NULL AUTO_INCREMENT,
-    `name`            text    NOT NULL,
-    `monsterType`     text    NOT NULL,
-    `biome`           text    NULL,
-    `alignment`       text    NULL,
-    `cr`              double  NOT NULL,
-    `xp`              bigint  NOT NULL,
-    `armorClass`      int(11) NOT NULL,
-    `hitPoints`       int(11) NOT NULL,
-    `size`            text    NOT NULL,
-    `initiativeBonus` int(11) NOT NULL,
-    `info`            json    not null,
-    `version`         text    NOT NULL,
+    `id`              int(11)    NOT NULL AUTO_INCREMENT,
+    `sourceId`        text       NOT NULL,
+    `name`            text       NOT NULL,
+    `monsterType`     text       NOT NULL,
+    `biome`           text       NULL,
+    `alignment`       text       NULL,
+    `cr`              double     NOT NULL,
+    `xp`              bigint     NOT NULL,
+    `armorClass`      int(11)    NOT NULL,
+    `hitPoints`       int(11)    NOT NULL,
+    `size`            text       NOT NULL,
+    `initiativeBonus` int(11)    NOT NULL,
+    `info`            json       not null,
+    `version`         text       NOT NULL,
+    `deleted`         tinyint(4) NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;

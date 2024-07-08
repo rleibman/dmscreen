@@ -62,6 +62,6 @@ case class Scene(
   override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
 ) extends DMScreenEntity[SceneId, SceneHeader, SceneInfo] {
 
-  override val entityType: EntityType = DND5eEntityType.scene
+  override val entityType: EntityType[SceneId] = DND5eEntityType.scene
 
 }

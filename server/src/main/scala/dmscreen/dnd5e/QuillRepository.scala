@@ -52,7 +52,8 @@ object QuillRepository {
         dmUserId = header.dmUserId.value,
         gameSystem = header.gameSystem.toString,
         info = jsonInfo,
-        version = dmscreen.BuildInfo.version
+        version = dmscreen.BuildInfo.version,
+        deleted = false
       )
     }
 
@@ -63,7 +64,8 @@ object QuillRepository {
     dmUserId:   Long,
     gameSystem: String,
     info:       Json,
-    version:    String
+    version:    String,
+    deleted:    Boolean
   ) {
 
     def toModel: DND5eCampaign =
@@ -87,7 +89,8 @@ object QuillRepository {
         name = header.name,
         playerName = header.playerName,
         info = jsonInfo,
-        version = dmscreen.BuildInfo.version
+        version = dmscreen.BuildInfo.version,
+        deleted = false
       )
     }
 
@@ -99,7 +102,8 @@ object QuillRepository {
     name:       String,
     playerName: Option[String],
     info:       Json,
-    version:    String
+    version:    String,
+    deleted:    Boolean
   ) {
 
     def toModel: PlayerCharacter =
@@ -129,7 +133,8 @@ object QuillRepository {
         orderCol = header.orderCol,
         isActive = header.isActive,
         info = jsonInfo,
-        version = dmscreen.BuildInfo.version
+        version = dmscreen.BuildInfo.version,
+        deleted = false
       )
     }
 
@@ -142,7 +147,8 @@ object QuillRepository {
     orderCol:   Int,
     isActive:   Boolean,
     info:       Json,
-    version:    String
+    version:    String,
+    deleted:    Boolean
   ) {
 
     def toModel: Scene =
@@ -171,7 +177,8 @@ object QuillRepository {
         campaignId = header.campaignId.value,
         name = header.name,
         info = jsonInfo,
-        version = dmscreen.BuildInfo.version
+        version = dmscreen.BuildInfo.version,
+        deleted = false
       )
     }
 
@@ -182,7 +189,8 @@ object QuillRepository {
     campaignId: Long,
     name:       String,
     info:       Json,
-    version:    String
+    version:    String,
+    deleted:    Boolean
   ) {
 
     def toModel: NonPlayerCharacter =
@@ -212,7 +220,8 @@ object QuillRepository {
         status = header.status.toString,
         orderCol = header.orderCol,
         info = jsonInfo,
-        version = dmscreen.BuildInfo.version
+        version = dmscreen.BuildInfo.version,
+        deleted = false
       )
     }
 
@@ -226,7 +235,8 @@ object QuillRepository {
     status:     String,
     orderCol:   Int,
     info:       Json,
-    version:    String
+    version:    String,
+    deleted:    Boolean
   ) {
 
     def toModel: Encounter =
@@ -253,6 +263,7 @@ object QuillRepository {
     ): MonsterRow = {
       MonsterRow(
         id = header.id.value,
+        sourceId = header.sourceId.value,
         name = header.name,
         monsterType = header.monsterType.toString,
         biome = header.biome.map(_.toString),
@@ -264,7 +275,8 @@ object QuillRepository {
         size = header.size.toString,
         initiativeBonus = header.initiativeBonus,
         info = jsonInfo,
-        version = dmscreen.BuildInfo.version
+        version = dmscreen.BuildInfo.version,
+        deleted = false
       )
     }
 
@@ -272,6 +284,7 @@ object QuillRepository {
 
   private case class MonsterRow(
     id:              Long,
+    sourceId:        String,
     name:            String,
     monsterType:     String,
     biome:           Option[String],
@@ -282,14 +295,16 @@ object QuillRepository {
     hitPoints:       Int,
     size:            String,
     info:            Json,
+    initiativeBonus: Int,
     version:         String,
-    initiativeBonus: Int
+    deleted:         Boolean
   ) {
 
     def toModel: Monster =
       Monster(
         header = MonsterHeader(
           id = MonsterId(id),
+          sourceId = SourceId(sourceId),
           name = name,
           monsterType = MonsterType.valueOf(monsterType),
           biome = biome.map(Biome.valueOf),
@@ -397,14 +412,22 @@ object QuillRepository {
 
         override def playerCharacter(playerCharacterId: PlayerCharacterId): IO[DMScreenError, Option[PlayerCharacter]] =
           ctx
-            .run(qPlayerCharacters.filter(_.id == lift(playerCharacterId.value)))
+            .run(qPlayerCharacters.filter(v => !v.deleted && v.id == lift(playerCharacterId.value)))
             .map(_.headOption.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+        override def monster(monsterId: MonsterId): DMScreenTask[Option[Monster]] =
+          ctx
+            .run(qMonsters.filter(v => !v.deleted && v.id == lift(monsterId.value)))
+            .map(_.headOption.map(_.toModel))
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+
         override def scene(sceneId: SceneId): IO[DMScreenError, Option[Scene]] =
           ctx
-            .run(qScenes.filter(_.id == lift(sceneId.value)))
+            .run(qScenes.filter(v => !v.deleted && v.id == lift(sceneId.value)))
             .map(_.headOption.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
@@ -412,7 +435,7 @@ object QuillRepository {
 
         override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[DND5eCampaign]] =
           ctx
-            .run(qCampaigns.filter(_.id == lift(campaignId.value)))
+            .run(qCampaigns.filter(v => !v.deleted && v.id == lift(campaignId.value)))
             .map(_.headOption.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
@@ -420,14 +443,14 @@ object QuillRepository {
 
         override def playerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[PlayerCharacter]] =
           ctx
-            .run(qPlayerCharacters.filter(_.campaignId == lift(campaignId.value)))
+            .run(qPlayerCharacters.filter(v => !v.deleted && v.campaignId == lift(campaignId.value)))
             .map(_.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
         override def scenes(campaignId: CampaignId): IO[DMScreenError, Seq[Scene]] =
           ctx
-            .run(qScenes.filter(_.campaignId == lift(campaignId.value)).sortBy(_.orderCol))
+            .run(qScenes.filter(v => !v.deleted && v.campaignId == lift(campaignId.value)).sortBy(_.orderCol))
             .map(_.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
@@ -435,7 +458,7 @@ object QuillRepository {
 
         override def nonPlayerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[NonPlayerCharacter]] =
           ctx
-            .run(qNonPlayerCharacters.filter(_.campaignId == lift(campaignId.value)))
+            .run(qNonPlayerCharacters.filter(v => !v.deleted && v.campaignId == lift(campaignId.value)))
             .map(_.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
@@ -445,7 +468,7 @@ object QuillRepository {
           ctx
             .run(
               qEncounters
-                .filter(_.campaignId == lift(campaignId.value)).map(a =>
+                .filter(v => !v.deleted && v.campaignId == lift(campaignId.value)).map(a =>
                   (a.id, a.campaignId, a.sceneId, a.name, a.status, a.orderCol, a.info)
                 )
             )
@@ -469,7 +492,7 @@ object QuillRepository {
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def bestiary(search: MonsterSearch): IO[DMScreenError, MonsterSearchResults] = {
-          val q0: Quoted[EntityQuery[MonsterRow]] = qMonsters
+          val q0: Quoted[EntityQuery[MonsterRow]] = qMonsters.filter(v => !v.deleted)
           val q1: Quoted[EntityQuery[MonsterRow]] = search.name.fold(q0)(n => q0.filter(_.name like lift(s"%$n%")))
           val q2: Quoted[EntityQuery[MonsterRow]] =
             search.challengeRating.fold(q1)(n => q1.filter(_.cr == lift(n.value)))
@@ -567,7 +590,7 @@ object QuillRepository {
 
         @nowarn // We're using ClassTag to inject compile info to runtime so we can match on the IDType, but it still produces a warning
         override def applyOperations[IDType](
-          entityType: EntityType,
+          entityType: EntityType[IDType],
           id:         IDType,
           operations: DMScreenEvent*
         ): IO[DMScreenError, Unit] = {
@@ -592,7 +615,7 @@ object QuillRepository {
                     ctx
                       .run(
                         qCampaigns
-                          .filter(_.id == lift(campaignId.value)).update(a =>
+                          .filter(v => !v.deleted && v.id == lift(campaignId.value)).update(a =>
                             a.info -> jsonInsert(a.info, lift(path.value), lift(value))
                           )
                       )
@@ -600,7 +623,7 @@ object QuillRepository {
                     ctx
                       .run(
                         qCampaigns
-                          .filter(_.id == lift(campaignId.value)).update(a =>
+                          .filter(v => !v.deleted && v.id == lift(campaignId.value)).update(a =>
                             a.info -> jsonRemove(a.info, lift(path.value))
                           )
                       )
@@ -608,7 +631,7 @@ object QuillRepository {
                     ctx
                       .run(
                         qCampaigns
-                          .filter(_.id == lift(campaignId.value)).update(a =>
+                          .filter(v => !v.deleted && v.id == lift(campaignId.value)).update(a =>
                             a.info -> jsonReplace(a.info, lift(path.value), lift(value))
                           )
                       )
@@ -634,7 +657,7 @@ object QuillRepository {
                     ctx
                       .run(
                         qPlayerCharacters
-                          .filter(_.id == lift(playerCharacterId.value)).update(a =>
+                          .filter(v => !v.deleted && v.id == lift(playerCharacterId.value)).update(a =>
                             a.info -> jsonInsert(a.info, lift(path.value), lift(value))
                           )
                       )
@@ -642,7 +665,7 @@ object QuillRepository {
                     ctx
                       .run(
                         qPlayerCharacters
-                          .filter(_.id == lift(playerCharacterId.value)).update(a =>
+                          .filter(v => !v.deleted && v.id == lift(playerCharacterId.value)).update(a =>
                             a.info -> jsonRemove(a.info, lift(path.value))
                           )
                       )
@@ -650,7 +673,7 @@ object QuillRepository {
                     ctx
                       .run(
                         qPlayerCharacters
-                          .filter(_.id == lift(playerCharacterId.value)).update(a =>
+                          .filter(v => !v.deleted && v.id == lift(playerCharacterId.value)).update(a =>
                             a.info -> jsonReplace(a.info, lift(path.value), lift(value))
                           )
                       )
@@ -664,29 +687,65 @@ object QuillRepository {
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def deleteEntity[IDType](
-          entityType: EntityType,
+          entityType: EntityType[IDType],
           id:         IDType,
           softDelete: Boolean = true
         ): IO[DMScreenError, Unit] = {
-          // TODO implement soft deletes
-          entityType match {
-            case DND5eEntityType.campaign =>
-              ctx
-                .run(qCampaigns.filter(_.id == lift(id.asInstanceOf[CampaignId].value)).delete)
-                .unit
-                .provideLayer(dataSourceLayer)
-                .mapError(RepositoryError.apply)
-                .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-            case DND5eEntityType.playerCharacter =>
-              ctx
-                .run(qPlayerCharacters.filter(_.id == lift(id.asInstanceOf[PlayerCharacterId].value)).delete)
-                .unit
-                .provideLayer(dataSourceLayer)
-                .mapError(RepositoryError.apply)
-                .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-            case _ => ZIO.fail(DMScreenError(s"Don't know how to delete ${entityType.name}"))
-          }
-        }
+          if (softDelete) {
+            entityType match {
+              case DND5eEntityType.campaign =>
+                ctx
+                  .run(qCampaigns.filter(_.id == lift(id.asInstanceOf[CampaignId].value)).update(_.deleted -> true))
+              case DND5eEntityType.playerCharacter =>
+                ctx
+                  .run(
+                    qPlayerCharacters
+                      .filter(_.id == lift(id.asInstanceOf[PlayerCharacterId].value)).update(_.deleted -> true)
+                  )
+              case DND5eEntityType.nonPlayerCharacter =>
+                ctx
+                  .run(
+                    qNonPlayerCharacters
+                      .filter(_.id == lift(id.asInstanceOf[NonPlayerCharacterId].value)).update(_.deleted -> true)
+                  )
+              case DND5eEntityType.monster =>
+                ctx
+                  .run(qMonsters.filter(_.id == lift(id.asInstanceOf[MonsterId].value)).update(_.deleted -> true))
+              case DND5eEntityType.scene =>
+                ctx
+                  .run(qScenes.filter(_.id == lift(id.asInstanceOf[SceneId].value)).update(_.deleted -> true))
+              case DND5eEntityType.encounter =>
+                ctx
+                  .run(qEncounters.filter(_.id == lift(id.asInstanceOf[EncounterId].value)).update(_.deleted -> true))
+              case _ => ZIO.fail(DMScreenError(s"Don't know how to delete ${entityType.name}"))
+            }
+          } else
+            entityType match {
+              case DND5eEntityType.campaign =>
+                ctx
+                  .run(qCampaigns.filter(_.id == lift(id.asInstanceOf[CampaignId].value)).delete)
+              case DND5eEntityType.playerCharacter =>
+                ctx
+                  .run(qPlayerCharacters.filter(_.id == lift(id.asInstanceOf[PlayerCharacterId].value)).delete)
+              case DND5eEntityType.nonPlayerCharacter =>
+                ctx
+                  .run(qNonPlayerCharacters.filter(_.id == lift(id.asInstanceOf[NonPlayerCharacterId].value)).delete)
+              case DND5eEntityType.monster =>
+                ctx
+                  .run(qMonsters.filter(_.id == lift(id.asInstanceOf[MonsterId].value)).delete)
+              case DND5eEntityType.scene =>
+                ctx
+                  .run(qScenes.filter(_.id == lift(id.asInstanceOf[SceneId].value)).delete)
+              case DND5eEntityType.encounter =>
+                ctx
+                  .run(qEncounters.filter(_.id == lift(id.asInstanceOf[EncounterId].value)).delete)
+              case _ => ZIO.fail(DMScreenError(s"Don't know how to delete ${entityType.name}"))
+            }
+
+        }.unit
+          .provideLayer(dataSourceLayer)
+          .mapError(RepositoryError.apply)
+          .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def spells: IO[DMScreenError, Seq[Spell]] = ???
 
@@ -698,7 +757,7 @@ object QuillRepository {
              ctx
                .run(
                  qCampaigns
-                   .filter(_.id == lift(header.id.value))
+                   .filter(v => !v.deleted && v.id == lift(header.id.value))
                    .updateValue(lift(CampaignRow.fromModel(header, info)))
                )
                .as(header.id)
@@ -714,7 +773,8 @@ object QuillRepository {
                          dmUserId = header.dmUserId.value,
                          gameSystem = header.gameSystem.toString,
                          info = info,
-                         version = dmscreen.BuildInfo.version
+                         version = dmscreen.BuildInfo.version,
+                         deleted = false
                        )
                      )
                    )
@@ -734,7 +794,7 @@ object QuillRepository {
              ctx
                .run(
                  qPlayerCharacters
-                   .filter(_.id == lift(header.id.value))
+                   .filter(v => !v.deleted && v.id == lift(header.id.value))
                    .updateValue(lift(PlayerCharacterRow.fromModel(header, info)))
                )
                .as(header.id)
@@ -750,7 +810,8 @@ object QuillRepository {
                          name = header.name,
                          playerName = header.playerName,
                          info = info,
-                         version = dmscreen.BuildInfo.version
+                         version = dmscreen.BuildInfo.version,
+                         deleted = false
                        )
                      )
                    )
@@ -770,7 +831,7 @@ object QuillRepository {
              ctx
                .run(
                  qNonPlayerCharacters
-                   .filter(_.id == lift(header.id.value))
+                   .filter(v => !v.deleted && v.id == lift(header.id.value))
                    .updateValue(lift(NonPlayerCharacterRow.fromModel(header, info)))
                )
                .as(header.id)
@@ -785,7 +846,8 @@ object QuillRepository {
                          campaignId = header.campaignId.value,
                          name = header.name,
                          info = info,
-                         version = dmscreen.BuildInfo.version
+                         version = dmscreen.BuildInfo.version,
+                         deleted = false
                        )
                      )
                    )
@@ -805,7 +867,7 @@ object QuillRepository {
              ctx
                .run(
                  qMonsters
-                   .filter(_.id == lift(header.id.value))
+                   .filter(v => !v.deleted && v.id == lift(header.id.value))
                    .updateValue(lift(MonsterRow.fromModel(header, info)))
                )
                .as(header.id)
@@ -817,6 +879,7 @@ object QuillRepository {
                      lift(
                        MonsterRow(
                          id = MonsterId.empty.value,
+                         sourceId = header.sourceId.value,
                          name = header.name,
                          monsterType = header.monsterType.toString,
                          biome = header.biome.map(_.toString),
@@ -828,7 +891,8 @@ object QuillRepository {
                          size = header.size.toString,
                          initiativeBonus = header.initiativeBonus,
                          info = info,
-                         version = dmscreen.BuildInfo.version
+                         version = dmscreen.BuildInfo.version,
+                         deleted = false
                        )
                      )
                    )
@@ -853,7 +917,7 @@ object QuillRepository {
              ctx
                .run(
                  qEncounters
-                   .filter(_.id == lift(header.id.value))
+                   .filter(v => !v.deleted && v.id == lift(header.id.value))
                    .updateValue(lift(EncounterRow.fromModel(header, info)))
                )
                .as(header.id)
@@ -871,7 +935,8 @@ object QuillRepository {
                          status = header.status.toString,
                          orderCol = header.orderCol,
                          info = info,
-                         version = dmscreen.BuildInfo.version
+                         version = dmscreen.BuildInfo.version,
+                         deleted = false
                        )
                      )
                    )
@@ -892,7 +957,7 @@ object QuillRepository {
              ctx
                .run(
                  qScenes
-                   .filter(_.id == lift(header.id.value))
+                   .filter(v => !v.deleted && v.id == lift(header.id.value))
                    .updateValue(lift(SceneRow.fromModel(header, info)))
                )
                .as(header.id)
@@ -909,7 +974,8 @@ object QuillRepository {
                          orderCol = header.orderCol,
                          isActive = header.isActive,
                          info = info,
-                         version = dmscreen.BuildInfo.version
+                         version = dmscreen.BuildInfo.version,
+                         deleted = false
                        )
                      )
                    )
@@ -917,14 +983,6 @@ object QuillRepository {
                )
                .map(SceneId.apply)
            })
-            .provideLayer(dataSourceLayer)
-            .mapError(RepositoryError.apply)
-            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-
-        override def monster(monsterId: MonsterId): DMScreenTask[Option[Monster]] =
-          ctx
-            .run(qMonsters.filter(_.id == lift(monsterId.value)))
-            .map(_.headOption.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))

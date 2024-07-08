@@ -104,11 +104,25 @@ object SourceId {
 
   def apply(sourceId: String): SourceId = sourceId
 
-  extension (sourceId: SourceId) {
+  val homebrew:                SourceId = "homebrew"
+  val systemReferenceDocument: SourceId = "srd"
 
-    def value: String = sourceId
+  extension (value: SourceId) {
+
+    def value: String = value
 
   }
+
+}
+
+object Source {
+
+  val homebrew: Source = Source("Homebrew", SourceId.homebrew, None)
+  val systemReferenceDocument: Source = Source(
+    "System Reference Document",
+    SourceId.systemReferenceDocument,
+    Some("https://dnd.wizards.com/resources/systems-reference-document")
+  )
 
 }
 
@@ -562,6 +576,6 @@ case class PlayerCharacter(
   override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
 ) extends DMScreenEntity[PlayerCharacterId, PlayerCharacterHeader, PlayerCharacterInfo] {
 
-  override def entityType: EntityType = DND5eEntityType.playerCharacter
+  override def entityType: EntityType[PlayerCharacterId] = DND5eEntityType.playerCharacter
 
 }

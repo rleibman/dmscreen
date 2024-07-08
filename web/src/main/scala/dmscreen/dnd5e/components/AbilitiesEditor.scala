@@ -69,7 +69,7 @@ object AbilitiesEditor {
             Table.HeaderCell("Value"),
             Table.Cell(
               Input
-                .`type`("number").size(SemanticSIZES.mini).min(1).max(20).onChange(
+                .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
                   (
                     _,
                     changedData
@@ -88,7 +88,7 @@ object AbilitiesEditor {
             ),
             Table.Cell(
               Input
-                .`type`("number").size(SemanticSIZES.mini).min(1).max(20).onChange(
+                .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
                   (
                     _,
                     changedData
@@ -107,7 +107,7 @@ object AbilitiesEditor {
             ),
             Table.Cell(
               Input
-                .`type`("number").size(SemanticSIZES.mini).min(1).max(20).onChange(
+                .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
                   (
                     _,
                     changedData
@@ -128,7 +128,7 @@ object AbilitiesEditor {
             ),
             Table.Cell(
               Input
-                .`type`("number").size(SemanticSIZES.mini).min(1).max(20).onChange(
+                .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
                   (
                     _,
                     changedData
@@ -168,7 +168,7 @@ object AbilitiesEditor {
             ),
             Table.Cell(
               Input
-                .`type`("number").size(SemanticSIZES.mini).min(1).max(20).onChange(
+                .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
                   (
                     _,
                     changedData

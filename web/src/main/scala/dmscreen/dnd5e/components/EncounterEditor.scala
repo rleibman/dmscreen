@@ -102,11 +102,19 @@ object EncounterEditor {
 
   }
 
+  enum CloneMonster {
+
+    case yes, no
+
+  }
+
   case class State(
-    encounter:     Encounter,
-    monsterSearch: MonsterSearch = MonsterSearch(),
-    monsters:      List[MonsterHeader] = List.empty,
-    monsterCount:  Long = 0
+    encounter:      Encounter,
+    monsterSearch:  MonsterSearch = MonsterSearch(),
+    monsters:       List[MonsterHeader] = List.empty,
+    monsterCount:   Long = 0,
+    editingMonster: Option[(MonsterId, CloneMonster)] = None,
+    viewMonsterId:  Option[MonsterId] = None
   )
 
   case class Props(
@@ -125,6 +133,7 @@ object EncounterEditor {
             .header(
               CalibanMonsterHeader.id ~
                 CalibanMonsterHeader.name ~
+                CalibanMonsterHeader.sourceId ~
                 CalibanMonsterHeader.monsterType ~
                 CalibanMonsterHeader.biome ~
                 CalibanMonsterHeader.alignment ~
@@ -138,6 +147,7 @@ object EncounterEditor {
               (
                 id,
                 name,
+                sourceId,
                 monsterType,
                 biome,
                 alignment,
@@ -151,6 +161,7 @@ object EncounterEditor {
                 MonsterHeader(
                   id = MonsterId(id),
                   name = name,
+                  sourceId = SourceId(sourceId),
                   monsterType = MonsterType.valueOf(monsterType.value),
                   biome = biome.map(a => Biome.valueOf(a.value)),
                   alignment = alignment.map(a => Alignment.valueOf(a.value)),
@@ -222,6 +233,32 @@ object EncounterEditor {
         val encounter = props.encounter
 
         Container(
+          state.viewMonsterId.fold(EmptyVdom: VdomNode)(monsterId =>
+            Modal
+              .open(true)
+              .size(semanticUiReactStrings.tiny)
+              .closeIcon(true)
+              .onClose(
+                (
+                  _,
+                  _
+                ) => $.modState(_.copy(viewMonsterId = None))
+              )(
+                Modal.Content(MonsterStatBlock(monsterId))
+              ): VdomNode
+          ),
+          state.editingMonster.fold(EmptyVdom)(
+            (
+              monsterId,
+              cloneMonster
+            ) =>
+              MonsterEditor(
+                monsterId,
+                cloneMonster = cloneMonster == CloneMonster.yes,
+                onClose = monster =>
+                  $.modState(_.copy(editingMonster = None), modMonsterSearch(_.copy(name = Some(monster.header.name))))
+              )
+          ),
           Table(
             Table.Header(
               Table.Row(
@@ -392,12 +429,24 @@ object EncounterEditor {
                               })
                           }
                           .icon(true)(Icon.name(SemanticICONS.`clone outline`))
-                          .when(state.encounter.header.status != EncounterStatus.archived)
+                          .when(state.encounter.header.status != EncounterStatus.archived),
+                        Button
+                          .title("View Monster Stat Block")
+                          .compact(true)
+                          .size(SemanticSIZES.mini)
+                          .icon(true)(Icon.name(SemanticICONS.`eye`))
+                          .onClick(
+                            (
+                              _,
+                              _
+                            ) => $.modState(_.copy(viewMonsterId = Some(combatant.monsterHeader.id)))
+                          )
                       )
                     )
                 }*
             )
           ),
+          // ENHANCEMENT move this into a component of it's own
           Table
             .sortable(true)(
               Table.Header(
@@ -447,9 +496,23 @@ object EncounterEditor {
                               (
                                 _,
                                 _
-                              ) => modMonsterSearch(_ => MonsterSearch())
+                              ) => modMonsterSearch(_.copy(orderCol = MonsterSearchOrder.random))
                             )(
-                              Icon.name(SemanticICONS.`random`) // Add random combatant that matches the results
+                              Icon.name(SemanticICONS.`random`) 
+                            ),
+                          Button
+                            .compact(true)
+                            .title("Brand new Homebrew monster")
+                            .icon(true)
+                            .onClick(
+                              (
+                                _,
+                                _
+                              ) =>
+                                $.modState(_.copy(editingMonster = Some((MonsterId.empty, CloneMonster.no)))) >>
+                                  modMonsterSearch(_ => MonsterSearch()) // Clear the search
+                            )(
+                              Icon.name(SemanticICONS.add)
                             )
                         ),
                       Form.Group(
@@ -642,6 +705,61 @@ object EncounterEditor {
                     Table.Cell(header.maximumHitPoints),
                     Table.Cell(header.size.toString.capitalize),
                     Table.Cell(
+                      Button
+                        .size(SemanticSIZES.mini)
+                        .compact(true)
+                        .title("Delete this monster")
+                        .onClick(
+                          (
+                            _,
+                            _
+                          ) =>
+                            _root_.components.Confirm.confirm(
+                              question = "Are you 100% sure you want to delete this monster?",
+                              onConfirm = GraphQLRepository.live
+                                .deleteEntity(DND5eEntityType.monster, header.id)
+                                .map(_ => modMonsterSearch(_ => MonsterSearch()))
+                                .completeWith(_.get)
+                            )
+                        )
+                        .icon(true)(Icon.name(SemanticICONS.`trash`)).when(header.sourceId == SourceId.homebrew),
+                      Button
+                        .size(SemanticSIZES.mini)
+                        .compact(true)
+                        .title("Create a new monster with this one as template")
+                        .onClick(
+                          (
+                            _,
+                            _
+                          ) =>
+                            $.modState(_.copy(editingMonster = Some((header.id, CloneMonster.yes)))) >>
+                              modMonsterSearch(_ => MonsterSearch()) // Clear the search
+                        )
+                        .icon(true)(Icon.name(SemanticICONS.`clone outline`)),
+                      Button
+                        .title("View Monster Stat Block")
+                        .compact(true)
+                        .size(SemanticSIZES.mini)
+                        .icon(true)(Icon.name(SemanticICONS.`eye`))
+                        .onClick(
+                          (
+                            _,
+                            _
+                          ) => $.modState(_.copy(viewMonsterId = Some(header.id)))
+                        ),
+                      Button
+                        .title("Edit Monster")
+                        .compact(true)
+                        .size(SemanticSIZES.mini)
+                        .icon(true)(Icon.name(SemanticICONS.`edit`))
+                        .onClick(
+                          (
+                            _,
+                            _
+                          ) =>
+                            $.modState(_.copy(editingMonster = Some((header.id, CloneMonster.no)))) >>
+                              modMonsterSearch(_ => MonsterSearch()) // Clear the search
+                        ).when(header.sourceId == SourceId.homebrew),
                       Button
                         .size(SemanticSIZES.mini)
                         .compact(true)

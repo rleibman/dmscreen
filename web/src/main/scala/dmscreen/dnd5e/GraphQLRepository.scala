@@ -61,16 +61,20 @@ object GraphQLRepository {
     override def scene(sceneId: SceneId): AsyncCallback[Option[Scene]] = ???
 
     override def applyOperations[IDType](
-      entityType: EntityType,
+      entityType: EntityType[IDType],
       id:         IDType,
       operations: DMScreenEvent*
     ): AsyncCallback[Unit] = ???
 
     override def deleteEntity[IDType](
-      entityType: EntityType,
+      entityType: EntityType[IDType],
       id:         IDType,
       softDelete: Boolean
-    ): AsyncCallback[Unit] = ???
+    ): AsyncCallback[Unit] = {
+
+      val sb = Mutations.deleteEntity(entityType.name, id.asInstanceOf[Long], softDelete)
+      asyncCalibanCall(sb).map(_.get)
+    }
 
     override def playerCharacters(campaignId: CampaignId): AsyncCallback[Seq[PlayerCharacter]] = ???
 
@@ -148,6 +152,7 @@ object GraphQLRepository {
       val headerInput = MonsterHeaderInput(
         id = monsterHeader.id.value,
         name = monsterHeader.name,
+        sourceId = monsterHeader.sourceId.value,
         monsterType = DND5eClient.MonsterType.values.find(_.value == monsterHeader.monsterType.toString).get,
         biome = monsterHeader.biome,
         alignment = monsterHeader.alignment,
@@ -207,6 +212,7 @@ object GraphQLRepository {
       val monsterSB: SelectionBuilder[CalibanMonster, Monster] = (CalibanMonster.header(
         CalibanMonsterHeader.id ~
           CalibanMonsterHeader.name ~
+          CalibanMonsterHeader.sourceId ~
           CalibanMonsterHeader.monsterType ~
           CalibanMonsterHeader.biome ~
           CalibanMonsterHeader.alignment ~
@@ -220,6 +226,7 @@ object GraphQLRepository {
         case (
               id:               Long,
               name:             String,
+              sourceId:         String,
               monsterType:      CalibanMonsterType,
               biome:            Option[CalibanBiome],
               alignment:        Option[CalibanAlignment],
@@ -235,6 +242,7 @@ object GraphQLRepository {
             MonsterHeader(
               id = MonsterId(id),
               name = name,
+              sourceId = SourceId(sourceId),
               monsterType = MonsterType.valueOf(monsterType.value),
               biome = biome.map(a => Biome.valueOf(a.value)),
               alignment = alignment.map(a => Alignment.valueOf(a.value)),

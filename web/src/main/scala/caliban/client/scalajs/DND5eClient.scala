@@ -164,42 +164,6 @@ object DND5eClient {
 
   }
 
-  sealed trait DND5eEntityType extends scala.Product with scala.Serializable { def value: String }
-  object DND5eEntityType {
-
-    case object campaign extends DND5eEntityType { val value: String = "campaign" }
-    case object encounter extends DND5eEntityType { val value: String = "encounter" }
-    case object monster extends DND5eEntityType { val value: String = "monster" }
-    case object nonPlayerCharacter extends DND5eEntityType { val value: String = "nonPlayerCharacter" }
-    case object playerCharacter extends DND5eEntityType { val value: String = "playerCharacter" }
-    case object scene extends DND5eEntityType { val value: String = "scene" }
-    case object spell extends DND5eEntityType { val value: String = "spell" }
-
-    implicit val decoder: ScalarDecoder[DND5eEntityType] = {
-      case __StringValue("campaign")           => Right(DND5eEntityType.campaign)
-      case __StringValue("encounter")          => Right(DND5eEntityType.encounter)
-      case __StringValue("monster")            => Right(DND5eEntityType.monster)
-      case __StringValue("nonPlayerCharacter") => Right(DND5eEntityType.nonPlayerCharacter)
-      case __StringValue("playerCharacter")    => Right(DND5eEntityType.playerCharacter)
-      case __StringValue("scene")              => Right(DND5eEntityType.scene)
-      case __StringValue("spell")              => Right(DND5eEntityType.spell)
-      case other                               => Left(DecodingError(s"Can't build DND5eEntityType from input $other"))
-    }
-    implicit val encoder: ArgEncoder[DND5eEntityType] = {
-      case DND5eEntityType.campaign           => __EnumValue("campaign")
-      case DND5eEntityType.encounter          => __EnumValue("encounter")
-      case DND5eEntityType.monster            => __EnumValue("monster")
-      case DND5eEntityType.nonPlayerCharacter => __EnumValue("nonPlayerCharacter")
-      case DND5eEntityType.playerCharacter    => __EnumValue("playerCharacter")
-      case DND5eEntityType.scene              => __EnumValue("scene")
-      case DND5eEntityType.spell              => __EnumValue("spell")
-    }
-
-    val values: scala.collection.immutable.Vector[DND5eEntityType] =
-      scala.collection.immutable.Vector(campaign, encounter, monster, nonPlayerCharacter, playerCharacter, scene, spell)
-
-  }
-
   sealed trait GameSystem extends scala.Product with scala.Serializable { def value: String }
   object GameSystem {
 
@@ -278,6 +242,7 @@ object DND5eClient {
     case object Plant extends MonsterType { val value: String = "Plant" }
     case object Swarm extends MonsterType { val value: String = "Swarm" }
     case object Undead extends MonsterType { val value: String = "Undead" }
+    case object Unknown extends MonsterType { val value: String = "Unknown" }
 
     implicit val decoder: ScalarDecoder[MonsterType] = {
       case __StringValue("Aberration")  => Right(MonsterType.Aberration)
@@ -295,6 +260,7 @@ object DND5eClient {
       case __StringValue("Plant")       => Right(MonsterType.Plant)
       case __StringValue("Swarm")       => Right(MonsterType.Swarm)
       case __StringValue("Undead")      => Right(MonsterType.Undead)
+      case __StringValue("Unknown")     => Right(MonsterType.Unknown)
       case other                        => Left(DecodingError(s"Can't build MonsterType from input $other"))
     }
     implicit val encoder: ArgEncoder[MonsterType] = {
@@ -313,6 +279,7 @@ object DND5eClient {
       case MonsterType.Plant       => __EnumValue("Plant")
       case MonsterType.Swarm       => __EnumValue("Swarm")
       case MonsterType.Undead      => __EnumValue("Undead")
+      case MonsterType.Unknown     => __EnumValue("Unknown")
     }
 
     val values: scala.collection.immutable.Vector[MonsterType] = scala.collection.immutable.Vector(
@@ -330,7 +297,8 @@ object DND5eClient {
       Ooze,
       Plant,
       Swarm,
-      Undead
+      Undead,
+      Unknown
     )
 
   }
@@ -489,7 +457,9 @@ object DND5eClient {
   type MonsterHeader
   object MonsterHeader {
 
-    def id:   SelectionBuilder[MonsterHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
+    def id: SelectionBuilder[MonsterHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
+    def sourceId: SelectionBuilder[MonsterHeader, String] =
+      _root_.caliban.client.SelectionBuilder.Field("sourceId", Scalar())
     def name: SelectionBuilder[MonsterHeader, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
     def monsterType: SelectionBuilder[MonsterHeader, MonsterType] =
       _root_.caliban.client.SelectionBuilder.Field("monsterType", Scalar())
@@ -705,6 +675,7 @@ object DND5eClient {
   }
   final case class MonsterHeaderInput(
     id:               Long,
+    sourceId:         String,
     name:             String,
     monsterType:      MonsterType,
     biome:            scala.Option[Biome] = None,
@@ -723,6 +694,7 @@ object DND5eClient {
         __ObjectValue(
           List(
             "id"          -> implicitly[ArgEncoder[Long]].encode(value.id),
+            "sourceId"    -> implicitly[ArgEncoder[String]].encode(value.sourceId),
             "name"        -> implicitly[ArgEncoder[String]].encode(value.name),
             "monsterType" -> implicitly[ArgEncoder[MonsterType]].encode(value.monsterType),
             "biome" -> value.biome.fold(__NullValue: __Value)(value => implicitly[ArgEncoder[Biome]].encode(value)),
@@ -1059,12 +1031,30 @@ object DND5eClient {
           Argument("version", version, "String!")(encoder2)
         )
       )
+    def deleteEntity(
+      entityType: String,
+      id:         Long,
+      softDelete: Boolean
+    )(implicit
+      encoder0: ArgEncoder[String],
+      encoder1: ArgEncoder[Long],
+      encoder2: ArgEncoder[Boolean]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Unit]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "deleteEntity",
+        OptionOf(Scalar()),
+        arguments = List(
+          Argument("entityType", entityType, "String!")(encoder0),
+          Argument("id", id, "Long!")(encoder1),
+          Argument("softDelete", softDelete, "Boolean!")(encoder2)
+        )
+      )
     def applyOperations(
-      entityType: DND5eEntityType,
+      entityType: String,
       id:         Long,
       events:     List[zio.json.ast.Json] = Nil
     )(implicit
-      encoder0: ArgEncoder[DND5eEntityType],
+      encoder0: ArgEncoder[String],
       encoder1: ArgEncoder[Long],
       encoder2: ArgEncoder[List[zio.json.ast.Json]]
     ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Unit]] =
@@ -1072,7 +1062,7 @@ object DND5eClient {
         "applyOperations",
         OptionOf(Scalar()),
         arguments = List(
-          Argument("entityType", entityType, "DND5eEntityType!")(encoder0),
+          Argument("entityType", entityType, "String!")(encoder0),
           Argument("id", id, "Long!")(encoder1),
           Argument("events", events, "[Json!]!")(encoder2)
         )
@@ -1084,7 +1074,7 @@ object DND5eClient {
   object Subscriptions {
 
     def campaignStream[A](
-      entityType: DND5eEntityType,
+      entityType: String,
       id:         Long,
       events:     List[zio.json.ast.Json] = Nil
     )(
@@ -1097,7 +1087,7 @@ object DND5eClient {
       onReplace:    SelectionBuilder[Replace, A],
       onTest:       SelectionBuilder[Test, A]
     )(implicit
-      encoder0: ArgEncoder[DND5eEntityType],
+      encoder0: ArgEncoder[String],
       encoder1: ArgEncoder[Long],
       encoder2: ArgEncoder[List[zio.json.ast.Json]]
     ): SelectionBuilder[_root_.caliban.client.Operations.RootSubscription, scala.Option[A]] =
@@ -1118,7 +1108,7 @@ object DND5eClient {
           )
         ),
         arguments = List(
-          Argument("entityType", entityType, "DND5eEntityType!")(encoder0),
+          Argument("entityType", entityType, "String!")(encoder0),
           Argument("id", id, "Long!")(encoder1),
           Argument("events", events, "[Json!]!")(encoder2)
         )

@@ -128,6 +128,14 @@ object AppRouter {
 
               }("About"),
             <.div(^.width := 100.pct, ^.textAlign := "center", ^.display := "inline-block", DiceRoller())
+//            Button("Roll").onClick(
+//              (
+//                _,
+//                _
+//              ) =>
+//                DiceRoller
+//                  .roll("10d20").map(r => Callback.alert(scala.scalajs.js.JSON.stringify(r))).completeWith(_.get)
+//            )
           )
 
       }

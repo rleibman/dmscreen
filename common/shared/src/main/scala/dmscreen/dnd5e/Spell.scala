@@ -63,6 +63,6 @@ case class Spell(
   override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
 ) extends DMScreenEntity[SpellId, SpellHeader, SpellInfo] {
 
-  override def entityType: EntityType = DND5eEntityType.spell
+  override def entityType: EntityType[SpellId] = DND5eEntityType.spell
 
 }

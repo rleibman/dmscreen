@@ -54,9 +54,10 @@ object MonsterStatBlock {
   case class Backend($ : BackendScope[Props, State]) {
 
     def loadMonster(monsterId: MonsterId): Callback = {
-      val ajax =
-        GraphQLRepository.live.monster(monsterId).map(m => $.modState(_.copy(monster = m)))
-      ajax.completeWith(_.get)
+      GraphQLRepository.live
+        .monster(monsterId)
+        .map(m => $.modState(_.copy(monster = m)))
+        .completeWith(_.get)
     }
 
     def render(
@@ -65,7 +66,6 @@ object MonsterStatBlock {
     ): VdomNode = {
       state.monster.fold(EmptyVdom) { monster =>
         val info = monster.info
-        println(info.hitDice.getOrElse("something else"))
 
         Container.className("stat-block")(
           <.hr(^.className := "orange-border"),

@@ -117,7 +117,7 @@ object ScalaJSClientAdapter extends TimerSupport {
       jsonOpt.map(decoder.fromJsonAST) match {
         case Some(Right(value)) => Some(value)
         case Some(Left(error)) =>
-          Callback.throwException(new Exception(error)).runNow()
+          Callback.throwException(Exception(error)).runNow()
           None
         case None => None
       }
@@ -281,7 +281,7 @@ object ScalaJSClientAdapter extends TimerSupport {
       private val graphql: GraphQLRequest = query.toGraphQL()
 
       val socket: WebSocket = uriOrSocket match {
-        case Left(uri)        => new org.scalajs.dom.WebSocket(uri.toString, "graphql-ws")
+        case Left(uri)        => org.scalajs.dom.WebSocket(uri.toString, "graphql-ws")
         case Right(webSocket) => webSocket
       }
 
@@ -411,7 +411,7 @@ object ScalaJSClientAdapter extends TimerSupport {
       }
       socket.onerror = { (e: org.scalajs.dom.Event) =>
         println(s"Got error $e")
-        onClientError(new Exception(s"We've got a socket error, no further info ($e)"))
+        onClientError(Exception(s"We've got a socket error, no further info ($e)"))
       }
       socket.onopen = { (_: org.scalajs.dom.Event) =>
         onConnecting.runNow()

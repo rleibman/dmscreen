@@ -32,15 +32,16 @@ trait HasId[Id] {
 
 }
 
-trait EntityType {
+trait EntityType[EntityId] {
 
   def name: String
+  def createId(id: Long): EntityId
 
 }
 
 trait DMScreenEntity[Id, Header <: HasId[Id], Info: JsonEncoder: JsonDecoder] {
 
-  def entityType: EntityType
+  def entityType: EntityType[Id]
   def version:    SemVer
   def header:     Header
   def jsonInfo:   Json

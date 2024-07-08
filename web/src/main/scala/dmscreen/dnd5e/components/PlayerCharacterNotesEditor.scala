@@ -69,9 +69,9 @@ object PlayerCharacterNotesEditor {
         .value(state.notes).onChange(
           (
             newValue,
-            deltaStatic,
-            sources,
-            editor
+            _,
+            _,
+            _
           ) => $.modState(_.copy(notes = newValue), $.state.flatMap(s => props.onChange(s.notes.trim, "", "", "", "")))
         )
     }

@@ -72,8 +72,7 @@ object ScenePage extends DMScreenTab {
                 ) => doClose
               )
               .withKey("editModal")
-              .open(true)
-              .withKey("EditModal")(
+              .open(true)(
                 Modal.Header(Header.as("h1")(s"Scene Details"), Header.as("h2")(scene.header.name)),
                 Modal.Content(
                   Form(
@@ -82,9 +81,9 @@ object ScenePage extends DMScreenTab {
                       .onChange(
                         (
                           newValue,
-                          deltaStatic,
-                          sources,
-                          editor
+                          _,
+                          _,
+                          _
                         ) =>
                           modScene(scene.copy(jsonInfo = scene.info.copy(notes = newValue).toJsonAST.toOption.get), "")
                       )

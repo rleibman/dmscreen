@@ -171,7 +171,7 @@ object PlayerCharacterComponent {
                                 case s: String if s.isEmpty => None
                                 case s: String =>
                                   dmScreenState.dnd5e.backgrounds.find(_.name == s).orElse(Some(Background(s)))
-                                case _ => throw new RuntimeException("Unexpected value")
+                                case _ => throw RuntimeException("Unexpected value")
                               })
                             )
                         )
@@ -546,7 +546,7 @@ object PlayerCharacterComponent {
   }
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
-    .builder[Props]("playerCharacterComponent")
+    .builder[Props]("PlayerCharacterComponent")
     .initialStateFromProps(p => State(p.playerCharacter))
     .renderBackend[Backend]
     .componentDidMount($ => Callback.empty)

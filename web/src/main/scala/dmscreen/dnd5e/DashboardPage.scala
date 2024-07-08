@@ -348,9 +348,9 @@ object DashboardPage extends DMScreenTab {
                     .onChange(
                       (
                         newValue,
-                        deltaStatic,
-                        sources,
-                        editor
+                        _,
+                        _,
+                        _
                       ) =>
                         dmScreenState.onModifyCampaignState(
                           campaignState.copy(

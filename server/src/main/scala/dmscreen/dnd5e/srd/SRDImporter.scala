@@ -242,6 +242,7 @@ class SRDImporter extends DND5eImporter[File, File, File, File] {
           Monster(
             MonsterHeader(
               id = MonsterId.empty,
+              sourceId = SourceId.systemReferenceDocument,
               name = name, // String,
               monsterType = monsterType, // MonsterType,
               biome = None, // Option[Biome],

@@ -42,6 +42,7 @@ object EditableComponent {
 
   case class State(mode: Mode = Mode.view)
   case class Props(
+    className:       String = "",
     viewComponent:   VdomNode,
     editComponent:   VdomNode,
     actionComponent: VdomNode = EmptyVdom,
@@ -58,6 +59,7 @@ object EditableComponent {
       state.mode match {
         case Mode.view =>
           <.div(
+            ^.className := props.className,
             ^.onClick --> (props.onModeChange(Mode.edit) >> $.modState(_.copy(mode = Mode.edit))),
             props.viewComponent
           )
@@ -92,11 +94,12 @@ object EditableComponent {
       .build
 
   def apply(
+    className:       String = "",
     view:            VdomNode,
     edit:            VdomNode,
     actionComponent: VdomNode = EmptyVdom,
     title:           String = "",
     onModeChange:    Mode => Callback = _ => Callback.empty
-  ) = component(Props(view, edit, actionComponent, title, onModeChange))
+  ) = component(Props(className, view, edit, actionComponent, title, onModeChange))
 
 }

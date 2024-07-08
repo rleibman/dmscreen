@@ -41,9 +41,15 @@ import java.net.URL
 object DND5eAPI {
 
   case class CampaignEventsArgs(
-    entityType: DND5eEntityType,
+    entityType: DND5eEntityType[?],
     id:         Long,
     events:     Seq[Json]
+  )
+
+  case class EntityDeleteArgs(
+    entityType: DND5eEntityType[?],
+    id:         Long,
+    softDelete: Boolean
   )
 
   private given Schema[Any, UserId] = Schema.longSchema.contramap(_.value)
@@ -55,6 +61,7 @@ object DND5eAPI {
   private given Schema[Any, EncounterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, SceneId] = Schema.longSchema.contramap(_.value)
 
+  private given Schema[Any, DND5eEntityType[?]] = Schema.stringSchema.contramap(_.name)
   private given Schema[Any, ChallengeRating] = Schema.doubleSchema.contramap(_.value)
   private given Schema[Any, SourceId] = Schema.stringSchema.contramap(_.value)
   private given Schema[Any, URL] = Schema.stringSchema.contramap(_.toString)
@@ -71,6 +78,7 @@ object DND5eAPI {
   private given Schema[Any, PlayerCharacter] = Schema.gen[Any, PlayerCharacter]
   private given Schema[Any, NonPlayerCharacter] = Schema.gen[Any, NonPlayerCharacter]
   private given Schema[Any, Encounter] = Schema.gen[Any, Encounter]
+  private given Schema[Any, EntityDeleteArgs] = Schema.gen[Any, EntityDeleteArgs]
 
   private given ArgBuilder[PlayerCharacterId] = ArgBuilder.long.map(PlayerCharacterId.apply)
   private given ArgBuilder[SceneId] = ArgBuilder.long.map(SceneId.apply)
@@ -84,6 +92,7 @@ object DND5eAPI {
   private given ArgBuilder[CampaignId] = ArgBuilder.long.map(CampaignId.apply)
   private given ArgBuilder[EncounterId] = ArgBuilder.long.map(EncounterId.apply)
   private given ArgBuilder[ChallengeRating] = ArgBuilder.double.map(n => ChallengeRating.fromDouble(n).get)
+  private given ArgBuilder[DND5eEntityType[?]] = ArgBuilder.string.map(DND5eEntityType.valueOf)
 
   private given ArgBuilder[GeneralLog] = ArgBuilder.gen[GeneralLog]
   private given ArgBuilder[CombatLog] = ArgBuilder.gen[CombatLog]
@@ -126,6 +135,7 @@ object DND5eAPI {
     upsertNonPlayerCharacter: NonPlayerCharacter => ZIO[DND5eZIORepository, DMScreenError, NonPlayerCharacterId],
     upsertMonster:            Monster => ZIO[DND5eZIORepository, DMScreenError, MonsterId],
     upsertEncounter:          Encounter => ZIO[DND5eZIORepository, DMScreenError, EncounterId],
+    deleteEntity:             EntityDeleteArgs => ZIO[DND5eZIORepository, DMScreenError, Unit],
     // This one is the one that will be used to apply operations to the entities
     applyOperations: CampaignEventsArgs => ZIO[DND5eZIORepository, DMScreenError, Unit]
   )
@@ -167,6 +177,14 @@ object DND5eAPI {
           upsertMonster = monster => ZIO.serviceWithZIO[DND5eZIORepository](_.upsert(monster.header, monster.jsonInfo)),
           upsertEncounter =
             encounter => ZIO.serviceWithZIO[DND5eZIORepository](_.upsert(encounter.header, encounter.jsonInfo)),
+          deleteEntity = deleteArgs =>
+            ZIO.serviceWithZIO[DND5eZIORepository](
+              _.deleteEntity(
+                deleteArgs.entityType,
+                deleteArgs.entityType.createId(deleteArgs.id),
+                deleteArgs.softDelete
+              )
+            ),
           applyOperations = args => ???
           // ZIO.serviceWithZIO[DND5eRepository](_.applyOperations(args.entityType.asInstanceOf[EntityType], args.id, args.operations *))
         ),

@@ -233,6 +233,6 @@ case class Encounter(
     else EncounterDifficulty.Deadly
   }
 
-  override def entityType: EntityType = DND5eEntityType.encounter
+  override def entityType: EntityType[EncounterId] = DND5eEntityType.encounter
 
 }

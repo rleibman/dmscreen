@@ -196,6 +196,7 @@ lazy val bundlerSettings: Project => Project =
         "@3d-dice/dice-ui"               -> "^0.4.0",
         "@3d-dice/dice-parser-interface" -> "^0.2.0",
         "@3d-dice/dice-box"              -> "^1.0.0",
+        "@3d-dice/theme-rust"            -> "^0.2.0",
         "babylonjs-gltf2interface"       -> "^5.22.0"
       ),
       webpack / version := "5.91.0",

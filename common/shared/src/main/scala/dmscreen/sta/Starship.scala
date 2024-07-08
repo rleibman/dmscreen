@@ -54,7 +54,7 @@ case class Starship(
   override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
 ) extends DMScreenEntity[StarshipId, StarshipHeader, StarshipInfo] {
 
-  override def entityType: EntityType = STAEntityType.starship
+  override def entityType: EntityType[StarshipId] = STAEntityType.starship
 
 }
 

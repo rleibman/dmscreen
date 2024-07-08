@@ -71,13 +71,13 @@ trait DND5eRepository[F[_]] extends GameRepository {
   def scene(sceneId: SceneId): F[Option[Scene]]
 
   def applyOperations[IDType](
-    entityType: EntityType,
+    entityType: EntityType[IDType],
     id:         IDType,
     operations: DMScreenEvent*
   ): F[Unit]
 
   def deleteEntity[IDType](
-    entityType: EntityType,
+    entityType: EntityType[IDType],
     id:         IDType,
     softDelete: Boolean = true
   ): F[Unit]

@@ -720,7 +720,7 @@ object CombatRunner {
                             ),
                           Button
                             .compact(true)
-                            .title("View monster stats")
+                            .title("View monster stat block")
                             .size(SemanticSIZES.mini)
                             .icon(true)(Icon.name(SemanticICONS.`eye`))
                             .onClick(

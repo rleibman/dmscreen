@@ -22,8 +22,10 @@
 package dmscreen.dnd5e
 
 import dmscreen.*
+import dmscreen.dnd5e.ChallengeRating.`1/2`
 import just.semver.SemVer
-import zio.json.ast.Json
+import zio.json.*
+import zio.json.ast.*
 
 opaque type MonsterId = Long
 
@@ -120,6 +122,7 @@ enum MonsterType {
   case Plant
   case Undead
   case Swarm
+  case Unknown
 
 }
 
@@ -240,7 +243,8 @@ case class MonsterInfo(
   damageResistances:     Seq[DamageType] = Seq.empty,
   damageImmunities:      Seq[DamageType] = Seq.empty,
   specialAbilities:      Seq[SpecialAbility] = Seq.empty,
-  proficiencyBonus:      Int = 0
+  proficiencyBonus:      Int = 0,
+  notes:                 String = ""
 ) {
 
   def initiativeBonus: Int = abilities.dexterity.modifier
@@ -249,6 +253,7 @@ case class MonsterInfo(
 
 case class MonsterHeader(
   id:               MonsterId,
+  sourceId:         SourceId = SourceId("unknown"),
   name:             String,
   monsterType:      MonsterType,
   biome:            Option[Biome],
@@ -261,13 +266,38 @@ case class MonsterHeader(
   initiativeBonus:  Int
 ) extends HasId[MonsterId]
 
+object Monster {
+
+  def homeBrew: Monster =
+    Monster(
+      MonsterHeader(
+        id = MonsterId.empty,
+        sourceId = SourceId.homebrew,
+        name = "",
+        monsterType = MonsterType.Unknown,
+        biome = None,
+        alignment = None,
+        cr = ChallengeRating.`1/2`,
+        xp = 100,
+        armorClass = 10,
+        maximumHitPoints = 10,
+        size = CreatureSize.medium,
+        initiativeBonus = 0
+      ),
+      jsonInfo = MonsterInfo(
+        abilities = Abilities()
+      ).toJsonAST.toOption.get
+    )
+
+}
+
 case class Monster(
   header:               MonsterHeader,
   jsonInfo:             Json,
   override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
 ) extends DMScreenEntity[MonsterId, MonsterHeader, MonsterInfo] {
 
-  override val entityType: EntityType = DND5eEntityType.monster
+  override val entityType: EntityType[MonsterId] = DND5eEntityType.monster
 
 }
 

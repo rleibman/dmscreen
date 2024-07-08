@@ -54,7 +54,7 @@ case class Character(
   override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
 ) extends DMScreenEntity[CharacterId, CharacterHeader, CharacterInfo] {
 
-  override def entityType: EntityType = STAEntityType.character
+  override def entityType: EntityType[CharacterId] = STAEntityType.character
 
 }
 

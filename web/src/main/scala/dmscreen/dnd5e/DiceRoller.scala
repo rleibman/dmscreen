@@ -22,10 +22,11 @@
 package dmscreen.dnd5e
 
 import dmscreen.DMScreenTab
-import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
+import japgolly.scalajs.react.{CtorType, Ref, *}
 import net.leibman.dmscreen.semanticUiReact.*
+import net.leibman.dmscreen.semanticUiReact.components.Confirm.component
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsElementsLabelLabelMod.LabelProps
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{
@@ -36,21 +37,29 @@ import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{
 }
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesAccordionAccordionTitleMod.*
 import net.leibman.dmscreen.semanticUiReact.semanticUiReactStrings.`right corner`
-import org.scalajs.dom.*
 import org.scalajs.dom
-import org.scalajs.dom.document
+import org.scalajs.dom.*
+import org.scalajs.dom.html.Div
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scalajs.js
-import scalajs.js.annotation.{JSGlobal, JSImport}
-import scalajs.js.Dynamic.global
-import scalajs.js.Promise
+import scala.scalajs.js
+import scala.scalajs.js.Dynamic.global
+import scala.scalajs.js.Promise
+import scala.scalajs.js.annotation.{JSGlobal, JSImport}
+
+enum DieType {
+
+  case d4, d6, d8, d10, d12, d20, custom
+
+}
 
 @js.native
 @JSImport("@3d-dice/dice-ui/src/displayResults", JSImport.Default)
 class DisplayResults(selector: String) extends js.Object {
 
   def clear(): Unit = js.native
+  def showResults(results: js.Array[RollResult]): Unit = js.native
 
 }
 
@@ -58,9 +67,9 @@ class DisplayResults(selector: String) extends js.Object {
 @JSImport("@3d-dice/dice-parser-interface", JSImport.Default)
 class DiceParser() extends js.Object {
 
-  def parseNotation(notation:    String): js.Any = js.native
-  def handleRerolls(results:     js.Any): js.Array[js.Any] = js.native
-  def parseFinalResults(results: js.Any): js.Any = js.native
+  def parseNotation(notation:    String):               js.Any = js.native
+  def handleRerolls(results:     js.Any):               js.Array[js.Any] = js.native
+  def parseFinalResults(results: js.Array[RollResult]): js.Array[RollResult] = js.native
 
 }
 
@@ -73,7 +82,7 @@ class DiceBox(
 
   def init(): js.Promise[Unit] = js.native
   def show(): DiceBox = js.native
-  def roll(dice: js.Any): Unit = js.native
+  def roll(dice: js.Any): js.Promise[js.Array[DieResult]] = js.native
   def hide():         DiceBox = js.native
   def clear():        Unit = js.native
   def onRollComplete: js.Function1[js.Any, Unit] = js.native
@@ -132,7 +141,7 @@ class DiceBoxOptions(
   val shadowTransparency: Double = 0.8,
   val theme:              String = "default",
   val preloadThemes:      js.Array[String] = js.Array(),
-  val themeColor:         String = "#ff0000", // "#2e8555",
+  val themeColor:         String = "#aa4f4a",
   val scale:              Double = 5,
   val suspendSimulation:  Boolean = false,
 //  val origin:              js.UndefOr[String] = js.undefined,
@@ -146,22 +155,39 @@ class DiceBoxOptions(
 object DiceRoller extends DMScreenTab {
 
   case class State(
-    diceBox:    Option[DiceBox] = None,
-    diceParser: DiceParser = new DiceParser(),
-    custom:     String = ""
+    diceBox:        Option[DiceBox] = None,
+    diceParser:     DiceParser = DiceParser(),
+    displayResults: Option[DisplayResults] = None,
+    custom:         String = ""
   )
 
   case class Props(
+    displayTimeMs:  Int,
+    dieTypes:       Set[DieType],
     onDieComplete:  DieResult => Callback,
     onRollComplete: Seq[RollResult] => Callback
   )
 
   class Backend($ : BackendScope[Props, State]) {
 
+    def roll(notation: String): AsyncCallback[Sequence[DieResult]] = { // Add the roll results to the callback
+
+      $.state.asAsyncCallback.flatMap { s =>
+        s.diceBox.fold(AsyncCallback.pure(js.Array[DieResult]())) { db =>
+          def fut =
+            db
+              .show()
+              .roll(s.diceParser.parseNotation(notation)).toFuture
+
+          AsyncCallback.fromFuture(fut)
+        }
+      }
+    }
+
     def render(
       props: Props,
       state: State
-    ) = {
+    ): VdomTagOf[Div] = {
       <.div(
         ^.width     := 160.px,
         ^.textAlign := "center",
@@ -183,7 +209,8 @@ object DiceRoller extends DMScreenTab {
                     .roll(state.diceParser.parseNotation("1d4"))
                 )
               )
-          ),
+          )
+          .when(props.dieTypes.contains(DieType.d4)),
         Button
           .className("diceButton")
           .color(SemanticCOLORS.black)
@@ -200,7 +227,7 @@ object DiceRoller extends DMScreenTab {
                     .roll(state.diceParser.parseNotation("1d6"))
                 )
               )
-          ),
+          ).when(props.dieTypes.contains(DieType.d6)),
         Button
           .className("diceButton")
           .color(SemanticCOLORS.black)
@@ -217,7 +244,7 @@ object DiceRoller extends DMScreenTab {
                     .roll(state.diceParser.parseNotation("1d8"))
                 )
               )
-          ),
+          ).when(props.dieTypes.contains(DieType.d8)),
         Button
           .className("diceButton")
           .color(SemanticCOLORS.black)
@@ -234,7 +261,7 @@ object DiceRoller extends DMScreenTab {
                     .roll(state.diceParser.parseNotation("1d10"))
                 )
               )
-          ),
+          ).when(props.dieTypes.contains(DieType.d10)),
         Button
           .className("diceButton")
           .color(SemanticCOLORS.black)
@@ -251,7 +278,7 @@ object DiceRoller extends DMScreenTab {
                     .roll(state.diceParser.parseNotation("1d12"))
                 )
               )
-          ),
+          ).when(props.dieTypes.contains(DieType.d12)),
         Button
           .className("diceButton")
           .color(SemanticCOLORS.black)
@@ -268,7 +295,7 @@ object DiceRoller extends DMScreenTab {
                     .roll(state.diceParser.parseNotation("1d20"))
                 )
               )
-          ),
+          ).when(props.dieTypes.contains(DieType.d20)),
         Input
           .value(state.custom)
           .color("#000000")
@@ -297,7 +324,7 @@ object DiceRoller extends DMScreenTab {
               }
               $.modState(_.copy(custom = newVal))
             }
-          )
+          ).when(props.dieTypes.contains(DieType.custom))
       )
     }
 
@@ -310,8 +337,7 @@ object DiceRoller extends DMScreenTab {
     }
     .renderBackend[Backend]
     .componentDidMount($ => {
-      import scala.concurrent.ExecutionContext.Implicits.global
-      val diceBox = new DiceBox(
+      val diceBox = DiceBox(
         "#dice-box",
         DiceBoxOptions(
           id = "dice-canvas",
@@ -320,29 +346,46 @@ object DiceRoller extends DMScreenTab {
           throwForce = 6,
           spinForce = 5,
           lightIntensity = 0.9,
-          onRollComplete = (array: js.Array[RollResult]) =>
-            ($.props.onRollComplete(array.toSeq) >>
+          theme = "theme-rust",
+          onRollComplete = (results: js.Array[RollResult]) =>
+            ($.props.onRollComplete(results.toSeq) >>
               $.state.diceBox
                 .fold(Callback.empty) { db =>
                   Callback {
-                    println(s"onRollComplete = $array, ${scala.scalajs.js.JSON.stringify(array)}")
-                    db
-                      .hide()
-                      .clear()
+                    println(s"onRollComplete = $results, ${scala.scalajs.js.JSON.stringify(results)}")
+                    db.hide().clear()
                   }
-                }).runNow(),
+                } >>
+              $.state.displayResults.fold(Callback.empty) { dr =>
+                val finalResults = $.state.diceParser.parseFinalResults(results)
+                Callback(dr.showResults(finalResults)) >>
+                  AsyncCallback
+                    .pure(Callback(dr.clear())).delayMs($.props.displayTimeMs).map(
+                      _ >> Callback.log("Cleared")
+                    ).completeWith(_.get)
+              }).runNow(),
           onDieComplete = (dieResult: DieResult) => $.props.onDieComplete(dieResult).runNow()
         )
       )
       def fut = diceBox.init().toFuture
       val cb: AsyncCallback[Unit] = AsyncCallback.fromFuture(fut)
-      cb.completeWith(_ => $.modState(s => s.copy(diceBox = Some(diceBox))))
+      cb.completeWith(_ =>
+        $.modState(s => s.copy(diceBox = Some(diceBox), displayResults = Some(DisplayResults("#dice-box"))))
+      )
     })
     .build
 
   def apply(
+    displayTimeMs:  Int = 2000,
+    dieTypes:       Set[DieType] = DieType.values.toSet,
     onDieComplete:  DieResult => Callback = _ => Callback.empty,
     onRollComplete: Seq[RollResult] => Callback = _ => Callback.empty
-  ): Unmounted[Props, State, Backend] = component(Props(onDieComplete, onRollComplete))
+  ): Unmounted[Props, State, Backend] = ref.component(Props(displayTimeMs, dieTypes, onDieComplete, onRollComplete))
+
+  private val ref = Ref.toScalaComponent(component)
+
+  def roll(notation: String): AsyncCallback[Sequence[DieResult]] = {
+    ref.get.asAsyncCallback.flatMap(_.fold(AsyncCallback.pure(js.Array[DieResult]()))(_.backend.roll(notation)))
+  }
 
 }
