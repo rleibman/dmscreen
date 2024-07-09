@@ -52,6 +52,6 @@ case class ChangeStack(
     copy(monsters = monsters ++ monsterIds, clear = false)
   }
 
-  // TODO add to this a stream that will let us know when other uses have made changes
+  // ENHANCEMENT add to this a stream that will let us know when other uses have made changes
 
 }

@@ -196,7 +196,6 @@ object SkillsEditor {
     .builder[Props]("SkillsDialog")
     .initialStateFromProps(p => State(p.skills))
     .renderBackend[Backend]
-    .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
     .build
 

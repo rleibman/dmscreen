@@ -63,20 +63,28 @@ object PlayerPage extends DMScreenTab {
                         name = "New Character"
                       ),
                       jsonInfo = PlayerCharacterInfo(
-                        hitPoints = HitPoints(0, 0),
+                        health = Health(deathSave = DeathSave.empty, currentHitPoints = 1, maxHitPoints = 1),
                         armorClass = 10,
                         classes = List.empty
                       ).toJsonAST.toOption.get
                     )
-                    dmScreenState
-                      .onModifyCampaignState(campaignState.copy(pcs = campaignState.pcs :+ newPC), "Added new PC")
-                    // TODO send to server
+
+                    GraphQLRepository.live
+                      .upsert(header = newPC.header, info = newPC.jsonInfo)
+                      .map(id =>
+                        dmScreenState
+                          .onModifyCampaignState(
+                            campaignState
+                              .copy(pcs = campaignState.pcs :+ newPC.copy(header = newPC.header.copy(id = id))),
+                            "Added new PC"
+                          )
+                      )
+                      .completeWith(_.get)
                   }
                 )("Add Character"),
               Button("Import from dndbeyond.com"), // TODO
               Button("Import from 5th Edition Tools"), // TODO
-              Button("Short Rest"), // TODO short rest
-              Button("Long Rest") // TODO long rest
+              Button("Long Rest (Reset resources)") // TODO long rest
             ),
             <.div(
               ^.className := "pageContainer",
@@ -86,11 +94,15 @@ object PlayerPage extends DMScreenTab {
                   PlayerCharacterComponent( // Internally, make sure each item has a key!
                     playerCharacter = pc,
                     onDelete = deleteMe =>
-                      dmScreenState.onModifyCampaignState(
-                        campaignState.copy(pcs = campaignState.pcs.filter(_.header.id != deleteMe.header.id)),
-                        s"Deleted player character ${pc.header.name}"
-                        // TODO delete from server
-                      )
+                      GraphQLRepository.live
+                        .deleteEntity(entityType = DND5eEntityType.playerCharacter, id = pc.header.id)
+                        .map(_ =>
+                          dmScreenState.onModifyCampaignState(
+                            campaignState.copy(pcs = campaignState.pcs.filter(_.header.id != deleteMe.header.id)),
+                            s"Deleted player character ${pc.header.name}"
+                          )
+                        )
+                        .completeWith(_.get)
                   )
                 ).toVdomArray
             )

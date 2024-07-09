@@ -22,7 +22,7 @@
 package dmscreen.dnd5e.components
 
 import dmscreen.dnd5e.*
-import dmscreen.dnd5e.components.HitPointsEditor.State
+import dmscreen.dnd5e.components.HealthEditor.State
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.VdomNode
@@ -128,7 +128,6 @@ object FeatsEditor {
     .builder[Props]("FeatsEditor")
     .initialStateFromProps(p => State(p.feats))
     .renderBackend[Backend]
-    .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
     .build
 

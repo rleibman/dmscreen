@@ -11,30 +11,6 @@ h3 {
 	font-size: 12pt;
 }
 
-table {
-	border: 1px solid black;
-	border-collapse: collapse;
-	width: 100%;
-}
-
-tr {
-	border: 1px solid black;
-}
-
-th {
-	border: 1px solid black;
-	padding: 3px;
-	font-size: 11pt;
-}
-
-td {
-	border: 1px solid black;
-	padding: 3px;
-	margin: 0;
-	vertical-align: top;
-	font-size: 10pt;
-}
-
 p {
 	padding: 0;
 	margin: 0;

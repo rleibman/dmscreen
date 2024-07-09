@@ -81,300 +81,309 @@ object DashboardPage extends DMScreenTab {
             <.div("Campaign Loading")
           } { case campaignState: DND5eCampaignState =>
             val campaign = campaignState.campaign
-
             <.div(
               ^.className := "pageContainer",
               <.div(
-                ^.className := "radarCard",
-                <.h2("Ability Scores"),
-                ReactApexcharts
-                  .`type`(radar)
-                  .series(campaignState.pcs.zipWithIndex.map {
-                    (
-                      pc,
-                      i
-                    ) =>
-                      Data(data =
-                        js.Array(
-                          pc.info.abilities.strength.overridenValue.toDouble,
-                          pc.info.abilities.constitution.overridenValue.toDouble,
-                          pc.info.abilities.dexterity.overridenValue.toDouble,
-                          pc.info.abilities.intelligence.overridenValue.toDouble,
-                          pc.info.abilities.wisdom.overridenValue.toDouble,
-                          pc.info.abilities.charisma.overridenValue.toDouble
-                        )
-                      )
-                        .setName(pc.header.name)
-                        .setColor(radarColors(i))
-                  }.toJSArray)
-                  .width(250)
-                  .height(270)
-                  .options(
-                    ApexOptions()
-                      .setLabels(js.Array("Str", "Con", "Dex", "Int", "Wis", "Cha"))
-                      .setLegend(
-                        ApexLegend().setLabels(
-                          UseSeriesColors()
-                            .setColors("#ecf0f1")
-                        )
-                      )
-                  )
-              ),
-              <.div(
-                ^.className := "radarCard",
-                <.h2("Saving Throws"),
-                ReactApexcharts
-                  .`type`(radar)
-                  .series(campaignState.pcs.zipWithIndex.map {
-                    (
-                      pc,
-                      i
-                    ) =>
-                      Data(data =
-                        js.Array(
-                          pc.info.abilities.strength.savingThrow(pc.info.proficiencyBonus).toDouble,
-                          pc.info.abilities.constitution.savingThrow(pc.info.proficiencyBonus).toDouble,
-                          pc.info.abilities.dexterity.savingThrow(pc.info.proficiencyBonus).toDouble,
-                          pc.info.abilities.intelligence.savingThrow(pc.info.proficiencyBonus).toDouble,
-                          pc.info.abilities.wisdom.savingThrow(pc.info.proficiencyBonus).toDouble,
-                          pc.info.abilities.charisma.savingThrow(pc.info.proficiencyBonus).toDouble
-                        )
-                      )
-                        .setName(pc.header.name)
-                        .setColor(radarColors(i))
-                  }.toJSArray)
-                  .width(250)
-                  .height(270)
-                  .options(
-                    ApexOptions()
-                      .setLabels(js.Array("Str", "Con", "Dex", "Int", "Wis", "Cha"))
-                      .setLegend(
-                        ApexLegend().setLabels(
-                          UseSeriesColors()
-                            .setColors("#ecf0f1")
-                        )
-                      )
-                  )
-              ),
-              <.div(
-                ^.className := "radarCard",
-                <.h2("Passive Scores"),
-                ReactApexcharts
-                  .`type`(radar)
-                  .series(campaignState.pcs.zipWithIndex.map {
-                    (
-                      pc,
-                      i
-                    ) =>
-                      Data(data =
-                        js.Array(
-                          pc.info.passiveInsight.toDouble,
-                          pc.info.passivePerception.toDouble,
-                          pc.info.passiveInvestigation.toDouble
-                        )
-                      )
-                        .setName(pc.header.name)
-                        .setColor(radarColors(i))
-                  }.toJSArray)
-                  .width(250)
-                  .height(270)
-                  .options(
-                    ApexOptions()
-                      .setLabels(js.Array("Insp", "Perc", "Inv"))
-                      .setLegend(
-                        ApexLegend().setLabels(
-                          UseSeriesColors()
-                            .setColors("#ecf0f1")
-                        )
-                      )
-                  )
-              ),
-              <.div(
-                ^.className := "radarCard",
-                <.h2("Skills"),
-                ReactApexcharts
-                  .`type`(radar)
-                  .series(campaignState.pcs.zipWithIndex.map {
-                    (
-                      pc,
-                      i
-                    ) =>
-                      Data(data =
-                        js.Array(
-                          pc.info.skills.acrobatics.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.animalHandling.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.arcana.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.athletics.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.deception.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.history.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.insight.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.intimidation.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.investigation.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.medicine.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.nature.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.perception.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.performance.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.persuasion.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.religion.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.sleightOfHand.modifier(pc.info.abilities).toDouble,
-                          pc.info.skills.stealth.modifier(pc.info.abilities).toDouble
-                        )
-                      )
-                        .setName(pc.header.name)
-                        .setColor(radarColors(i))
-                  }.toJSArray)
-                  .width(250)
-                  .height(270)
-                  .options(
-                    ApexOptions()
-                      .setLabels(
-                        js.Array(
-                          "Acrobatics",
-                          "A. Handling",
-                          "Arcana",
-                          "Athletics",
-                          "Deception",
-                          "History",
-                          "Insight",
-                          "Int.",
-                          "Inv.",
-                          "Medicine",
-                          "Nature",
-                          "Perception",
-                          "Performance",
-                          "Persuasion",
-                          "Religion",
-                          "S. of Hand",
-                          "Stealth"
-                        )
-                      )
-                      .setLegend(
-                        ApexLegend().setLabels(
-                          UseSeriesColors()
-                            .setColors("#ecf0f1")
-                        )
-                      )
-                  )
-              ),
-              <.div(
-                ^.className := "radarCard",
-                <.h2("Health"), {
-                  extension [A, CC[_], C](a: StrictOptimizedIterableOps[A, CC, C]) {
-                    def unzip4[A1, A2, A3, A4](implicit asQuad: A => (A1, A2, A3, A4))
-                      : (CC[A1], CC[A2], CC[A3], CC[A4]) = {
-                      val b1 = a.iterableFactory.newBuilder[A1]
-                      val b2 = a.iterableFactory.newBuilder[A2]
-                      val b3 = a.iterableFactory.newBuilder[A3]
-                      val b4 = a.iterableFactory.newBuilder[A4]
-
-                      a.foreach { xyza =>
-                        val triple = asQuad(xyza)
-                        b1 += triple._1
-                        b2 += triple._2
-                        b3 += triple._3
-                        b4 += triple._4
-                      }
-                      (b1.result(), b2.result(), b3.result(), b4.result())
-                    }
-
-                  }
-
-                  val (names, ratios, ratioStrings, lifeColors) = {
-                    campaignState.pcs.map { pc =>
-                      val currentHP = pc.info.hitPoints.currentHitPoints match {
-                        case _: DeathSave => 0
-                        case i: Int       => i
-                      }
-                      val ratio = currentHP.toDouble / pc.info.hitPoints.currentMax.toDouble
-                      (
-                        pc.header.name.take(10),
-                        ratio,
-                        s"$currentHP/${pc.info.hitPoints.currentMax}",
-                        pc.info.hitPoints.lifeColor
-                      )
-                    }
-                  }.unzip4
-
-                  ReactApexcharts
-                    .`type`(bar)
-                    .height(270)
-                    .series {
-                      js.Array(Data(data = ratios.toJSArray).setName("Health"))
-                    }
-                    .options(
-                      ApexOptions()
-                        .setDataLabels(
-                          ApexDataLabels()
-                            .setEnabled(true)
-                            .setFormatter {
-                              case (value, opt: js.Object) =>
-                                val i = opt.asInstanceOf[FormattingOptions].dataPointIndex.toInt
-                                ratioStrings(i)
-                              case _ => "goodbye"
-                            }
-                            .setTextAnchor(apexchartsStrings.start)
-                            .setOffsetX(0)
-                        )
-                        .setXaxis(
-                          ApexXAxis()
-                            .setCategories(names.toJSArray)
-                            .setLabels(DatetimeFormatter().setShow(false))
-                            .setAxisTicks(BorderType().setShow(false))
-                        )
-                        .setYaxis(
-                          ApexYAxis()
-                            .setLabels(Align().setStyle(CssClassFontFamily().setColors(js.Array("#ecf0f1"))))
-                        )
-                        .setPlotOptions(
-                          ApexPlotOptions()
-                            .setBar(
-                              BarHeight()
-                                .setHorizontal(true)
-                                .setColors(BackgroundBarColors().setBackgroundBarColors(lifeColors.toJSArray))
-                            )
-                        )
-                    )
-                }
-              ),
-              VdomArray(
+                ^.width   := 100.pct,
+                ^.display := "contents",
                 <.div(
                   ^.className := "radarCard",
-                  ^.key       := "campaignNotes",
-                  ^.style     := js.Dictionary("width" -> "540px", "height" -> "310px"), // TODO move sizes to css
-                  <.h2("Campaign Notes"),
-                  ReactQuill
-                    .value(campaign.info.notes)
-                    .style(CSSProperties().set("background-color", "#ced9e4").set("color", "#000000")) // TODO move colors to css
-                    .onChange(
+                  ^.width     := 19.pct,
+                  <.h2("Ability Scores"),
+                  ReactApexcharts
+                    .`type`(radar)
+                    .series(campaignState.pcs.zipWithIndex.map {
                       (
-                        newValue,
-                        _,
-                        _,
-                        _
+                        pc,
+                        i
                       ) =>
-                        dmScreenState.onModifyCampaignState(
-                          campaignState.copy(
-                            campaign =
-                              campaign.copy(jsonInfo = campaign.info.copy(notes = newValue).toJsonAST.toOption.get),
-                            changeStack = campaignState.changeStack.logCampaignChange()
-                          ),
-                          ""
+                        Data(data =
+                          js.Array(
+                            pc.info.abilities.strength.overridenValue.toDouble,
+                            pc.info.abilities.constitution.overridenValue.toDouble,
+                            pc.info.abilities.dexterity.overridenValue.toDouble,
+                            pc.info.abilities.intelligence.overridenValue.toDouble,
+                            pc.info.abilities.wisdom.overridenValue.toDouble,
+                            pc.info.abilities.charisma.overridenValue.toDouble
+                          )
+                        )
+                          .setName(pc.header.name)
+                          .setColor(radarColors(i))
+                    }.toJSArray)
+                    .width(100.pct)
+                    .height(270)
+                    .options(
+                      ApexOptions()
+                        .setLabels(js.Array("Str", "Con", "Dex", "Int", "Wis", "Cha"))
+                        .setLegend(
+                          ApexLegend().setLabels(
+                            UseSeriesColors()
+                              .setColors("#ecf0f1")
+                          )
                         )
                     )
                 ),
-                if (state.scenes.isEmpty) EmptyVdom
-                else
+                <.div(
+                  ^.className := "radarCard",
+                  ^.width     := 19.pct,
+                  <.h2("Saving Throws"),
+                  ReactApexcharts
+                    .`type`(radar)
+                    .series(campaignState.pcs.zipWithIndex.map {
+                      (
+                        pc,
+                        i
+                      ) =>
+                        Data(data =
+                          js.Array(
+                            pc.info.abilities.strength.savingThrow(pc.info.proficiencyBonus).toDouble,
+                            pc.info.abilities.constitution.savingThrow(pc.info.proficiencyBonus).toDouble,
+                            pc.info.abilities.dexterity.savingThrow(pc.info.proficiencyBonus).toDouble,
+                            pc.info.abilities.intelligence.savingThrow(pc.info.proficiencyBonus).toDouble,
+                            pc.info.abilities.wisdom.savingThrow(pc.info.proficiencyBonus).toDouble,
+                            pc.info.abilities.charisma.savingThrow(pc.info.proficiencyBonus).toDouble
+                          )
+                        )
+                          .setName(pc.header.name)
+                          .setColor(radarColors(i))
+                    }.toJSArray)
+                    .width(100.pct)
+                    .height(270)
+                    .options(
+                      ApexOptions()
+                        .setLabels(js.Array("Str", "Con", "Dex", "Int", "Wis", "Cha"))
+                        .setLegend(
+                          ApexLegend().setLabels(
+                            UseSeriesColors()
+                              .setColors("#ecf0f1")
+                          )
+                        )
+                    )
+                ),
+                <.div(
+                  ^.className := "radarCard",
+                  ^.width     := 19.pct,
+                  <.h2("Passive Scores"),
+                  ReactApexcharts
+                    .`type`(radar)
+                    .series(campaignState.pcs.zipWithIndex.map {
+                      (
+                        pc,
+                        i
+                      ) =>
+                        Data(data =
+                          js.Array(
+                            pc.info.passiveInsight.toDouble,
+                            pc.info.passivePerception.toDouble,
+                            pc.info.passiveInvestigation.toDouble
+                          )
+                        )
+                          .setName(pc.header.name)
+                          .setColor(radarColors(i))
+                    }.toJSArray)
+                    .width(100.pct)
+                    .height(270)
+                    .options(
+                      ApexOptions()
+                        .setLabels(js.Array("Insp", "Perc", "Inv"))
+                        .setLegend(
+                          ApexLegend().setLabels(
+                            UseSeriesColors()
+                              .setColors("#ecf0f1")
+                          )
+                        )
+                    )
+                ),
+                <.div(
+                  ^.className := "radarCard",
+                  ^.width     := 19.pct,
+                  <.h2("Skills"),
+                  ReactApexcharts
+                    .`type`(radar)
+                    .series(campaignState.pcs.zipWithIndex.map {
+                      (
+                        pc,
+                        i
+                      ) =>
+                        Data(data =
+                          js.Array(
+                            pc.info.skills.acrobatics.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.animalHandling.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.arcana.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.athletics.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.deception.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.history.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.insight.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.intimidation.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.investigation.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.medicine.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.nature.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.perception.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.performance.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.persuasion.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.religion.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.sleightOfHand.modifier(pc.info.abilities).toDouble,
+                            pc.info.skills.stealth.modifier(pc.info.abilities).toDouble
+                          )
+                        )
+                          .setName(pc.header.name)
+                          .setColor(radarColors(i))
+                    }.toJSArray)
+                    .width(100.pct)
+                    .height(270)
+                    .options(
+                      ApexOptions()
+                        .setLabels(
+                          js.Array(
+                            "Acrobatics",
+                            "A. Handling",
+                            "Arcana",
+                            "Athletics",
+                            "Deception",
+                            "History",
+                            "Insight",
+                            "Int.",
+                            "Inv.",
+                            "Medicine",
+                            "Nature",
+                            "Perception",
+                            "Performance",
+                            "Persuasion",
+                            "Religion",
+                            "S. of Hand",
+                            "Stealth"
+                          )
+                        )
+                        .setLegend(
+                          ApexLegend().setLabels(
+                            UseSeriesColors()
+                              .setColors("#ecf0f1")
+                          )
+                        )
+                    )
+                ),
+                <.div(
+                  ^.className := "radarCard",
+                  ^.width     := 19.pct,
+                  <.h2("Health"), {
+                    extension [A, CC[_], C](a: StrictOptimizedIterableOps[A, CC, C]) {
+                      private def unzip4[A1, A2, A3, A4](implicit asQuad: A => (A1, A2, A3, A4))
+                        : (CC[A1], CC[A2], CC[A3], CC[A4]) = {
+                        val b1 = a.iterableFactory.newBuilder[A1]
+                        val b2 = a.iterableFactory.newBuilder[A2]
+                        val b3 = a.iterableFactory.newBuilder[A3]
+                        val b4 = a.iterableFactory.newBuilder[A4]
+
+                        a.foreach { xyza =>
+                          val triple = asQuad(xyza)
+                          b1 += triple._1
+                          b2 += triple._2
+                          b3 += triple._3
+                          b4 += triple._4
+                        }
+                        (b1.result(), b2.result(), b3.result(), b4.result())
+                      }
+
+                    }
+
+                    val (names, ratios, ratioStrings, lifeColors) = {
+                      campaignState.pcs.map { pc =>
+                        val ratio = pc.info.health.currentHitPoints.toDouble / pc.info.health.currentMax.toDouble
+                        (
+                          pc.header.name.take(10),
+                          ratio,
+                          s"${pc.info.health.currentHitPoints.toDouble}/${pc.info.health.currentMax}",
+                          pc.info.health.lifeColor
+                        )
+                      }
+                    }.unzip4
+
+                    ReactApexcharts
+                      .`type`(bar)
+                      .width(100.pct)
+                      .height(270)
+                      .series {
+                        js.Array(Data(data = ratios.toJSArray).setName("Health"))
+                      }
+                      .options(
+                        ApexOptions()
+                          .setDataLabels(
+                            ApexDataLabels()
+                              .setEnabled(true)
+                              .setFormatter {
+                                case (value, opt: js.Object) =>
+                                  val i = opt.asInstanceOf[FormattingOptions].dataPointIndex.toInt
+                                  ratioStrings(i)
+                                case _ => "goodbye"
+                              }
+                              .setTextAnchor(apexchartsStrings.start)
+                              .setOffsetX(0)
+                          )
+                          .setXaxis(
+                            ApexXAxis()
+                              .setCategories(names.toJSArray)
+                              .setLabels(DatetimeFormatter().setShow(false))
+                              .setAxisTicks(BorderType().setShow(false))
+                          )
+                          .setYaxis(
+                            ApexYAxis()
+                              .setLabels(Align().setStyle(CssClassFontFamily().setColors(js.Array("#ecf0f1"))))
+                          )
+                          .setPlotOptions(
+                            ApexPlotOptions()
+                              .setBar(
+                                BarHeight()
+                                  .setHorizontal(true)
+                                  .setColors(BackgroundBarColors().setBackgroundBarColors(lifeColors.toJSArray))
+                              )
+                          )
+                      )
+                  }
+                )
+              ),
+              <.div(
+                ^.width   := 100.pct,
+                ^.display := "contents",
+                VdomArray(
                   <.div(
                     ^.className := "radarCard",
-                    ^.key       := "sceneNotes",
-                    <.h2("Scene Notes"),
-                    state.scenes.map(_.header.name).mkString(",")
-                    //              campaignInfo.scenes
-                    //                .find(_.isActive).orElse(campaignInfo.scenes.headOption).map { scene =>
-                    //                  <.div(if (scene.isActive) "Current Scene" else "First Scene", scene.name, scene.notes)
-                    //                }.toVdomArray
+                    ^.key       := "campaignNotes",
+                    ^.style     := js.Dictionary("width" -> "540px", "height" -> "100%"),
+                    <.h2("Campaign Notes"),
+                    ReactQuill
+                      .value(campaign.info.notes)
+                      .style(CSSProperties().set("background-color", "#ced9e4").set("color", "#000000")) // TODO move colors to css
+                      .onChange(
+                        (
+                          newValue,
+                          _,
+                          _,
+                          _
+                        ) =>
+                          dmScreenState.onModifyCampaignState(
+                            campaignState.copy(
+                              campaign =
+                                campaign.copy(jsonInfo = campaign.info.copy(notes = newValue).toJsonAST.toOption.get),
+                              changeStack = campaignState.changeStack.logCampaignChange()
+                            ),
+                            ""
+                          )
+                      )
+                  ),
+                  if (state.scenes.isEmpty) EmptyVdom
+                  else
+                    <.div(
+                      ^.className := "radarCard",
+                      ^.key       := "sceneNotes",
+                      <.h2("Scene Notes"),
+                      state.scenes.map(_.header.name).mkString(",")
+                      //              campaignInfo.scenes
+                      //                .find(_.isActive).orElse(campaignInfo.scenes.headOption).map { scene =>
+                      //                  <.div(if (scene.isActive) "Current Scene" else "First Scene", scene.name, scene.notes)
+                      //                }.toVdomArray
 
-                  )
+                    )
+                )
               )
             )
           }
@@ -390,14 +399,6 @@ object DashboardPage extends DMScreenTab {
       State()
     }
     .renderBackend[Backend]
-    .componentDidMount(
-      // _.backend.refresh(initial = true)()
-      $ => Callback.empty
-    )
-    .componentWillUnmount($ =>
-      // TODO close down streams here
-      Callback.empty
-    )
     .build
 
   def apply(

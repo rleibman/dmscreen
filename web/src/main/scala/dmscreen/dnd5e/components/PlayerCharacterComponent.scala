@@ -202,7 +202,7 @@ object PlayerCharacterComponent {
                   ),
                   <.tr(
                     <.th("Initiative"),
-                    <.td(pc.initiativeBonusString) // TODO Override
+                    <.td(pc.initiativeBonusString)
                   ),
                   <.tr(
                     <.td(
@@ -221,30 +221,32 @@ object PlayerCharacterComponent {
             ),
             <.div(
               ^.className       := "characterDetails",
-              ^.backgroundColor := pc.hitPoints.lifeColor,
+              ^.backgroundColor := pc.health.lifeColor,
               EditableComponent(
                 view = <.table(
                   <.thead(
                     <.tr(<.th("HP"), <.th("Temp HP"))
                   ),
                   <.tbody(
-                    pc.hitPoints.currentHitPoints match {
-                      case ds: DeathSave =>
-                        <.tr(
-                          <.td(s"0/${pc.hitPoints.currentMax}", if (ds.isStabilized) " (stabilized)" else ""),
-                          <.td(pc.hitPoints.temporaryHitPoints.toString)
-                        )
-                      case i: Int =>
-                        <.tr(
-                          <.td(s"$i/${pc.hitPoints.currentMax}"),
-                          <.td(pc.hitPoints.temporaryHitPoints.toString)
-                        )
+                    if (pc.health.currentHitPoints <= 0) {
+                      <.tr(
+                        <.td(
+                          s"${pc.health.currentHitPoints}/${pc.health.currentMax}",
+                          if (pc.health.deathSave.isStabilized) " (stabilized)" else ""
+                        ),
+                        <.td(pc.health.temporaryHitPoints.toString)
+                      )
+                    } else {
+                      <.tr(
+                        <.td(s"${pc.health.currentHitPoints}/${pc.health.currentMax}"),
+                        <.td(pc.health.temporaryHitPoints.toString)
+                      )
                     }
                   )
                 ),
-                edit = HitPointsEditor(
-                  pc.hitPoints,
-                  onChange = hitPoints => modPCInfo(info => info.copy(hitPoints = hitPoints))
+                edit = HealthEditor(
+                  pc.health,
+                  onChange = hitPoints => modPCInfo(info => info.copy(health = hitPoints))
                 ),
                 title = "Hit Points",
                 onModeChange = mode =>
@@ -549,7 +551,6 @@ object PlayerCharacterComponent {
     .builder[Props]("PlayerCharacterComponent")
     .initialStateFromProps(p => State(p.playerCharacter))
     .renderBackend[Backend]
-    .componentDidMount($ => Callback.empty)
     .shouldComponentUpdatePure($ => ! $.nextState.dialogOpen)
     .build
 

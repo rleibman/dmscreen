@@ -45,7 +45,7 @@ given JsonCodec[CharacterClassId] =
     _.toString
   )
 given JsonCodec[SourceId] = JsonCodec.string.transform(SourceId.apply, _.value)
-given JsonCodec[CombatantId] = JsonCodec.long.transform(CombatantId.apply, _.value)
+given JsonCodec[CombatantId] = JsonCodec.string.transform(CombatantId.apply, _.value.toString)
 given JsonCodec[CampaignId] = JsonCodec.long.transform(CampaignId.apply, _.value)
 given JsonCodec[EncounterId] = JsonCodec.long.transform(EncounterId.apply, _.value)
 given JsonCodec[NonPlayerCharacterId] = JsonCodec.long.transform(NonPlayerCharacterId.apply, _.value)
@@ -95,7 +95,7 @@ given JsonCodec[DeathSave] = JsonCodec.derived[DeathSave]
 given JsonCodec[SpellSlots] = JsonCodec.derived[SpellSlots]
 given JsonCodec[Creature] = JsonCodec.derived[Creature]
 given JsonCodec[SenseRange] = JsonCodec.derived[SenseRange]
-given JsonCodec[HitPoints] = JsonCodec.derived[HitPoints]
+given JsonCodec[Health] = JsonCodec.derived[Health]
 given JsonCodec[Abilities] = JsonCodec.derived[Abilities]
 given JsonCodec[Skill] = JsonCodec.derived[Skill]
 given JsonCodec[Skills] = JsonCodec.derived[Skills]

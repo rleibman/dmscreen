@@ -33,15 +33,15 @@ import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticWIDTH
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
 
-object HitPointsEditor {
+object HealthEditor {
 
   case class State(
-    hitPoints: HitPoints
+    health: Health
   )
 
   case class Props(
-    hitPoints: HitPoints,
-    onChange:  HitPoints => Callback
+    health:   Health,
+    onChange: Health => Callback
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -51,23 +51,21 @@ object HitPointsEditor {
       state: State
     ): VdomNode = {
       <.div(
-        ^.backgroundColor := state.hitPoints.lifeColor,
+        ^.backgroundColor := state.health.lifeColor,
         <.table(
           <.tbody(
-            state.hitPoints.currentHitPoints match {
-              case ds: DeathSave =>
-                <.tr(
-                  <.th("Death Save Status"),
-                  <.td(s"${ds.fails} fails, ${ds.successes} successes ${if (ds.isStabilized) "Stabilized" else ""}")
-                )
-              case _: Int => EmptyVdom
-            },
+            <.tr(
+              <.th("Death Save Status"),
+              <.td(s"${state.health.deathSave.fails} fails, ${state.health.deathSave.successes} successes ${
+                  if (state.health.deathSave.isStabilized) "Stabilized" else ""
+                }")
+            ).when(state.health.currentHitPoints <= 0),
             <.tr(
               <.th("Current Hit Points"),
               <.td(
                 Input
                   .`type`("number")
-                  .max(state.hitPoints.currentMax)
+                  .max(state.health.currentMax)
                   .onChange(
                     (
                       _,
@@ -82,17 +80,19 @@ object HitPointsEditor {
                             case s: String => s.toIntOption.getOrElse(0)
                             case x: Double => x.toInt
                           }
-                          s.copy(hitPoints =
-                            s.hitPoints.copy(currentHitPoints = if (newNum <= 0) DeathSave(0, 0) else newNum)
+                          s.copy(health =
+                            s.health.copy(
+                              deathSave =
+                                if (newNum <= 0) DeathSave(fails = 0, successes = 0, isStabilized = false)
+                                else s.health.deathSave,
+                              currentHitPoints = newNum
+                            )
                           )
                         },
-                        $.state.flatMap(s => props.onChange(s.hitPoints))
+                        $.state.flatMap(s => props.onChange(s.health))
                       )
                   )
-                  .value(state.hitPoints.currentHitPoints match {
-                    case _: DeathSave => 0
-                    case i: Int       => i
-                  })
+                  .value(state.health.currentHitPoints)
               )
             ),
             <.tr(
@@ -115,12 +115,12 @@ object HitPointsEditor {
                             case s: String => s.toIntOption.getOrElse(0)
                             case x: Double => x.toInt
                           }
-                          s.copy(hitPoints = s.hitPoints.copy(maxHitPoints = newNum))
+                          s.copy(health = s.health.copy(maxHitPoints = newNum))
                         },
-                        $.state.flatMap(s => props.onChange(s.hitPoints))
+                        $.state.flatMap(s => props.onChange(s.health))
                       )
                   )
-                  .value(state.hitPoints.maxHitPoints)
+                  .value(state.health.maxHitPoints)
               )
             ),
             <.tr(
@@ -128,7 +128,7 @@ object HitPointsEditor {
                 Checkbox
                   .toggle(true)
                   .label("Override Max Hit Points")
-                  .checked(state.hitPoints.overrideMaxHitPoints.isDefined)
+                  .checked(state.health.overrideMaxHitPoints.isDefined)
                   .onChange(
                     (
                       _,
@@ -140,9 +140,9 @@ object HitPointsEditor {
                           p
                         ) => {
                           val newVal = if (changedData.checked.getOrElse(false)) Some(0) else None
-                          s.copy(hitPoints = s.hitPoints.copy(overrideMaxHitPoints = newVal))
+                          s.copy(health = s.health.copy(overrideMaxHitPoints = newVal))
                         },
-                        $.state.flatMap(s => props.onChange(s.hitPoints))
+                        $.state.flatMap(s => props.onChange(s.health))
                       )
                   )
               ),
@@ -150,7 +150,7 @@ object HitPointsEditor {
                 Input
                   .`type`("number")
                   .min(0)
-                  .disabled(state.hitPoints.overrideMaxHitPoints.isEmpty)
+                  .disabled(state.health.overrideMaxHitPoints.isEmpty)
                   .onChange(
                     (
                       _,
@@ -165,14 +165,12 @@ object HitPointsEditor {
                             case s: String => s.toIntOption.getOrElse(0)
                             case x: Double => x.toInt
                           }
-                          s.copy(hitPoints =
-                            s.hitPoints.copy(overrideMaxHitPoints = if (newNum <= 0) None else Some(newNum))
-                          )
+                          s.copy(health = s.health.copy(overrideMaxHitPoints = if (newNum <= 0) None else Some(newNum)))
                         },
-                        $.state.flatMap(s => props.onChange(s.hitPoints))
+                        $.state.flatMap(s => props.onChange(s.health))
                       )
                   )
-                  .value(state.hitPoints.overrideMaxHitPoints.getOrElse(0))
+                  .value(state.health.overrideMaxHitPoints.getOrElse(0))
               )
             ),
             <.tr(
@@ -195,12 +193,12 @@ object HitPointsEditor {
                             case s: String => s.toIntOption.getOrElse(0)
                             case x: Double => x.toInt
                           }
-                          s.copy(hitPoints = s.hitPoints.copy(temporaryHitPoints = newNum))
+                          s.copy(health = s.health.copy(temporaryHitPoints = newNum))
                         },
-                        $.state.flatMap(s => props.onChange(s.hitPoints))
+                        $.state.flatMap(s => props.onChange(s.health))
                       )
                   )
-                  .value(state.hitPoints.temporaryHitPoints)
+                  .value(state.health.temporaryHitPoints)
               )
             )
           )
@@ -213,19 +211,18 @@ object HitPointsEditor {
   import scala.language.unsafeNulls
 
   given Reusability[State] = Reusability.derive[State]
-  given Reusability[Props] = Reusability.by((_: Props).hitPoints)
+  given Reusability[Props] = Reusability.by((_: Props).health)
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
     .builder[Props]("HitPointsDialog")
-    .initialStateFromProps(p => State(p.hitPoints))
+    .initialStateFromProps(p => State(p.health))
     .renderBackend[Backend]
-    .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
     .build
 
   def apply(
-    hitPoints: HitPoints,
-    onChange:  HitPoints => Callback = _ => Callback.empty
-  ): Unmounted[Props, State, Backend] = component(Props(hitPoints, onChange))
+    health:   Health,
+    onChange: Health => Callback = _ => Callback.empty
+  ): Unmounted[Props, State, Backend] = component(Props(health, onChange))
 
 }

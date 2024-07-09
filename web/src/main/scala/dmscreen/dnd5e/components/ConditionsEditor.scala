@@ -22,7 +22,7 @@
 package dmscreen.dnd5e.components
 
 import dmscreen.dnd5e.*
-import dmscreen.dnd5e.components.HitPointsEditor.State
+import dmscreen.dnd5e.components.HealthEditor.State
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.VdomNode
@@ -36,7 +36,6 @@ import org.scalajs.dom.html.Span
 
 object ConditionsEditor {
 
-  // TODO add button for "clear All"
   case class State(
     conditions: Set[Condition]
   )
@@ -62,10 +61,7 @@ object ConditionsEditor {
               changedData
             ) =>
               $.modState(
-                (
-                  s,
-                  p
-                ) =>
+                s =>
                   s.copy(conditions =
                     if (changedData.checked.getOrElse(false))
                       s.conditions + condition
@@ -81,6 +77,22 @@ object ConditionsEditor {
 
       Table
         .compact(true)(
+          Table.Header(
+            Table.Row(
+              Table.HeaderCell.colSpan(2)(
+                Button("Clear all conditions").onClick(
+                  (
+                    _,
+                    _
+                  ) =>
+                    $.modState(
+                      s => s.copy(conditions = Set.empty),
+                      $.state.flatMap(s => props.onChange(s.conditions))
+                    )
+                )
+              )
+            )
+          ),
           Table.Body(
             Table.Row(
               Table.Cell.width(SemanticWIDTHS.`8`)(toggle(Condition.blinded)),
@@ -111,18 +123,6 @@ object ConditionsEditor {
               Table.Cell(toggle(Condition.unconscious))
             )
           )
-          // TODO add
-          // hex
-          // hunter's mark
-          // bless
-          // bane
-          // guidance
-          // rage (barbarian)
-          // concentration
-          // haste
-          // slow
-          // wild shape (druid)
-          // Other spell effects
         )
     }
 
@@ -137,7 +137,6 @@ object ConditionsEditor {
     .builder[Props]("ConditionsEditor")
     .initialStateFromProps(p => State(p.conditions))
     .renderBackend[Backend]
-    .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
     .build
 

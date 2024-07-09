@@ -79,7 +79,8 @@ object StorageSpec extends ZIOSpecDefault {
           newId <- service.upsert(
             PlayerCharacterHeader(PlayerCharacterId.empty, testCampaignId, "Test Character 2", Some("Test Player 2")),
             PlayerCharacterInfo(
-              hitPoints = HitPoints(
+              health = Health(
+                deathSave = DeathSave.empty,
                 currentHitPoints = 30,
                 maxHitPoints = 30
               ),
@@ -125,7 +126,8 @@ object StorageSpec extends ZIOSpecDefault {
         import diffson.zjson.*
 
         val info1 = PlayerCharacterInfo(
-          hitPoints = HitPoints(
+          health = Health(
+            deathSave = DeathSave.empty,
             currentHitPoints = 30,
             maxHitPoints = 30
           ),

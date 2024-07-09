@@ -48,7 +48,7 @@ object PlayerCharacterId {
 final case class PlayerCharacterHeader(
   id:         PlayerCharacterId,
   campaignId: CampaignId,
-  name:       String, // TODO make it optional
+  name:       String,
   playerName: Option[String] = None
 ) extends HasId[PlayerCharacterId]
 
@@ -270,10 +270,16 @@ enum Condition {
 
 }
 
+object DeathSave {
+
+  val empty = DeathSave(0, 0, true)
+
+}
+
 case class DeathSave(
   fails:        Int,
   successes:    Int,
-  isStabilized: Boolean = false
+  isStabilized: Boolean = true
 )
 
 case class SpellSlots(
@@ -458,12 +464,12 @@ case class Skills(
 
 case class Language(name: String)
 
-object DeadDead
-
 final private val deadColor = "hsl(0, 100%, 25%, 0.8)"
+final private val deadButStabilizedColor = "hsl(300, 100%, 25%, 0.8)"
 
-case class HitPoints(
-  currentHitPoints:     DeathSave | Int, // TODO or DeadDead
+case class Health(
+  deathSave:            DeathSave,
+  currentHitPoints:     Int,
   maxHitPoints:         Int,
   overrideMaxHitPoints: Option[Int] = None,
   temporaryHitPoints:   Int = 0
@@ -471,16 +477,10 @@ case class HitPoints(
 
   def currentMax: Int = overrideMaxHitPoints.getOrElse(maxHitPoints)
   def lifeColor: String =
-    currentHitPoints match {
-      case DeathSave(_, _, _) => deadColor
-      case i: Int => if (i <= 0) deadColor else s"hsl(${(i * 120.0) / currentMax}, 85%, 50%, 0.8)"
-    }
+    if (currentHitPoints <= 0) if (deathSave.isStabilized) deadButStabilizedColor else deadColor
+    else s"hsl(${Math.min((currentHitPoints * 120.0) / currentMax, 120)}, 85%, 50%, 0.8)"
 
-  def isDead: Boolean =
-    currentHitPoints match {
-      case DeathSave(_, _, _) => true
-      case i: Int => i <= 0
-    }
+  def isDead: Boolean = currentHitPoints <= 0
 
 }
 
@@ -496,7 +496,7 @@ case class Speed(
 )
 
 case class PlayerCharacterInfo(
-  hitPoints:               HitPoints,
+  health:                  Health,
   armorClass:              Int,
   classes:                 List[PlayerCharacterClass],
   source:                  ImportSource = DMScreenSource,

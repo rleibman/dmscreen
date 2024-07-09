@@ -66,7 +66,7 @@ object TestCreator extends ZIOApp {
         wisdom = Ability(AbilityType.wisdom, 16, None, false),
         charisma = Ability(AbilityType.charisma, 10, None, false)
       ),
-      hitPoints = HitPoints(currentHitPoints = DeathSave(fails = 2, successes = 2), 30),
+      health = Health(deathSave = DeathSave(fails = 2, successes = 2), currentHitPoints = 0, maxHitPoints = 30),
       armorClass = 16
     ).toJsonAST.toOption.get
   )
@@ -111,10 +111,11 @@ object TestCreator extends ZIOApp {
         val entities: Seq[MonsterCombatant] = monstersWithCounts.flatMap { case (monster, count) =>
           (1 to count).map { i =>
             MonsterCombatant(
-              id = CombatantId.empty,
+              id = CombatantId.create,
               monsterHeader = monster.header,
               notes = "These are some notes",
-              hitPoints = HitPoints(
+              health = Health(
+                deathSave = DeathSave.empty,
                 currentHitPoints = monster.header.maximumHitPoints,
                 maxHitPoints = monster.header.maximumHitPoints
               ),
@@ -130,10 +131,10 @@ object TestCreator extends ZIOApp {
 
         // Reset initiatives based on random values, set the id of the index
         val modified = entities
-          .zip(initiatives.toList).zipWithIndex.map { case ((entity, initiative), index) =>
+          .zip(initiatives.toList).map { case (entity, initiative) =>
             entity match {
               case monster: MonsterCombatant =>
-                monster.copy(id = CombatantId(index), initiative = initiative + monster.initiativeBonus)
+                monster.copy(id = CombatantId.create, initiative = initiative + monster.initiativeBonus)
             }
           }.toList
         EncounterInfo(combatants = modified)

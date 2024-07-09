@@ -323,7 +323,6 @@ object SensesEditor {
     .builder[Props]("SensesEditor")
     .initialStateFromProps(p => State(p.senses))
     .renderBackend[Backend]
-    .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
     .build
 

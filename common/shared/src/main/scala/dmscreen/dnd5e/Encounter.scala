@@ -25,17 +25,20 @@ import dmscreen.{BuildInfo, CampaignId, DMScreenEntity, EntityType, HasId}
 import just.semver.SemVer
 import zio.json.ast.Json
 
-opaque type CombatantId = Long
+import java.util.UUID
+
+opaque type CombatantId = UUID
 
 object CombatantId {
 
-  def empty: CombatantId = CombatantId(0)
+  def create: CombatantId = CombatantId(UUID.randomUUID)
 
-  def apply(combatantId: Long): CombatantId = combatantId
+  def apply(combatantId: UUID):   CombatantId = combatantId
+  def apply(combatantId: String): CombatantId = UUID.fromString(combatantId)
 
   extension (combatantId: CombatantId) {
 
-    def value: Long = combatantId
+    def value: UUID = combatantId
 
   }
 
@@ -63,7 +66,7 @@ case class MonsterCombatant(
   monsterHeader:                MonsterHeader,
   override val name:            String,
   override val notes:           String = "",
-  hitPoints:                    HitPoints,
+  health:                       Health,
   armorClass:                   Int,
   override val initiative:      Int = 0,
   conditions:                   Set[Condition] = Set.empty,
@@ -128,7 +131,7 @@ case class EncounterHeader(
 ) extends HasId[EncounterId]
 
 case class EncounterInfo(
-  combatants:  List[EncounterCombatant],
+  combatants:  List[EncounterCombatant] = List.empty,
   currentTurn: Int = 0,
   round:       Int = 0,
   notes:       String = ""

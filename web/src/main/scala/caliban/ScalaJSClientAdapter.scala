@@ -143,7 +143,7 @@ object ScalaJSClientAdapter extends TimerSupport {
               Callback.log(s"1 Error: $error") // TODO handle error responses better
           }
         case Failure(exception) =>
-          Callback.throwException(exception) // TODO handle error responses better
+          Callback.throwException(exception)
         case Success(response) =>
           Callback.log(s"2 Error: ${response.statusText}") // TODO handle error responses better
       }
@@ -219,7 +219,6 @@ object ScalaJSClientAdapter extends TimerSupport {
 
   import scala.language.unsafeNulls
 
-  // TODO we will replace this with some zio thing as soon as I figure out how, maybe replace all callbacks to zios?
   def makeWebSocketClient[A: JsonDecoder](
     uriOrSocket:      Either[URI, WebSocket],
     query:            SelectionBuilder[RootSubscription, A],

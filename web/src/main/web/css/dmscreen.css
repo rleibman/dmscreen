@@ -1,5 +1,5 @@
 alabel {
-    color: #ecf0f1 !important;;
+    color: #ecf0f1 !important;
 }
 
 .mainMenu {
@@ -34,7 +34,6 @@ alabel {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     padding: 10px;
-    width: 270px;
     box-sizing: border-box;
     transition: transform 0.2s;
 }
@@ -128,6 +127,13 @@ i.icon.d12icon:before {
 i.icon.d20icon:before {
     content: url("/images/d20.svg");
     position: relative;
+}
+
+i.icon.d20smallicon:before {
+    content: url("/images/d20_small.svg");
+    position: relative;
+    top: -2px;
+    left: -5px;
 }
 
 i.icon.d4icon {
@@ -245,3 +251,14 @@ i.icon.clearIcon:before {
     left: 12.5%;
 }
 
+.deathSave table {
+    width: initial;
+    border: 0px;
+}
+
+.deathSaveSucceed [type=checkbox] {
+    accent-color: green;
+}
+.deathSaveFail  [type=checkbox] {
+    accent-color: red;
+}

@@ -91,7 +91,6 @@ object EditableText {
     .builder[Props]("EditableText")
     .initialStateFromProps(p => State(p.value))
     .renderBackend[Backend]
-    .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
     .build
 

@@ -231,10 +231,12 @@ object PlayerCharacterClassEditor {
                           _,
                           _
                         ) =>
-                          // TODO confirm deletion
-                          $.modState(
-                            s => s.copy(classes = s.classes.patch(i, Nil, 1)),
-                            $.state.flatMap(s => props.onChange(s.classes))
+                          _root_.components.Confirm.confirm(
+                            question = s"Are you sure you want to delete this class (${playerCharacterClass.characterClass.name})?",
+                            onConfirm = $.modState(
+                              s => s.copy(classes = s.classes.patch(i, Nil, 1)),
+                              $.state.flatMap(s => props.onChange(s.classes))
+                            )
                           )
                       }(Icon.name(SemanticICONS.delete))
                   )

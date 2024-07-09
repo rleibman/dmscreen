@@ -23,7 +23,7 @@ package dmscreen.dnd5e.components
 
 import dmscreen.dnd5e.*
 import dmscreen.dnd5e.components.ConditionsEditor.{Backend, Props, State}
-import dmscreen.dnd5e.components.HitPointsEditor.State
+import dmscreen.dnd5e.components.HealthEditor.State
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.VdomNode
@@ -55,6 +55,11 @@ object OtherMarkersEditor {
     ): VdomNode = {
       Table
         .compact(true)(
+          Table.Header(
+            Table.Row(
+              Table.HeaderCell.colSpan(2)("Use these markers for various things, among them: hex, hunter's mark, bless, bane, guidance, rage (barbarian), concentration, haste, slow, wild shape (druid), and other spell effects")
+            )
+          ),
           Table.Body(
             state.otherMarkers.zipWithIndex.map(
               (
@@ -135,7 +140,6 @@ object OtherMarkersEditor {
     .builder[Props]("OtherMarkersEditor")
     .initialStateFromProps(p => State(p.otherMarkers))
     .renderBackend[Backend]
-    .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
     .build
 

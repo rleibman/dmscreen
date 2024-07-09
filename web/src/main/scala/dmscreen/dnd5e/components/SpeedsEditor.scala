@@ -251,7 +251,6 @@ object SpeedsEditor {
     .builder[Props]("SpeedsEditor")
     .initialStateFromProps(p => State(p.speeds))
     .renderBackend[Backend]
-    .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
     .build
 

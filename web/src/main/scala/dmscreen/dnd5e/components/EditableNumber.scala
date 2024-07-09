@@ -106,7 +106,6 @@ object EditableNumber {
     .builder[Props]("EditableNumber")
     .initialStateFromProps(p => State(p.value))
     .renderBackend[Backend]
-    .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
     .build
 

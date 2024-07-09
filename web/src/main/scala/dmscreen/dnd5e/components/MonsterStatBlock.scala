@@ -158,7 +158,10 @@ object MonsterStatBlock {
                   <.p(info.languages.map(_.name).mkString(", "))
                 )
               ),
-            // TODO challenge
+            Container.className("property-line")(
+              Header.size(SemanticSIZES.small).as("h4")("Challenge"),
+              <.p(s"${monster.header.cr} (${monster.header.xp} XP)")
+            ),
             taperedLine,
             info.actions.headOption.fold(EmptyVdom)(_ =>
               Container.className("actions")(

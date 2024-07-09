@@ -29,7 +29,7 @@ import scala.language.unsafeNulls
 given Reusability[AbilityType] = Reusability.int.contramap(_.ordinal)
 given Reusability[ProficiencyLevel] = Reusability.int.contramap(_.ordinal)
 given Reusability[CharacterClassId] = Reusability.int.contramap(_.ordinal)
-given Reusability[CombatantId] = Reusability.long.contramap(_.value)
+given Reusability[CombatantId] = Reusability.string.contramap(_.value.toString)
 
 given Reusability[DeathSave] = Reusability.derive[DeathSave]
 given Reusability[DeathSave | Int] =
@@ -42,7 +42,7 @@ given Reusability[Abilities] = Reusability.derive[Abilities]
 given Reusability[Skill] = Reusability.derive[Skill]
 given Reusability[Language] = Reusability.derive[Language]
 given Reusability[Skills] = Reusability.derive[Skills]
-given Reusability[HitPoints] = Reusability.derive[HitPoints]
+given Reusability[Health] = Reusability.derive[Health]
 given Reusability[Feat] = Reusability.derive[Feat]
 given Reusability[Condition] = Reusability.derive[Condition]
 given Reusability[SubClass] = Reusability.string.contramap(_.name)

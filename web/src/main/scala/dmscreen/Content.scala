@@ -72,12 +72,9 @@ object Content {
       // We might want to stop the ticker while we do the save
       val ajax = for {
         state <- $.state.map(_.dmScreenState).asAsyncCallback
-        _     <- Callback.log("Checking for changes to save").asAsyncCallback
         state <- AsyncCallback.traverse(state.campaignState)(_.saveChanges())
         _     <- stopSaveTicker.asAsyncCallback
-      } yield Callback.empty
-      // TODO we only need to change the current state if there's expected differences in the state
-      // $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(campaignState = state.headOption)))
+      } yield $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(campaignState = state.headOption)))
 
       ajax.completeWith(_.get)
 
@@ -288,7 +285,7 @@ object Content {
                 log
               ) =>
                 // if the ticker is on, do nothing, otherwise start it
-                // TODO add to campaign log
+                // ENHANCEMENT persist campaign log
                 $.modState(
                   s =>
                     s.copy(

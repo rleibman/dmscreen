@@ -37,7 +37,7 @@ object PlayerCharacterNotesEditor {
 
   case class State(
     notes: String,
-    // TODO: all the below
+    // Enhancement: all the below
     personalityTraits: String = "",
     ideals:            String = "",
     bonds:             String = "",
@@ -87,7 +87,6 @@ object PlayerCharacterNotesEditor {
     .builder[Props]("PlayerCharacterNotesEditor")
     .initialStateFromProps(p => State(p.notes))
     .renderBackend[Backend]
-    .componentDidMount($ => Callback.empty)
     .configure(Reusability.shouldComponentUpdate)
     .build
 

@@ -41,18 +41,8 @@ object HomePage extends DMScreenTab {
 
   private val component = ScalaComponent
     .builder[Unit]("router")
-    .initialState {
-      State()
-    }
+    .initialState(State())
     .renderBackend[Backend]
-    .componentDidMount(
-      // _.backend.refresh(initial = true)()
-      $ => Callback.empty
-    )
-    .componentWillUnmount($ =>
-      // TODO close down streams here
-      Callback.empty
-    )
     .build
 
   def apply(

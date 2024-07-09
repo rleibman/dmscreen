@@ -29,7 +29,7 @@ case class DND5eCampaignState(
   pcs:         List[PlayerCharacter] = List.empty,
   npcs:        List[NonPlayerCharacter] = List.empty,
   scenes:      List[Scene] = List.empty,
-  encounters:  List[Encounter] = List.empty, // TODO add campaign encounters globally, instead of the encounter page
+  encounters:  List[Encounter] = List.empty,
   changeStack: ChangeStack = ChangeStack()
 
   // NOTES,
@@ -40,6 +40,12 @@ case class DND5eCampaignState(
 
   override def saveChanges(): AsyncCallback[CampaignState] = {
     for {
+      _ <- Callback
+        .log(
+          s"Saving Changes: (campaign = ${changeStack.campaign}, pcs = ${changeStack.pcs.mkString(",")}, npcs = ${changeStack.npcs
+              .mkString(",")}, scenes = ${changeStack.scenes.mkString(",")}, encounters = ${changeStack.encounters
+              .mkString(",")}, monsters = ${changeStack.monsters.mkString(",")})"
+        ).asAsyncCallback
       campaign <- GraphQLRepository.live
         .upsert(campaign.header, campaign.jsonInfo)
         .when(changeStack.campaign)

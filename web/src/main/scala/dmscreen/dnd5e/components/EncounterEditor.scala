@@ -65,12 +65,15 @@ def createMonsterCombatant(
   header: MonsterHeader
 ): MonsterCombatant = {
   val number =
-    e.info.combatants.collect { case c: MonsterCombatant if c.monsterHeader.id == header.id => c }.size + 1
+    e.info.combatants.collect {
+      case monsterCombatant: MonsterCombatant if monsterCombatant.monsterHeader.id == header.id => monsterCombatant
+    }.size + 1
 
   MonsterCombatant(
-    id = CombatantId(e.info.combatants.size),
+    id = CombatantId.create,
     monsterHeader = header,
-    hitPoints = HitPoints(
+    health = Health(
+      deathSave = DeathSave.empty,
       currentHitPoints = header.maximumHitPoints,
       maxHitPoints = header.maximumHitPoints
     ),
@@ -315,8 +318,8 @@ object EncounterEditor {
             Table.Body(
               encounter.info.combatants
                 .sortBy {
-                  case combatant: MonsterCombatant         => combatant.name
-                  case combatant: PlayerCharacterCombatant => combatant.name // Not really important
+                  case monsterCombatant: MonsterCombatant         => monsterCombatant.name
+                  case pcCombatant:      PlayerCharacterCombatant => pcCombatant.name // Not really important
                 }.collect { case combatant: MonsterCombatant =>
                   Table.Row
                     .withKey(s"combatant ${combatant.id.value}")(
@@ -330,10 +333,11 @@ object EncounterEditor {
                                 .copy(jsonInfo =
                                   e.info
                                     .copy(combatants = e.info.combatants.map {
-                                      case combatant: MonsterCombatant if combatant.id == combatant.id =>
-                                        combatant.copy(name = name)
+                                      case monsterCombatant2: MonsterCombatant
+                                          if monsterCombatant2.id == combatant.id =>
+                                        monsterCombatant2.copy(name = name)
                                       case _ => combatant
-                                    }).toJsonAST.toOption.get // TODO this conversion is akward, it would be nice to change it, but how?
+                                    }).toJsonAST.toOption.get
                                 )
                             })
                         )
@@ -355,8 +359,9 @@ object EncounterEditor {
                                 .copy(jsonInfo =
                                   e.info
                                     .copy(combatants = e.info.combatants.map {
-                                      case combatant: MonsterCombatant if combatant.id == combatant.id =>
-                                        combatant.copy(armorClass = v.toInt)
+                                      case monsterCombatant2: MonsterCombatant
+                                          if monsterCombatant2.id == combatant.id =>
+                                        monsterCombatant2.copy(armorClass = v.toInt)
                                       case _ => combatant
                                     }).toJsonAST.toOption.get
                                 )
@@ -365,7 +370,7 @@ object EncounterEditor {
                       ),
                       Table.Cell(
                         EditableNumber(
-                          value = combatant.hitPoints.maxHitPoints,
+                          value = combatant.health.maxHitPoints,
                           allowEditing = encounter.header.status != EncounterStatus.archived,
                           min = 0,
                           max = 1000,
@@ -375,8 +380,10 @@ object EncounterEditor {
                                 .copy(jsonInfo =
                                   e.info
                                     .copy(combatants = e.info.combatants.map {
-                                      case combatant: MonsterCombatant if combatant.id == combatant.id =>
-                                        combatant.copy(hitPoints = combatant.hitPoints.copy(maxHitPoints = v.toInt))
+                                      case monsterCombatant2: MonsterCombatant
+                                          if monsterCombatant2.id == combatant.id =>
+                                        monsterCombatant2
+                                          .copy(health = monsterCombatant2.health.copy(maxHitPoints = v.toInt))
                                       case _ => combatant
                                     }).toJsonAST.toOption.get
                                 )
@@ -414,7 +421,6 @@ object EncounterEditor {
                               _,
                               _
                             ) =>
-                              val newId = CombatantId(encounter.info.combatants.size)
                               modEncounter(encounter => {
                                 encounter
                                   .copy(jsonInfo =

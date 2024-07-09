@@ -347,12 +347,9 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
           val removedHP = removedHitPoints.getOrElse(0)
           val tempHP = temporaryHitPoints.getOrElse(0)
           val atZero = maxHP - removedHP + tempHP
-          HitPoints(
-            currentHitPoints =
-              if (atZero <= 0)
-                DeathSave(deathSavesSuccesses, deathSavesFailures, deathSavesIsStable)
-              else
-                maxHP - removedHP,
+          Health(
+            deathSave = DeathSave(deathSavesSuccesses, deathSavesFailures, deathSavesIsStable),
+            currentHitPoints = maxHP - removedHP,
             maxHitPoints = maxHP,
             overrideMaxHitPoints = overrideHitPoints,
             temporaryHitPoints = temporaryHitPoints.getOrElse(0)
@@ -477,7 +474,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
             Some(player)
           ),
           PlayerCharacterInfo(
-            hitPoints = hitPoints,
+            health = hitPoints,
             armorClass = ac,
             source = DNDBeyondImportSource(uri),
             physicalCharacteristics = PhysicalCharacteristics(

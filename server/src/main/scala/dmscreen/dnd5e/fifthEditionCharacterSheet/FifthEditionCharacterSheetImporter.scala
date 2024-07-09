@@ -80,21 +80,20 @@ class FifthEditionCharacterSheetImporter extends DND5eImporter[URI, URI, URI, UR
         case elem2: Elem if elem2.label == "improvedInitiative" => elem2.text
       }.head
       val hitPoints = {
-        val currentHealth =
+        val currentHitPoints =
           child.collect { case elem2: Elem if elem2.label == "currentHealth" => elem2.text }.head.toInt
-        HitPoints(
-          currentHitPoints = if (currentHealth <= 0) {
-            DeathSave(
-              fails = child
-                .collect {
-                  case elem2: Elem if elem2.label == "deathSaveFailures" => elem2.text
-                }.head.toInt,
-              successes = child
-                .collect {
-                  case elem2: Elem if elem2.label == "deathSaveSuccesses" => elem2.text
-                }.head.toInt
-            )
-          } else currentHealth,
+        Health(
+          deathSave = DeathSave(
+            fails = child
+              .collect {
+                case elem2: Elem if elem2.label == "deathSaveFailures" => elem2.text
+              }.head.toInt,
+            successes = child
+              .collect {
+                case elem2: Elem if elem2.label == "deathSaveSuccesses" => elem2.text
+              }.head.toInt
+          ),
+          currentHitPoints = currentHitPoints,
           maxHitPoints = child.collect { case elem2: Elem if elem2.label == "maxHealth" => elem2.text }.head.toInt,
           temporaryHitPoints = child
             .collectFirst { case elem2: Elem if elem2.label == "currentTempHP" => elem2.text }.map(_.toInt).getOrElse(0)
@@ -106,7 +105,7 @@ class FifthEditionCharacterSheetImporter extends DND5eImporter[URI, URI, URI, UR
 //      val miscSpellDCBonus = child.collect {case elem2: Elem if elem2.label == "miscSpellDCBonus" => elem2.text}.head
 //      val castingStatCode = child.collect {case elem2: Elem if elem2.label == "castingStatCode" => elem2.text}.head
 //      val offenseAbilityDisplay = child.collect {case elem2: Elem if elem2.label == "offenseAbilityDisplay" => elem2.text}.head
-//      val baseSpeed = child.collect { case elem2: Elem if elem2.label == "baseSpeed" => elem2.text }.head //TODO use this
+//      val baseSpeed = child.collect { case elem2: Elem if elem2.label == "baseSpeed" => elem2.text }.head
 //      val speedMiscMod = child.collect { case elem2: Elem if elem2.label == "speedMiscMod" => elem2.text }.head
 //      val movementMode = child.collect { case elem2: Elem if elem2.label == "movementMode" => elem2.text }.head
 //      val raceCode = child.collect { case elem2: Elem if elem2.label == "raceCode" => elem2.text }.head
@@ -258,7 +257,7 @@ class FifthEditionCharacterSheetImporter extends DND5eImporter[URI, URI, URI, UR
         PlayerCharacter(
           header = PlayerCharacterHeader(id = PlayerCharacterId.empty, campaignId = CampaignId(1), name = name),
           jsonInfo = PlayerCharacterInfo(
-            hitPoints = hitPoints,
+            health = hitPoints,
             armorClass = armorClass,
             classes = classes,
             source = FifthEditionCharacterSheetImportSource(uri),

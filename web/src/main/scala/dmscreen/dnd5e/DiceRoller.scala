@@ -360,9 +360,7 @@ object DiceRoller extends DMScreenTab {
                 val finalResults = $.state.diceParser.parseFinalResults(results)
                 Callback(dr.showResults(finalResults)) >>
                   AsyncCallback
-                    .pure(Callback(dr.clear())).delayMs($.props.displayTimeMs).map(
-                      _ >> Callback.log("Cleared")
-                    ).completeWith(_.get)
+                    .pure(Callback(dr.clear())).delayMs($.props.displayTimeMs).completeWith(_.get)
               }).runNow(),
           onDieComplete = (dieResult: DieResult) => $.props.onDieComplete(dieResult).runNow()
         )

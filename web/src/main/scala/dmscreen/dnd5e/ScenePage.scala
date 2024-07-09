@@ -131,7 +131,8 @@ object ScenePage extends DMScreenTab {
                           )
 
                           GraphQLRepository.live
-                            .upsert(header = newScene.header, info = newScene.jsonInfo).map(id =>
+                            .upsert(header = newScene.header, info = newScene.jsonInfo)
+                            .map(id =>
                               dmScreenState
                                 .onModifyCampaignState(
                                   campaignState.copy(scenes =
