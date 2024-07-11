@@ -21,14 +21,14 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
 import dmscreen.dnd5e.NPCPage.State
 import dmscreen.dnd5e.components.PlayerCharacterComponent
-import japgolly.scalajs.react.{BackendScope, Callback, Reusability, ScalaComponent}
+import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.component.Scala.Unmounted
+import japgolly.scalajs.react.vdom.html_<^.*
+import japgolly.scalajs.react.{BackendScope, Callback, Reusability, ScalaComponent}
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
-import japgolly.scalajs.react.vdom.html_<^.*
 import zio.json.*
 import zio.json.ast.*
 

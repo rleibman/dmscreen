@@ -24,9 +24,8 @@ package dmscreen.dnd5e.components
 import dmscreen.*
 import dmscreen.dnd5e.{*, given}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
-import japgolly.scalajs.react.vdom.InnerHtmlAttr
-import japgolly.scalajs.react.vdom.Attr
 import japgolly.scalajs.react.vdom.html_<^.*
+import japgolly.scalajs.react.vdom.{Attr, InnerHtmlAttr}
 import japgolly.scalajs.react.{Callback, CtorType, *}
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.reactQuill.components.ReactQuill

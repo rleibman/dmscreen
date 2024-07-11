@@ -22,7 +22,7 @@
 package dmscreen.dnd5e.fifthEditionCharacterSheet
 
 import dmscreen.dnd5e.{*, given}
-import dmscreen.{CampaignId, DMScreenError}
+import dmscreen.{Campaign, CampaignId, DMScreenError}
 import zio.json.*
 import zio.nio.file.Files
 import zio.stream.ZStream
@@ -65,7 +65,7 @@ class FifthEditionCharacterSheetImporter extends DND5eImporter[URI, URI, URI, UR
 
   }
 
-  override def importCampaign(uri: URI): ZIO[Any, DMScreenError, DND5eCampaign] = ???
+  override def importCampaign(uri: URI): ZIO[Any, DMScreenError, Campaign] = ???
 
   override def importEncounter(uri: URI): ZIO[Any, DMScreenError, Encounter] = ???
 

@@ -33,10 +33,10 @@ import caliban.client.scalajs.DND5eClient.{
   Queries
 }
 import caliban.client.scalajs.{*, given}
+import dmscreen.*
 import dmscreen.dnd5e.components.*
 import dmscreen.dnd5e.components.EditableComponent.Mode
 import dmscreen.dnd5e.{*, given}
-import dmscreen.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.{^, *}
 import japgolly.scalajs.react.{Callback, CtorType, *}

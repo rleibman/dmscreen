@@ -28,10 +28,11 @@ import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.vdom.all.verticalAlign
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.*
-import net.leibman.dmscreen.semanticUiReact.components.{Table, *}
+import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
+
 import scala.scalajs.js.JSConverters.*
 
 object SkillsEditor {

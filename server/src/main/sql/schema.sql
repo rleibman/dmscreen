@@ -14,13 +14,14 @@ CREATE TABLE `dmscreenUser`
 
 create table campaign
 (
-    `id`       int(11)                                              NOT NULL AUTO_INCREMENT,
-    dmUserId   int(11)                                              not null,
-    `name`     text                                                 NOT NULL,
-    `version`  text                                                 NOT NULL,
-    `deleted`  tinyint(4)                                           NOT NULL DEFAULT '0',
-    info       json                                                 not null,
-    gameSystem enum ('dnd5e', 'pathfinder2e', 'starTrekAdventures') not null,
+    `id`           int(11)                                              NOT NULL AUTO_INCREMENT,
+    dmUserId       int(11)                                              not null,
+    `name`         text                                                 NOT NULL,
+    `version`      text                                                 NOT NULL,
+    `deleted`      tinyint(4)                                           NOT NULL DEFAULT '0',
+    info           json                                                 not null,
+    gameSystem     enum ('dnd5e', 'pathfinder2e', 'starTrekAdventures') not null,
+    campaignStatus enum ('active', 'archived')                          not null,
     key campaign_dm (dmUserId),
     constraint campaign_dm foreign key (dmUserId) references `dmscreenUser` (id),
     PRIMARY KEY (`id`)

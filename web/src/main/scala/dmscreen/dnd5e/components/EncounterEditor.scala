@@ -33,12 +33,13 @@ import caliban.client.scalajs.DND5eClient.{
   Queries
 }
 import caliban.client.scalajs.{*, given}
+import dmscreen.{*, given}
+import dmscreen.dnd5e.{*, given}
 import dmscreen.dnd5e.components.*
-import dmscreen.dnd5e.{OrderDirection, *, given}
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
-import japgolly.scalajs.react.{CtorType, *}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
+import japgolly.scalajs.react.{CtorType, *}
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}

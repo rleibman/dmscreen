@@ -36,6 +36,11 @@ enum Biome {
   Urban
 }
 
+enum CampaignStatus {
+  active
+  archived
+}
+
 enum CreatureSize {
   gargantuan
   huge
@@ -46,9 +51,17 @@ enum CreatureSize {
 }
 
 enum GameSystem {
+  callOfCthulhu
+  dnd3_5
+  dnd4e
   dnd5e
+  fateAccelerated
+  fateCore
+  pathfinder1e
   pathfinder2e
+  savageWorlds
   starTrekAdventures
+  starfinder
 }
 
 enum MonsterSearchOrder {
@@ -90,6 +103,7 @@ input CampaignHeaderInput {
   dmUserId: Long!
   name: String!
   gameSystem: GameSystem!
+  campaignStatus: CampaignStatus!
 }
 
 input EncounterHeaderInput {
@@ -152,11 +166,18 @@ type Background {
   name: String!
 }
 
+type Campaign {
+  header: CampaignHeader!
+  jsonInfo: Json!
+  version: String!
+}
+
 type CampaignHeader {
   id: Long!
   dmUserId: Long!
   name: String!
   gameSystem: GameSystem!
+  campaignStatus: CampaignStatus!
 }
 
 type CharacterClass {
@@ -172,12 +193,6 @@ type CombatLog {
 type Copy {
   from: JsonPath!
   to: JsonPath!
-}
-
-type DND5eCampaign {
-  header: CampaignHeader!
-  jsonInfo: Json!
-  version: String!
 }
 
 type DiceRoll {
@@ -277,7 +292,7 @@ type PlayerCharacterHeader {
 
 type Queries {
   campaigns: [CampaignHeader!]
-  campaign(value: Long!): DND5eCampaign
+  campaign(value: Long!): Campaign
   monster(value: Long!): Monster
   playerCharacters(value: Long!): [PlayerCharacter!]
   scenes(value: Long!): [Scene!]

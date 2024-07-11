@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{CampaignId, DiceRoll}
+import dmscreen.{CampaignId, DiceRoll, given}
 import zio.json.*
 import zio.json.ast.Json
 
@@ -46,7 +46,6 @@ given JsonCodec[CharacterClassId] =
   )
 given JsonCodec[SourceId] = JsonCodec.string.transform(SourceId.apply, _.value)
 given JsonCodec[CombatantId] = JsonCodec.string.transform(CombatantId.apply, _.value.toString)
-given JsonCodec[CampaignId] = JsonCodec.long.transform(CampaignId.apply, _.value)
 given JsonCodec[EncounterId] = JsonCodec.long.transform(EncounterId.apply, _.value)
 given JsonCodec[NonPlayerCharacterId] = JsonCodec.long.transform(NonPlayerCharacterId.apply, _.value)
 given JsonCodec[PlayerCharacterId] = JsonCodec.long.transform(PlayerCharacterId.apply, _.value)
@@ -81,7 +80,6 @@ given JsonCodec[SubClass] = JsonCodec.derived[SubClass]
 given JsonCodec[CharacterClass] = JsonCodec.derived[CharacterClass]
 given JsonCodec[Race] = JsonCodec.derived[Race]
 given JsonCodec[Background] = JsonCodec.derived[Background]
-given JsonCodec[DND5eCampaignInfo] = JsonCodec.derived[DND5eCampaignInfo]
 given JsonCodec[Map[CharacterClassId, SubClass]] = JsonCodec.map[CharacterClassId, SubClass]
 given JsonCodec[ImportSource] = JsonCodec.derived[ImportSource]
 given JsonCodec[PhysicalCharacteristics] = JsonCodec.derived[PhysicalCharacteristics]

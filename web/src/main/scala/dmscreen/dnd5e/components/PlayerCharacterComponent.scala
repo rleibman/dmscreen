@@ -24,9 +24,6 @@ package dmscreen.dnd5e.components
 import dmscreen.*
 import dmscreen.dnd5e.{*, given}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
-
-import japgolly.scalajs.react.vdom.InnerHtmlAttr
-import japgolly.scalajs.react.vdom.Attr
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{CtorType, *}
 import net.leibman.dmscreen.semanticUiReact.*
@@ -34,7 +31,6 @@ import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticSIZES
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
 import zio.json.*
-import zio.prelude.*
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*

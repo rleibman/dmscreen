@@ -21,13 +21,12 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.*
+import dmscreen.{*, given}
 import dmscreen.GameSystem.dnd5e
-import dmscreen.dnd5e.DND5eZIORepository
 import zio.*
-import zio.test.*
 import zio.json.*
 import zio.json.ast.*
+import zio.test.*
 
 object StorageSpec extends ZIOSpecDefault {
 
@@ -42,19 +41,25 @@ object StorageSpec extends ZIOSpecDefault {
           listAtStart <- service.campaigns
           startObject <- service.campaign(listAtStart.head.id)
           newId <- service.upsert(
-            CampaignHeader(CampaignId.empty, testUser, "Test Campaign 2", gameSystem = dnd5e),
-            DND5eCampaignInfo(notes = "These are some notes").toJsonAST.getOrElse(Json.Null)
+            CampaignHeader(
+              CampaignId.empty,
+              testUser,
+              "Test Campaign 2",
+              gameSystem = dnd5e,
+              campaignStatus = CampaignStatus.active
+            ),
+            CampaignInfo(notes = "These are some notes").toJsonAST.getOrElse(Json.Null)
           )
           listAfterInsert <- service.campaigns
           insertedObject  <- service.campaign(newId)
           _ <- service.applyOperations(
-            entityType = DND5eEntityType.campaign,
+            entityType = CampaignEntityType,
             id = newId,
             operations = Replace(JsonPath("$.notes"), Json.Str("These are some updated notes"))
           )
           listAfterUpdates <- service.campaigns
           updatedCampaign  <- service.campaign(newId)
-          _                <- service.deleteEntity(entityType = DND5eEntityType.campaign, id = newId)
+          _                <- service.deleteEntity(entityType = CampaignEntityType, id = newId)
           listAfterDelete  <- service.campaigns
           deletedObject    <- service.campaign(newId)
         } yield {
@@ -118,12 +123,12 @@ object StorageSpec extends ZIOSpecDefault {
       },
       test("player character diff") {
         import diffson.*
-        import diffson.lcs.*
         import diffson.jsonpatch.*
         import diffson.jsonpatch.lcsdiff.*
+        import diffson.lcs.*
+        import diffson.zjson.*
         import zio.json.*
         import zio.json.ast.Json
-        import diffson.zjson.*
 
         val info1 = PlayerCharacterInfo(
           health = Health(

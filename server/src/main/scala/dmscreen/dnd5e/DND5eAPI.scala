@@ -41,13 +41,13 @@ import java.net.URL
 object DND5eAPI {
 
   case class CampaignEventsArgs(
-    entityType: DND5eEntityType[?],
+    entityType: EntityType[?],
     id:         Long,
     events:     Seq[Json]
   )
 
   case class EntityDeleteArgs(
-    entityType: DND5eEntityType[?],
+    entityType: EntityType[?],
     id:         Long,
     softDelete: Boolean
   )
@@ -61,7 +61,7 @@ object DND5eAPI {
   private given Schema[Any, EncounterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, SceneId] = Schema.longSchema.contramap(_.value)
 
-  private given Schema[Any, DND5eEntityType[?]] = Schema.stringSchema.contramap(_.name)
+  private given Schema[Any, EntityType[?]] = Schema.stringSchema.contramap(_.name)
   private given Schema[Any, ChallengeRating] = Schema.doubleSchema.contramap(_.value)
   private given Schema[Any, SourceId] = Schema.stringSchema.contramap(_.value)
   private given Schema[Any, URL] = Schema.stringSchema.contramap(_.toString)
@@ -72,7 +72,7 @@ object DND5eAPI {
   private given Schema[Any, DMScreenEvent] = Schema.gen[Any, DMScreenEvent]
   private given Schema[Any, Source] = Schema.gen[Any, Source]
   private given Schema[Any, MonsterSearch] = Schema.gen[Any, MonsterSearch]
-  private given Schema[Any, DND5eCampaign] = Schema.gen[Any, DND5eCampaign]
+  private given Schema[Any, Campaign] = Schema.gen[Any, Campaign]
   private given Schema[Any, Scene] = Schema.gen[Any, Scene]
   private given Schema[Any, Monster] = Schema.gen[Any, Monster]
   private given Schema[Any, PlayerCharacter] = Schema.gen[Any, PlayerCharacter]
@@ -92,7 +92,7 @@ object DND5eAPI {
   private given ArgBuilder[CampaignId] = ArgBuilder.long.map(CampaignId.apply)
   private given ArgBuilder[EncounterId] = ArgBuilder.long.map(EncounterId.apply)
   private given ArgBuilder[ChallengeRating] = ArgBuilder.double.map(n => ChallengeRating.fromDouble(n).get)
-  private given ArgBuilder[DND5eEntityType[?]] = ArgBuilder.string.map(DND5eEntityType.valueOf)
+  private given ArgBuilder[EntityType[?]] = ArgBuilder.string.map(DND5eEntityType.valueOf)
 
   private given ArgBuilder[GeneralLog] = ArgBuilder.gen[GeneralLog]
   private given ArgBuilder[CombatLog] = ArgBuilder.gen[CombatLog]
@@ -105,7 +105,7 @@ object DND5eAPI {
   private given ArgBuilder[Test] = ArgBuilder.gen[Test]
   private given ArgBuilder[MonsterSearch] = ArgBuilder.gen[MonsterSearch]
   private given ArgBuilder[CampaignEventsArgs] = ArgBuilder.gen[CampaignEventsArgs]
-  private given ArgBuilder[DND5eCampaign] = ArgBuilder.gen[DND5eCampaign]
+  private given ArgBuilder[Campaign] = ArgBuilder.gen[Campaign]
   private given ArgBuilder[Scene] = ArgBuilder.gen[Scene]
   private given ArgBuilder[Monster] = ArgBuilder.gen[Monster]
   private given ArgBuilder[PlayerCharacter] = ArgBuilder.gen[PlayerCharacter]
@@ -114,7 +114,7 @@ object DND5eAPI {
 
   case class Queries(
     campaigns:           ZIO[DND5eZIORepository, DMScreenError, Seq[CampaignHeader]],
-    campaign:            CampaignId => ZIO[DND5eZIORepository, DMScreenError, Option[DND5eCampaign]],
+    campaign:            CampaignId => ZIO[DND5eZIORepository, DMScreenError, Option[Campaign]],
     monster:             MonsterId => ZIO[DND5eZIORepository, DMScreenError, Option[Monster]],
     playerCharacters:    CampaignId => ZIO[DND5eZIORepository, DMScreenError, Seq[PlayerCharacter]],
     scenes:              CampaignId => ZIO[DND5eZIORepository, DMScreenError, Seq[Scene]],
@@ -129,7 +129,7 @@ object DND5eAPI {
   )
   case class Mutations(
     // All these mutations are temporary, eventually, only the headers will be saved, and the infos will be saved in the events
-    upsertCampaign:           DND5eCampaign => ZIO[DND5eZIORepository, DMScreenError, CampaignId],
+    upsertCampaign:           Campaign => ZIO[DND5eZIORepository, DMScreenError, CampaignId],
     upsertScene:              Scene => ZIO[DND5eZIORepository, DMScreenError, SceneId],
     upsertPlayerCharacter:    PlayerCharacter => ZIO[DND5eZIORepository, DMScreenError, PlayerCharacterId],
     upsertNonPlayerCharacter: NonPlayerCharacter => ZIO[DND5eZIORepository, DMScreenError, NonPlayerCharacterId],

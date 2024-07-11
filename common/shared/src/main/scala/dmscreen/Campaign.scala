@@ -21,6 +21,11 @@
 
 package dmscreen
 
+import just.semver.SemVer
+import zio.json.ast.Json
+import zio.json.*
+import zio.{IO, ZIO}
+
 opaque type CampaignId = Long
 
 object CampaignId {
@@ -37,17 +42,60 @@ object CampaignId {
 
 }
 
-enum GameSystem {
+enum GameSystem(val name: String) {
 
-  case dnd5e, pathfinder2e, starTrekAdventures
+  case dnd5e extends GameSystem("Dungeons and Dragons (5e)")
+  case starTrekAdventures extends GameSystem("Star Trek Adventures (1e)")
+  case pathfinder2e extends GameSystem("Pathfinder (2e)")
+  case starfinder extends GameSystem("Starfinder")
+  case callOfCthulhu extends GameSystem("Call of Cthulhu")
+  case savageWorlds extends GameSystem("Savage Worlds")
+  case fateCore extends GameSystem("Fate Core")
+  case fateAccelerated extends GameSystem("Fate Accelerated")
+  case dnd3_5 extends GameSystem("Dungeons and Dragons (3.5)")
+  case dnd4e extends GameSystem("Dungeons and Dragons (4e)")
+  case pathfinder1e extends GameSystem("Pathfinder (1e)")
+
+}
+
+enum CampaignStatus {
+
+  case active, archived
+
+}
+
+object CampaignHeader {
+
+  def empty(userId: UserId): CampaignHeader =
+    CampaignHeader(CampaignId.empty, userId, "", GameSystem.dnd5e, CampaignStatus.active)
+
+}
+
+case object CampaignEntityType extends EntityType[CampaignId] {
+
+  val name = "Campaign"
+  def createId(id: Long): CampaignId = CampaignId(id)
 
 }
 
 case class CampaignHeader(
-  id:         CampaignId,
-  dmUserId:   UserId,
-  name:       String,
-  gameSystem: GameSystem
+  id:             CampaignId,
+  dmUserId:       UserId,
+  name:           String,
+  gameSystem:     GameSystem,
+  campaignStatus: CampaignStatus
 ) extends HasId[CampaignId]
 
-trait Campaign[CampaignInfo] extends DMScreenEntity[CampaignId, CampaignHeader, CampaignInfo]
+case class Campaign(
+  override val header:   CampaignHeader,
+  override val jsonInfo: Json,
+  override val version:  SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
+) extends DMScreenEntity[CampaignId, CampaignHeader, CampaignInfo] {
+
+  override val entityType: EntityType[CampaignId] = CampaignEntityType
+
+}
+
+case class CampaignInfo(
+  notes: String
+)

@@ -21,6 +21,8 @@
 
 package caliban.client.scalajs
 
+import caliban.client.CalibanClientError.DecodingError
+import caliban.client.__Value.__ObjectValue
 import caliban.client.scalajs.DND5eClient.{
   Alignment as CalibanAlignment,
   Biome as CalibanBiome,
@@ -35,16 +37,12 @@ import caliban.client.scalajs.DND5eClient.{
   OrderDirection as CalibanOrderDirection,
   Queries
 }
-import caliban.client.ArgEncoder
-import caliban.client.CalibanClientError.DecodingError
-import caliban.client.__Value.__ObjectValue
-import caliban.client.{ScalarDecoder, __Value}
-import com.github.plokhotnyuk.jsoniter_scala.core.JsonWriter
-import zio.json.ast.Json
-import zio.json.*
+import caliban.client.{ArgEncoder, ScalarDecoder, __Value}
 import com.github.plokhotnyuk.jsoniter_scala
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import dmscreen.dnd5e.*
+import zio.json.*
+import zio.json.ast.Json
 
 given ScalarDecoder[Json] = {
   case input: __ObjectValue =>

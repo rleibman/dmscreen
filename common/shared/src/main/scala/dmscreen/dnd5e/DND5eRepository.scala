@@ -64,7 +64,7 @@ trait DND5eRepository[F[_]] extends GameRepository {
 
   def campaigns: F[Seq[CampaignHeader]]
 
-  def campaign(campaignId: CampaignId): F[Option[DND5eCampaign]]
+  def campaign(campaignId: CampaignId): F[Option[Campaign]]
 
   def monster(monsterId: MonsterId): F[Option[Monster]]
 

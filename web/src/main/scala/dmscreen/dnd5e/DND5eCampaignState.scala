@@ -21,11 +21,11 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{Campaign, CampaignState}
+import dmscreen.{Campaign, CampaignHeader, CampaignState}
 import japgolly.scalajs.react.callback.*
 
 case class DND5eCampaignState(
-  campaign:    DND5eCampaign,
+  campaign:    Campaign,
   pcs:         List[PlayerCharacter] = List.empty,
   npcs:        List[NonPlayerCharacter] = List.empty,
   scenes:      List[Scene] = List.empty,
@@ -37,6 +37,8 @@ case class DND5eCampaignState(
   // and has a proper id
   // If you delete an entry from the above lists, you should also make sure the entry doesn't exist in the changeStack
 ) extends CampaignState {
+
+  override def campaignHeader: CampaignHeader = campaign.header
 
   override def saveChanges(): AsyncCallback[CampaignState] = {
     for {

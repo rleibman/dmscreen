@@ -30,21 +30,8 @@ case class STACampaignInfo(
   notes: String
 )
 
-case class STACampaign(
-  override val header:   CampaignHeader,
-  override val jsonInfo: Json,
-  override val version:  SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
-) extends Campaign[STACampaignInfo] {
-
-  override val entityType: EntityType[CampaignId] = STAEntityType.campaign
-
-}
-
 object STAEntityType {
 
-  val campaign: EntityType[CampaignId] = new STAEntityType[CampaignId](name = "campaign") {
-    override def createId(id: Long): CampaignId = CampaignId(id)
-  }
 //  val encounter: EntityType[EncounterId] = new STAEntityType[EncounterId](name = "encounter") {
 //    override def createId(id: Long): EncounterId = EncounterId(id)
 //  }

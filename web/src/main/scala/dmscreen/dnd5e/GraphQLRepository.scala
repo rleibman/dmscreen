@@ -22,11 +22,12 @@
 package dmscreen.dnd5e
 
 import caliban.ScalaJSClientAdapter.asyncCalibanCall
-import caliban.client.{ArgEncoder, SelectionBuilder}
 import caliban.client.scalajs.DND5eClient.{
   Alignment as CalibanAlignment,
   Biome as CalibanBiome,
+  CampaignHeader as CalibanCampaignHeader,
   CampaignHeaderInput,
+  CampaignStatus as CalibanCampaignStatus,
   CreatureSize as CalibanCreatureSize,
   EncounterHeaderInput,
   GameSystem as CalibanGameSystem,
@@ -41,22 +42,48 @@ import caliban.client.scalajs.DND5eClient.{
   SceneHeaderInput
 }
 import caliban.client.scalajs.{DND5eClient, given}
+import caliban.client.{ArgEncoder, SelectionBuilder}
 import dmscreen.*
 import japgolly.scalajs.react.callback.AsyncCallback
 import zio.*
+import zio.json.*
 import zio.json.ast.Json
 
 import java.util.ResourceBundle
 import scala.reflect.ClassTag
-import zio.json.*
 
 object GraphQLRepository {
 
   val live: DND5eRepository[AsyncCallback] = new DND5eRepository[AsyncCallback] {
 
-    override def campaigns: AsyncCallback[Seq[CampaignHeader]] = ???
+    override def campaigns: AsyncCallback[Seq[CampaignHeader]] = {
+      val campaignSB = (
+        CalibanCampaignHeader.id ~
+          CalibanCampaignHeader.dmUserId ~
+          CalibanCampaignHeader.name ~
+          CalibanCampaignHeader.gameSystem ~
+          CalibanCampaignHeader.campaignStatus
+      ).map {
+        case (
+              id:             Long,
+              dmUserId:       Long,
+              name:           String,
+              gameSystem:     CalibanGameSystem,
+              campaignStatus: CalibanCampaignStatus
+            ) =>
+          CampaignHeader(
+            id = CampaignId(id),
+            dmUserId = UserId(dmUserId),
+            name = name,
+            gameSystem = GameSystem.valueOf(gameSystem.value),
+            campaignStatus = CampaignStatus.valueOf(campaignStatus.value)
+          )
+      }
 
-    override def campaign(campaignId: CampaignId): AsyncCallback[Option[DND5eCampaign]] = ???
+      asyncCalibanCall(Queries.campaigns(campaignSB)).map(_.toSeq.flatten)
+    }
+
+    override def campaign(campaignId: CampaignId): AsyncCallback[Option[Campaign]] = ???
 
     override def scene(sceneId: SceneId): AsyncCallback[Option[Scene]] = ???
 
@@ -108,7 +135,8 @@ object GraphQLRepository {
         id = campaignHeader.id.value,
         dmUserId = campaignHeader.dmUserId.value,
         name = campaignHeader.name,
-        gameSystem = CalibanGameSystem.values.find(_.value == campaignHeader.gameSystem.toString).get
+        gameSystem = CalibanGameSystem.values.find(_.value == campaignHeader.gameSystem.toString).get,
+        campaignStatus = CalibanCampaignStatus.values.find(_.value == campaignHeader.campaignStatus.toString).get
       )
 
       val sb = Mutations.upsertCampaign(headerInput, info, dmscreen.BuildInfo.version)

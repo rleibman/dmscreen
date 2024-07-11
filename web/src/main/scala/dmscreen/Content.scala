@@ -26,9 +26,10 @@ import caliban.client.CalibanClientError.DecodingError
 import caliban.client.Operations.RootQuery
 import caliban.client.scalajs.DND5eClient.{
   Background as CalibanBackground,
+  Campaign as CalibanCampaign,
   CampaignHeader as CalibanCampaignHeader,
+  CampaignStatus as CalibanCampaignStatus,
   CharacterClass as CalibanCharacterClass,
-  DND5eCampaign as CalibanDND5eCampaign,
   DiceRoll as CalibanDiceRoll,
   Encounter as CalibanEncounter,
   EncounterHeader as CalibanEncounterHeader,
@@ -103,210 +104,221 @@ object Content {
       }
     }
 
-    def initialize: Callback = {
-      val params = URL(window.location.href).searchParams
+    def initialize(argCampaignId: Option[CampaignId] = None): Callback = {
 
-      // TODO this needs to be moved somewhere that's DND5e specific, so that we can have different game systems
-      val ajax = for {
-        oldState <- $.state.asAsyncCallback
-        currentCampaignId <- AsyncCallback.pure {
-
-          // If the campaign is in the URL, use it, otherwise use the one in the session storage if it exist, otherwise, for now use 1
-          // But in the future, we just shouldn't show the other tabs and only show the home tab
-          Option(params.get("campaignId"))
-            .orElse(Option(window.sessionStorage.getItem("currentCampaignId")))
-            .fold(
-              Some(CampaignId(1)) // Change this, we'll need to load campaigns from the server and select the first one)
-            )(str => Some(CampaignId(str.toInt)))
-        }
-        // Store the current campaign Id in the session storage for next time
-        _ <- AsyncCallback.pure(window.sessionStorage.setItem("currentCampaignId", currentCampaignId.value.toString))
-        _ <- Callback.log("Loading campaign data from server...").asAsyncCallback
-        backgrounds <- {
-          val sb = Queries.backgrounds(CalibanBackground.name.map(Background.apply))
-          asyncCalibanCall(sb).map(_.toList.flatten)
-        }
-        classes <- {
-          val sb = Queries.classes(
-            (CalibanCharacterClass.id ~ CalibanCharacterClass.hitDice(CalibanDiceRoll.roll)).map(
-              (
-                id,
-                hd
-              ) =>
-                CharacterClass(
-                  CharacterClassId.values.find(_.name.equalsIgnoreCase(id)).getOrElse(CharacterClassId.unknown),
-                  DiceRoll(hd)
-                )
-            )
-          )
-          asyncCalibanCall(sb).map(_.toList.flatten)
-        }
-        campaign <- currentCampaignId.fold(
-          AsyncCallback.pure(None: Option[(DND5eCampaign, List[PlayerCharacter], List[Scene], List[Encounter])])
-        ) { id =>
-          // TODO move the sb declarations to common code
-          val campaignSB: SelectionBuilder[CalibanDND5eCampaign, DND5eCampaign] = (CalibanDND5eCampaign.header(
-            CalibanCampaignHeader.id ~ CalibanCampaignHeader.name ~ CalibanCampaignHeader.dmUserId ~ CalibanCampaignHeader.gameSystem
-          ) ~ CalibanDND5eCampaign.jsonInfo).map {
-            (
-              id:       Long,
-              name:     String,
-              dmUserId: Long,
-              system:   CalibanGameSystem,
-              info:     Json
-            ) =>
-              DND5eCampaign(
-                CampaignHeader(CampaignId(id), UserId(dmUserId), name, GameSystem.valueOf(system.value)),
-                info
+      argCampaignId.fold(Callback.empty) { id =>
+        // TODO this needs to be moved somewhere that's DND5e specific, so that we can have different game systems
+        val ajax = for {
+          oldState <- $.state.asAsyncCallback
+          currentCampaignId <- AsyncCallback.pure {
+            // If the campaign is in the URL, use it, otherwise use the one in the session storage if it exist, otherwise, for now use 1
+            // But in the future, we just shouldn't show the other tabs and only show the home tab
+            argCampaignId
+              .orElse(
+                Option(window.sessionStorage.getItem("currentCampaignId")).flatMap(_.toLongOption).map(CampaignId.apply)
               )
+              .getOrElse(CampaignId(1)) // Change this, we'll need to load campaigns from the server and select the first one)
           }
-          val playerCharacterSB: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
-            (CalibanPlayerCharacter.header(
-              CalibanPlayerCharacterHeader.campaignId ~
-                CalibanPlayerCharacterHeader.id ~
-                CalibanPlayerCharacterHeader.name ~
-                CalibanPlayerCharacterHeader.playerName
-            ) ~ CalibanPlayerCharacter.jsonInfo).map {
+          // Store the current campaign Id in the session storage for next time
+          _ <- AsyncCallback.pure(window.sessionStorage.setItem("currentCampaignId", currentCampaignId.value.toString))
+          _ <- Callback.log(s"Loading campaign data (campaign = $currentCampaignId) from server...").asAsyncCallback
+          backgrounds <- {
+            val sb = Queries.backgrounds(CalibanBackground.name.map(Background.apply))
+            asyncCalibanCall(sb).map(_.toList.flatten)
+          }
+          classes <- {
+            val sb = Queries.classes(
+              (CalibanCharacterClass.id ~ CalibanCharacterClass.hitDice(CalibanDiceRoll.roll)).map(
+                (
+                  id,
+                  hd
+                ) =>
+                  CharacterClass(
+                    CharacterClassId.values.find(_.name.equalsIgnoreCase(id)).getOrElse(CharacterClassId.unknown),
+                    DiceRoll(hd)
+                  )
+              )
+            )
+            asyncCalibanCall(sb).map(_.toList.flatten)
+          }
+          campaign <- {
+            // TODO move the sb declarations to common code
+            val campaignSB: SelectionBuilder[CalibanCampaign, Campaign] = (CalibanCampaign.header(
+              CalibanCampaignHeader.id ~ CalibanCampaignHeader.name ~ CalibanCampaignHeader.dmUserId ~ CalibanCampaignHeader.gameSystem ~ CalibanCampaignHeader.campaignStatus
+            ) ~ CalibanCampaign.jsonInfo).map {
               (
+                id:             Long,
+                name:           String,
+                dmUserId:       Long,
+                system:         CalibanGameSystem,
+                campaignStatus: CalibanCampaignStatus,
+                info:           Json
+              ) =>
+                Campaign(
+                  CampaignHeader(
+                    CampaignId(id),
+                    UserId(dmUserId),
+                    name,
+                    GameSystem.valueOf(system.value),
+                    CampaignStatus.valueOf(campaignStatus.value)
+                  ),
+                  info
+                )
+            }
+            val playerCharacterSB: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
+              (CalibanPlayerCharacter.header(
+                CalibanPlayerCharacterHeader.campaignId ~
+                  CalibanPlayerCharacterHeader.id ~
+                  CalibanPlayerCharacterHeader.name ~
+                  CalibanPlayerCharacterHeader.playerName
+              ) ~ CalibanPlayerCharacter.jsonInfo).map {
+                (
+                  campaignId: Long,
+                  pcId:       Long,
+                  name:       String,
+                  playerName: Option[String],
+                  info:       Json
+                ) =>
+                  PlayerCharacter(
+                    PlayerCharacterHeader(
+                      id = PlayerCharacterId(pcId),
+                      campaignId = CampaignId(campaignId),
+                      name = name,
+                      playerName = playerName
+                    ),
+                    info
+                  )
+              }
+
+            val sceneSB: SelectionBuilder[CalibanScene, Scene] = (CalibanScene.header(
+              CalibanSceneHeader.id ~ CalibanSceneHeader.campaignId ~ CalibanSceneHeader.name ~ CalibanSceneHeader.orderCol ~ CalibanSceneHeader.isActive
+            ) ~ CalibanScene.jsonInfo).map {
+              (
+                id:         Long,
                 campaignId: Long,
-                pcId:       Long,
                 name:       String,
-                playerName: Option[String],
+                orderCol:   Int,
+                isActive:   Boolean,
                 info:       Json
               ) =>
-                PlayerCharacter(
-                  PlayerCharacterHeader(
-                    id = PlayerCharacterId(pcId),
+                Scene(
+                  SceneHeader(
+                    id = SceneId(id),
                     campaignId = CampaignId(campaignId),
                     name = name,
-                    playerName = playerName
+                    orderCol = orderCol,
+                    isActive = isActive
                   ),
                   info
                 )
             }
 
-          val sceneSB: SelectionBuilder[CalibanScene, Scene] = (CalibanScene.header(
-            CalibanSceneHeader.id ~ CalibanSceneHeader.campaignId ~ CalibanSceneHeader.name ~ CalibanSceneHeader.orderCol ~ CalibanSceneHeader.isActive
-          ) ~ CalibanScene.jsonInfo).map {
-            (
-              id:         Long,
-              campaignId: Long,
-              name:       String,
-              orderCol:   Int,
-              isActive:   Boolean,
-              info:       Json
-            ) =>
-              Scene(
-                SceneHeader(
-                  id = SceneId(id),
-                  campaignId = CampaignId(campaignId),
-                  name = name,
-                  orderCol = orderCol,
-                  isActive = isActive
-                ),
-                info
-              )
-          }
-
-          val encounterSB: SelectionBuilder[CalibanEncounter, Encounter] = (CalibanEncounter.header(
-            CalibanEncounterHeader.id ~
-              CalibanEncounterHeader.campaignId ~
-              CalibanEncounterHeader.name ~
-              CalibanEncounterHeader.status ~
-              CalibanEncounterHeader.sceneId ~
-              CalibanEncounterHeader.orderCol
-          ) ~ CalibanEncounter.jsonInfo).map {
-            (
-              id:         Long,
-              campaignId: Long,
-              name:       String,
-              status:     String,
-              sceneId:    Option[Long],
-              orderCol:   Int,
-              info:       Json
-            ) =>
-              Encounter(
-                EncounterHeader(
-                  EncounterId(id),
-                  CampaignId(campaignId),
-                  name,
-                  EncounterStatus.valueOf(status),
-                  sceneId.map(SceneId.apply),
-                  orderCol
-                ),
-                info
-              )
-          }
-
-          val totalSB =
-            (Queries.campaign(id.value)(campaignSB) ~ Queries.playerCharacters(id.value)(playerCharacterSB) ~ Queries
-              .scenes(id.value)(sceneSB) ~ Queries.encounters(CampaignId(1).value)(encounterSB)).map {
+            val encounterSB: SelectionBuilder[CalibanEncounter, Encounter] = (CalibanEncounter.header(
+              CalibanEncounterHeader.id ~
+                CalibanEncounterHeader.campaignId ~
+                CalibanEncounterHeader.name ~
+                CalibanEncounterHeader.status ~
+                CalibanEncounterHeader.sceneId ~
+                CalibanEncounterHeader.orderCol
+            ) ~ CalibanEncounter.jsonInfo).map {
               (
-                cOpt,
-                pcsOpt,
-                scenesOpt,
-                encountersOpt
+                id:         Long,
+                campaignId: Long,
+                name:       String,
+                status:     String,
+                sceneId:    Option[Long],
+                orderCol:   Int,
+                info:       Json
               ) =>
-                cOpt.map((_, pcsOpt.toList.flatten, scenesOpt.toList.flatten, encountersOpt.toList.flatten))
-            }
-          asyncCalibanCall(totalSB)
-        }
-        _ <- Callback.log(s"Campaign data (${campaign.fold("")(_._1.header.name)}) loaded from server").asAsyncCallback
-      } yield $.modState { s =>
-        import scala.language.unsafeNulls
-
-        val newCampaignState = campaign.map(
-          (
-            c,
-            pcs,
-            scenes,
-            encounters
-          ) =>
-            s.dmScreenState.campaignState.fold(
-              // Completely brand new
-              DND5eCampaignState(campaign = c, pcs = pcs, scenes = scenes, encounters = encounters)
-            ) { case oldCampaignState: DND5eCampaignState =>
-              oldCampaignState.copy(campaign = c, pcs = pcs, scenes = scenes, encounters = encounters)
-            }
-        )
-
-        s.copy(dmScreenState =
-          s.dmScreenState
-            .copy(
-              campaignState = newCampaignState,
-              dnd5e = s.dmScreenState.dnd5e.copy(
-                backgrounds = backgrounds,
-                classes = classes
-              ),
-              changeDialogMode =
-                newMode => $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(dialogMode = newMode))),
-              onModifyCampaignState = (
-                newState,
-                log
-              ) =>
-                // if the ticker is on, do nothing, otherwise start it
-                // ENHANCEMENT persist campaign log
-                $.modState(
-                  s =>
-                    s.copy(
-                      dmScreenState = s.dmScreenState.copy(
-                        campaignState = Some(newState),
-                        campaignLog = log.trim.headOption.map(_ => log.trim).toSeq ++ s.dmScreenState.campaignLog
-                      )
-                    ),
-                  if (interval.isEmpty) {
-                    startSaveTicker
-                  } else {
-                    Callback.empty
-                  }
+                Encounter(
+                  EncounterHeader(
+                    EncounterId(id),
+                    CampaignId(campaignId),
+                    name,
+                    EncounterStatus.valueOf(status),
+                    sceneId.map(SceneId.apply),
+                    orderCol
+                  ),
+                  info
                 )
-            )
-        )
+            }
+
+            val totalSB =
+              (Queries.campaign(currentCampaignId.value)(campaignSB) ~ Queries.playerCharacters(
+                currentCampaignId.value
+              )(
+                playerCharacterSB
+              ) ~ Queries
+                .scenes(currentCampaignId.value)(sceneSB) ~ Queries.encounters(CampaignId(1).value)(encounterSB)).map {
+                (
+                  cOpt,
+                  pcsOpt,
+                  scenesOpt,
+                  encountersOpt
+                ) =>
+                  cOpt.map((_, pcsOpt.toList.flatten, scenesOpt.toList.flatten, encountersOpt.toList.flatten))
+              }
+            asyncCalibanCall(totalSB)
+          }
+          _ <- Callback
+            .log(s"Campaign data (${campaign.fold("")(_._1.header.name)}) loaded from server").asAsyncCallback
+        } yield $.modState { s =>
+          import scala.language.unsafeNulls
+
+          val newCampaignState = campaign.map(
+            (
+              c,
+              pcs,
+              scenes,
+              encounters
+            ) =>
+              s.dmScreenState.campaignState.fold(
+                // Completely brand new
+                DND5eCampaignState(campaign = c, pcs = pcs, scenes = scenes, encounters = encounters)
+              ) { case oldCampaignState: DND5eCampaignState =>
+                oldCampaignState.copy(campaign = c, pcs = pcs, scenes = scenes, encounters = encounters)
+              }
+          )
+
+          s.copy(dmScreenState =
+            s.dmScreenState
+              .copy(
+                campaignState = newCampaignState,
+                dnd5e = s.dmScreenState.dnd5e.copy(
+                  backgrounds = backgrounds,
+                  classes = classes
+                ),
+                changeDialogMode =
+                  newMode => $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(dialogMode = newMode))),
+                onSelectCampaign = campaign => initialize(campaign.map(_.id)),
+                onModifyCampaignState = (
+                  newState,
+                  log
+                ) =>
+                  // if the ticker is on, do nothing, otherwise start it
+                  // ENHANCEMENT persist campaign log
+                  $.modState(
+                    s =>
+                      s.copy(
+                        dmScreenState = s.dmScreenState.copy(
+                          campaignState = Some(newState),
+                          campaignLog = log.trim.headOption.map(_ => log.trim).toSeq ++ s.dmScreenState.campaignLog
+                        )
+                      ),
+                    if (interval.isEmpty) {
+                      startSaveTicker
+                    } else {
+                      Callback.empty
+                    }
+                  )
+              )
+          )
+        }
+        for {
+          _          <- Callback.log("Initializing Content Component")
+          modedState <- ajax.completeWith(_.get)
+        } yield modedState
       }
-      for {
-        _          <- Callback.log("Initializing Content Component")
-        modedState <- ajax.completeWith(_.get)
-      } yield modedState
     }
 
   }
@@ -318,7 +330,7 @@ object Content {
       State(dmScreenState = DMScreenState())
     }
     .renderBackend[Backend]
-    .componentDidMount($ => $.backend.initialize)
+    .componentDidMount($ => $.backend.initialize())
     .shouldComponentUpdatePure { $ =>
       $.nextState.dmScreenState.dialogMode == DialogMode.closed
     }

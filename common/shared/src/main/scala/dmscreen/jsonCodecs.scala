@@ -19,29 +19,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.sta
+package dmscreen
 
-import caliban.*
-import caliban.interop.zio.*
-import caliban.interop.zio.json.*
-import caliban.introspection.adt.__Type
-import caliban.schema.*
-import caliban.schema.ArgBuilder.auto.*
-import caliban.schema.Schema.auto.*
-import dmscreen.*
+import zio.json.JsonCodec
 
-object STAAPI {
-
-  case class Queries()
-  case class Mutations()
-  case class Subscriptions()
-
-  lazy val api: GraphQL[DMScreenServerEnvironment] =
-    graphQL[
-      DMScreenServerEnvironment,
-      Queries,
-      Mutations,
-      Subscriptions
-    ](RootResolver(Queries(), Mutations(), Subscriptions()))
-
-}
+given JsonCodec[CampaignId] = JsonCodec.long.transform(CampaignId.apply, _.value)
+given JsonCodec[CampaignInfo] = JsonCodec.derived[CampaignInfo]

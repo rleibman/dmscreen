@@ -21,26 +21,26 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{Campaign, DMScreenState, DMScreenTab}
-import japgolly.scalajs.react.{BackendScope, Callback, CtorType, ScalaComponent}
+import dmscreen.{Campaign, DMScreenState, DMScreenTab, given}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
-import net.leibman.dmscreen.reactApexcharts.components.{ReactApexcharts, *}
-import net.leibman.dmscreen.reactApexcharts.reactApexchartsStrings.{bar, radar}
-import net.leibman.dmscreen.apexcharts.anon.*
+import japgolly.scalajs.react.{BackendScope, Callback, CtorType, ScalaComponent}
 import net.leibman.dmscreen.apexcharts.*
 import net.leibman.dmscreen.apexcharts.ApexCharts.*
+import net.leibman.dmscreen.apexcharts.anon.*
 import net.leibman.dmscreen.react.mod.CSSProperties
+import net.leibman.dmscreen.reactApexcharts.components.*
+import net.leibman.dmscreen.reactApexcharts.reactApexchartsStrings.{bar, radar}
 import net.leibman.dmscreen.reactQuill.components.ReactQuill
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
 import org.scalablytyped.runtime.StringDictionary
+import zio.json.*
 
-import scala.reflect.Selectable.reflectiveSelectable
 import scala.collection.StrictOptimizedIterableOps
+import scala.reflect.Selectable.reflectiveSelectable
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
-import zio.json.*
 
 @js.native
 trait FormattingOptions extends js.Object {
@@ -52,7 +52,7 @@ trait FormattingOptions extends js.Object {
 object DashboardPage extends DMScreenTab {
 
   case class State(
-    campaign: Option[DND5eCampaign] = None,
+    campaign: Option[Campaign] = None,
     pcs:      Seq[PlayerCharacter] = Seq.empty,
     scenes:   Seq[Scene] = Seq.empty
   )

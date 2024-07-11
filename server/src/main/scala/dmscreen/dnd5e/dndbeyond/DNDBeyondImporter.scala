@@ -21,9 +21,8 @@
 
 package dmscreen.dnd5e.dndbeyond
 
-import dmscreen.dnd5e.DND5eImporter
 import dmscreen.dnd5e.{*, given}
-import dmscreen.{CampaignId, DMScreenError, DMScreenServerEnvironment}
+import dmscreen.{Campaign, CampaignId, DMScreenError, DMScreenServerEnvironment}
 import zio.*
 import zio.json.*
 import zio.json.ast.Json
@@ -34,13 +33,13 @@ import java.net.URI
 
 object DNDBeyondImporter {
 
-  def live = ZLayer.succeed(new DNDBeyondImporter)
+  def live: ULayer[DNDBeyondImporter] = ZLayer.succeed(new DNDBeyondImporter)
 
 }
 
 class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
 
-  override def importCampaign(campaignLink: URI): ZIO[Any, DMScreenError, DND5eCampaign] = ???
+  override def importCampaign(campaignLink: URI): ZIO[Any, DMScreenError, Campaign] = ???
 
   override def importEncounter(encounterLink: URI): ZIO[Any, DMScreenError, Encounter] = ???
 
@@ -48,45 +47,46 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
 
   extension (obj: Json.Obj) {
 
-    def getObjOption(key:     String): Either[String, Option[Json.Obj]] = Right(obj.get(key).flatMap(_.asObject))
-    def getArrOption(key:     String): Either[String, Option[Chunk[Json]]] = Right(obj.get(key).flatMap(_.asArray))
-    def getStrOption(key:     String): Either[String, Option[String]] = Right(obj.get(key).flatMap(_.asString))
-    def getBooleanOption(key: String): Either[String, Option[Boolean]] = Right(obj.get(key).flatMap(_.asBoolean))
-    def getIntOption(key: String): Either[String, Option[Int]] =
+    private def getObjOption(key: String): Either[String, Option[Json.Obj]] = Right(obj.get(key).flatMap(_.asObject))
+    private def getArrOption(key: String): Either[String, Option[Chunk[Json]]] = Right(obj.get(key).flatMap(_.asArray))
+    private def getStrOption(key: String): Either[String, Option[String]] = Right(obj.get(key).flatMap(_.asString))
+    private def getBooleanOption(key: String): Either[String, Option[Boolean]] =
+      Right(obj.get(key).flatMap(_.asBoolean))
+    private def getIntOption(key: String): Either[String, Option[Int]] =
       Right(obj.get(key).flatMap(_.asNumber).map(_.value.intValue))
 
-    def getObj(key: String): Either[String, Json.Obj] =
+    private def getObj(key: String): Either[String, Json.Obj] =
       for {
         got <- obj.get(key).toRight(s"No key $key")
         ret <- got.asObject.toRight(s"Key $key is not an object")
       } yield ret
 
-    def getStr(key: String): Either[String, String] =
+    private def getStr(key: String): Either[String, String] =
       for {
         got <- obj.get(key).toRight(s"No key $key")
         ret <- got.asString.toRight(s"Key $key is not a String")
       } yield ret
 
-    def getInt(key: String): Either[String, Int] =
+    private def getInt(key: String): Either[String, Int] =
       for {
         got <- obj.get(key).toRight(s"No key $key")
         ret <- got.asNumber.toRight(s"Key $key is not an number")
       } yield ret.value.intValue
 
-    def getBool(key: String): Either[String, Boolean] =
+    private def getBool(key: String): Either[String, Boolean] =
       for {
         got <- obj.get(key).toRight(s"No key $key")
         ret <- got.asBoolean.toRight(s"Key $key is not an object")
       } yield ret
 
-    def getArr(key: String): Either[String, Chunk[Json]] =
+    private def getArr(key: String): Either[String, Chunk[Json]] =
       for {
         got <- obj.get(key).toRight(s"No key $key")
         ret <- got.asArray.toRight(s"Key $key is not an object")
       } yield ret
 
   }
-  def conditionId2Condition(id: Int): Condition = {
+  private def conditionId2Condition(id: Int): Condition = {
     id match {
       case 1  => Condition.blinded
       case 2  => Condition.charmed
@@ -105,7 +105,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
     }
   }
 
-  def sizeId2CreatureSize(id: Int): CreatureSize =
+  private def sizeId2CreatureSize(id: Int): CreatureSize =
     id match {
       case 1 => CreatureSize.tiny
       case 2 => CreatureSize.small
@@ -114,7 +114,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
       case 5 => CreatureSize.huge
       case 6 => CreatureSize.gargantuan
     }
-  def alignmentId2Alignment(id: Int): Alignment =
+  private def alignmentId2Alignment(id: Int): Alignment =
     id match {
       case 1 => Alignment.lawfulGood
       case 2 => Alignment.neutralGood
@@ -127,7 +127,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
       case 9 => Alignment.chaoticEvil
     }
 
-  def lifestyleId2Lifestyle(i: Int): Lifestyle =
+  private def lifestyleId2Lifestyle(i: Int): Lifestyle =
     i match {
       case 1 => Lifestyle.wretched
       case 2 => Lifestyle.squalid
@@ -147,7 +147,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
       }.map(_.reverse)
   }
 
-  def statId2AbilityType(id: Int): AbilityType =
+  private def statId2AbilityType(id: Int): AbilityType =
     id match {
       case 1 => AbilityType.strength
       case 2 => AbilityType.dexterity

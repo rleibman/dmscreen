@@ -32,7 +32,7 @@ import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES, SemanticWIDTHS}
 
 def taperedLine = {
-  import japgolly.scalajs.react.vdom.svg_<^._
+  import japgolly.scalajs.react.vdom.svg_<^.*
 
   <.svg(
     ^.height  := "5",

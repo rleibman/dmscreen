@@ -21,13 +21,13 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.DMScreenError
+import dmscreen.{Campaign, DMScreenError}
 import zio.*
 import zio.stream.ZStream
 
 trait DND5eImporter[CampaignLink, PlayerCharacterLink, EncounterLink, MonsterLink] {
 
-  def importCampaign(campaignLink: CampaignLink): ZIO[Any, DMScreenError, DND5eCampaign]
+  def importCampaign(campaignLink: CampaignLink): ZIO[Any, DMScreenError, Campaign]
 
   def importPlayerCharacter(playerCharacterLink: PlayerCharacterLink): ZIO[Any, DMScreenError, PlayerCharacter]
 

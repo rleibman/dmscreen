@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e.srd
 
-import dmscreen.{DMScreenError, DiceRoll}
+import dmscreen.*
 import dmscreen.dnd5e.{*, given}
 import dmscreen.util.*
 import zio.json.*
@@ -39,7 +39,7 @@ object SRDImporter {
 
 class SRDImporter extends DND5eImporter[File, File, File, File] {
 
-  override def importCampaign(campaignLink: File): ZIO[Any, DMScreenError, DND5eCampaign] = ???
+  override def importCampaign(campaignLink: File): ZIO[Any, DMScreenError, Campaign] = ???
 
   override def importPlayerCharacter(playerCharacterLink: File): ZIO[Any, DMScreenError, PlayerCharacter] = ???
 

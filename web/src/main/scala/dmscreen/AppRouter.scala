@@ -21,18 +21,18 @@
 
 package dmscreen
 
-import japgolly.scalajs.react.extra.router.StaticDsl.RouteB
-import japgolly.scalajs.react.extra.router._
-import japgolly.scalajs.react.component.Scala.Unmounted
-import japgolly.scalajs.react.vdom.html_<^.*
+import dmscreen.dnd5e.*
 import japgolly.scalajs.react.*
-import net.leibman.dmscreen.std.*
+import japgolly.scalajs.react.component.Scala.Unmounted
+import japgolly.scalajs.react.extra.router.*
+import japgolly.scalajs.react.extra.router.StaticDsl.RouteB
+import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsCollectionsMenuMenuItemMod.MenuItemProps
-import dmscreen.dnd5e.*
-import org.scalajs.dom.HTMLAnchorElement
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticWIDTHS
+import net.leibman.dmscreen.std.*
+import org.scalajs.dom.HTMLAnchorElement
 
 object AppRouter {
 

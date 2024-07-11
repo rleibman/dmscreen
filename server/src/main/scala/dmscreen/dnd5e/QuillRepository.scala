@@ -51,6 +51,7 @@ object QuillRepository {
         name = header.name,
         dmUserId = header.dmUserId.value,
         gameSystem = header.gameSystem.toString,
+        campaignStatus = header.campaignStatus.toString,
         info = jsonInfo,
         version = dmscreen.BuildInfo.version,
         deleted = false
@@ -59,22 +60,24 @@ object QuillRepository {
 
   }
   private case class CampaignRow(
-    id:         Long,
-    name:       String,
-    dmUserId:   Long,
-    gameSystem: String,
-    info:       Json,
-    version:    String,
-    deleted:    Boolean
+    id:             Long,
+    name:           String,
+    dmUserId:       Long,
+    gameSystem:     String,
+    campaignStatus: String,
+    info:           Json,
+    version:        String,
+    deleted:        Boolean
   ) {
 
-    def toModel: DND5eCampaign =
-      DND5eCampaign(
+    def toModel: Campaign =
+      Campaign(
         header = CampaignHeader(
           id = CampaignId(id),
           dmUserId = UserId(dmUserId),
           name = name,
-          gameSystem = GameSystem.valueOf(gameSystem)
+          gameSystem = GameSystem.valueOf(gameSystem),
+          campaignStatus = CampaignStatus.valueOf(campaignStatus)
         ),
         jsonInfo = info,
         version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
@@ -400,14 +403,15 @@ object QuillRepository {
 
         override def campaigns: IO[DMScreenError, Seq[CampaignHeader]] =
           ctx
-            .run(qCampaigns.map(a => (a.id, a.dmUserId, a.name, a.gameSystem)))
+            .run(qCampaigns.map(a => (a.id, a.dmUserId, a.name, a.gameSystem, a.campaignStatus)))
             .map(
               _.map(t =>
                 CampaignHeader(
                   id = CampaignId(t._1),
                   dmUserId = UserId(t._2),
                   name = t._3,
-                  gameSystem = GameSystem.valueOf(t._4)
+                  gameSystem = GameSystem.valueOf(t._4),
+                  campaignStatus = CampaignStatus.valueOf(t._5)
                 )
               )
             )
@@ -438,7 +442,7 @@ object QuillRepository {
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
-        override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[DND5eCampaign]] =
+        override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[Campaign]] =
           ctx
             .run(qCampaigns.filter(v => !v.deleted && v.id == lift(campaignId.value)))
             .map(_.headOption.map(_.toModel))
@@ -600,7 +604,7 @@ object QuillRepository {
           operations: DMScreenEvent*
         ): IO[DMScreenError, Unit] = {
           entityType match {
-            case DND5eEntityType.campaign => applyOperationsCampaign(CampaignId(id.asInstanceOf[Long]), operations*)
+            case CampaignEntityType => applyOperationsCampaign(CampaignId(id.asInstanceOf[Long]), operations*)
             case DND5eEntityType.playerCharacter =>
               applyOperationsPlayerCharacter(PlayerCharacterId(id.asInstanceOf[Long]), operations*)
             case _ => ZIO.fail(DMScreenError("Can't apply operation to an id $id"))
@@ -698,7 +702,7 @@ object QuillRepository {
         ): IO[DMScreenError, Unit] = {
           if (softDelete) {
             entityType match {
-              case DND5eEntityType.campaign =>
+              case CampaignEntityType =>
                 ctx
                   .run(qCampaigns.filter(_.id == lift(id.asInstanceOf[CampaignId].value)).update(_.deleted -> true))
               case DND5eEntityType.playerCharacter =>
@@ -726,7 +730,7 @@ object QuillRepository {
             }
           } else
             entityType match {
-              case DND5eEntityType.campaign =>
+              case CampaignEntityType =>
                 ctx
                   .run(qCampaigns.filter(_.id == lift(id.asInstanceOf[CampaignId].value)).delete)
               case DND5eEntityType.playerCharacter =>
@@ -777,6 +781,7 @@ object QuillRepository {
                          name = header.name,
                          dmUserId = header.dmUserId.value,
                          gameSystem = header.gameSystem.toString,
+                         campaignStatus = header.campaignStatus.toString,
                          info = info,
                          version = dmscreen.BuildInfo.version,
                          deleted = false

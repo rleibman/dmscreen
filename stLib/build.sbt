@@ -3,7 +3,7 @@
 lazy val SCALA = "3.5.0-RC2"
 
 val scalajsReactVersion = "2.1.1"
-val reactVersion = "^18.0.0"
+val reactVersion = "^18.3.1"
 
 version := "0.4.0-SNAPSHOT"
 
@@ -30,7 +30,7 @@ Compile / npmDependencies ++= Seq(
   "@types/react"                   -> reactVersion,
   "csstype"                        -> "^3.0.0",
   "@types/prop-types"              -> "^15.0.0",
-  "semantic-ui-react"              -> "^2.0.0",
+  "semantic-ui-react"              -> "^2.1.5",
   "react-apexcharts"               -> "^1.0.0",
   "apexcharts"                     -> "^3.0.0",
   "react-quill"                    -> "^2.0.0",

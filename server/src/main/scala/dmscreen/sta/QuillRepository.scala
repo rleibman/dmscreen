@@ -25,10 +25,10 @@ import dmscreen.sta.STARepository
 import dmscreen.{ConfigurationService, DMScreenError, DMScreenTask}
 import io.getquill.jdbczio.Quill
 import io.getquill.{MappedEncoding, MysqlEscape, MysqlZioJdbcContext}
+import zio.*
 import zio.json.*
 import zio.json.ast.Json
 import zio.nio.file.*
-import zio.*
 
 import javax.sql.DataSource
 

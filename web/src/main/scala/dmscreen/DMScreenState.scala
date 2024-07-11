@@ -29,8 +29,9 @@ import org.scalajs.dom.window
 
 trait CampaignState {
 
-  def saveChanges(): AsyncCallback[CampaignState]
-  def loadChanges(): AsyncCallback[CampaignState]
+  def campaignHeader: CampaignHeader
+  def saveChanges():  AsyncCallback[CampaignState]
+  def loadChanges():  AsyncCallback[CampaignState]
 
 }
 
@@ -46,9 +47,10 @@ case class DND5eState(
 )
 
 case class DMScreenState(
-  user:          Option[User] = None,
-  campaignState: Option[CampaignState] = None,
-  dnd5e:         DND5eState = DND5eState(),
+  user:             Option[User] = None,
+  campaignState:    Option[CampaignState] = None,
+  dnd5e:            DND5eState = DND5eState(),
+  onSelectCampaign: Option[CampaignHeader] => Callback = _ => Callback.empty,
   onModifyCampaignState: (CampaignState, String) => Callback = (
     _,
     _
