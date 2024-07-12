@@ -125,185 +125,24 @@ object Content {
               window.sessionStorage.setItem("currentCampaignId", currentCampaignId.value.toString)
             )
             _ <- Callback.log(s"Loading campaign data (campaign = $currentCampaignId) from server...").asAsyncCallback
-            backgrounds <- {
-              val sb = Queries.backgrounds(CalibanBackground.name.map(Background.apply))
-              asyncCalibanCall(sb).map(_.toList.flatten)
-            }
-            classes <- {
-              val sb = Queries.classes(
-                (CalibanCharacterClass.id ~ CalibanCharacterClass.hitDice(CalibanDiceRoll.roll)).map(
-                  (
-                    id,
-                    hd
-                  ) =>
-                    CharacterClass(
-                      CharacterClassId.values.find(_.name.equalsIgnoreCase(id)).getOrElse(CharacterClassId.unknown),
-                      DiceRoll(hd)
-                    )
-                )
-              )
-              asyncCalibanCall(sb).map(_.toList.flatten)
-            }
-            campaign <- {
-              // TODO move the sb declarations to common code
-              val campaignSB: SelectionBuilder[CalibanCampaign, Campaign] = (CalibanCampaign.header(
-                CalibanCampaignHeader.id ~ CalibanCampaignHeader.name ~ CalibanCampaignHeader.dmUserId ~ CalibanCampaignHeader.gameSystem ~ CalibanCampaignHeader.campaignStatus
-              ) ~ CalibanCampaign.jsonInfo).map {
-                (
-                  id:             Long,
-                  name:           String,
-                  dmUserId:       Long,
-                  system:         CalibanGameSystem,
-                  campaignStatus: CalibanCampaignStatus,
-                  info:           Json
-                ) =>
-                  Campaign(
-                    CampaignHeader(
-                      CampaignId(id),
-                      UserId(dmUserId),
-                      name,
-                      GameSystem.valueOf(system.value),
-                      CampaignStatus.valueOf(campaignStatus.value)
-                    ),
-                    info
-                  )
+            // First load the campaign, this will allow us to ask for the GameSystem-specific data
+            campaignOpt <- GraphQLRepository.live.campaign(currentCampaignId)
+            campaignState <- AsyncCallback.traverseOption(campaignOpt) { c =>
+              c.header.gameSystem match {
+                case GameSystem.dnd5e              => DND5eCampaignState.load(c)
+                case _ =>
+                  AsyncCallback.throwException(RuntimeException(s"Unsupported game system ${c.header.gameSystem}"))
               }
-              val playerCharacterSB: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
-                (CalibanPlayerCharacter.header(
-                  CalibanPlayerCharacterHeader.campaignId ~
-                    CalibanPlayerCharacterHeader.id ~
-                    CalibanPlayerCharacterHeader.name ~
-                    CalibanPlayerCharacterHeader.playerName
-                ) ~ CalibanPlayerCharacter.jsonInfo).map {
-                  (
-                    campaignId: Long,
-                    pcId:       Long,
-                    name:       String,
-                    playerName: Option[String],
-                    info:       Json
-                  ) =>
-                    PlayerCharacter(
-                      PlayerCharacterHeader(
-                        id = PlayerCharacterId(pcId),
-                        campaignId = CampaignId(campaignId),
-                        name = name,
-                        playerName = playerName
-                      ),
-                      info
-                    )
-                }
-
-              val sceneSB: SelectionBuilder[CalibanScene, Scene] = (CalibanScene.header(
-                CalibanSceneHeader.id ~ CalibanSceneHeader.campaignId ~ CalibanSceneHeader.name ~ CalibanSceneHeader.orderCol ~ CalibanSceneHeader.isActive
-              ) ~ CalibanScene.jsonInfo).map {
-                (
-                  id:         Long,
-                  campaignId: Long,
-                  name:       String,
-                  orderCol:   Int,
-                  isActive:   Boolean,
-                  info:       Json
-                ) =>
-                  Scene(
-                    SceneHeader(
-                      id = SceneId(id),
-                      campaignId = CampaignId(campaignId),
-                      name = name,
-                      orderCol = orderCol,
-                      isActive = isActive
-                    ),
-                    info
-                  )
-              }
-
-              val encounterSB: SelectionBuilder[CalibanEncounter, Encounter] = (CalibanEncounter.header(
-                CalibanEncounterHeader.id ~
-                  CalibanEncounterHeader.campaignId ~
-                  CalibanEncounterHeader.name ~
-                  CalibanEncounterHeader.status ~
-                  CalibanEncounterHeader.sceneId ~
-                  CalibanEncounterHeader.orderCol
-              ) ~ CalibanEncounter.jsonInfo).map {
-                (
-                  id:         Long,
-                  campaignId: Long,
-                  name:       String,
-                  status:     String,
-                  sceneId:    Option[Long],
-                  orderCol:   Int,
-                  info:       Json
-                ) =>
-                  Encounter(
-                    EncounterHeader(
-                      EncounterId(id),
-                      CampaignId(campaignId),
-                      name,
-                      EncounterStatus.valueOf(status),
-                      sceneId.map(SceneId.apply),
-                      orderCol
-                    ),
-                    info
-                  )
-              }
-
-              val totalSB =
-                (Queries.campaign(currentCampaignId.value)(campaignSB) ~ Queries.playerCharacters(
-                  currentCampaignId.value
-                )(
-                  playerCharacterSB
-                ) ~ Queries
-                  .scenes(currentCampaignId.value)(sceneSB) ~ Queries.encounters(CampaignId(1).value)(encounterSB))
-                  .map {
-                    (
-                      cOpt,
-                      pcsOpt,
-                      scenesOpt,
-                      encountersOpt
-                    ) =>
-                      cOpt.map((_, pcsOpt.toList.flatten, scenesOpt.toList.flatten, encountersOpt.toList.flatten))
-                  }
-              asyncCalibanCall(totalSB)
             }
             _ <- Callback
-              .log(s"Campaign data (${campaign.fold("")(_._1.header.name)}) loaded from server").asAsyncCallback
+              .log(s"Campaign data (${campaignOpt.fold("")(_.header.name)}) loaded from server").asAsyncCallback
           } yield $.modState { s =>
-            import scala.language.unsafeNulls
-
-            val newCampaignState = campaign.map(
-              (
-                c,
-                pcs,
-                scenes,
-                encounters
-              ) =>
-                s.dmScreenState.campaignState.fold(
-                  // Completely brand new
-                  DND5eCampaignState(
-                    backgrounds = backgrounds,
-                    classes = classes,
-                    campaign = c,
-                    pcs = pcs,
-                    scenes = scenes,
-                    encounters = encounters
-                  )
-                ) { case oldCampaignState: DND5eCampaignState =>
-                  oldCampaignState.copy(
-                    backgrounds = backgrounds,
-                    classes = classes,
-                    campaign = c,
-                    pcs = pcs,
-                    scenes = scenes,
-                    encounters = encounters
-                  )
-                }
-            )
-
             s.copy(dmScreenState =
               s.dmScreenState
                 .copy(
-                  campaignState = newCampaignState,
+                  campaignState = campaignState,
                   changeDialogMode =
-                    newMode => $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(dialogMode = newMode))),
+                    newMode => $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(dialogMode = newMode)))
                 )
             )
           }
