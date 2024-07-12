@@ -19,37 +19,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.pages
+package dmscreen.sta
 
-import dmscreen.{BuildInfo, DMScreenTab}
-import japgolly.scalajs.react.*
-import japgolly.scalajs.react.component.Scala.Unmounted
-import japgolly.scalajs.react.vdom.html_<^.*
+case class ChangeStack(
+  clear:    Boolean = true,
+  campaign: Boolean = false
+) {
 
-object AboutPage extends DMScreenTab {
-
-  case class State(
-  )
-
-  class Backend($ : BackendScope[Unit, State]) {
-
-    def render(state: State) = {
-      <.div(
-        <.div(s"Version = ${BuildInfo.version}"),
-        <.div("Coming soon")
-      )
-    }
-
+  def logCampaignChange(): ChangeStack = {
+    copy(campaign = true, clear = false)
   }
-  private val component = ScalaComponent
-    .builder[Unit]("AboutPage")
-    .initialState {
-      State()
-    }
-    .renderBackend[Backend]
-    .build
 
-  def apply(
-  ): Unmounted[Unit, State, Backend] = component()
-
+  // ENHANCEMENT add to this a stream that will let us know when other uses have made changes
 }

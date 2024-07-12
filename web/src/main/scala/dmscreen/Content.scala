@@ -24,25 +24,11 @@ package dmscreen
 import caliban.ScalaJSClientAdapter.*
 import caliban.client.CalibanClientError.DecodingError
 import caliban.client.Operations.RootQuery
-import caliban.client.scalajs.DND5eClient.{
-  Background as CalibanBackground,
-  Campaign as CalibanCampaign,
-  CampaignHeader as CalibanCampaignHeader,
-  CampaignStatus as CalibanCampaignStatus,
-  CharacterClass as CalibanCharacterClass,
-  DiceRoll as CalibanDiceRoll,
-  Encounter as CalibanEncounter,
-  EncounterHeader as CalibanEncounterHeader,
-  GameSystem as CalibanGameSystem,
-  PlayerCharacter as CalibanPlayerCharacter,
-  PlayerCharacterHeader as CalibanPlayerCharacterHeader,
-  Queries,
-  Scene as CalibanScene,
-  SceneHeader as CalibanSceneHeader
-}
+import caliban.client.scalajs.DND5eClient.{Queries, Background as CalibanBackground, Campaign as CalibanCampaign, CampaignHeader as CalibanCampaignHeader, CampaignStatus as CalibanCampaignStatus, CharacterClass as CalibanCharacterClass, DiceRoll as CalibanDiceRoll, Encounter as CalibanEncounter, EncounterHeader as CalibanEncounterHeader, GameSystem as CalibanGameSystem, PlayerCharacter as CalibanPlayerCharacter, PlayerCharacterHeader as CalibanPlayerCharacterHeader, Scene as CalibanScene, SceneHeader as CalibanSceneHeader}
 import caliban.client.{ScalarDecoder, SelectionBuilder}
 import _root_.components.{Confirm, Toast}
 import dmscreen.dnd5e.*
+import dmscreen.sta.STACampaignState
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.extra.TimerSupport
@@ -130,6 +116,7 @@ object Content {
             campaignState <- AsyncCallback.traverseOption(campaignOpt) { c =>
               c.header.gameSystem match {
                 case GameSystem.dnd5e              => DND5eCampaignState.load(c)
+                case GameSystem.starTrekAdventures => STACampaignState.load(c)
                 case _ =>
                   AsyncCallback.throwException(RuntimeException(s"Unsupported game system ${c.header.gameSystem}"))
               }

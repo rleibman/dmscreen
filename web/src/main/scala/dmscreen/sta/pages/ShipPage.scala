@@ -19,14 +19,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.pages
+package dmscreen.sta.pages
 
 import dmscreen.{BuildInfo, DMScreenTab}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
 
-object AboutPage extends DMScreenTab {
+object ShipPage extends DMScreenTab {
 
   case class State(
   )
@@ -42,7 +42,7 @@ object AboutPage extends DMScreenTab {
 
   }
   private val component = ScalaComponent
-    .builder[Unit]("AboutPage")
+    .builder[Unit]("ShipPage")
     .initialState {
       State()
     }

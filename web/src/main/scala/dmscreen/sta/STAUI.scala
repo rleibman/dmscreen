@@ -19,37 +19,32 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.pages
+package dmscreen.sta
 
-import dmscreen.{BuildInfo, DMScreenTab}
-import japgolly.scalajs.react.*
-import japgolly.scalajs.react.component.Scala.Unmounted
-import japgolly.scalajs.react.vdom.html_<^.*
+import dmscreen.sta.pages.*
+import dmscreen.*
 
-object AboutPage extends DMScreenTab {
+enum STAUIPages {
 
-  case class State(
-  )
+  case dashboard extends STAUIPages with AppPageType
+  case characters extends STAUIPages with AppPageType
+  case ships extends STAUIPages with AppPageType
+  case encounters extends STAUIPages with AppPageType
+  case npcs extends STAUIPages with AppPageType
+  case scenes extends STAUIPages with AppPageType
 
-  class Backend($ : BackendScope[Unit, State]) {
+}
 
-    def render(state: State) = {
-      <.div(
-        <.div(s"Version = ${BuildInfo.version}"),
-        <.div("Coming soon")
-      )
-    }
+case object STAUI extends GameUI {
 
-  }
-  private val component = ScalaComponent
-    .builder[Unit]("AboutPage")
-    .initialState {
-      State()
-    }
-    .renderBackend[Backend]
-    .build
-
-  def apply(
-  ): Unmounted[Unit, State, Backend] = component()
+  override def pages: Seq[AppPage] =
+    Seq(
+      AppPage(STAUIPages.dashboard, "Dashboard", _ => DashboardPage()),
+      AppPage(STAUIPages.characters, "Characters", _ => CharacterPage()),
+      AppPage(STAUIPages.ships, "Ships", _ => ShipPage()),
+      AppPage(STAUIPages.encounters, "Encounters", _ => EncounterPage()),
+      AppPage(STAUIPages.scenes, "Scenes", _ => ScenePage()),
+      AppPage(STAUIPages.npcs, "NPCs", _ => NPCPage())
+    )
 
 }

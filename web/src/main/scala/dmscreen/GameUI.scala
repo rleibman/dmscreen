@@ -21,6 +21,7 @@
 
 package dmscreen
 
+import dmscreen.components.DieType
 import japgolly.scalajs.react.component.Generic.UnmountedRaw
 import japgolly.scalajs.react.vdom.{VdomElement, VdomNode}
 
@@ -35,5 +36,12 @@ case class AppPage(
 trait GameUI {
 
   def pages: Seq[AppPage]
+
+  // Enhancement, allow different game ui to decide what dice are available, and what custom dice rolls are available
+  // Put all of this into a DiceUIConfiguration
+  def diceTypes:           Seq[DieType] = Seq.empty
+  def diceRolls:           Seq[DiceRoll] = Seq.empty // Enhancement, allow it to set names, icons, etc.
+  def allowCustomDiceRoll: Boolean = true
+  def diceTheme:           String = "default"
 
 }
