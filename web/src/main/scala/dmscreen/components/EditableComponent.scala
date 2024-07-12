@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e.components
+package dmscreen.components
 
 import dmscreen.dnd5e.components.ConditionsEditor.{Props, State}
 import japgolly.scalajs.react.*

@@ -34,12 +34,13 @@ import caliban.client.scalajs.DND5eClient.{
 }
 import caliban.client.scalajs.{*, given}
 import dmscreen.*
+import dmscreen.components.{DiceRoller, EditableComponent, EditableNumber, EditableText}
 import dmscreen.dnd5e.components.*
-import dmscreen.dnd5e.components.EditableComponent.Mode
+import dmscreen.components.EditableComponent.Mode
 import dmscreen.dnd5e.{*, given}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
-import japgolly.scalajs.react.vdom.html_<^.{^, *}
-import japgolly.scalajs.react.{Callback, CtorType, *}
+import japgolly.scalajs.react.vdom.html_<^.*
+import japgolly.scalajs.react.*
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}

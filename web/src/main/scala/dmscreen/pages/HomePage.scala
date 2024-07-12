@@ -19,8 +19,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package dmscreen.pages
 
+import dmscreen.dnd5e.GraphQLRepository
 import dmscreen.{*, given}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Generic.UnmountedRaw
@@ -28,7 +29,7 @@ import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.component.ScalaFn
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.components.*
-import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticICONS
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
 import zio.json.*
 import zio.json.ast.*
@@ -39,6 +40,7 @@ import scala.scalajs.js.JSConverters.*
 object HomePage extends DMScreenTab {
 
   case class State(
+    hideArchived:      Boolean = true,
     confirmDeleteOpen: Boolean = false,
     deleteMe:          Option[CampaignId] = None,
     campaigns:         Seq[CampaignHeader] = Seq.empty,
@@ -121,7 +123,32 @@ object HomePage extends DMScreenTab {
     def render(state: State): VdomNode = {
 
       DMScreenState.ctx.consume { dmScreenState =>
+        def modCampaignHeader(campaignHeader: CampaignHeader): Callback = {
+          $.modState(
+            s =>
+              s.copy(campaigns = s.campaigns.map { c =>
+                if (c.id == campaignHeader.id) campaignHeader else c
+              }),
+            // after setting it locally, persist it.
+            (for {
+              campaign <- GraphQLRepository.live.campaign(campaignHeader.id)
+              upserted <- GraphQLRepository.live.upsert(campaignHeader, campaign.get.jsonInfo).when(campaign.isDefined)
+            } yield Callback.empty).completeWith(_.get)
+          )
+        }
+
         VdomArray(
+          Header.as("h1")(
+            Checkbox
+              .checked(state.hideArchived)
+              .onClick(
+                (
+                  _,
+                  d
+                ) => $.modState(_.copy(hideArchived = d.checked.getOrElse(false)))
+              ),
+            Label.size(SemanticSIZES.big)("Hide archived campaigns")
+          ),
           ConfirmDelete(
             open = state.confirmDeleteOpen,
             onConfirm =
@@ -203,39 +230,48 @@ object HomePage extends DMScreenTab {
                 )
             ),
             Table.Body(
-              state.campaigns.map { campaign =>
-                Table.Row.withKey(s"Campaign${campaign.id.value}")(
-                  Table.Cell(
-                    // Enhancement, might want to color the table differently if it's the active campaign
-                    if (dmScreenState.campaignState.exists(_.campaignHeader.id == campaign.id)) "Current"
-                    else "Not Current"
-                  ),
-                  Table.Cell(campaign.name),
-                  Table.Cell(campaign.gameSystem.name),
-                  Table.Cell(
-                    Button
-                      .title("Delete Campaign").icon(true)(Icon.name(SemanticICONS.`trash`)).onClick(
-                        (
-                          _,
-                          _
-                        ) => $.modState(_.copy(confirmDeleteOpen = true, deleteMe = Some(campaign.id)))
-                      ),
-                    Button
-                      .title("Make this the current campaign").icon(true)(
-                        Icon.name(SemanticICONS.`check circle outline`)
-                      ).onClick(
-                        (
-                          _,
-                          _
-                        ) => dmScreenState.onSelectCampaign(Some(campaign))
-                      ),
-                    Button
-                      .title("Archive this campaign")
-                      .icon(true)(Icon.name(SemanticICONS.archive)).when(
-                        campaign.campaignStatus != CampaignStatus.archived
-                      ) // TODO archive
+              state.campaigns.collect {
+                case campaign if !(state.hideArchived && campaign.campaignStatus == CampaignStatus.archived) =>
+                  Table.Row.withKey(s"Campaign${campaign.id.value}")(
+                    Table.Cell(
+                      // Enhancement, might want to color the table differently if it's the active campaign
+                      if (dmScreenState.campaignState.exists(_.campaignHeader.id == campaign.id)) "Current"
+                      else "Not Current"
+                    ),
+                    Table.Cell(
+                      s"${campaign.name}${if (campaign.campaignStatus == CampaignStatus.archived) " (Archived)" else ""}"
+                    ),
+                    Table.Cell(campaign.gameSystem.name),
+                    Table.Cell(
+                      Button
+                        .title("Delete Campaign").icon(true)(Icon.name(SemanticICONS.`trash`)).onClick(
+                          (
+                            _,
+                            _
+                          ) => $.modState(_.copy(confirmDeleteOpen = true, deleteMe = Some(campaign.id)))
+                        ),
+                      Button
+                        .title("Make this the current campaign").icon(true)(
+                          Icon.name(SemanticICONS.`check circle outline`)
+                        ).onClick(
+                          (
+                            _,
+                            _
+                          ) => dmScreenState.onSelectCampaign(Some(campaign))
+                        ),
+                      Button
+                        .title("Archive this campaign")
+                        .icon(true)(Icon.name(SemanticICONS.archive))
+                        .onClick {
+                          (
+                            _,
+                            _
+                          ) => modCampaignHeader(campaign.copy(campaignStatus = CampaignStatus.archived))
+                        }.when(
+                          campaign.campaignStatus != CampaignStatus.archived
+                        ) // TODO archive
+                    )
                   )
-                )
               }*
             ),
             Table.Footer(

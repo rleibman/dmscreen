@@ -19,13 +19,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package dmscreen.dnd5e.pages
 
 import caliban.ScalaJSClientAdapter.*
 import caliban.client.SelectionBuilder
 import caliban.client.scalajs.given
+import dmscreen.components.EditableComponent
 import dmscreen.dnd5e.components.*
-import dmscreen.dnd5e.given
+import dmscreen.dnd5e.{*, given}
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab, DialogMode}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted

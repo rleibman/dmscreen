@@ -19,37 +19,41 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package dmscreen.dnd5e.pages
 
-import dmscreen.{BuildInfo, DMScreenTab}
-import japgolly.scalajs.react.*
+import dmscreen.dnd5e.DND5eCampaignState
+import dmscreen.{DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
+import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
 
-object AboutPage extends DMScreenTab {
+object NPCPage extends DMScreenTab {
 
-  case class State(
-  )
+  case class State()
 
   class Backend($ : BackendScope[Unit, State]) {
 
     def render(state: State) = {
-      <.div(
-        <.div(s"Version = ${BuildInfo.version}"),
-        <.div("Coming soon")
-      )
+      DMScreenState.ctx.consume { dmScreenState =>
+        dmScreenState.campaignState.fold {
+          <.div("Campaign Loading")
+        } { case campaignState: DND5eCampaignState =>
+          val campaign = campaignState.campaign
+          <.div("Coming Soon")
+        }
+      }
     }
 
   }
+
   private val component = ScalaComponent
     .builder[Unit]("router")
-    .initialState {
-      State()
-    }
+    .initialState(State())
     .renderBackend[Backend]
     .build
 
   def apply(
+//             npcs: Seq[NonPlayerCharacter]
   ): Unmounted[Unit, State, Backend] = component()
 
 }

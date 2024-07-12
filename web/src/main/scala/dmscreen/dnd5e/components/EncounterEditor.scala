@@ -33,6 +33,7 @@ import caliban.client.scalajs.DND5eClient.{
   Queries
 }
 import caliban.client.scalajs.{*, given}
+import dmscreen.components.{EditableNumber, EditableText}
 import dmscreen.{*, given}
 import dmscreen.dnd5e.{*, given}
 import dmscreen.dnd5e.components.*

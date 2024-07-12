@@ -19,6 +19,32 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e.components
+package dmscreen.dnd5e
 
-object EditableDropDown {}
+import dmscreen.dnd5e.pages.DashboardPage
+import japgolly.scalajs.react.vdom.VdomNode
+
+trait AppPageType
+
+case class AppPage(
+  name:      String,
+  component: VdomNode
+)
+
+trait GameUI {
+
+  val pages: Seq[(AppPageType, AppPage)]
+
+}
+
+enum DND5eUIPages {
+
+  case dashboard extends DND5eUIPages with AppPageType
+
+}
+
+case class DND5eUI(
+  override val pages: Seq[(AppPageType, AppPage)] = Seq(
+    DND5eUIPages.dashboard -> AppPage("Dashboard", DashboardPage())
+  )
+) extends GameUI

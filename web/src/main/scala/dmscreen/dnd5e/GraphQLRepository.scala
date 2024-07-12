@@ -25,6 +25,7 @@ import caliban.ScalaJSClientAdapter.asyncCalibanCall
 import caliban.client.scalajs.DND5eClient.{
   Alignment as CalibanAlignment,
   Biome as CalibanBiome,
+  Campaign as CalibanCampaign,
   CampaignHeader as CalibanCampaignHeader,
   CampaignHeaderInput,
   CampaignStatus as CalibanCampaignStatus,
@@ -83,7 +84,32 @@ object GraphQLRepository {
       asyncCalibanCall(Queries.campaigns(campaignSB)).map(_.toSeq.flatten)
     }
 
-    override def campaign(campaignId: CampaignId): AsyncCallback[Option[Campaign]] = ???
+    override def campaign(campaignId: CampaignId): AsyncCallback[Option[Campaign]] = {
+      val campaignSB: SelectionBuilder[CalibanCampaign, Campaign] = (CalibanCampaign.header(
+        CalibanCampaignHeader.id ~ CalibanCampaignHeader.name ~ CalibanCampaignHeader.dmUserId ~ CalibanCampaignHeader.gameSystem ~ CalibanCampaignHeader.campaignStatus
+      ) ~ CalibanCampaign.jsonInfo).map {
+        (
+          id:             Long,
+          name:           String,
+          dmUserId:       Long,
+          system:         CalibanGameSystem,
+          campaignStatus: CalibanCampaignStatus,
+          info:           Json
+        ) =>
+          Campaign(
+            CampaignHeader(
+              CampaignId(id),
+              UserId(dmUserId),
+              name,
+              GameSystem.valueOf(system.value),
+              CampaignStatus.valueOf(campaignStatus.value)
+            ),
+            info
+          )
+      }
+
+      asyncCalibanCall(Queries.campaign(campaignId.value)(campaignSB))
+    }
 
     override def scene(sceneId: SceneId): AsyncCallback[Option[Scene]] = ???
 

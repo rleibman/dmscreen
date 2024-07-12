@@ -19,32 +19,36 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e.components
+package dmscreen.components
 
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.vdom.all.verticalAlign
 import japgolly.scalajs.react.vdom.html_<^.*
+import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticSIZES
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
 
 import scala.scalajs.js
 import scala.scalajs.js.UndefOr
 
-object EditableText {
+object EditableNumber {
 
   case class State(
-    value:     String = "",
+    value:     Double,
     isEditing: Boolean = false
   )
 
   case class Props(
-    value:        String,
+    value:        Double,
     allowEditing: Boolean,
-    onChange:     String => Callback = _ => Callback.empty
+    min:          UndefOr[Double] = js.undefined,
+    max:          UndefOr[Double] = js.undefined,
+    onChange:     Double => Callback = _ => Callback.empty
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -57,15 +61,26 @@ object EditableText {
 
       if (s.isEditing) {
         Input
+          .`type`("Number")
           .value(s.value)
+          .set("min", p.min)
+          .set("max", p.max)
+          .maxLength(5)
+          .style(CSSProperties().set("width", 60.px))
           .autoFocus(true)
           .size(semanticUiReactStrings.mini)
-          .onChange(
+          .onChange {
             (
               _,
               d
-            ) => $.modState(_.copy(value = d.value.get.asInstanceOf[String]))
-          )
+            ) =>
+              val newVal = d.value match {
+                case s: String => s.toDouble
+                case d: Double => d
+              }
+
+              $.modState(_.copy(value = newVal))
+          }
           .onKeyUp { e =>
             if (e.key == "Enter" || e.keyCode == 13) doBlur else Callback.empty
           }
@@ -84,20 +99,22 @@ object EditableText {
   }
 
   import scala.language.unsafeNulls
-  given Reusability[State] = Reusability.derive[State]
-  given Reusability[Props] = Reusability.by((_: Props).value)
+  given Reusability[State] = Reusability.by(s => (s.value.toString, s.isEditing))
+  given Reusability[Props] = Reusability.by((_: Props).value.toString)
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
-    .builder[Props]("EditableText")
+    .builder[Props]("EditableNumber")
     .initialStateFromProps(p => State(p.value))
     .renderBackend[Backend]
     .configure(Reusability.shouldComponentUpdate)
     .build
 
   def apply(
-    value:        String,
+    value:        Double,
     allowEditing: Boolean = true,
-    onChange:     String => Callback = _ => Callback.empty
-  ): VdomElement = component(Props(value, allowEditing, onChange))
+    min:          UndefOr[Double] = js.undefined,
+    max:          UndefOr[Double] = js.undefined,
+    onChange:     Double => Callback = _ => Callback.empty
+  ): VdomElement = component(Props(value, allowEditing, min, max, onChange))
 
 }

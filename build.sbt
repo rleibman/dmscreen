@@ -50,7 +50,7 @@ enablePlugins(
 )
 
 val calibanVersion = "2.8.1"
-val zioVersion = "2.1.5"
+val zioVersion = "2.1.6"
 val quillVersion = "4.8.5"
 val zioHttpVersion = "3.0.0-RC9"
 val zioConfigVersion = "4.0.2"
@@ -111,8 +111,8 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
       "io.megl" %%% "zio-json-diffson"                                    % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.kevinlee" %%% "just-semver-core"                                % "0.13.0" withSources (),
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.30.4",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.30.4"
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.30.6",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.30.6"
     )
   )
 
@@ -187,7 +187,7 @@ lazy val debianSettings =
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Web
-val scalajsReactVersion = "2.1.1"
+val scalajsReactVersion = "2.1.2"
 
 lazy val bundlerSettings: Project => Project =
   _.enablePlugins(ScalaJSBundlerPlugin)

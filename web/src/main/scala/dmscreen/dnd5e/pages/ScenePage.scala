@@ -19,10 +19,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package dmscreen.dnd5e.pages
 
-import dmscreen.dnd5e.NPCPage.State
-import dmscreen.dnd5e.components.{EditableText, PlayerCharacterComponent}
+import NPCPage.State
+import dmscreen.components.EditableText
+import dmscreen.dnd5e.components.PlayerCharacterComponent
+import dmscreen.dnd5e.{*, given}
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.VdomNode
