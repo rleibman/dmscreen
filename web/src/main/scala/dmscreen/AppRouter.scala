@@ -23,7 +23,7 @@ package dmscreen
 
 import dmscreen.components.DiceRoller
 import dmscreen.dnd5e.*
-import dmscreen.dnd5e.pages.{DashboardPage, EncounterPage, NPCPage, PlayerPage, ScenePage}
+import dmscreen.dnd5e.pages.{DashboardPage, EncounterPage, NPCPage, PCPage, ScenePage}
 import dmscreen.pages.{AboutPage, HomePage}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
@@ -39,158 +39,93 @@ import org.scalajs.dom.HTMLAnchorElement
 
 object AppRouter {
 
+  private enum CommonPages {
+
+    case home extends CommonPages with AppPageType
+    case about extends CommonPages with AppPageType
+
+  }
+
+  private val homePage = AppPage(CommonPages.home, "Home", _ => HomePage())
+  private val aboutPage = AppPage(CommonPages.about, "About", _ => AboutPage())
+
   private def layout(
-    page:       RouterCtl[AppPage],
-    resolution: Resolution[AppPage]
+    gameUI: Option[GameUI]
+  )(
+    page:       RouterCtl[AppPageType],
+    resolution: Resolution[AppPageType]
   ) = {
-    DMScreenState.ctx.consume { dmscreenState =>
+    val allPages: Seq[AppPage] =
+      homePage +:
+        gameUI.map(_.pages).toSeq.flatten :+
+        aboutPage
 
-      def renderMenu = {
-        Menu.Menu
-          .fluid(true)
-          .vertical(true)
-          .tabular(true)
-          .withKey("mainMenu")
-          .className("mainMenu")(
-            Menu.Item
-              .withKey("home")
-              .active(resolution.page == AppPage.home)
-              .onClick {
-                (
-                  event: ReactMouseEventFrom[HTMLAnchorElement],
-                  data:  MenuItemProps
-                ) =>
-                  page.setEH(AppPage.home)(event.asInstanceOf[ReactEvent])
-
-              }("Home"),
-            VdomArray(
-              Menu.Item
-                .withKey("dashboard")
-                .active(resolution.page == AppPage.dashboard)
-                .onClick {
-                  (
-                    event: ReactMouseEventFrom[HTMLAnchorElement],
-                    data:  MenuItemProps
-                  ) =>
-                    page.setEH(AppPage.dashboard)(event.asInstanceOf[ReactEvent])
-
-                }("Dashboard"),
-              Menu.Item
-                .withKey("pcs")
-                .active(resolution.page == AppPage.player)
-                .onClick {
-                  (
-                    event: ReactMouseEventFrom[HTMLAnchorElement],
-                    data:  MenuItemProps
-                  ) =>
-                    page.setEH(AppPage.player)(event.asInstanceOf[ReactEvent])
-
-                }("PCs"),
-              Menu.Item
-                .withKey("encounters")
-                .active(resolution.page == AppPage.encounter)
-                .onClick {
-                  (
-                    event: ReactMouseEventFrom[HTMLAnchorElement],
-                    data:  MenuItemProps
-                  ) =>
-                    page.setEH(AppPage.encounter)(event.asInstanceOf[ReactEvent])
-
-                }("Encounters"),
-              Menu.Item
-                .withKey("npcs")
-                .active(resolution.page == AppPage.npc)
-                .onClick {
-                  (
-                    event: ReactMouseEventFrom[HTMLAnchorElement],
-                    data:  MenuItemProps
-                  ) =>
-                    page.setEH(AppPage.npc)(event.asInstanceOf[ReactEvent])
-                }("NPCs"),
-              Menu.Item
-                .withKey("scenes")
-                .active(resolution.page == AppPage.scene)
-                .onClick {
-                  (
-                    event: ReactMouseEventFrom[HTMLAnchorElement],
-                    data:  MenuItemProps
-                  ) =>
-                    page.setEH(AppPage.scene)(event.asInstanceOf[ReactEvent])
-
-                }("Scenes")
-            ).when(dmscreenState.campaignState.isDefined),
-            Menu.Item
-              .withKey("about")
-              .active(resolution.page == AppPage.about)
-              .onClick {
-                (
-                  event: ReactMouseEventFrom[HTMLAnchorElement],
-                  data:  MenuItemProps
-                ) =>
-                  page.setEH(AppPage.about)(event.asInstanceOf[ReactEvent])
-
-              }("About"),
-            <.div(^.width := 100.pct, ^.textAlign := "center", ^.display := "inline-block", DiceRoller())
-//            Button("Roll").onClick(
-//              (
-//                _,
-//                _
-//              ) =>
-//                DiceRoller
-//                  .roll("10d20").map(r => Callback.alert(scala.scalajs.js.JSON.stringify(r))).completeWith(_.get)
-//            )
-          )
-
-      }
-      Grid
+    def renderMenu = {
+      Menu.Menu
+        .fluid(true)
+        .vertical(true)
+        .tabular(true)
+        .withKey("mainMenu")
         .className("mainMenu")(
-          Grid
-            .Column()
-            .withKey("mainMenu")
-            .className("mainMenu")
-            .width(SemanticWIDTHS.`2`)(renderMenu),
-          Grid
-            .Column()
-            .withKey("mainContent")
-            .width(SemanticWIDTHS.`14`)(
-              resolution.render()
-            )
+          allPages.map { pageInfo =>
+            Menu.Item
+              .withKey(pageInfo.title)
+              .active(resolution.page == pageInfo.pageType)
+              .onClick {
+                (
+                  event: ReactMouseEventFrom[HTMLAnchorElement],
+                  data:  MenuItemProps
+                ) =>
+                  page.setEH(pageInfo.pageType)(event.asInstanceOf[ReactEvent])
+
+              }(pageInfo.title): VdomElement
+          }.toVdomArray,
+          <.div(^.width := 100.pct, ^.textAlign := "center", ^.display := "inline-block", DiceRoller())
         )
+
     }
+    Grid
+      .className("mainMenu")(
+        Grid
+          .Column()
+          .withKey("mainMenu")
+          .className("mainMenu")
+          .width(SemanticWIDTHS.`2`)(renderMenu),
+        Grid
+          .Column()
+          .withKey("mainContent")
+          .width(SemanticWIDTHS.`14`)(
+            resolution.render()
+          )
+      )
   }
 
-  sealed trait AppPage
+  private def config(gameUI: Option[GameUI]): RouterConfig[AppPageType] =
+    RouterConfigDsl[AppPageType].buildConfig { dsl =>
+      import dsl.*
 
-  object AppPage {
+      val campaignPageRules = gameUI
+        .map(_.pages)
+        .toSeq
+        .flatten
+        .map { page =>
+          staticRoute(s"#${page.title}", page.pageType) ~> renderR(_ => page.createComponentFn(()))
+        }
+        .fold(trimSlashes)(_ | _)
 
-    case object home extends AppPage
-    case object dashboard extends AppPage
-    case object player extends AppPage
-    case object encounter extends AppPage
-    case object npc extends AppPage
-    case object scene extends AppPage
-    case object about extends AppPage
-
-  }
-
-  private val config: RouterConfig[AppPage] = RouterConfigDsl[AppPage].buildConfig { dsl =>
-    import dsl.*
-    (
-      trimSlashes
-        | staticRoute("#home", AppPage.home) ~> renderR(_ => HomePage())
-        | staticRoute(root, AppPage.dashboard) ~> renderR(_ => DashboardPage())
-        | staticRoute("#player", AppPage.player) ~> renderR(_ => PlayerPage())
-        | staticRoute("#encounter", AppPage.encounter) ~> renderR(_ => EncounterPage())
-        | staticRoute("#npc", AppPage.npc) ~> renderR(_ => NPCPage())
-        | staticRoute("#scene", AppPage.scene) ~> renderR(_ => ScenePage())
-        | staticRoute("#about", AppPage.about) ~> renderR(_ => AboutPage())
-    )
-      .notFound(redirectToPage(AppPage.dashboard)(SetRouteVia.HistoryReplace))
-      .renderWith(layout)
-  }
+      (trimSlashes
+        | staticRoute(root, homePage.pageType) ~> renderR(_ => homePage.createComponentFn(()))
+        | campaignPageRules
+        | staticRoute(s"#${aboutPage.title}", aboutPage.pageType) ~> renderR(_ => aboutPage.createComponentFn(())))
+        .notFound(redirectToPage(homePage.pageType)(SetRouteVia.HistoryReplace))
+        .renderWith(layout(gameUI))
+    }
 
   private val baseUrl: BaseUrl = BaseUrl.fromWindowOrigin_/
 
-  val router: Router[AppPage] = Router.apply(baseUrl, config)
+  def router(gameUI: Option[GameUI]): Router[AppPageType] = {
+    val c: RouterConfig[AppPageType] = config(gameUI)
+    Router.apply(baseUrl, c)
+  }
 
 }

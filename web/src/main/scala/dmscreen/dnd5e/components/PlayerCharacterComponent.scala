@@ -63,6 +63,9 @@ object PlayerCharacterComponent {
       s: State
     ): VdomElement = {
       DMScreenState.ctx.consume { dmScreenState =>
+        val campaignState = dmScreenState.campaignState
+          .map(_.asInstanceOf[DND5eCampaignState]).getOrElse(throw RuntimeException("No campaign"))
+
         {
           def modPCInfo(fn: PlayerCharacterInfo => PlayerCharacterInfo): Callback = {
             $.modState { s =>
@@ -75,9 +78,9 @@ object PlayerCharacterComponent {
 
           val pc = s.playerCharacter.info
           def allBackgrounds =
-            (dmScreenState.dnd5e.backgrounds ++ pc.background.fold(Seq.empty)(bk =>
+            (campaignState.backgrounds ++ pc.background.fold(Seq.empty)(bk =>
               Seq(
-                dmScreenState.dnd5e.backgrounds
+                campaignState.backgrounds
                   .find(_.name.equalsIgnoreCase(bk.name)).getOrElse(Background(name = bk.name))
               )
             ))
@@ -167,7 +170,7 @@ object PlayerCharacterComponent {
                               info.copy(background = changedData.value match {
                                 case s: String if s.isEmpty => None
                                 case s: String =>
-                                  dmScreenState.dnd5e.backgrounds.find(_.name == s).orElse(Some(Background(s)))
+                                  allBackgrounds.find(_.name == s).orElse(Some(Background(s)))
                                 case _ => throw RuntimeException("Unexpected value")
                               })
                             )

@@ -21,11 +21,13 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{Campaign, CampaignHeader, CampaignState}
+import dmscreen.{Campaign, CampaignHeader, CampaignState, GameUI}
 import japgolly.scalajs.react.callback.*
 
 case class DND5eCampaignState(
   campaign:    Campaign,
+  backgrounds: Seq[Background] = Seq.empty,
+  classes:     Seq[CharacterClass] = Seq.empty,
   pcs:         List[PlayerCharacter] = List.empty,
   npcs:        List[NonPlayerCharacter] = List.empty,
   scenes:      List[Scene] = List.empty,
@@ -83,5 +85,7 @@ case class DND5eCampaignState(
   }
 
   override def loadChanges(): AsyncCallback[CampaignState] = ???
+
+  override def gameUI: GameUI = DND5eUI
 
 }

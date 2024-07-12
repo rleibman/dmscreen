@@ -99,7 +99,7 @@ object Content {
           ^.height := 100.pct,
           Confirm.render(),
           Toast.render(),
-          AppRouter.router()
+          AppRouter.router(state.dmScreenState.campaignState.map(_.gameUI))()
         )
       }
     }
@@ -278,9 +278,23 @@ object Content {
               ) =>
                 s.dmScreenState.campaignState.fold(
                   // Completely brand new
-                  DND5eCampaignState(campaign = c, pcs = pcs, scenes = scenes, encounters = encounters)
+                  DND5eCampaignState(
+                    backgrounds = backgrounds,
+                    classes = classes,
+                    campaign = c,
+                    pcs = pcs,
+                    scenes = scenes,
+                    encounters = encounters
+                  )
                 ) { case oldCampaignState: DND5eCampaignState =>
-                  oldCampaignState.copy(campaign = c, pcs = pcs, scenes = scenes, encounters = encounters)
+                  oldCampaignState.copy(
+                    backgrounds = backgrounds,
+                    classes = classes,
+                    campaign = c,
+                    pcs = pcs,
+                    scenes = scenes,
+                    encounters = encounters
+                  )
                 }
             )
 
@@ -288,10 +302,6 @@ object Content {
               s.dmScreenState
                 .copy(
                   campaignState = newCampaignState,
-                  dnd5e = s.dmScreenState.dnd5e.copy(
-                    backgrounds = backgrounds,
-                    classes = classes
-                  ),
                   changeDialogMode =
                     newMode => $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(dialogMode = newMode))),
                 )

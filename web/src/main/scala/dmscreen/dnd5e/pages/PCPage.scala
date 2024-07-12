@@ -33,7 +33,7 @@ import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
 import zio.json.*
 import zio.json.ast.*
 
-object PlayerPage extends DMScreenTab {
+object PCPage extends DMScreenTab {
 
   case class State()
 

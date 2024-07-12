@@ -77,8 +77,10 @@ object PlayerCharacterClassEditor {
     ): VdomNode = {
 
       DMScreenState.ctx.consume { dmScreenState =>
+        val campaignState = dmScreenState.campaignState
+          .map(_.asInstanceOf[DND5eCampaignState]).getOrElse(throw RuntimeException("No campaign"))
 
-        def allClasses = dmScreenState.dnd5e.classes
+        def allClasses = campaignState.classes
         def totalLevel = state.classes.map(_.level).sum
 
         Table(

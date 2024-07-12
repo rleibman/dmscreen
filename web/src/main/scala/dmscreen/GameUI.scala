@@ -19,30 +19,21 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package dmscreen
 
-import dmscreen.dnd5e.pages.*
-import dmscreen.*
+import japgolly.scalajs.react.component.Generic.UnmountedRaw
+import japgolly.scalajs.react.vdom.{VdomElement, VdomNode}
 
-enum DND5eUIPages {
+trait AppPageType
 
-  case dashboard extends DND5eUIPages with AppPageType
-  case encounters extends DND5eUIPages with AppPageType
-  case pcs extends DND5eUIPages with AppPageType
-  case npcs extends DND5eUIPages with AppPageType
-  case scenes extends DND5eUIPages with AppPageType
+case class AppPage(
+  pageType:          AppPageType,
+  title:             String,
+  createComponentFn: Any => VdomElement
+)
 
-}
+trait GameUI {
 
-case object DND5eUI extends GameUI {
-
-  override def pages: Seq[AppPage] =
-    Seq(
-      AppPage(DND5eUIPages.dashboard, "Dashboard", _ => DashboardPage()),
-      AppPage(DND5eUIPages.pcs, "PCs", _ => PCPage()),
-      AppPage(DND5eUIPages.encounters, "Encounters", _ => EncounterPage()),
-      AppPage(DND5eUIPages.npcs, "NPCs", _ => NPCPage()),
-      AppPage(DND5eUIPages.scenes, "Scenes", _ => ScenePage())
-    )
+  def pages: Seq[AppPage]
 
 }
