@@ -12,7 +12,7 @@ lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time o
 // TODO switch to Mariadb
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
-lazy val SCALA = "3.5.0-RC2"
+lazy val SCALA = "3.5.0-RC4"
 Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
 Global / scalaVersion         := SCALA
@@ -111,8 +111,8 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
       "io.megl" %%% "zio-json-diffson"                                    % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.kevinlee" %%% "just-semver-core"                                % "0.13.0" withSources (),
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.30.6",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.30.6"
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.30.7",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.30.7"
     )
   )
 
