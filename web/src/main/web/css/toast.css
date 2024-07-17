@@ -1,0 +1,306 @@
+/*
+Toast stuff
+ */
+.toast {
+    z-index: 100;
+}
+
+.toast .warning {
+    background-color: rgb(255, 250, 230);
+    box-shadow: rgba(0, 0, 0, 0.176) 0px 3px 8px;
+    color: rgb(255, 139, 0);
+    display: flex;
+    margin-bottom: 8px;
+    width: 360px;
+    transform: translate3d(0px, 0px, 0px);
+    border-radius: 4px;
+    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1) 0s;
+}
+
+.toast .warning .iconRegion {
+    background-color: rgb(255, 171, 0);
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    color: rgb(255, 250, 230);
+    flex-shrink: 0;
+    padding-bottom: 8px;
+    padding-top: 8px;
+    position: relative;
+    text-align: center;
+    width: 30px;
+    overflow: hidden;
+}
+
+.toast .warning .countdown {
+    background-color: rgba(0, 0, 0, 0.1);
+    bottom: 0px;
+    height: 0px;
+    left: 0px;
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    animation: animation-hnule4-shrink 5000ms linear 0s 1 normal none running;
+}
+
+.toast .warning .icon {
+    display: contents;
+    vertical-align: text-top;
+    fill: currentcolor;
+    position: relative;
+}
+
+.toast .warning .textRegion {
+    -webkit-box-flex: 1;
+    flex-grow: 1;
+    font-size: 14px;
+    line-height: 1.4;
+    min-height: 40px;
+    padding: 8px 12px;
+}
+
+.toast .warning .closeButtonRegion {
+    cursor: pointer;
+    flex-shrink: 0;
+    opacity: 0.5;
+    padding: 8px 12px;
+    transition: opacity 150ms ease 0s;
+}
+
+.toast .warning .closeSpan {
+    clip: rect(1px, 1px, 1px, 1px);
+    height: 1px;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+    border-width: 0px;
+    border-style: initial;
+    border-color: initial;
+    border-image: initial;
+    overflow: hidden;
+    padding: 0px;
+}
+
+.toast .info {
+    background-color: rgb(230, 230, 255);
+    box-shadow: rgba(0, 0, 0, 0.176) 0px 3px 8px;
+    color: rgb(0, 139, 255);
+    display: flex;
+    margin-bottom: 8px;
+    width: 360px;
+    transform: translate3d(0px, 0px, 0px);
+    border-radius: 4px;
+    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1) 0s;
+}
+
+.toast .info .iconRegion {
+    background-color: rgb(0, 171, 255);
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    color: rgb(230, 230, 255);
+    flex-shrink: 0;
+    padding-bottom: 8px;
+    padding-top: 8px;
+    position: relative;
+    text-align: center;
+    width: 30px;
+    overflow: hidden;
+}
+
+.toast .info .countdown {
+    background-color: rgba(0, 0, 0, 0.1);
+    bottom: 0px;
+    height: 0px;
+    left: 0px;
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    animation: animation-hnule4-shrink 5000ms linear 0s 1 normal none running;
+}
+
+.toast .info .icon {
+    display: contents;
+    vertical-align: text-top;
+    fill: currentcolor;
+    position: relative;
+}
+
+.toast .info .textRegion {
+    -webkit-box-flex: 1;
+    flex-grow: 1;
+    font-size: 14px;
+    line-height: 1.4;
+    min-height: 40px;
+    padding: 8px 12px;
+}
+
+.toast .info .closeButtonRegion {
+    cursor: pointer;
+    flex-shrink: 0;
+    opacity: 0.5;
+    padding: 8px 12px;
+    transition: opacity 150ms ease 0s;
+}
+
+.toast .info .closeSpan {
+    clip: rect(1px, 1px, 1px, 1px);
+    height: 1px;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+    border-width: 0px;
+    border-style: initial;
+    border-color: initial;
+    border-image: initial;
+    overflow: hidden;
+    padding: 0px;
+}
+
+.toast .error {
+    background-color: rgb(255, 235, 230);
+    box-shadow: rgba(0, 0, 0, 0.176) 0px 3px 8px;
+    color: rgb(191, 38, 0);
+    display: flex;
+    margin-bottom: 8px;
+    width: 360px;
+    transform: translate3d(0px, 0px, 0px);
+    border-radius: 4px;
+    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1) 0s;
+}
+
+.toast .error .iconRegion {
+    background-color: rgb(255, 86, 48);
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    color: rgb(255, 235, 230);
+    flex-shrink: 0;
+    padding-bottom: 8px;
+    padding-top: 8px;
+    position: relative;
+    text-align: center;
+    width: 30px;
+    overflow: hidden;
+}
+
+.toast .error .countdown {
+    background-color: rgba(0, 0, 0, 0.1);
+    bottom: 0px;
+    height: 0px;
+    left: 0px;
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    animation: animation-hnule4-shrink 5000ms linear 0s 1 normal none running;
+}
+
+.toast .error .icon {
+    display: contents;
+    vertical-align: text-top;
+    fill: currentcolor;
+    position: relative;
+}
+
+.toast .error .textRegion {
+    -webkit-box-flex: 1;
+    flex-grow: 1;
+    font-size: 14px;
+    line-height: 1.4;
+    min-height: 40px;
+    padding: 8px 12px;
+}
+
+.toast .error .closeButtonRegion {
+    cursor: pointer;
+    flex-shrink: 0;
+    opacity: 0.5;
+    padding: 8px 12px;
+    transition: opacity 150ms ease 0s;
+}
+
+.toast .error .closeSpan {
+    clip: rect(1px, 1px, 1px, 1px);
+    height: 1px;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+    border-width: 0px;
+    border-style: initial;
+    border-color: initial;
+    border-image: initial;
+    overflow: hidden;
+    padding: 0px;
+}
+
+.toast .success {
+    background-color: rgb(227, 252, 239);
+    box-shadow: rgba(0, 0, 0, 0.176) 0px 3px 8px;
+    color: rgb(0, 102, 68);
+    display: flex;
+    margin-bottom: 8px;
+    width: 360px;
+    transform: translate3d(0px, 0px, 0px);
+    border-radius: 4px;
+    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1) 0s;
+}
+
+.toast .success .iconRegion {
+    background-color: rgb(54, 179, 126);
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    color: rgb(227, 252, 239);
+    flex-shrink: 0;
+    padding-bottom: 8px;
+    padding-top: 8px;
+    position: relative;
+    text-align: center;
+    width: 30px;
+    overflow: hidden;
+}
+
+.toast .success .countdown {
+    background-color: rgba(0, 0, 0, 0.1);
+    bottom: 0px;
+    height: 0px;
+    left: 0px;
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    animation: animation-hnule4-shrink 5000ms linear 0s 1 normal none running;
+}
+
+.toast .success .icon {
+    display: contents;
+    vertical-align: text-top;
+    fill: currentcolor;
+    position: relative;
+}
+
+.toast .success .textRegion {
+    -webkit-box-flex: 1;
+    flex-grow: 1;
+    font-size: 14px;
+    line-height: 1.4;
+    min-height: 40px;
+    padding: 8px 12px;
+}
+
+.toast .success .closeButtonRegion {
+    cursor: pointer;
+    flex-shrink: 0;
+    opacity: 0.5;
+    padding: 8px 12px;
+    transition: opacity 150ms ease 0s;
+}
+
+.toast .success .closeSpan {
+    clip: rect(1px, 1px, 1px, 1px);
+    height: 1px;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+    border-width: 0px;
+    border-style: initial;
+    border-color: initial;
+    border-image: initial;
+    overflow: hidden;
+    padding: 0px;
+}

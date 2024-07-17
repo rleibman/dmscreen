@@ -54,6 +54,11 @@ object DND5eAPI {
 
   private given Schema[Any, UserId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, CampaignId] = Schema.longSchema.contramap(_.value)
+  private given Schema[Any, SemVer] = Schema.stringSchema.contramap(_.render)
+  private given Schema[Any, EntityType[?]] = Schema.stringSchema.contramap(_.name)
+  private given Schema[Any, URL] = Schema.stringSchema.contramap(_.toString)
+  private given Schema[Any, EntityDeleteArgs] = Schema.gen[Any, EntityDeleteArgs]
+
   private given Schema[Any, CharacterClassId] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, MonsterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, PlayerCharacterId] = Schema.longSchema.contramap(_.value)
@@ -61,11 +66,8 @@ object DND5eAPI {
   private given Schema[Any, EncounterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, SceneId] = Schema.longSchema.contramap(_.value)
 
-  private given Schema[Any, EntityType[?]] = Schema.stringSchema.contramap(_.name)
   private given Schema[Any, ChallengeRating] = Schema.doubleSchema.contramap(_.value)
   private given Schema[Any, SourceId] = Schema.stringSchema.contramap(_.value)
-  private given Schema[Any, URL] = Schema.stringSchema.contramap(_.toString)
-  private given Schema[Any, SemVer] = Schema.stringSchema.contramap(_.render)
   private given Schema[Any, EncounterStatus] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, GeneralLog] = Schema.gen[Any, GeneralLog]
   private given Schema[Any, CombatLog] = Schema.gen[Any, CombatLog]
@@ -78,7 +80,6 @@ object DND5eAPI {
   private given Schema[Any, PlayerCharacter] = Schema.gen[Any, PlayerCharacter]
   private given Schema[Any, NonPlayerCharacter] = Schema.gen[Any, NonPlayerCharacter]
   private given Schema[Any, Encounter] = Schema.gen[Any, Encounter]
-  private given Schema[Any, EntityDeleteArgs] = Schema.gen[Any, EntityDeleteArgs]
 
   private given ArgBuilder[PlayerCharacterId] = ArgBuilder.long.map(PlayerCharacterId.apply)
   private given ArgBuilder[SceneId] = ArgBuilder.long.map(SceneId.apply)

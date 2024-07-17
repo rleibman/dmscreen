@@ -79,8 +79,10 @@ object DMScreen extends ZIOApp {
     _             <- ZIO.log("Initializing Routes")
     defaultRoutes <- defaultRouteZio
     dnd5eRoute    <- DND5eRoutes.route
+    staRoute      <- STARoutes.route
     start         <- Clock.currentTime(TimeUnit.MILLISECONDS)
   } yield (dnd5eRoute ++
+    staRoute ++
     StaticRoutes.unauthRoute /*Move this to after there's a user*/ ++
     StaticRoutes.authRoute ++
     defaultRoutes)

@@ -24,7 +24,22 @@ package dmscreen
 import caliban.ScalaJSClientAdapter.*
 import caliban.client.CalibanClientError.DecodingError
 import caliban.client.Operations.RootQuery
-import caliban.client.scalajs.DND5eClient.{Queries, Background as CalibanBackground, Campaign as CalibanCampaign, CampaignHeader as CalibanCampaignHeader, CampaignStatus as CalibanCampaignStatus, CharacterClass as CalibanCharacterClass, DiceRoll as CalibanDiceRoll, Encounter as CalibanEncounter, EncounterHeader as CalibanEncounterHeader, GameSystem as CalibanGameSystem, PlayerCharacter as CalibanPlayerCharacter, PlayerCharacterHeader as CalibanPlayerCharacterHeader, Scene as CalibanScene, SceneHeader as CalibanSceneHeader}
+import caliban.client.scalajs.DND5eClient.{
+  Background as CalibanBackground,
+  Campaign as CalibanCampaign,
+  CampaignHeader as CalibanCampaignHeader,
+  CampaignStatus as CalibanCampaignStatus,
+  CharacterClass as CalibanCharacterClass,
+  DiceRoll as CalibanDiceRoll,
+  Encounter as CalibanEncounter,
+  EncounterHeader as CalibanEncounterHeader,
+  GameSystem as CalibanGameSystem,
+  PlayerCharacter as CalibanPlayerCharacter,
+  PlayerCharacterHeader as CalibanPlayerCharacterHeader,
+  Queries,
+  Scene as CalibanScene,
+  SceneHeader as CalibanSceneHeader
+}
 import caliban.client.{ScalarDecoder, SelectionBuilder}
 import _root_.components.{Confirm, Toast}
 import dmscreen.dnd5e.*
@@ -78,11 +93,22 @@ object Content {
         interval = js.undefined
       }
 
+    private val defaultCssFiles: Seq[String] = Seq("css/sui-dmscreen.css")
+
+    def DynamicStylesheet(ui: Option[GameUI]): TagMod =
+      ScalaFnComponent
+        .withHooks[Option[GameUI]]
+        .render { gameUI =>
+          val cssFiles = ui.fold(defaultCssFiles)(_.cssFiles)
+          cssFiles.map(file => <.link(^.href := file, ^.rel := "stylesheet", ^.`type` := "text/css")).toVdomArray
+        }.apply(ui)
+
     def render(state: State): VdomNode = {
       DMScreenState.ctx.provide(state.dmScreenState) {
         <.div(
           ^.key    := "contentDiv",
           ^.height := 100.pct,
+          DynamicStylesheet(state.dmScreenState.campaignState.map(_.gameUI)),
           Confirm.render(),
           Toast.render(),
           AppRouter.router(state.dmScreenState.campaignState.map(_.gameUI))()
@@ -91,54 +117,43 @@ object Content {
     }
 
     def initialize(argCampaignId: Option[CampaignId] = None): Callback = {
-      Callback.log(s"Selected campaign $argCampaignId") >>
-        argCampaignId.fold(Callback.empty) { id =>
-          // TODO this needs to be moved somewhere that's DND5e specific, so that we can have different game systems
-          val ajax = for {
-            oldState <- $.state.asAsyncCallback
-            currentCampaignId <- AsyncCallback.pure {
-              // If the campaign is in the URL, use it, otherwise use the one in the session storage if it exist, otherwise, for now use 1
-              // But in the future, we just shouldn't show the other tabs and only show the home tab
-              argCampaignId
-                .orElse(
-                  Option(window.sessionStorage.getItem("currentCampaignId"))
-                    .flatMap(_.toLongOption).map(CampaignId.apply)
-                )
-                .getOrElse(CampaignId(1)) // Change this, we'll need to load campaigns from the server and select the first one)
-            }
-            // Store the current campaign Id in the session storage for next time
-            _ <- AsyncCallback.pure(
-              window.sessionStorage.setItem("currentCampaignId", currentCampaignId.value.toString)
-            )
-            _ <- Callback.log(s"Loading campaign data (campaign = $currentCampaignId) from server...").asAsyncCallback
-            // First load the campaign, this will allow us to ask for the GameSystem-specific data
-            campaignOpt <- GraphQLRepository.live.campaign(currentCampaignId)
-            campaignState <- AsyncCallback.traverseOption(campaignOpt) { c =>
-              c.header.gameSystem match {
-                case GameSystem.dnd5e              => DND5eCampaignState.load(c)
-                case GameSystem.starTrekAdventures => STACampaignState.load(c)
-                case _ =>
-                  AsyncCallback.throwException(RuntimeException(s"Unsupported game system ${c.header.gameSystem}"))
-              }
-            }
-            _ <- Callback
-              .log(s"Campaign data (${campaignOpt.fold("")(_.header.name)}) loaded from server").asAsyncCallback
-          } yield $.modState { s =>
-            s.copy(dmScreenState =
-              s.dmScreenState
-                .copy(
-                  campaignState = campaignState,
-                  changeDialogMode =
-                    newMode => $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(dialogMode = newMode)))
-                )
-            )
+      // If the campaign is in the URL, use it, otherwise use the one in the session storage if it exist, otherwise, for now use 1
+      // But in the future, we just shouldn't show the other tabs and only show the home tab
+      val id = argCampaignId
+        .orElse(
+          Option(window.sessionStorage.getItem("currentCampaignId"))
+            .flatMap(_.toLongOption)
+            .map(CampaignId.apply)
+        )
+        .getOrElse(CampaignId(1)) // Change this, we'll need to load campaigns from the server and select the first one)
+
+      val ajax = for {
+        oldState <- $.state.asAsyncCallback
+        _ <- AsyncCallback.pure(window.sessionStorage.setItem("currentCampaignId", id.value.toString)) // Store the current campaign Id in the session storage for next time
+        _ <- Callback.log(s"Loading campaign data (campaign = $id) from server...").asAsyncCallback
+        campaignOpt <- GraphQLRepository.live.campaign(id) // First load the campaign, this will allow us to ask for the GameSystem-specific data
+        campaignState <- AsyncCallback.traverseOption(campaignOpt) { c =>
+          c.header.gameSystem match {
+            case GameSystem.dnd5e              => DND5eCampaignState.load(c)
+            case GameSystem.starTrekAdventures => STACampaignState.load(c)
+            case _ =>
+              AsyncCallback.throwException(RuntimeException(s"Unsupported game system ${c.header.gameSystem}"))
           }
-          for {
-            _          <- Callback.log("Initializing Content Component")
-            modedState <- ajax.completeWith(_.get)
-          } yield modedState
-        } >>
-        // This needs to be initalized regardless
+        }
+        _ <- Callback.log(s"Campaign data (${campaignOpt.fold("")(_.header.name)}) loaded from server").asAsyncCallback
+      } yield $.modState { s =>
+        s.copy(dmScreenState =
+          s.dmScreenState
+            .copy(
+              campaignState = campaignState,
+              changeDialogMode =
+                newMode => $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(dialogMode = newMode)))
+            )
+        )
+      }
+
+      ajax.completeWith(_.get) >>
+        // We need to add the methods to the state
         $.modState(s =>
           s.copy(dmScreenState =
             s.dmScreenState.copy(
@@ -147,8 +162,6 @@ object Content {
                 newState,
                 log
               ) =>
-                // if the ticker is on, do nothing, otherwise start it
-                // ENHANCEMENT persist campaign log
                 $.modState(
                   s =>
                     s.copy(
@@ -157,11 +170,7 @@ object Content {
                         campaignLog = log.trim.headOption.map(_ => log.trim).toSeq ++ s.dmScreenState.campaignLog
                       )
                     ),
-                  if (interval.isEmpty) {
-                    startSaveTicker
-                  } else {
-                    Callback.empty
-                  }
+                  startSaveTicker.when(interval.isEmpty).map(_ => ())
                 )
             )
           )

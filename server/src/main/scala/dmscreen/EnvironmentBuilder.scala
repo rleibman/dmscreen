@@ -21,52 +21,55 @@
 
 package dmscreen
 
+import dmscreen.dnd5e.DND5eZIORepository
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
 import dmscreen.dnd5e.fifthEditionCharacterSheet.FifthEditionCharacterSheetImporter
 import dmscreen.dnd5e.srd.SRDImporter
-import dmscreen.dnd5e.{DND5eRepository, DND5eZIORepository, QuillRepository, RepositoryError}
+import dmscreen.sta.STAZIORepository
 import dmscreen.util.TestCreator
 import zio.*
 
 type DMScreenTask[+A] = ZIO[Any, DMScreenError, A] // Succeed with an `A`, may fail with `Throwable`, no requirements.
 
-type DMScreenServerEnvironment = DND5eZIORepository & DNDBeyondImporter
+type DMScreenServerEnvironment = STAZIORepository & DND5eZIORepository & DNDBeyondImporter
 
 object EnvironmentBuilder {
 
   def live =
     ZLayer
-      .make[DND5eZIORepository & ConfigurationService & DNDBeyondImporter](
+      .make[STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter](
         ConfigurationService.live,
-        QuillRepository.db,
+        dmscreen.dnd5e.QuillRepository.db,
+        dmscreen.sta.QuillRepository.db,
         DNDBeyondImporter.live
       ).orDie
 
   case class InitializingLayer()
 
   private val initializingLayer: ZLayer[
-    DND5eZIORepository & SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter,
+    STAZIORepository & DND5eZIORepository & SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter,
     DMScreenError,
     InitializingLayer
   ] =
     ZLayer.fromZIO {
       for {
-        pcs  <- TestCreator.createPcs
-        repo <- ZIO.service[DND5eZIORepository]
+        pcs       <- TestCreator.createPcs
+        dnd5eRepo <- ZIO.service[DND5eZIORepository]
         pcsWithIds <- ZIO.foreach(pcs)(pc =>
-          repo.upsert(pc.header, pc.jsonInfo).map(id => pc.copy(pc.header.copy(id = id)))
+          dnd5eRepo.upsert(pc.header, pc.jsonInfo).map(id => pc.copy(pc.header.copy(id = id)))
         )
         monsters <- TestCreator.createMonsters
         monstersWithIds <- ZIO.foreach(monsters)(monster =>
-          repo.upsert(monster.header, monster.jsonInfo).map(id => monster.copy(monster.header.copy(id = id)))
+          dnd5eRepo.upsert(monster.header, monster.jsonInfo).map(id => monster.copy(monster.header.copy(id = id)))
         )
         encounters <- TestCreator.createEncounters(monstersWithIds)
         encountersWithIds <- ZIO.foreach(encounters)(encounter =>
-          repo.upsert(encounter.header, encounter.jsonInfo).map(id => encounter.copy(encounter.header.copy(id = id)))
+          dnd5eRepo
+            .upsert(encounter.header, encounter.jsonInfo).map(id => encounter.copy(encounter.header.copy(id = id)))
         )
         scenes <- TestCreator.createScenes
         scenesWithIds <- ZIO.foreach(scenes)(scene =>
-          repo.upsert(scene.header, scene.jsonInfo).map(id => scene.copy(scene.header.copy(id = id)))
+          dnd5eRepo.upsert(scene.header, scene.jsonInfo).map(id => scene.copy(scene.header.copy(id = id)))
         )
       } yield InitializingLayer()
 
@@ -74,10 +77,11 @@ object EnvironmentBuilder {
 
   def withContainer = {
     ZLayer
-      .make[DND5eZIORepository & ConfigurationService & DNDBeyondImporter & InitializingLayer](
+      .make[STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter & InitializingLayer](
         DMScreenContainer.containerLayer,
         ConfigurationService.live >>> DMScreenContainer.configLayer,
-        QuillRepository.db,
+        dmscreen.dnd5e.QuillRepository.db,
+        dmscreen.sta.QuillRepository.db,
         DNDBeyondImporter.live,
         FifthEditionCharacterSheetImporter.live,
         SRDImporter.live,

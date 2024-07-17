@@ -27,6 +27,7 @@ import dmscreen.dnd5e.components.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{CtorType, Ref, *}
+import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.Confirm.component
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}
@@ -300,6 +301,7 @@ object DiceRoller extends DMScreenTab {
           ).when(props.dieTypes.contains(DieType.d20)),
         Input
           .value(state.custom)
+          .style(CSSProperties().set("width", 150.px))
           .color("#000000")
           .placeholder("d20+2")
           .label("Custom")

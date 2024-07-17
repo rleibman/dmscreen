@@ -1,0 +1,186 @@
+schema {
+    query: Queries
+    mutation: Mutations
+    subscription: Subscriptions
+}
+scalar Json
+scalar Long
+scalar Unit
+
+union DMScreenEvent = Add | CombatLog | Copy | GeneralLog | Move | Remove | Replace | Test
+
+enum EncounterStatus {
+    active
+    archived
+    planned
+}
+
+input CharacterHeaderInput {
+    id: Long!
+    campaignId: Long!
+    name: String
+    playerName: String
+}
+
+input EncounterHeaderInput {
+    id: Long!
+    campaignId: Long!
+    name: String!
+    status: EncounterStatus!
+    sceneId: Long
+    orderCol: Int!
+}
+
+input NonPlayerCharacterHeaderInput {
+    id: Long!
+    campaignId: Long!
+    name: String!
+    isActive: Boolean!
+}
+
+input SceneHeaderInput {
+    id: Long!
+    campaignId: Long!
+    name: String!
+    orderCol: Int!
+    isActive: Boolean!
+}
+
+input StarshipHeaderInput {
+    id: Long!
+    campaignId: Long!
+    name: String
+    playerName: String
+}
+
+type Add {
+    path: JsonPath!
+    value: Json!
+}
+
+type Character {
+    header: CharacterHeader!
+    jsonInfo: Json!
+    version: String!
+}
+
+type CharacterHeader {
+    id: Long!
+    campaignId: Long!
+    name: String
+    playerName: String
+}
+
+type CombatLog {
+    message: String!
+    json: Json!
+}
+
+type Copy {
+    from: JsonPath!
+    to: JsonPath!
+}
+
+type Encounter {
+    header: EncounterHeader!
+    jsonInfo: Json!
+    version: String!
+}
+
+type EncounterHeader {
+    id: Long!
+    campaignId: Long!
+    name: String!
+    status: EncounterStatus!
+    sceneId: Long
+    orderCol: Int!
+}
+
+type GeneralLog {
+    message: String!
+    json: Json!
+}
+
+type JsonPath {
+    value: String!
+}
+
+type Move {
+    from: JsonPath!
+    to: JsonPath!
+}
+
+type Mutations {
+    upsertCharacter(header: CharacterHeaderInput!, jsonInfo: Json!, version: String!): Long
+    upsertStarship(header: StarshipHeaderInput!, jsonInfo: Json!, version: String!): Long
+    upsertScene(header: SceneHeaderInput!, jsonInfo: Json!, version: String!): Long
+    upsertNonPlayerCharacter(header: NonPlayerCharacterHeaderInput!, jsonInfo: Json!, version: String!): Long
+    upsertEncounter(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): Long
+    deleteEntity(entityType: String!, id: Long!, softDelete: Boolean!): Unit
+}
+
+type NonPlayerCharacter {
+    header: NonPlayerCharacterHeader!
+    jsonInfo: Json!
+    version: String!
+}
+
+type NonPlayerCharacterHeader {
+    id: Long!
+    campaignId: Long!
+    name: String!
+    isActive: Boolean!
+}
+
+type Queries {
+    characters(value: Long!): [Character!]
+    ships(value: Long!): [Starship!]
+    scenes(value: Long!): [Scene!]
+    nonPlayerCharacters(value: Long!): [NonPlayerCharacter!]
+    encounters(value: Long!): [Encounter!]
+}
+
+type Remove {
+    path: JsonPath!
+}
+
+type Replace {
+    path: JsonPath!
+    value: Json!
+}
+
+type Scene {
+    header: SceneHeader!
+    jsonInfo: Json!
+    version: String!
+}
+
+type SceneHeader {
+    id: Long!
+    campaignId: Long!
+    name: String!
+    orderCol: Int!
+    isActive: Boolean!
+}
+
+type Starship {
+    header: StarshipHeader!
+    jsonInfo: Json!
+    version: String!
+}
+
+type StarshipHeader {
+    id: Long!
+    campaignId: Long!
+    name: String
+    playerName: String
+}
+
+type Subscriptions {
+    campaignStream(entityType: String!, id: Long!, events: [Json!]!): DMScreenEvent
+}
+
+type Test {
+    path: JsonPath!
+    value: Json!
+}

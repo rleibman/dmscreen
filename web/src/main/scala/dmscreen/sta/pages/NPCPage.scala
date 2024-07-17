@@ -29,7 +29,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 object NPCPage extends DMScreenTab {
 
   case class State(
-                  )
+  )
 
   class Backend($ : BackendScope[Unit, State]) {
 
@@ -50,6 +50,6 @@ object NPCPage extends DMScreenTab {
     .build
 
   def apply(
-           ): Unmounted[Unit, State, Backend] = component()
+  ): Unmounted[Unit, State, Backend] = component()
 
 }

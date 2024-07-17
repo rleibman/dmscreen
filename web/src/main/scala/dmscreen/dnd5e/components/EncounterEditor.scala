@@ -249,7 +249,7 @@ object EncounterEditor {
                   _
                 ) => $.modState(_.copy(viewMonsterId = None))
               )(
-                Modal.Content(MonsterStatBlock(monsterId))
+                Modal.Content(^.padding := 5.px, MonsterStatBlock(monsterId))
               ): VdomNode
           ),
           state.editingMonster.fold(EmptyVdom)(
@@ -454,6 +454,7 @@ object EncounterEditor {
                 }*
             )
           ),
+          Divider.section(true),
           // ENHANCEMENT move this into a component of it's own
           Table
             .sortable(true)(

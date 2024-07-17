@@ -189,6 +189,7 @@ lazy val debianSettings =
 // Web
 val scalajsReactVersion = "2.1.2"
 
+
 lazy val bundlerSettings: Project => Project =
   _.enablePlugins(ScalaJSBundlerPlugin)
     .settings(
@@ -210,7 +211,9 @@ lazy val bundlerSettings: Project => Project =
       Compile / scalaJSUseMainModuleInitializer := true,
       Test / scalaJSUseMainModuleInitializer    := false,
       webpackEmitSourceMaps                     := false,
-      scalaJSLinkerConfig ~= (_.withSourceMap(false))
+      scalaJSLinkerConfig ~= {a =>
+        a.withSourceMap(true) //.withRelativizeSourceMapBase(None)
+      }
     )
 
 lazy val web: Project = project

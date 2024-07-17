@@ -21,4 +21,45 @@
 
 package dmscreen.sta
 
-trait Construct {}
+import dmscreen.*
+import just.semver.SemVer
+import zio.json.*
+import zio.json.ast.*
+
+opaque type NonPlayerCharacterId = Long
+
+object NonPlayerCharacterId {
+
+  def empty: NonPlayerCharacterId = NonPlayerCharacterId(0)
+
+  def apply(nonPlayerCharacterId: Long): NonPlayerCharacterId = nonPlayerCharacterId
+
+  extension (nonPlayerCharacterId: NonPlayerCharacterId) {
+
+    def value: Long = nonPlayerCharacterId
+
+  }
+
+}
+
+case class NonPlayerCharacterHeader(
+  id:         NonPlayerCharacterId,
+  campaignId: CampaignId,
+  name:       String,
+  isActive:   Boolean
+) extends HasId[NonPlayerCharacterId]
+
+case class NonPlayerCharacterInfo(
+  notes:    String = "",
+  treasure: List[String] = List.empty
+)
+
+case class NonPlayerCharacter(
+  header:               NonPlayerCharacterHeader,
+  jsonInfo:             Json,
+  override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
+) extends DMScreenEntity[NonPlayerCharacterId, NonPlayerCharacterHeader, NonPlayerCharacterInfo] {
+
+  override val entityType: EntityType[NonPlayerCharacterId] = STAEntityType.nonPlayerCharacter
+
+}

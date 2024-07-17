@@ -35,7 +35,8 @@ case class AppPage(
 
 trait GameUI {
 
-  def pages: Seq[AppPage]
+  def pages:    Seq[AppPage]
+  def cssFiles: Seq[String]
 
   // Enhancement, allow different game ui to decide what dice are available, and what custom dice rolls are available
   // Put all of this into a DiceUIConfiguration

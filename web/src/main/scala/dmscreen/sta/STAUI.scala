@@ -47,4 +47,9 @@ case object STAUI extends GameUI {
       AppPage(STAUIPages.npcs, "NPCs", _ => NPCPage())
     )
 
+  override def cssFiles: Seq[String] =
+    Seq(
+      "css/sui-lcars.css"
+    )
+
 }

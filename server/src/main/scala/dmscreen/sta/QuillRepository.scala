@@ -22,7 +22,7 @@
 package dmscreen.sta
 
 import dmscreen.sta.STARepository
-import dmscreen.{ConfigurationService, DMScreenError, DMScreenTask}
+import dmscreen.{CampaignId, ConfigurationService, DMScreenError, DMScreenEvent, DMScreenTask, EntityType}
 import io.getquill.jdbczio.Quill
 import io.getquill.{MappedEncoding, MysqlEscape, MysqlZioJdbcContext}
 import zio.*
@@ -57,6 +57,57 @@ object QuillRepository {
                 identity
               )
           )
+
+        override def scene(sceneId: SceneId): DMScreenTask[Option[Scene]] = ???
+
+        override def applyOperations[IDType](
+          entityType: EntityType[IDType],
+          id:         IDType,
+          operations: DMScreenEvent*
+        ): DMScreenTask[Unit] = ???
+
+        override def deleteEntity[IDType](
+          entityType: EntityType[IDType],
+          id:         IDType,
+          softDelete: Boolean
+        ): DMScreenTask[Unit] = ???
+
+        override def characters(campaignId: CampaignId): DMScreenTask[Seq[Character]] = ???
+
+        override def scenes(campaignId: CampaignId): DMScreenTask[Seq[Scene]] = ???
+
+        override def character(characterId: CharacterId): DMScreenTask[Option[Character]] = ???
+
+        override def nonPlayerCharacters(campaignId: CampaignId): DMScreenTask[Seq[NonPlayerCharacter]] = ???
+
+        override def encounters(campaignId: CampaignId): DMScreenTask[Seq[Encounter]] = ???
+
+        override def upsert(
+          header: CharacterHeader,
+          info:   Json
+        ): DMScreenTask[CharacterId] = ???
+
+        override def upsert(
+          header: StarshipHeader,
+          info:   Json
+        ): DMScreenTask[StarshipId] = ???
+
+        override def upsert(
+          header: NonPlayerCharacterHeader,
+          info:   Json
+        ): DMScreenTask[NonPlayerCharacterId] = ???
+
+        override def upsert(
+          header: SceneHeader,
+          info:   Json
+        ): DMScreenTask[SceneId] = ???
+
+        override def upsert(
+          header: EncounterHeader,
+          info:   Json
+        ): DMScreenTask[EncounterId] = ???
+
+        override def starships(campaignId: CampaignId): DMScreenTask[Seq[Starship]] = ???
       }
     }
 

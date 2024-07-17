@@ -1,102 +1,9 @@
-alabel {
-    color: #ecf0f1 !important;
-}
-
 .mainMenu {
     height: 100%;
 }
 
 .ui.vertical.tabular.menu {
     height: 100%;
-}
-
-.pageActions {
-
-}
-
-.pageContainer {
-    font-family: 'Arial', sans-serif;
-    background-color: #2c3e50;
-    color: #ecf0f1;
-    margin: 0;
-    padding: 5px;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-}
-
-.radarCard {
-    background-color: #34495e;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    padding: 10px;
-    box-sizing: border-box;
-    transition: transform 0.2s;
-}
-
-.radarCard:hover {
-    /*transform: translateY(-10px);*/
-}
-
-.characterCard {
-    background-color: #34495e;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    padding: 10px;
-    width: 240px;
-    box-sizing: border-box;
-    transition: transform 0.2s;
-}
-
-.characterCard:hover {
-    /*transform: translateY(-10px);*/
-}
-
-.characterHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #7f8c8d;
-    padding-bottom: 3px;
-    margin-bottom: 3px;
-    min-height: 60px;
-    vertical-align: middle;
-}
-
-.characterHeader h2 {
-    margin: 0;
-    font-size: 1.4em;
-}
-
-.characterHeader span {
-    font-size: 0.9em;
-    color: #bdc3c7;
-}
-
-.characterDetails {
-    margin-bottom: 3px;
-    border-bottom: 1px solid #7f8c8d;
-}
-
-.characterDetails div {
-    margin-bottom: 3px;
-}
-
-.characterDetails table, tr, td, th {
-    border: 0px;
-    vertical-align: top;
-    text-align: left;
-    font-size: 10pt
-}
-
-.sectionTitle {
-    font-weight: bold;
-    margin-bottom: 3px;
-    text-align: center;
 }
 
 i.icon.d4icon:before {
@@ -174,72 +81,6 @@ button.diceButton {
     background-color: black;
 }
 
-
-i.icon.clearIcon:before {
-    content: url("/images/clear_small.svg");
-    position: relative;
-    top: -2px;
-    left: -5px;
-}
-
-.damageInput {
-    width: 60px;
-}
-
-.damageInput.input > input {
-    padding-bottom: 4px;
-    padding-right: 2px;
-    padding-left: 2px;
-    padding-top: 4px;
-}
-
-.encounterGrid {
-    width: 100%;
-}
-
-.accordion {
-    /* TODO temp, until we get a theme */
-    color: black;
-}
-
-.healButton {
-    width: 60px;
-}
-
-.damageButton {
-    width: 60px;
-}
-
-.ui.container.campaignLogContainer {
-    height: 100%;
-}
-
-.campaignLog {
-    background-color: #34495e;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    padding: 10px;
-    box-sizing: border-box;
-    transition: transform 0.2s;
-    overflow: scroll;
-    height: 100%;
-}
-
-.campaignLog td {
-    font-size: 8pt;
-}
-
-.campaignLog table {
-    border: 0px;
-}
-
-.notesSection {
-    margin-bottom: 3px;
-    border-bottom: 1px solid #7f8c8d;
-    overflow: auto;
-    scrollbar-width: thin;
-}
-
 #dice-box,
 #dice-box canvas {
     position: fixed;
@@ -251,14 +92,3 @@ i.icon.clearIcon:before {
     left: 12.5%;
 }
 
-.deathSave table {
-    width: initial;
-    border: 0px;
-}
-
-.deathSaveSucceed [type=checkbox] {
-    accent-color: green;
-}
-.deathSaveFail  [type=checkbox] {
-    accent-color: red;
-}

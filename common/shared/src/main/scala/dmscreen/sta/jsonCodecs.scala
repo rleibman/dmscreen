@@ -25,6 +25,9 @@ import zio.json.JsonCodec
 
 given JsonCodec[CharacterId] = JsonCodec.long.transform(CharacterId.apply, _.value)
 given JsonCodec[StarshipId] = JsonCodec.long.transform(StarshipId.apply, _.value)
+given JsonCodec[EncounterId] = JsonCodec.long.transform(EncounterId.apply, _.value)
+given JsonCodec[NonPlayerCharacterId] = JsonCodec.long.transform(NonPlayerCharacterId.apply, _.value)
+given JsonCodec[SceneId] = JsonCodec.long.transform(SceneId.apply, _.value)
 
 given JsonCodec[Era] = JsonCodec.string.transform(Era.valueOf, _.toString)
 given JsonCodec[CharacterType] = JsonCodec.string.transform(CharacterType.valueOf, _.toString)
@@ -50,3 +53,6 @@ given JsonCodec[Weapon] = JsonCodec.derived[Weapon]
 given JsonCodec[ShipStats] = JsonCodec.derived[ShipStats]
 given JsonCodec[CharacterInfo] = JsonCodec.derived[CharacterInfo]
 given JsonCodec[StarshipInfo] = JsonCodec.derived[StarshipInfo]
+given JsonCodec[EncounterInfo] = JsonCodec.derived[EncounterInfo]
+given JsonCodec[SceneInfo] = JsonCodec.derived[SceneInfo]
+given JsonCodec[NonPlayerCharacterInfo] = JsonCodec.derived[NonPlayerCharacterInfo]

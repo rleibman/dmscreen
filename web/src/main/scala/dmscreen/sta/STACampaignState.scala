@@ -61,7 +61,7 @@ object STACampaignState {
       _ <- AsyncCallback.pure(println("pretending to load all the info for an sta campaign"))
     } yield {
       STACampaignState(
-        campaign = campaign,
+        campaign = campaign
       )
     }
   }
@@ -69,14 +69,14 @@ object STACampaignState {
 }
 
 case class STACampaignState(
-                               campaign:    Campaign,
-                               changeStack: ChangeStack = ChangeStack()
+  campaign:    Campaign,
+  changeStack: ChangeStack = ChangeStack()
 
-                               // NOTES,
-                               // adding an entry into one of the above lists doesn't save it to the server, in fact... you should probably allow ajax to add it to the list AFTER it's been saved to the server
-                               // and has a proper id
-                               // If you delete an entry from the above lists, you should also make sure the entry doesn't exist in the changeStack
-                             ) extends CampaignState {
+  // NOTES,
+  // adding an entry into one of the above lists doesn't save it to the server, in fact... you should probably allow ajax to add it to the list AFTER it's been saved to the server
+  // and has a proper id
+  // If you delete an entry from the above lists, you should also make sure the entry doesn't exist in the changeStack
+) extends CampaignState {
 
   override def campaignHeader: CampaignHeader = campaign.header
 

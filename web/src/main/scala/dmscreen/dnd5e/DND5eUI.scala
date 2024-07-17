@@ -45,4 +45,10 @@ case object DND5eUI extends GameUI {
       AppPage(DND5eUIPages.scenes, "Scenes", _ => ScenePage())
     )
 
+  override def cssFiles: Seq[String] =
+    Seq(
+      "css/sui-dnd5e.css",
+      "css/statBlock.css"
+    )
+
 }

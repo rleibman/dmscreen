@@ -21,6 +21,58 @@
 
 package dmscreen.sta
 
-import dmscreen.GameRepository
+import dmscreen.*
+import zio.*
+import zio.json.ast.Json
 
-trait STARepository[F[_]] extends GameRepository {}
+import scala.reflect.ClassTag
+
+trait STARepository[F[_]] extends GameRepository {
+
+  def scene(sceneId: SceneId): F[Option[Scene]]
+
+  def applyOperations[IDType](
+    entityType: EntityType[IDType],
+    id:         IDType,
+    operations: DMScreenEvent*
+  ): F[Unit]
+
+  def deleteEntity[IDType](
+    entityType: EntityType[IDType],
+    id:         IDType,
+    softDelete: Boolean = true
+  ): F[Unit]
+
+  def characters(campaignId: CampaignId): F[Seq[Character]]
+
+  def starships(campaignId: CampaignId): F[Seq[Starship]]
+
+  def scenes(campaignId: CampaignId): F[Seq[Scene]]
+
+  def character(characterId: CharacterId): F[Option[Character]]
+
+  def nonPlayerCharacters(campaignId: CampaignId): F[Seq[NonPlayerCharacter]]
+
+  def encounters(campaignId: CampaignId): F[Seq[Encounter]]
+  def upsert(
+    header: CharacterHeader,
+    info:   Json
+  ): F[CharacterId]
+  def upsert(
+    header: StarshipHeader,
+    info:   Json
+  ): F[StarshipId]
+  def upsert(
+    header: NonPlayerCharacterHeader,
+    info:   Json
+  ): F[NonPlayerCharacterId]
+  def upsert(
+    header: SceneHeader,
+    info:   Json
+  ): F[SceneId]
+  def upsert(
+    header: EncounterHeader,
+    info:   Json
+  ): F[EncounterId]
+
+}

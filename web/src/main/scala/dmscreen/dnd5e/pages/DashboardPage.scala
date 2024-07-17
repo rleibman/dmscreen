@@ -87,9 +87,8 @@ object DashboardPage extends DMScreenTab {
               <.div(
                 ^.width   := 100.pct,
                 ^.display := "contents",
-                <.div(
-                  ^.className := "radarCard",
-                  ^.width     := 19.pct,
+                Container.className("radarCard")(
+                  ^.width := 19.pct,
                   <.h2("Ability Scores"),
                   ReactApexcharts
                     .`type`(radar)
@@ -124,9 +123,8 @@ object DashboardPage extends DMScreenTab {
                         )
                     )
                 ),
-                <.div(
-                  ^.className := "radarCard",
-                  ^.width     := 19.pct,
+                Container.className("radarCard")(
+                  ^.width := 19.pct,
                   <.h2("Saving Throws"),
                   ReactApexcharts
                     .`type`(radar)
@@ -161,9 +159,8 @@ object DashboardPage extends DMScreenTab {
                         )
                     )
                 ),
-                <.div(
-                  ^.className := "radarCard",
-                  ^.width     := 19.pct,
+                Container.className("radarCard")(
+                  ^.width := 19.pct,
                   <.h2("Passive Scores"),
                   ReactApexcharts
                     .`type`(radar)
@@ -195,9 +192,8 @@ object DashboardPage extends DMScreenTab {
                         )
                     )
                 ),
-                <.div(
-                  ^.className := "radarCard",
-                  ^.width     := 19.pct,
+                Container.className("radarCard")(
+                  ^.width := 19.pct,
                   <.h2("Skills"),
                   ReactApexcharts
                     .`type`(radar)
@@ -263,9 +259,8 @@ object DashboardPage extends DMScreenTab {
                         )
                     )
                 ),
-                <.div(
-                  ^.className := "radarCard",
-                  ^.width     := 19.pct,
+                Container.className("radarCard")(
+                  ^.width := 19.pct,
                   <.h2("Health"), {
                     extension [A, CC[_], C](a: StrictOptimizedIterableOps[A, CC, C]) {
                       private def unzip4[A1, A2, A3, A4](implicit asQuad: A => (A1, A2, A3, A4))
@@ -346,10 +341,9 @@ object DashboardPage extends DMScreenTab {
                 ^.width   := 100.pct,
                 ^.display := "contents",
                 VdomArray(
-                  <.div(
-                    ^.className := "radarCard",
-                    ^.key       := "campaignNotes",
-                    ^.style     := js.Dictionary("width" -> "540px", "height" -> "100%"),
+                  Container.className("radarCard")(
+                    ^.key   := "campaignNotes",
+                    ^.style := js.Dictionary("width" -> "540px", "height" -> "100%"),
                     <.h2("Campaign Notes"),
                     ReactQuill
                       .value(campaign.info.notes)
@@ -373,9 +367,8 @@ object DashboardPage extends DMScreenTab {
                   ),
                   if (state.scenes.isEmpty) EmptyVdom
                   else
-                    <.div(
-                      ^.className := "radarCard",
-                      ^.key       := "sceneNotes",
+                    Container.className("radarCard")(
+                      ^.key := "sceneNotes",
                       <.h2("Scene Notes"),
                       state.scenes.map(_.header.name).mkString(",")
                       //              campaignInfo.scenes

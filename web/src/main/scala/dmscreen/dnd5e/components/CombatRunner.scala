@@ -119,6 +119,7 @@ object CombatRunner {
           state.viewMonsterId.fold(EmptyVdom: VdomNode)(monsterId =>
             Modal
               .withKey("monsterStackBlockModal")
+              .style(CSSProperties().set("background-color", "#ffffff"))
               .open(true)
               .size(semanticUiReactStrings.tiny)
               .closeIcon(true)
