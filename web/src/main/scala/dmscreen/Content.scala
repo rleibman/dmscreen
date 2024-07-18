@@ -62,7 +62,7 @@ object Content {
 
   private val connectionId = UUID.randomUUID().toString
 
-  case class State(dmScreenState: DMScreenState)
+  case class State(dmScreenState: DMScreenState = DMScreenState())
 
   class Backend($ : BackendScope[Unit, State]) {
 
@@ -111,12 +111,15 @@ object Content {
           DynamicStylesheet(state.dmScreenState.campaignState.map(_.gameUI)),
           Confirm.render(),
           Toast.render(),
-          AppRouter.router(state.dmScreenState.campaignState.map(_.gameUI))()
+          AppRouter.router(
+            state.dmScreenState.campaignState.map(_.campaignHeader.id),
+            state.dmScreenState.campaignState.map(_.gameUI)
+          )()
         )
       }
     }
 
-    def initialize(argCampaignId: Option[CampaignId] = None): Callback = {
+    def loadState(argCampaignId: Option[CampaignId] = None): Callback = {
       // If the campaign is in the URL, use it, otherwise use the one in the session storage if it exist, otherwise, for now use 1
       // But in the future, we just shouldn't show the other tabs and only show the home tab
       val id = argCampaignId
@@ -157,7 +160,7 @@ object Content {
         $.modState(s =>
           s.copy(dmScreenState =
             s.dmScreenState.copy(
-              onSelectCampaign = campaign => initialize(campaign.map(_.id)),
+              onSelectCampaign = campaign => loadState(campaign.map(_.id)),
               onModifyCampaignState = (
                 newState,
                 log
@@ -179,17 +182,40 @@ object Content {
 
   }
 
+  import dmscreen.dnd5e.components.given
+
+  given Reusability[CampaignId] = Reusability.long.contramap(_.value)
+  given Reusability[UserId] = Reusability.long.contramap(_.value)
+  given Reusability[GameSystem] = Reusability.int.contramap(_.ordinal)
+  given Reusability[CampaignStatus] = Reusability.int.contramap(_.ordinal)
+  given Reusability[DialogMode] = Reusability.int.contramap(_.ordinal)
+  given Reusability[Json] = Reusability.string.contramap(_.toString)
+  given Reusability[CampaignHeader] = Reusability.by(c => (c.id, c.campaignStatus, c.name, c.gameSystem, c.dmUserId))
+  given Reusability[Campaign] = Reusability.by(c => (c.header, c.jsonInfo))
+  given rsb: Reusability[Seq[Background]] = Reusability.list[Background].contramap(_.toList)
+  given rsc: Reusability[Seq[CharacterClass]] = Reusability.list[CharacterClass].contramap(_.toList)
+
+  given Reusability[CampaignState] =
+    Reusability[CampaignState] {
+      case (s1: DND5eCampaignState, s2: DND5eCampaignState) =>
+        Reusability.by((s: DND5eCampaignState) => (s.campaign, s.backgrounds, s.classes)).test(s1, s2)
+      case (s1: STACampaignState, s2: STACampaignState) =>
+        Reusability.by((s: STACampaignState) => s.campaign).test(s1, s2)
+      case _ => false
+
+    }
+
+  // Note, we don't want to update while a dialog is open
+  given Reusability[DMScreenState] =
+    Reusability.by((s: DMScreenState) => (s.dialogMode == DialogMode.closed, s.campaignState, s.campaignLog.toList))
+  given Reusability[State] = Reusability.by((s: State) => s.dmScreenState)
+
   private val component = ScalaComponent
     .builder[Unit]("content")
-    .initialState {
-      // Get from window.sessionStorage anything that we may need later to fill in the state.
-      State(dmScreenState = DMScreenState())
-    }
+    .initialState(State())
     .renderBackend[Backend]
-    .componentDidMount($ => $.backend.initialize())
-    .shouldComponentUpdatePure { $ =>
-      $.nextState.dmScreenState.dialogMode == DialogMode.closed
-    }
+    .componentDidMount($ => $.backend.loadState())
+    .configure(Reusability.shouldComponentUpdate)
     .componentWillUnmount($ =>
       $.backend.stopSaveTicker >> Callback.log("Closing down operationStream")
 //        >>

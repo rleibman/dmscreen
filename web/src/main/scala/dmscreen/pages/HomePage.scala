@@ -49,7 +49,7 @@ object HomePage extends DMScreenTab {
 
   class Backend($ : BackendScope[Unit, State]) {
 
-    def initialize: Callback = {
+    def loadState: Callback = {
       GraphQLRepository.live.campaigns
         .map { campaigns =>
           $.modState(_.copy(campaigns = campaigns))
@@ -297,7 +297,7 @@ object HomePage extends DMScreenTab {
     .builder[Unit]("router")
     .initialState(State())
     .renderBackend[Backend]
-    .componentDidMount($ => $.backend.initialize)
+    .componentDidMount($ => $.backend.loadState)
     .build
 
   def apply(

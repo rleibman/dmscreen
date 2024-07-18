@@ -38,11 +38,11 @@ case object DND5eUI extends GameUI {
 
   override def pages: Seq[AppPage] =
     Seq(
-      AppPage(DND5eUIPages.dashboard, "Dashboard", _ => DashboardPage()),
-      AppPage(DND5eUIPages.pcs, "PCs", _ => PCPage()),
-      AppPage(DND5eUIPages.encounters, "Encounters", _ => EncounterPage()),
+      AppPage(DND5eUIPages.dashboard, "Dashboard", campaignId => DashboardPage(campaignId)),
+      AppPage(DND5eUIPages.pcs, "PCs", campaignId => PCPage(campaignId)),
+      AppPage(DND5eUIPages.encounters, "Encounters", campaignId => EncounterPage(campaignId)),
       AppPage(DND5eUIPages.npcs, "NPCs", _ => NPCPage()),
-      AppPage(DND5eUIPages.scenes, "Scenes", _ => ScenePage())
+      AppPage(DND5eUIPages.scenes, "Scenes", campaignId => ScenePage(campaignId))
     )
 
   override def cssFiles: Seq[String] =

@@ -23,11 +23,12 @@ package dmscreen.dnd5e.pages
 
 import NPCPage.State
 import dmscreen.dnd5e.components.PlayerCharacterComponent
+import dmscreen.dnd5e.pages.EncounterPage.State
 import dmscreen.dnd5e.{*, given}
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
-import japgolly.scalajs.react.{BackendScope, Callback, Reusability, ScalaComponent}
+import japgolly.scalajs.react.{BackendScope, Callback, CallbackTo, Reusability, ScalaComponent}
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
 import zio.json.*
@@ -35,11 +36,20 @@ import zio.json.ast.*
 
 object PCPage extends DMScreenTab {
 
-  case class State()
+  case class State(
+    pcs: Seq[PlayerCharacter] = Seq.empty
+  )
 
-  class Backend($ : BackendScope[Unit, State]) {
+  class Backend($ : BackendScope[CampaignId, State]) {
 
-    def render(state: State) = {
+    def loadState(campaignId: CampaignId): Callback = {
+      GraphQLRepository.live
+        .playerCharacters(campaignId).map { pcs =>
+          $.modState(_.copy(pcs = pcs))
+        }.completeWith(_.get)
+    }
+
+    def render(state: State): VdomNode = {
       DMScreenState.ctx.consume { dmScreenState =>
         dmScreenState.campaignState.fold {
           <.div("Campaign Loading")
@@ -73,12 +83,15 @@ object PCPage extends DMScreenTab {
                     GraphQLRepository.live
                       .upsert(header = newPC.header, info = newPC.jsonInfo)
                       .map(id =>
-                        dmScreenState
-                          .onModifyCampaignState(
-                            campaignState
-                              .copy(pcs = campaignState.pcs :+ newPC.copy(header = newPC.header.copy(id = id))),
-                            "Added new PC"
-                          )
+                        $.modState(s => s.copy(pcs = s.pcs :+ newPC.copy(header = newPC.header.copy(id = id))))
+                        // TODO add to log
+//                          .flatMap(_ =>
+//                        dmScreenState
+//                          .onModifyCampaignState(
+//                            campaignState
+//                              .copy(pcs = campaignState.pcs :+ newPC.copy(header = newPC.header.copy(id = id))),
+//                            "Added new PC"
+//                          )
                       )
                       .completeWith(_.get)
                   }
@@ -90,7 +103,7 @@ object PCPage extends DMScreenTab {
             <.div(
               ^.className := "pageContainer",
               ^.key       := "pageContainer",
-              campaignState.pcs
+              state.pcs
                 .map(pc =>
                   PlayerCharacterComponent( // Internally, make sure each item has a key!
                     playerCharacter = pc,
@@ -98,10 +111,13 @@ object PCPage extends DMScreenTab {
                       GraphQLRepository.live
                         .deleteEntity(entityType = DND5eEntityType.playerCharacter, id = pc.header.id)
                         .map(_ =>
-                          dmScreenState.onModifyCampaignState(
-                            campaignState.copy(pcs = campaignState.pcs.filter(_.header.id != deleteMe.header.id)),
-                            s"Deleted player character ${pc.header.name}"
-                          )
+                          $.modState(s => s.copy(pcs = s.pcs.filter(_.header.id != deleteMe.header.id)))
+                          // TODO add to log
+//                            .flatMap(_ =>
+//                          dmScreenState.onModifyCampaignState(
+//                            campaignState.copy(pcs = campaignState.pcs.filter(_.header.id != deleteMe.header.id)),
+//                            s"Deleted player character ${pc.header.name}"
+//                          )
                         )
                         .completeWith(_.get)
                   )
@@ -115,11 +131,12 @@ object PCPage extends DMScreenTab {
   }
 
   private val component = ScalaComponent
-    .builder[Unit]("router")
+    .builder[CampaignId]("pcPage")
     .initialState(State())
     .renderBackend[Backend]
+    .componentDidMount($ => $.backend.loadState($.props))
     .build
 
-  def apply(): Unmounted[Unit, State, Backend] = component()
+  def apply(campaignId: CampaignId): Unmounted[CampaignId, State, Backend] = component(campaignId)
 
 }

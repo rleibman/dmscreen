@@ -26,30 +26,30 @@ import japgolly.scalajs.react.CallbackTo
 case class ChangeStack(
   clear:      Boolean = true,
   campaign:   Boolean = false,
-  pcs:        Set[PlayerCharacterId] = Set.empty,
-  npcs:       Set[NonPlayerCharacterId] = Set.empty,
-  scenes:     Set[SceneId] = Set.empty,
-  encounters: Set[EncounterId] = Set.empty,
-  monsters:   Set[MonsterId] = Set.empty
+  pcs:        Map[PlayerCharacterId, PlayerCharacter] = Map.empty,
+  npcs:       Map[NonPlayerCharacterId, NonPlayerCharacter] = Map.empty,
+  scenes:     Map[SceneId, Scene] = Map.empty,
+  encounters: Map[EncounterId, Encounter] = Map.empty,
+  monsters:   Map[MonsterId, Monster] = Map.empty
 ) {
 
   def logCampaignChange(): ChangeStack = {
     copy(campaign = true, clear = false)
   }
-  def logPCChanges(playerCharacterIds: PlayerCharacterId*): ChangeStack = {
-    copy(pcs = pcs ++ playerCharacterIds, clear = false)
+  def logPCChanges(changed: PlayerCharacter*): ChangeStack = {
+    copy(pcs = pcs ++ changed.map(item => item.id -> item), clear = false)
   }
-  def logNPCChanges(nonPlayerCharacterIds: NonPlayerCharacterId*): ChangeStack = {
-    copy(npcs = npcs ++ nonPlayerCharacterIds, clear = false)
+  def logNPCChanges(changed: NonPlayerCharacter*): ChangeStack = {
+    copy(npcs = npcs ++ changed.map(item => item.id -> item), clear = false)
   }
-  def logSceneChanges(sceneIds: SceneId*): ChangeStack = {
-    copy(scenes = scenes ++ sceneIds, clear = false)
+  def logSceneChanges(changed: Scene*): ChangeStack = {
+    copy(scenes = scenes ++ changed.map(item => item.id -> item), clear = false)
   }
-  def logEncounterChanges(encounterIds: EncounterId*): ChangeStack = {
-    copy(encounters = encounters ++ encounterIds, clear = false)
+  def logEncounterChanges(changed: Encounter*): ChangeStack = {
+    copy(encounters = encounters ++ changed.map(item => item.id -> item), clear = false)
   }
-  def logMonsterChanges(monsterIds: MonsterId*): ChangeStack = {
-    copy(monsters = monsters ++ monsterIds, clear = false)
+  def logMonsterChanges(changed: Monster*): ChangeStack = {
+    copy(monsters = monsters ++ changed.map(item => item.id -> item), clear = false)
   }
 
   // ENHANCEMENT add to this a stream that will let us know when other uses have made changes

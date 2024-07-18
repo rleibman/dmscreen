@@ -24,22 +24,34 @@ package dmscreen.dnd5e
 import caliban.ScalaJSClientAdapter.asyncCalibanCall
 import caliban.client.scalajs.DND5eClient.{
   Alignment as CalibanAlignment,
+  Background as CalibanBackground,
   Biome as CalibanBiome,
   Campaign as CalibanCampaign,
   CampaignHeader as CalibanCampaignHeader,
   CampaignHeaderInput,
   CampaignStatus as CalibanCampaignStatus,
+  CharacterClass as CalibanCharacterClass,
   CreatureSize as CalibanCreatureSize,
+  DiceRoll as CalibanDiceRoll,
+  Encounter as CalibanEncounter,
+  EncounterHeader as CalibanEncounterHeader,
   EncounterHeaderInput,
   GameSystem as CalibanGameSystem,
   Monster as CalibanMonster,
   MonsterHeader as CalibanMonsterHeader,
   MonsterHeaderInput,
+  MonsterSearchOrder as CalibanMonsterSearchOrder,
+  MonsterSearchResults as CalibanMonsterSearchResults,
   MonsterType as CalibanMonsterType,
   Mutations,
   NonPlayerCharacterHeaderInput,
+  OrderDirection as CalibanOrderDirection,
+  PlayerCharacter as CalibanPlayerCharacter,
+  PlayerCharacterHeader as CalibanPlayerCharacterHeader,
   PlayerCharacterHeaderInput,
   Queries,
+  Scene as CalibanScene,
+  SceneHeader as CalibanSceneHeader,
   SceneHeaderInput
 }
 import caliban.client.scalajs.{DND5eClient, given}
@@ -50,15 +62,12 @@ import zio.*
 import zio.json.*
 import zio.json.ast.Json
 
-import java.util.ResourceBundle
-import scala.reflect.ClassTag
-
 object GraphQLRepository {
 
   val live: DND5eRepository[AsyncCallback] = new DND5eRepository[AsyncCallback] {
 
     override def campaigns: AsyncCallback[Seq[CampaignHeader]] = {
-      val campaignSB = (
+      val sb = (
         CalibanCampaignHeader.id ~
           CalibanCampaignHeader.dmUserId ~
           CalibanCampaignHeader.name ~
@@ -81,11 +90,11 @@ object GraphQLRepository {
           )
       }
 
-      asyncCalibanCall(Queries.campaigns(campaignSB)).map(_.toSeq.flatten)
+      asyncCalibanCall(Queries.campaigns(sb)).map(_.toSeq.flatten)
     }
 
     override def campaign(campaignId: CampaignId): AsyncCallback[Option[Campaign]] = {
-      val campaignSB: SelectionBuilder[CalibanCampaign, Campaign] = (CalibanCampaign.header(
+      val sb: SelectionBuilder[CalibanCampaign, Campaign] = (CalibanCampaign.header(
         CalibanCampaignHeader.id ~ CalibanCampaignHeader.name ~ CalibanCampaignHeader.dmUserId ~ CalibanCampaignHeader.gameSystem ~ CalibanCampaignHeader.campaignStatus
       ) ~ CalibanCampaign.jsonInfo).map {
         (
@@ -108,10 +117,8 @@ object GraphQLRepository {
           )
       }
 
-      asyncCalibanCall(Queries.campaign(campaignId.value)(campaignSB))
+      asyncCalibanCall(Queries.campaign(campaignId.value)(sb))
     }
-
-    override def scene(sceneId: SceneId): AsyncCallback[Option[Scene]] = ???
 
     override def applyOperations[IDType](
       entityType: EntityType[IDType],
@@ -129,25 +136,186 @@ object GraphQLRepository {
       asyncCalibanCall(sb).map(_.get)
     }
 
-    override def playerCharacters(campaignId: CampaignId): AsyncCallback[Seq[PlayerCharacter]] = ???
+    override def playerCharacters(campaignId: CampaignId): AsyncCallback[Seq[PlayerCharacter]] = {
+      val sb: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
+        (CalibanPlayerCharacter.header(
+          CalibanPlayerCharacterHeader.campaignId ~
+            CalibanPlayerCharacterHeader.id ~
+            CalibanPlayerCharacterHeader.name ~
+            CalibanPlayerCharacterHeader.playerName
+        ) ~ CalibanPlayerCharacter.jsonInfo).map {
+          (
+            campaignId: Long,
+            pcId:       Long,
+            name:       String,
+            playerName: Option[String],
+            info:       Json
+          ) =>
+            PlayerCharacter(
+              PlayerCharacterHeader(
+                id = PlayerCharacterId(pcId),
+                campaignId = CampaignId(campaignId),
+                name = name,
+                playerName = playerName
+              ),
+              info
+            )
+        }
+      asyncCalibanCall(Queries.playerCharacters(campaignId.value)(sb)).map(_.toSeq.flatten)
 
-    override def scenes(campaignId: CampaignId): AsyncCallback[Seq[Scene]] = ???
+    }
 
-    override def playerCharacter(playerCharacterId: PlayerCharacterId): AsyncCallback[Option[PlayerCharacter]] = ???
+    override def scenes(campaignId: CampaignId): AsyncCallback[Seq[Scene]] = {
+      val sb: SelectionBuilder[CalibanScene, Scene] = (CalibanScene.header(
+        CalibanSceneHeader.id ~ CalibanSceneHeader.campaignId ~ CalibanSceneHeader.name ~ CalibanSceneHeader.orderCol ~ CalibanSceneHeader.isActive
+      ) ~ CalibanScene.jsonInfo).map {
+        (
+          id:         Long,
+          campaignId: Long,
+          name:       String,
+          orderCol:   Int,
+          isActive:   Boolean,
+          info:       Json
+        ) =>
+          Scene(
+            SceneHeader(
+              id = SceneId(id),
+              campaignId = CampaignId(campaignId),
+              name = name,
+              orderCol = orderCol,
+              isActive = isActive
+            ),
+            info
+          )
+      }
+      asyncCalibanCall(Queries.scenes(campaignId.value)(sb)).map(_.toSeq.flatten)
+
+    }
 
     override def nonPlayerCharacters(campaignId: CampaignId): AsyncCallback[Seq[NonPlayerCharacter]] = ???
 
-    override def encounters(campaignId: CampaignId): AsyncCallback[Seq[Encounter]] = ???
+    override def encounters(campaignId: CampaignId): AsyncCallback[Seq[Encounter]] = {
+      val sb: SelectionBuilder[CalibanEncounter, Encounter] = (CalibanEncounter.header(
+        CalibanEncounterHeader.id ~
+          CalibanEncounterHeader.campaignId ~
+          CalibanEncounterHeader.name ~
+          CalibanEncounterHeader.status ~
+          CalibanEncounterHeader.sceneId ~
+          CalibanEncounterHeader.orderCol
+      ) ~ CalibanEncounter.jsonInfo).map {
+        (
+          id:         Long,
+          campaignId: Long,
+          name:       String,
+          status:     String,
+          sceneId:    Option[Long],
+          orderCol:   Int,
+          info:       Json
+        ) =>
+          Encounter(
+            EncounterHeader(
+              EncounterId(id),
+              CampaignId(campaignId),
+              name,
+              EncounterStatus.valueOf(status),
+              sceneId.map(SceneId.apply),
+              orderCol
+            ),
+            info
+          )
+      }
+      asyncCalibanCall(Queries.encounters(campaignId.value)(sb)).map(_.toSeq.flatten)
+    }
 
-    override def bestiary(search: MonsterSearch): AsyncCallback[MonsterSearchResults] = ???
+    override def bestiary(monsterSearch: MonsterSearch): AsyncCallback[MonsterSearchResults] = {
+      val monsterSB: SelectionBuilder[CalibanMonsterHeader, MonsterHeader] = (
+        CalibanMonsterHeader.id ~
+          CalibanMonsterHeader.name ~
+          CalibanMonsterHeader.sourceId ~
+          CalibanMonsterHeader.monsterType ~
+          CalibanMonsterHeader.biome ~
+          CalibanMonsterHeader.alignment ~
+          CalibanMonsterHeader.cr ~
+          CalibanMonsterHeader.xp ~
+          CalibanMonsterHeader.armorClass ~
+          CalibanMonsterHeader.maximumHitPoints ~
+          CalibanMonsterHeader.size ~
+          CalibanMonsterHeader.initiativeBonus
+      ).map {
+        (
+          id,
+          name,
+          sourceId,
+          monsterType,
+          biome,
+          alignment,
+          cr,
+          xp,
+          armorClass,
+          maximumHitPoints,
+          size,
+          initiativeBonus
+        ) =>
+          MonsterHeader(
+            id = MonsterId(id),
+            name = name,
+            sourceId = SourceId(sourceId),
+            monsterType = MonsterType.valueOf(monsterType.value),
+            biome = biome.map(a => Biome.valueOf(a.value)),
+            alignment = alignment.map(a => Alignment.valueOf(a.value)),
+            cr = ChallengeRating.fromDouble(cr).getOrElse(ChallengeRating.`0`),
+            xp = xp,
+            armorClass = armorClass,
+            maximumHitPoints = maximumHitPoints,
+            size = CreatureSize.valueOf(size.value),
+            initiativeBonus = initiativeBonus
+          )
+      }
+
+      val resultsSB: SelectionBuilder[CalibanMonsterSearchResults, (List[MonsterHeader], Long)] =
+        CalibanMonsterSearchResults.results(monsterSB) ~ CalibanMonsterSearchResults.total
+
+      val sb = Queries.bestiary(
+        name = monsterSearch.name,
+        challengeRating = monsterSearch.challengeRating.map(_.value),
+        size = monsterSearch.size,
+        alignment = monsterSearch.alignment,
+        biome = monsterSearch.biome,
+        monsterType = monsterSearch.monsterType,
+        orderCol = monsterSearch.orderCol,
+        orderDir = monsterSearch.orderDir,
+        page = monsterSearch.page,
+        pageSize = monsterSearch.pageSize
+      )(resultsSB)
+
+      asyncCalibanCall(sb).map(result => result.fold(MonsterSearchResults())(r => MonsterSearchResults(r._1, r._2)))
+
+    }
 
     override def sources: AsyncCallback[Seq[Source]] = ???
 
-    override def classes: AsyncCallback[Seq[CharacterClass]] = ???
+    override def classes: AsyncCallback[Seq[CharacterClass]] = {
+      val sb = Queries.classes(
+        (CalibanCharacterClass.id ~ CalibanCharacterClass.hitDice(CalibanDiceRoll.roll)).map(
+          (
+            id,
+            hd
+          ) =>
+            CharacterClass(
+              CharacterClassId.values.find(_.name.equalsIgnoreCase(id)).getOrElse(CharacterClassId.unknown),
+              DiceRoll(hd)
+            )
+        )
+      )
+      asyncCalibanCall(sb).map(_.toList.flatten)
+    }
 
     override def races: AsyncCallback[Seq[Race]] = ???
 
-    override def backgrounds: AsyncCallback[Seq[Background]] = ???
+    override def backgrounds: AsyncCallback[Seq[Background]] = {
+      val sb = Queries.backgrounds(CalibanBackground.name.map(Background.apply))
+      asyncCalibanCall(sb).map(_.toList.flatten)
+    }
 
     override def subClasses(characterClass: CharacterClassId): AsyncCallback[Seq[SubClass]] = ???
 

@@ -330,6 +330,64 @@ object QuillRepository {
 
   }
 
+  private object MonsterHeaderRow {
+
+    def fromModel(
+      header: MonsterHeader
+    ): MonsterHeaderRow = {
+      MonsterHeaderRow(
+        id = header.id.value,
+        sourceId = header.sourceId.value,
+        name = header.name,
+        monsterType = header.monsterType.toString,
+        biome = header.biome.map(_.toString),
+        alignment = header.alignment.map(_.toString),
+        cr = header.cr.value,
+        xp = header.xp,
+        armorClass = header.armorClass,
+        hitPoints = header.maximumHitPoints,
+        size = header.size.toString,
+        initiativeBonus = header.initiativeBonus,
+        deleted = false
+      )
+    }
+
+  }
+
+  private case class MonsterHeaderRow(
+    id:              Long,
+    sourceId:        String,
+    name:            String,
+    monsterType:     String,
+    biome:           Option[String],
+    alignment:       Option[String],
+    cr:              Double,
+    xp:              Long,
+    armorClass:      Int,
+    hitPoints:       Int,
+    size:            String,
+    initiativeBonus: Int,
+    deleted:         Boolean
+  ) {
+
+    def toModel: MonsterHeader =
+      MonsterHeader(
+        id = MonsterId(id),
+        sourceId = SourceId(sourceId),
+        name = name,
+        monsterType = MonsterType.valueOf(monsterType),
+        biome = biome.map(Biome.valueOf),
+        alignment = alignment.map(Alignment.valueOf),
+        cr = ChallengeRating.fromDouble(cr).getOrElse(ChallengeRating.`0`),
+        xp = xp,
+        armorClass = armorClass,
+        maximumHitPoints = hitPoints,
+        size = CreatureSize.valueOf(size),
+        initiativeBonus = initiativeBonus
+      )
+
+  }
+
   private def readFromResource[A: JsonDecoder](resourceName: String): IO[DMScreenError, A] = {
     getClass.getResource(".")
     val uri = getClass.getResource(resourceName).nn.toURI.nn
@@ -396,6 +454,11 @@ object QuillRepository {
             querySchema[MonsterRow]("monster")
           }
 
+        inline private def qMonsterHeaders =
+          quote {
+            querySchema[MonsterHeaderRow]("monster")
+          }
+
         inline private def qEncounters =
           quote {
             querySchema[EncounterRow]("encounter")
@@ -419,24 +482,9 @@ object QuillRepository {
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
-        override def playerCharacter(playerCharacterId: PlayerCharacterId): IO[DMScreenError, Option[PlayerCharacter]] =
-          ctx
-            .run(qPlayerCharacters.filter(v => !v.deleted && v.id == lift(playerCharacterId.value)))
-            .map(_.headOption.map(_.toModel))
-            .provideLayer(dataSourceLayer)
-            .mapError(RepositoryError.apply)
-            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
         override def monster(monsterId: MonsterId): DMScreenTask[Option[Monster]] =
           ctx
             .run(qMonsters.filter(v => !v.deleted && v.id == lift(monsterId.value)))
-            .map(_.headOption.map(_.toModel))
-            .provideLayer(dataSourceLayer)
-            .mapError(RepositoryError.apply)
-            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-
-        override def scene(sceneId: SceneId): IO[DMScreenError, Option[Scene]] =
-          ctx
-            .run(qScenes.filter(v => !v.deleted && v.id == lift(sceneId.value)))
             .map(_.headOption.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
@@ -501,17 +549,19 @@ object QuillRepository {
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def bestiary(search: MonsterSearch): IO[DMScreenError, MonsterSearchResults] = {
-          val q0: Quoted[EntityQuery[MonsterRow]] = qMonsters.filter(v => !v.deleted)
-          val q1: Quoted[EntityQuery[MonsterRow]] = search.name.fold(q0)(n => q0.filter(_.name like lift(s"%$n%")))
-          val q2: Quoted[EntityQuery[MonsterRow]] =
+          val q0: Quoted[EntityQuery[MonsterHeaderRow]] = qMonsterHeaders.filter(v => !v.deleted)
+          val q1: Quoted[EntityQuery[MonsterHeaderRow]] =
+            search.name.fold(q0)(n => q0.filter(_.name like lift(s"%$n%")))
+          val q2: Quoted[EntityQuery[MonsterHeaderRow]] =
             search.challengeRating.fold(q1)(n => q1.filter(_.cr == lift(n.value)))
-          val q3: Quoted[EntityQuery[MonsterRow]] =
+          val q3: Quoted[EntityQuery[MonsterHeaderRow]] =
             search.monsterType.fold(q2)(n => q2.filter(_.monsterType == lift(n.toString)))
-          val q4: Quoted[EntityQuery[MonsterRow]] =
+          val q4: Quoted[EntityQuery[MonsterHeaderRow]] =
             search.biome.fold(q3)(n => q3.filter(_.biome.contains(lift(n.toString))))
-          val q5: Quoted[EntityQuery[MonsterRow]] =
+          val q5: Quoted[EntityQuery[MonsterHeaderRow]] =
             search.alignment.fold(q4)(n => q4.filter(_.alignment.contains(lift(n.toString))))
-          val q6: Quoted[EntityQuery[MonsterRow]] = search.size.fold(q5)(n => q5.filter(_.size == lift(n.toString)))
+          val q6: Quoted[EntityQuery[MonsterHeaderRow]] =
+            search.size.fold(q5)(n => q5.filter(_.size == lift(n.toString)))
 
           // If sort is random, then it's a bit more complex, for now, we do it the simple (but non-performing) way, read this
           // https://jan.kneschke.de/projects/mysql/order-by-rand/
@@ -523,7 +573,7 @@ object QuillRepository {
               .take(lift(search.pageSize))
           )
 
-          val q8: Quoted[Query[MonsterRow]] = (search.orderCol, search.orderDir) match {
+          val q8: Quoted[Query[MonsterHeaderRow]] = (search.orderCol, search.orderDir) match {
             case (MonsterSearchOrder.challengeRating, OrderDirection.asc) =>
               quote(q7.sortBy(r => r.cr)(Ord.asc))
             case (MonsterSearchOrder.challengeRating, OrderDirection.desc) =>

@@ -21,8 +21,8 @@
 
 package dmscreen.dnd5e.pages
 
-import dmscreen.dnd5e.{DND5eCampaignState, PlayerCharacter, Scene}
-import dmscreen.{Campaign, DMScreenState, DMScreenTab, given}
+import dmscreen.dnd5e.{DND5eCampaignState, GraphQLRepository, PlayerCharacter, Scene}
+import dmscreen.{CampaignId, DMScreenState, DMScreenTab, given}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{BackendScope, Callback, CtorType, ScalaComponent}
@@ -35,11 +35,9 @@ import net.leibman.dmscreen.reactApexcharts.reactApexchartsStrings.{bar, radar}
 import net.leibman.dmscreen.reactQuill.components.ReactQuill
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
-import org.scalablytyped.runtime.StringDictionary
 import zio.json.*
 
 import scala.collection.StrictOptimizedIterableOps
-import scala.reflect.Selectable.reflectiveSelectable
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
 
@@ -50,12 +48,32 @@ trait FormattingOptions extends js.Object {
 
 }
 
+extension [A, CC[_], C](a: StrictOptimizedIterableOps[A, CC, C]) {
+
+  private def unzip4[A1, A2, A3, A4](implicit asQuad: A => (A1, A2, A3, A4)): (CC[A1], CC[A2], CC[A3], CC[A4]) = {
+    val b1 = a.iterableFactory.newBuilder[A1]
+    val b2 = a.iterableFactory.newBuilder[A2]
+    val b3 = a.iterableFactory.newBuilder[A3]
+    val b4 = a.iterableFactory.newBuilder[A4]
+
+    a.foreach { xyza =>
+      val triple = asQuad(xyza)
+      b1 += triple._1
+      b2 += triple._2
+      b3 += triple._3
+      b4 += triple._4
+    }
+    (b1.result(), b2.result(), b3.result(), b4.result())
+  }
+
+}
+
 object DashboardPage extends DMScreenTab {
 
   case class State(
-    campaign: Option[Campaign] = None,
-    pcs:      Seq[PlayerCharacter] = Seq.empty,
-    scenes:   Seq[Scene] = Seq.empty
+    campaignNotes: String = "",
+    pcs:           Seq[PlayerCharacter] = Seq.empty,
+    scenes:        Seq[Scene] = Seq.empty
   )
 
   private val radarColors = List(
@@ -73,7 +91,14 @@ object DashboardPage extends DMScreenTab {
     "#008888"
   )
 
-  class Backend($ : BackendScope[Unit, State]) {
+  class Backend($ : BackendScope[CampaignId, State]) {
+
+    def loadState(campaignId: CampaignId): Callback = {
+      (for {
+        pcs    <- GraphQLRepository.live.playerCharacters(campaignId)
+        scenes <- GraphQLRepository.live.scenes(campaignId)
+      } yield $.modState(_.copy(pcs = pcs, scenes = scenes))).completeWith(_.get)
+    }
 
     def render(state: State): VdomElement = {
       DMScreenState.ctx.consume { dmScreenState =>
@@ -92,7 +117,7 @@ object DashboardPage extends DMScreenTab {
                   <.h2("Ability Scores"),
                   ReactApexcharts
                     .`type`(radar)
-                    .series(campaignState.pcs.zipWithIndex.map {
+                    .series(state.pcs.zipWithIndex.map {
                       (
                         pc,
                         i
@@ -128,7 +153,7 @@ object DashboardPage extends DMScreenTab {
                   <.h2("Saving Throws"),
                   ReactApexcharts
                     .`type`(radar)
-                    .series(campaignState.pcs.zipWithIndex.map {
+                    .series(state.pcs.zipWithIndex.map {
                       (
                         pc,
                         i
@@ -164,7 +189,7 @@ object DashboardPage extends DMScreenTab {
                   <.h2("Passive Scores"),
                   ReactApexcharts
                     .`type`(radar)
-                    .series(campaignState.pcs.zipWithIndex.map {
+                    .series(state.pcs.zipWithIndex.map {
                       (
                         pc,
                         i
@@ -197,7 +222,7 @@ object DashboardPage extends DMScreenTab {
                   <.h2("Skills"),
                   ReactApexcharts
                     .`type`(radar)
-                    .series(campaignState.pcs.zipWithIndex.map {
+                    .series(state.pcs.zipWithIndex.map {
                       (
                         pc,
                         i
@@ -262,28 +287,8 @@ object DashboardPage extends DMScreenTab {
                 Container.className("radarCard")(
                   ^.width := 19.pct,
                   <.h2("Health"), {
-                    extension [A, CC[_], C](a: StrictOptimizedIterableOps[A, CC, C]) {
-                      private def unzip4[A1, A2, A3, A4](implicit asQuad: A => (A1, A2, A3, A4))
-                        : (CC[A1], CC[A2], CC[A3], CC[A4]) = {
-                        val b1 = a.iterableFactory.newBuilder[A1]
-                        val b2 = a.iterableFactory.newBuilder[A2]
-                        val b3 = a.iterableFactory.newBuilder[A3]
-                        val b4 = a.iterableFactory.newBuilder[A4]
-
-                        a.foreach { xyza =>
-                          val triple = asQuad(xyza)
-                          b1 += triple._1
-                          b2 += triple._2
-                          b3 += triple._3
-                          b4 += triple._4
-                        }
-                        (b1.result(), b2.result(), b3.result(), b4.result())
-                      }
-
-                    }
-
                     val (names, ratios, ratioStrings, lifeColors) = {
-                      campaignState.pcs.map { pc =>
+                      state.pcs.toList.map { pc =>
                         val ratio = pc.info.health.currentHitPoints.toDouble / pc.info.health.currentMax.toDouble
                         (
                           pc.header.name.take(10),
@@ -344,25 +349,34 @@ object DashboardPage extends DMScreenTab {
                   Container.className("radarCard")(
                     ^.key   := "campaignNotes",
                     ^.style := js.Dictionary("width" -> "540px", "height" -> "100%"),
-                    <.h2("Campaign Notes"),
+                    <.h2(
+                      "Campaign Notes",
+                      Button.onClick(
+                        (
+                          _,
+                          _
+                        ) =>
+                          dmScreenState.onModifyCampaignState(
+                            campaignState.copy(
+                              campaign = campaign.copy(jsonInfo =
+                                campaign.info.copy(notes = state.campaignNotes).toJsonAST.toOption.get
+                              ),
+                              changeStack = campaignState.changeStack.logCampaignChange()
+                            ),
+                            ""
+                          )
+                      )("Save")
+                    ),
                     ReactQuill
-                      .value(campaign.info.notes)
-                      .style(CSSProperties().set("background-color", "#ced9e4").set("color", "#000000")) // TODO move colors to css
+                      .defaultValue(campaign.info.notes)
+                      .style(CSSProperties().set("backgroundColor", "#ced9e4").set("color", "#000000")) // TODO move colors to css
                       .onChange(
                         (
                           newValue,
                           _,
                           _,
                           _
-                        ) =>
-                          dmScreenState.onModifyCampaignState(
-                            campaignState.copy(
-                              campaign =
-                                campaign.copy(jsonInfo = campaign.info.copy(notes = newValue).toJsonAST.toOption.get),
-                              changeStack = campaignState.changeStack.logCampaignChange()
-                            ),
-                            ""
-                          )
+                        ) => $.modState(_.copy(campaignNotes = newValue))
                       )
                   ),
                   if (state.scenes.isEmpty) EmptyVdom
@@ -387,18 +401,15 @@ object DashboardPage extends DMScreenTab {
 
   }
 
-  private val component: Component[Unit, State, Backend, CtorType.Nullary] = ScalaComponent
-    .builder[Unit]("dashboardPage")
-    .initialState {
-      State()
-    }
+  private val component: Component[CampaignId, State, Backend, CtorType.Props] = ScalaComponent
+    .builder[CampaignId]("dashboardPage")
+    .initialState(State())
     .renderBackend[Backend]
+    .componentDidMount($ => $.backend.loadState($.props))
     .build
 
   def apply(
-//    campaign: Campaign,
-//    pcs:      Seq[PlayerCharacter],
-//    scenes:   Seq[Scene]
-  ): Unmounted[Unit, State, Backend] = component()
+    campaignId: CampaignId
+  ): Unmounted[CampaignId, State, Backend] = component(campaignId)
 
 }

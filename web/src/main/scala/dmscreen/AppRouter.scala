@@ -100,31 +100,45 @@ object AppRouter {
       )
   }
 
-  private def config(gameUI: Option[GameUI]): RouterConfig[AppPageType] =
+  private def config(
+    campaignId: Option[CampaignId],
+    gameUI:     Option[GameUI]
+  ): RouterConfig[AppPageType] =
     RouterConfigDsl[AppPageType].buildConfig { dsl =>
       import dsl.*
 
-      val campaignPageRules = gameUI
-        .map(_.pages)
-        .toSeq
-        .flatten
-        .map { page =>
-          staticRoute(s"#${page.title}", page.pageType) ~> renderR(_ => page.createComponentFn(()))
-        }
-        .fold(trimSlashes)(_ | _)
+      val campaignPageRules = {
+        campaignId.fold(trimSlashes)(id =>
+          gameUI
+            .map(_.pages)
+            .toSeq
+            .flatten
+            .map { page =>
+              staticRoute(s"#${page.title}", page.pageType) ~> renderR(_ => page.createComponentFn(id))
+            }
+            .fold(trimSlashes)(_ | _)
+        )
+      }
 
       (trimSlashes
-        | staticRoute(root, homePage.pageType) ~> renderR(_ => homePage.createComponentFn(()))
+        | staticRoute(root, homePage.pageType) ~> renderR(_ =>
+          homePage.createComponentFn(campaignId.getOrElse(CampaignId.empty))
+        )
         | campaignPageRules
-        | staticRoute(s"#${aboutPage.title}", aboutPage.pageType) ~> renderR(_ => aboutPage.createComponentFn(())))
+        | staticRoute(s"#${aboutPage.title}", aboutPage.pageType) ~> renderR(_ =>
+          aboutPage.createComponentFn(campaignId.getOrElse(CampaignId.empty))
+        ))
         .notFound(redirectToPage(homePage.pageType)(SetRouteVia.HistoryReplace))
         .renderWith(layout(gameUI))
     }
 
   private val baseUrl: BaseUrl = BaseUrl.fromWindowOrigin_/
 
-  def router(gameUI: Option[GameUI]): Router[AppPageType] = {
-    val c: RouterConfig[AppPageType] = config(gameUI)
+  def router(
+    campaignId: Option[CampaignId],
+    gameUI:     Option[GameUI]
+  ): Router[AppPageType] = {
+    val c: RouterConfig[AppPageType] = config(campaignId, gameUI)
     Router.apply(baseUrl, c)
   }
 

@@ -78,6 +78,7 @@ case class AppConfig(
     dsConfig.setPassword(dmscreen.db.dataSource.password)
     dsConfig.setMaximumPoolSize(dmscreen.db.dataSource.maximumPoolSize)
     dsConfig.setMinimumIdle(dmscreen.db.dataSource.minimumIdle)
+    dsConfig.setAutoCommit(true)
     dsConfig.setConnectionTimeout(dmscreen.db.dataSource.connectionTimeoutMins * 60 * 1000)
 
     HikariDataSource(dsConfig)

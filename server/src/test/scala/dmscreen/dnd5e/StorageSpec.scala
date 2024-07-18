@@ -99,26 +99,20 @@ object StorageSpec extends ZIOSpecDefault {
               )
             ).toJsonAST.getOrElse(Json.Null)
           )
-          objectAfterInsert <- service.playerCharacter(newId)
-          listAfterInsert   <- service.playerCharacters(testCampaignId)
+          listAfterInsert <- service.playerCharacters(testCampaignId)
           _ <- service.applyOperations(
             entityType = DND5eEntityType.playerCharacter,
             id = newId,
             Replace(JsonPath("$.notes"), Json.Str("These are some updated notes")),
             Replace(JsonPath("$.armorClass"), Json.Num(17))
           )
-          objectAfterUpdate <- service.playerCharacter(newId)
-          _                 <- service.deleteEntity(entityType = DND5eEntityType.playerCharacter, id = newId)
-          listAfterDelete   <- service.playerCharacters(testCampaignId)
-          objectAfterDelete <- service.playerCharacter(newId)
+          _               <- service.deleteEntity(entityType = DND5eEntityType.playerCharacter, id = newId)
+          listAfterDelete <- service.playerCharacters(testCampaignId)
         } yield assertTrue(
           startCharacters.nonEmpty,
           newId != PlayerCharacterId.empty,
-          objectAfterInsert.isDefined,
           listAfterInsert.size == startCharacters.size + 1,
-          objectAfterUpdate.isDefined,
-          listAfterDelete.size == startCharacters.size,
-          objectAfterDelete.isEmpty
+          listAfterDelete.size == startCharacters.size
         )
       },
       test("player character diff") {

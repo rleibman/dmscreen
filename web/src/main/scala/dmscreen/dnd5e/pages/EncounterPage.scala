@@ -51,13 +51,24 @@ object EncounterPage extends DMScreenTab {
   }
 
   case class State(
+    encounters:             Seq[Encounter] = List.empty,
+    scenes:                 Seq[Scene] = List.empty,
+    pcs:                    Seq[PlayerCharacter] = List.empty,
     accordionState:         (Int, Int) = (0, 0),
     encounterMode:          EncounterMode = EncounterMode.combat,
     currentEncounterId:     Option[EncounterId] = None,
     hideArchivedEncounters: Boolean = true
   )
 
-  class Backend($ : BackendScope[Unit, State]) {
+  class Backend($ : BackendScope[CampaignId, State]) {
+
+    def loadState(campaignId: CampaignId): Callback = {
+      (for {
+        encounters <- GraphQLRepository.live.encounters(campaignId)
+        scenes     <- GraphQLRepository.live.scenes(campaignId)
+        pcs        <- GraphQLRepository.live.playerCharacters(campaignId)
+      } yield $.modState(_.copy(encounters = encounters, scenes = scenes, pcs = pcs))).completeWith(_.get)
+    }
 
     private def onAccordionChange(
       index: (Int, Int)
@@ -75,55 +86,64 @@ object EncounterPage extends DMScreenTab {
         } { case campaignState: DND5eCampaignState =>
           def runCombat(encounter: Encounter): Callback = {
             // Prep for combat, if the combat doesn't have the pcs yet, create them, if it does, update them.
-            val playerCombatants = campaignState.pcs
-              .map { pc =>
-                encounter.info.combatants
-                  .collectFirst {
-                    case pcCombatant: PlayerCharacterCombatant if pcCombatant.playerCharacterId == pc.id => pcCombatant
-                  }
-                  .fold(
-                    PlayerCharacterCombatant(
-                      id = CombatantId.create,
-                      name = pc.header.name,
-                      playerCharacterId = pc.id,
-                      notes = "",
-                      initiative = 10,
-                      initiativeBonus = pc.info.initiativeBonus
-                    )
-                  )(
-                    _.copy(
-                      name = pc.header.name,
-                      initiativeBonus = pc.info.initiativeBonus
-                    )
-                  )
-              }
-            val modifiedEncounter = encounter
-              .copy(
-                header = encounter.header.copy(status = EncounterStatus.active),
-                jsonInfo = encounter.info
-                  .copy(
-                    combatants = encounter.info.monsters ++ playerCombatants,
-                    round = if (encounter.info.round == 0) 1 else encounter.info.round // This is the first time we're running this encounter
-                  ).toJsonAST.toOption.get
-              )
-            modEncounter(modifiedEncounter, "") >> $.modState(
-              _.copy(
-                currentEncounterId = Some(encounter.header.id),
-                encounterMode = EncounterMode.combat
-              )
-            )
+            // TODO, move this code to the initialize state of the combat runner
+//            val playerCombatants = campaignState.pcs
+//              .map { pc =>
+//                encounter.info.combatants
+//                  .collectFirst {
+//                    case pcCombatant: PlayerCharacterCombatant if pcCombatant.playerCharacterId == pc.id => pcCombatant
+//                  }
+//                  .fold(
+//                    PlayerCharacterCombatant(
+//                      id = CombatantId.create,
+//                      name = pc.header.name,
+//                      playerCharacterId = pc.id,
+//                      notes = "",
+//                      initiative = 10,
+//                      initiativeBonus = pc.info.initiativeBonus
+//                    )
+//                  )(
+//                    _.copy(
+//                      name = pc.header.name,
+//                      initiativeBonus = pc.info.initiativeBonus
+//                    )
+//                  )
+//              }
+//            val modifiedEncounter = encounter
+//              .copy(
+//                header = encounter.header.copy(status = EncounterStatus.active),
+//                jsonInfo = encounter.info
+//                  .copy(
+//                    combatants = encounter.info.monsters ++ playerCombatants,
+//                    round = if (encounter.info.round == 0) 1 else encounter.info.round // This is the first time we're running this encounter
+//                  ).toJsonAST.toOption.get
+//              )
+//            modEncounter(modifiedEncounter, "") >> $.modState(
+//              _.copy(
+//                currentEncounterId = Some(encounter.header.id),
+//                encounterMode = EncounterMode.combat
+//              )
+//            )
+            Callback.empty
           }
 
           def doDelete(deleteMe: Encounter): Callback =
             GraphQLRepository.live
               .deleteEntity(entityType = DND5eEntityType.encounter, id = deleteMe.header.id)
               .map(_ =>
-                dmScreenState
-                  .onModifyCampaignState(
-                    campaignState
-                      .copy(encounters = campaignState.encounters.filter(_.header.id != deleteMe.header.id)),
-                    s"Deleted encounter ${deleteMe.header.name}"
+                $.modState(s =>
+                  state.copy(
+                    currentEncounterId = state.currentEncounterId.filter(deleteMe.header.id != _),
+                    encounters = state.encounters.filter(deleteMe.header.id != _.header.id)
                   )
+                )
+                // TODO add to log
+//                dmScreenState
+//                  .onModifyCampaignState(
+//                    campaignState
+//                      .copy(encounters = campaignState.encounters.filter(_.header.id != deleteMe.header.id)),
+//                    s"Deleted encounter ${deleteMe.header.name}"
+//                  )
               )
               .completeWith(_.get)
 
@@ -131,19 +151,26 @@ object EncounterPage extends DMScreenTab {
             encounter: Encounter,
             log:       String
           ): Callback = {
-            dmScreenState.onModifyCampaignState(
-              campaignState.copy(
-                encounters = campaignState.encounters.map {
-                  case e if e.header.id == encounter.header.id => encounter
-                  case e                                       => e
-                },
-                changeStack = campaignState.changeStack.logEncounterChanges(encounter.header.id)
-              ),
-              log
-            )
+            $.modState(s =>
+              s.copy(encounters = s.encounters.map {
+                case e if e.header.id == encounter.header.id => encounter
+                case e                                       => e
+              })
+            ) // TODO persist
+            // TODO log
+//            dmScreenState.onModifyCampaignState(
+//              campaignState.copy(
+//                encounters = campaignState.encounters.map {
+//                  case e if e.header.id == encounter.header.id => encounter
+//                  case e                                       => e
+//                },
+//                changeStack = campaignState.changeStack.logEncounterChanges(encounter.header.id)
+//              ),
+//              log
+//            )
           }
 
-          val encounters = campaignState.encounters
+          val encounters = state.encounters
           val currentEncounter: Option[Encounter] =
             state.currentEncounterId.flatMap(id => encounters.find(_.header.id == id))
 
@@ -174,7 +201,7 @@ object EncounterPage extends DMScreenTab {
                           .sortBy(_.header.orderCol)
                           .groupBy(_.header.sceneId)
 
-                        (None +: campaignState.scenes.map(Some.apply)).zipWithIndex.map {
+                        (None +: state.scenes.map(Some.apply)).zipWithIndex.map {
                           (
                             sceneOpt,
                             sceneIndex
@@ -208,20 +235,30 @@ object EncounterPage extends DMScreenTab {
                                         GraphQLRepository.live
                                           .upsert(newEncounter.header, newEncounter.jsonInfo)
                                           .map { id =>
-                                            dmScreenState.onModifyCampaignState(
-                                              campaignState
-                                                .copy(encounters =
-                                                  campaignState.encounters :+ newEncounter
-                                                    .copy(header = newEncounter.header.copy(id = id))
-                                                ),
-                                              "Added new encounter"
-                                            ) >>
-                                              $.modState(
-                                                _.copy(
-                                                  currentEncounterId = Some(id),
-                                                  encounterMode = EncounterMode.edit
-                                                )
+                                            $.modState(s =>
+                                              s.copy(
+                                                currentEncounterId = Some(id),
+                                                encounterMode = EncounterMode.edit,
+                                                encounters = s.encounters :+ newEncounter
+                                                  .copy(header = newEncounter.header.copy(id = id))
                                               )
+                                            )
+                                            // TODO add to log
+//                                            dmScreenState.onModifyCampaignState(
+//                                              campaignState
+//                                                .copy(encounters =
+//                                                  campaignState.encounters :+ newEncounter
+//                                                    .copy(header = newEncounter.header.copy(id = id))
+//                                                ),
+//                                              "Added new encounter"
+//                                            )
+//                                              >>
+//                                              $.modState(
+//                                                _.copy(
+//                                                  currentEncounterId = Some(id),
+//                                                  encounterMode = EncounterMode.edit
+//                                                )
+//                                              )
                                           }
                                           .completeWith(_.get)
                                     }
@@ -359,6 +396,7 @@ object EncounterPage extends DMScreenTab {
                         Container.fluid(true)(
                           EncounterEditor(
                             encounter,
+                            encounter.calculateDifficulty(state.pcs),
                             onDelete = deleteMe => doDelete(deleteMe),
                             onChange = encounter => modEncounter(encounter, "")
                           )
@@ -366,8 +404,7 @@ object EncounterPage extends DMScreenTab {
                       case EncounterMode.combat =>
                         Container.fluid(true)(
                           CombatRunner(
-                            encounter = encounter,
-                            pcs = campaignState.pcs,
+                            encounterId = encounter.header.id,
                             onChange = (
                               encounter,
                               log
@@ -431,11 +468,12 @@ object EncounterPage extends DMScreenTab {
   }
 
   private val component = ScalaComponent
-    .builder[Unit]("router")
+    .builder[CampaignId]("encounterPage")
     .initialState(State())
     .renderBackend[Backend]
+    .componentDidMount($ => $.backend.loadState($.props))
     .build
 
-  def apply(): Unmounted[Unit, State, Backend] = component()
+  def apply(campaignId: CampaignId): Unmounted[CampaignId, State, Backend] = component(campaignId)
 
 }

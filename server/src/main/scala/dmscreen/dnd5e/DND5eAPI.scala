@@ -74,6 +74,7 @@ object DND5eAPI {
   private given Schema[Any, DMScreenEvent] = Schema.gen[Any, DMScreenEvent]
   private given Schema[Any, Source] = Schema.gen[Any, Source]
   private given Schema[Any, MonsterSearch] = Schema.gen[Any, MonsterSearch]
+  private given Schema[Any, MonsterSearchResults] = Schema.gen[Any, MonsterSearchResults]
   private given Schema[Any, Campaign] = Schema.gen[Any, Campaign]
   private given Schema[Any, Scene] = Schema.gen[Any, Scene]
   private given Schema[Any, Monster] = Schema.gen[Any, Monster]

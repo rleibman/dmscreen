@@ -216,7 +216,7 @@ case class Encounter(
   override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
 ) extends DMScreenEntity[EncounterId, EncounterHeader, EncounterInfo] {
 
-  def calculateDifficulty(pcs: List[PlayerCharacter]): EncounterDifficulty = {
+  def calculateDifficulty(pcs: Seq[PlayerCharacter]): EncounterDifficulty = {
     val pcMultiplierThreshold = pcMultiplier.getOrElse(pcs.size, 1.25)
     val thresholdXP: ThresholdRow =
       pcs.map(pc => thresholdTable(pc.info.totalLevel - 1)).foldLeft(ThresholdRow(0, 0, 0, 0))(_ + _)

@@ -127,11 +127,12 @@ object DMScreenContainer {
 
   }).mapError(RepositoryError.apply))
 
+  // Add profileSQL=true& to the url if you need more information
   private def getConfig(container: MySQLContainer): config.Config =
     ConfigFactory
       .parseString(s"""
       DMScreen.db.dataSourceClassName=com.mysql.cj.jdbc.MysqlDataSource
-      DMScreen.db.dataSource.url="${container.container.getJdbcUrl}?logger=com.mysql.cj.log.Slf4JLogger&profileSQL=true&serverTimezone=UTC&useLegacyDatetimeCode=false"
+      DMScreen.db.dataSource.url="${container.container.getJdbcUrl}?logger=com.mysql.cj.log.Slf4JLogger&serverTimezone=UTC&useLegacyDatetimeCode=false"
       DMScreen.db.dataSource.user="${container.container.getUsername}"
       DMScreen.db.dataSource.password="${container.container.getPassword}"
       DMScreen.db.dataSource.cachePrepStmts=true
@@ -150,7 +151,8 @@ object DMScreenContainer {
           baseConfig.dmscreen.copy(db =
             baseConfig.dmscreen.db.copy(
               dataSource = baseConfig.dmscreen.db.dataSource.copy(
-                url = s"${container.container.getJdbcUrl}?logger=com.mysql.cj.log.Slf4JLogger&profileSQL=true&serverTimezone=UTC&useLegacyDatetimeCode=false",
+                // Add profileSQL=true& to the url if you need more information
+                url = s"${container.container.getJdbcUrl}?logger=com.mysql.cj.log.Slf4JLogger&serverTimezone=UTC&useLegacyDatetimeCode=false",
                 user = container.container.getUsername.nn,
                 password = container.container.getPassword.nn
               )

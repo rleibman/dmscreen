@@ -539,7 +539,8 @@ object DND5eClient {
   type MonsterSearchResults
   object MonsterSearchResults {
 
-    def results[A](innerSelection: SelectionBuilder[Monster, A]): SelectionBuilder[MonsterSearchResults, List[A]] =
+    def results[A](innerSelection: SelectionBuilder[MonsterHeader, A])
+      : SelectionBuilder[MonsterSearchResults, List[A]] =
       _root_.caliban.client.SelectionBuilder.Field("results", ListOf(Obj(innerSelection)))
     def total: SelectionBuilder[MonsterSearchResults, Long] =
       _root_.caliban.client.SelectionBuilder.Field("total", Scalar())

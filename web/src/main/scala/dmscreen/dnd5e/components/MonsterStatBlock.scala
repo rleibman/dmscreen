@@ -53,7 +53,7 @@ object MonsterStatBlock {
 
   case class Backend($ : BackendScope[Props, State]) {
 
-    def loadMonster(monsterId: MonsterId): Callback = {
+    def loadState(monsterId: MonsterId): Callback = {
       GraphQLRepository.live
         .monster(monsterId)
         .map(m => $.modState(_.copy(monster = m)))
@@ -219,7 +219,7 @@ object MonsterStatBlock {
     .builder[Props]("MonsterStatBlock")
     .initialState(State())
     .renderBackend[Backend]
-    .componentDidMount($ => $.backend.loadMonster($.props.monsterId))
+    .componentDidMount($ => $.backend.loadState($.props.monsterId))
     .build
 
   def apply(

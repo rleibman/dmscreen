@@ -56,8 +56,8 @@ case class MonsterSearch(
 )
 
 case class MonsterSearchResults(
-  results: Seq[Monster],
-  total:   Long
+  results: List[MonsterHeader] = List.empty,
+  total:   Long = 0
 )
 
 trait DND5eRepository[F[_]] extends GameRepository {
@@ -67,8 +67,6 @@ trait DND5eRepository[F[_]] extends GameRepository {
   def campaign(campaignId: CampaignId): F[Option[Campaign]]
 
   def monster(monsterId: MonsterId): F[Option[Monster]]
-
-  def scene(sceneId: SceneId): F[Option[Scene]]
 
   def applyOperations[IDType](
     entityType: EntityType[IDType],
@@ -85,8 +83,6 @@ trait DND5eRepository[F[_]] extends GameRepository {
   def playerCharacters(campaignId: CampaignId): F[Seq[PlayerCharacter]]
 
   def scenes(campaignId: CampaignId): F[Seq[Scene]]
-
-  def playerCharacter(playerCharacterId: PlayerCharacterId): F[Option[PlayerCharacter]]
 
   def nonPlayerCharacters(campaignId: CampaignId): F[Seq[NonPlayerCharacter]]
 

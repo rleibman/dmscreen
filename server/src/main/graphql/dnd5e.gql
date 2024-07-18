@@ -245,7 +245,7 @@ type MonsterHeader {
 }
 
 type MonsterSearchResults {
-  results: [Monster!]!
+  results: [MonsterHeader!]!
   total: Long!
 }
 

@@ -30,7 +30,7 @@ trait AppPageType
 case class AppPage(
   pageType:          AppPageType,
   title:             String,
-  createComponentFn: Any => VdomElement
+  createComponentFn: CampaignId => VdomElement
 )
 
 trait GameUI {
