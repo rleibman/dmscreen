@@ -34,20 +34,20 @@ import org.scalajs.dom.html.Span
 
 object EditableComponent {
 
-  enum Mode {
+  enum EditingMode {
 
     case view, edit
 
   }
 
-  case class State(mode: Mode = Mode.view)
+  case class State(editingMode: EditingMode = EditingMode.view)
   case class Props(
     className:       String = "",
     viewComponent:   VdomNode,
     editComponent:   VdomNode,
     actionComponent: VdomNode = EmptyVdom,
     modalTitle:      String = "",
-    onModeChange:    Mode => Callback = _ => Callback.empty
+    onModeChange:    EditingMode => Callback = _ => Callback.empty
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -56,23 +56,23 @@ object EditableComponent {
       props: Props,
       state: State
     ): VdomNode = {
-      state.mode match {
-        case Mode.view =>
+      state.editingMode match {
+        case EditingMode.view =>
           <.div(
             ^.className := props.className,
-            ^.onClick --> (props.onModeChange(Mode.edit) >> $.modState(_.copy(mode = Mode.edit))),
+            ^.onClick --> (props.onModeChange(EditingMode.edit) >> $.modState(_.copy(editingMode = EditingMode.edit))),
             props.viewComponent
           )
-        case Mode.edit =>
+        case EditingMode.edit =>
           Modal
-            .open(state.mode == Mode.edit)
+            .open(state.editingMode == EditingMode.edit)
             .size(semanticUiReactStrings.small)
             .closeIcon(true)
             .onClose(
               (
                 _,
                 _
-              ) => props.onModeChange(Mode.view) >> $.modState(_.copy(mode = Mode.view))
+              ) => props.onModeChange(EditingMode.view) >> $.modState(_.copy(editingMode = EditingMode.view))
             )(
               ModalHeader(props.modalTitle).when(props.modalTitle.nonEmpty),
               ModalContent(
@@ -90,16 +90,16 @@ object EditableComponent {
       .builder[Props]("EditableComponent")
       .initialState(State()) // Props have nothing to do with state in this component
       .renderBackend[Backend]
-      .shouldComponentUpdatePure($ => $.nextState.mode != $.currentState.mode) // Only update if the view mode has changed
+      .shouldComponentUpdatePure($ => $.nextState.editingMode != $.currentState.editingMode) // Only update if the view mode has changed
       .build
 
   def apply(
-    className:       String = "",
-    view:            VdomNode,
-    edit:            VdomNode,
-    actionComponent: VdomNode = EmptyVdom,
-    title:           String = "",
-    onModeChange:    Mode => Callback = _ => Callback.empty
-  ) = component(Props(className, view, edit, actionComponent, title, onModeChange))
+    className:           String = "",
+    view:                VdomNode,
+    edit:                VdomNode,
+    actionComponent:     VdomNode = EmptyVdom,
+    title:               String = "",
+    onEditingModeChange: EditingMode => Callback = _ => Callback.empty
+  ) = component(Props(className, view, edit, actionComponent, title, onEditingModeChange))
 
 }

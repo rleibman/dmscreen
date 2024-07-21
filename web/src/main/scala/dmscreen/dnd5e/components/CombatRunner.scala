@@ -36,7 +36,7 @@ import caliban.client.scalajs.{*, given}
 import dmscreen.*
 import dmscreen.components.{DiceRoller, EditableComponent, EditableNumber, EditableText}
 import dmscreen.dnd5e.components.*
-import dmscreen.components.EditableComponent.Mode
+import dmscreen.components.EditableComponent.EditingMode
 import dmscreen.dnd5e.{*, given}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -74,7 +74,7 @@ object CombatRunner {
     onChange:           (Encounter, String) => Callback,
     onEditEncounter:    Encounter => Callback,
     onArchiveEncounter: Encounter => Callback,
-    onModeChange:       Mode => Callback
+    onModeChange:       EditingMode => Callback
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -457,9 +457,10 @@ object CombatRunner {
                                       )
                                   ),
                                   title = "Hit points",
-                                  onModeChange = mode =>
+                                  onEditingModeChange = mode =>
                                     dmScreenState.changeDialogMode(
-                                      if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                                      if (mode == EditableComponent.EditingMode.edit) DialogMode.open
+                                      else DialogMode.closed
                                     )
                                 )
                               ),
@@ -491,9 +492,10 @@ object CombatRunner {
                                     )
                                 ),
                                 title = "Conditions",
-                                onModeChange = mode =>
+                                onEditingModeChange = mode =>
                                   dmScreenState.changeDialogMode(
-                                    if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                                    if (mode == EditableComponent.EditingMode.edit) DialogMode.open
+                                    else DialogMode.closed
                                   )
                               )
                             ),
@@ -522,12 +524,14 @@ object CombatRunner {
                                     )
                                 ),
                                 title = "Other Markers",
-                                onModeChange = mode =>
+                                onEditingModeChange = mode =>
                                   dmScreenState.changeDialogMode(
-                                    if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                                    if (mode == EditableComponent.EditingMode.edit) DialogMode.open
+                                    else DialogMode.closed
                                   ) >> $.modState(s =>
                                     s.copy(dialogMode =
-                                      if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                                      if (mode == EditableComponent.EditingMode.edit) DialogMode.open
+                                      else DialogMode.closed
                                     )
                                   )
                               )
@@ -734,9 +738,10 @@ object CombatRunner {
                                     )
                                 ),
                                 title = "Conditions",
-                                onModeChange = mode =>
+                                onEditingModeChange = mode =>
                                   dmScreenState.changeDialogMode(
-                                    if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                                    if (mode == EditableComponent.EditingMode.edit) DialogMode.open
+                                    else DialogMode.closed
                                   )
                               )
                             ),
@@ -767,12 +772,14 @@ object CombatRunner {
                                     )
                                 ),
                                 title = "Other Markers",
-                                onModeChange = mode =>
+                                onEditingModeChange = mode =>
                                   dmScreenState.changeDialogMode(
-                                    if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                                    if (mode == EditableComponent.EditingMode.edit) DialogMode.open
+                                    else DialogMode.closed
                                   ) >> $.modState(s =>
                                     s.copy(dialogMode =
-                                      if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                                      if (mode == EditableComponent.EditingMode.edit) DialogMode.open
+                                      else DialogMode.closed
                                     )
                                   )
                               )
@@ -859,7 +866,7 @@ object CombatRunner {
     ) => Callback.empty,
     onEditEncounter:    Encounter => Callback = _ => Callback.empty,
     onArchiveEncounter: Encounter => Callback = _ => Callback.empty,
-    onModeChange:       Mode => Callback = _ => Callback.empty
+    onModeChange:       EditingMode => Callback = _ => Callback.empty
   ): Unmounted[Props, State, Backend] =
     component
       .withKey(encounterId.value)(

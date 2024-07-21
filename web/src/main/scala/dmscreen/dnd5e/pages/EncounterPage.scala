@@ -411,7 +411,7 @@ object EncounterPage extends DMScreenTab {
                             ) => modEncounter(encounter, log),
                             onModeChange = mode =>
                               dmScreenState.changeDialogMode(
-                                if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
+                                if (mode == EditableComponent.EditingMode.edit) DialogMode.open else DialogMode.closed
                               ),
                             onEditEncounter = encounter =>
                               $.modState(

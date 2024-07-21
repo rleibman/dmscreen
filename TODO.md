@@ -53,3 +53,38 @@ Future (some ideas from Chatgpt)
 - DND Beyond plugin
 - Integrate with AI graphic generator
 - Connect everything to it's source (rules, monsters, skills, classes, races, subclasses, spells, etc)
+
+
+BUGS
+# General
+## CSS
+- Make menu thinner:
+menu column
+```
+   min-width: 200px;
+   width: 10%;
+ ```
+content column
+```
+width: 90%;
+```
+## Functionality
+- Why is it changing pages on refresh and ignoring the # in the URL?
+# Dashboard
+## Functionality
+- Might want to see if we can fix the campaign notes now without a button.
+# Home
+## Functionality
+- Hide "current button" if the campaign is already current
+# PlayerCharacterPage/Component
+## CSS
+- Align pc to top
+- Conditions bgcolor should be white
+- Inspiration bgcolor should be white
+## Functionality
+- Character name is not sticking
+- Player name is not sticking
+- Inspiration is not sticking
+- Languages dialog broken
+- Feats Dialog broken
+

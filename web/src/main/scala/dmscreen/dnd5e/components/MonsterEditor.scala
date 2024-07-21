@@ -399,7 +399,8 @@ object MonsterEditor {
                       onChange = abilities => modInfo(i => i.copy(abilities = abilities))
                     ),
                     title = "Abilities",
-                    onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                    onEditingModeChange =
+                      mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.EditingMode.edit))
                   ),
                   EditableComponent(
                     className = "field",
@@ -426,7 +427,8 @@ object MonsterEditor {
                       speeds => modInfo(i => i.copy(speeds = speeds))
                     ),
                     title = "Speeds",
-                    onModeChange = mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit))
+                    onEditingModeChange =
+                      mode => $.modState(_.copy(dialogOpen = mode == EditableComponent.EditingMode.edit))
                   )
                 ),
                 <.div(

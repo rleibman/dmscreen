@@ -54,7 +54,13 @@ case class DMScreenState(
   changeDialogMode: DialogMode => Callback = _ => Callback.empty,
   campaignLog:      Seq[String] = Seq.empty
   //  operationStream: Option[WebSocketHandler] = None
-)
+) {
+
+  def log(str: String): Callback = {
+    campaignState.fold(Callback.empty)(s => onModifyCampaignState(s, str))
+  }
+
+}
 
 object DMScreenState {
 

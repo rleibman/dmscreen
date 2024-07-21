@@ -207,7 +207,7 @@ object Content {
 
   // Note, we don't want to update while a dialog is open
   given Reusability[DMScreenState] =
-    Reusability.by((s: DMScreenState) => (s.dialogMode == DialogMode.closed, s.campaignState, s.campaignLog.toList))
+    Reusability.by((s: DMScreenState) => (s.dialogMode == DialogMode.closed, s.campaignState))
   given Reusability[State] = Reusability.by((s: State) => s.dmScreenState)
 
   private val component = ScalaComponent

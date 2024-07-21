@@ -22,12 +22,12 @@
 package dmscreen.dnd5e.components
 
 import dmscreen.*
+import dmscreen.components.EditableComponent.EditingMode
 import dmscreen.components.{EditableComponent, EditableText}
 import dmscreen.dnd5e.{*, given}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{CtorType, *}
-import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticSIZES
@@ -41,15 +41,20 @@ object PlayerCharacterComponent {
 
   case class State(
     playerCharacter: PlayerCharacter,
-    dialogOpen:      Boolean = false
+    editingMode:     EditableComponent.EditingMode = EditableComponent.EditingMode.view
   )
   case class Props(
-    playerCharacter: PlayerCharacter,
-    onDelete:        PlayerCharacter => Callback = _ => Callback.empty,
-    onSync:          PlayerCharacter => Callback = _ => Callback.empty
+    playerCharacter:     PlayerCharacter,
+    onEditingModeChange: EditableComponent.EditingMode => Callback,
+    onChange:            PlayerCharacter => Callback,
+    onDelete:            PlayerCharacter => Callback,
+    onSync:              PlayerCharacter => Callback
   )
 
   case class Backend($ : BackendScope[Props, State]) {
+
+    def doModeChange(editingMode: EditableComponent.EditingMode): Callback =
+      $.modState(_.copy(editingMode = editingMode), $.props.flatMap(_.onEditingModeChange(editingMode)))
 
     def profStr(proficiencyLevel: ProficiencyLevel): String =
       proficiencyLevel match {
@@ -60,26 +65,24 @@ object PlayerCharacterComponent {
       }
 
     def render(
-      p: Props,
-      s: State
+      props: Props,
+      state: State
     ): VdomElement = {
       DMScreenState.ctx.consume { dmScreenState =>
         val campaignState = dmScreenState.campaignState
           .map(_.asInstanceOf[DND5eCampaignState]).getOrElse(throw RuntimeException("No campaign"))
 
         {
-          def modPCInfo(fn: PlayerCharacterInfo => PlayerCharacterInfo): Callback = {
-            $.modState { s =>
-              s.copy(playerCharacter =
-                s.playerCharacter.copy(jsonInfo = fn(s.playerCharacter.info).toJsonAST.toOption.get)
-              ) // do something with the error
-            }
-            // TODO this needs to change the player character in the database
+          def modPlayerCharacter(playerCharacter: PlayerCharacter): Callback = {
+            $.modState(_.copy(playerCharacter = playerCharacter), props.onChange(playerCharacter))
+          }
+          def modPCInfo(info: PlayerCharacterInfo): Callback = {
+            modPlayerCharacter(state.playerCharacter.copy(jsonInfo = info.toJsonAST.toOption.get))
           }
 
-          val pc = s.playerCharacter.info
+          val info: PlayerCharacterInfo = state.playerCharacter.info
           def allBackgrounds =
-            (campaignState.backgrounds ++ pc.background.fold(Seq.empty)(bk =>
+            (campaignState.backgrounds ++ info.background.fold(Seq.empty)(bk =>
               Seq(
                 campaignState.backgrounds
                   .find(_.name.equalsIgnoreCase(bk.name)).getOrElse(Background(name = bk.name))
@@ -89,7 +92,6 @@ object PlayerCharacterComponent {
               .distinctBy(_.name)
 
           <.div(
-//            ^.className := "characterCard",
             Container.className("characterCard")(
               Button("Delete")
                 .title("Delete this character")
@@ -100,16 +102,24 @@ object PlayerCharacterComponent {
                   ) =>
                     _root_.components.Confirm.confirm(
                       question = "Are you 100% sure you want to delete this character?",
-                      onConfirm = p.onDelete(p.playerCharacter)
+                      onConfirm = props.onDelete(state.playerCharacter)
                     )
                 ),
               Button("Sync")
                 .title("Refresh this character with data from it's original source")
-                .size(SemanticSIZES.tiny).compact(true).when(pc.source != DMScreenSource), // Only if the character originally came from a synchable source
+                .size(SemanticSIZES.tiny)
+                .compact(true)
+                .onClick(
+                  (
+                    _,
+                    _
+                  ) => props.onSync(state.playerCharacter)
+                )
+                .when(info.source != DMScreenSource), // Only if the character originally came from a synchable source
               <.div(
                 ^.className := "characterHeader",
-                <.h2(EditableText(s.playerCharacter.header.name)),
-                <.span(EditableText(s.playerCharacter.header.playerName.getOrElse("")))
+                <.h2(EditableText(state.playerCharacter.header.name)), // TODO add onChange
+                <.span(EditableText(state.playerCharacter.header.playerName.getOrElse(""))) // TODO add onChange
               ),
               <.div(
                 ^.className := "characterDetails",
@@ -121,8 +131,8 @@ object PlayerCharacterComponent {
                       <.td(
                         ^.colSpan := 2,
                         EditableComponent(
-                          view = pc.classes.headOption.fold(<.div("Click to add Classes"))(_ =>
-                            pc.classes.zipWithIndex.map {
+                          view = info.classes.headOption.fold(<.div("Click to add Classes"))(_ =>
+                            info.classes.zipWithIndex.map {
                               (
                                 cl,
                                 i
@@ -134,15 +144,11 @@ object PlayerCharacterComponent {
                             }.toVdomArray
                           ),
                           edit = PlayerCharacterClassEditor(
-                            pc.classes,
-                            onChange = classes => modPCInfo(info => info.copy(classes = classes))
+                            info.classes,
+                            onChange = classes => modPCInfo(info.copy(classes = classes))
                           ),
                           title = "Classes/Subclasses/Levels",
-                          onModeChange = mode =>
-                            $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
-                              dmScreenState.changeDialogMode(
-                                if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
-                              )
+                          onEditingModeChange = doModeChange
                         )
                       )
                     ),
@@ -168,7 +174,7 @@ object PlayerCharacterComponent {
                               _,
                               changedData
                             ) =>
-                              modPCInfo(info =>
+                              modPCInfo(
                                 info.copy(background = changedData.value match {
                                   case s: String if s.isEmpty => None
                                   case s: String =>
@@ -177,44 +183,44 @@ object PlayerCharacterComponent {
                                 })
                               )
                           )
-                          .value(pc.background.fold("")(_.name))
+                          .value(info.background.fold("")(_.name))
                       )
                     ),
                     <.tr(
                       <.th("AC"),
                       <.td(
                         EditableComponent(
-                          view = <.div(pc.armorClass),
+                          view = <.div(info.armorClass),
                           edit = ArmorClassEditor(
-                            pc.armorClass,
-                            onChange = armorClass => modPCInfo(info => info.copy(armorClass = armorClass))
+                            info.armorClass,
+                            onChange = armorClass => modPCInfo(info.copy(armorClass = armorClass))
                           ),
                           title = "Armor Class",
-                          onModeChange = mode =>
-                            $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
-                              dmScreenState.changeDialogMode(
-                                if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
-                              )
+                          onEditingModeChange = doModeChange
                         )
                       )
                     ),
                     <.tr(
                       <.th("Proficiency Bonus"),
-                      <.td(pc.proficiencyBonusString)
+                      <.td(info.proficiencyBonusString)
                     ),
                     <.tr(
                       <.th("Initiative"),
-                      <.td(pc.initiativeBonusString)
+                      <.td(info.initiativeBonusString)
                     ),
                     <.tr(
                       <.td(
                         ^.colSpan := 2,
                         Checkbox
-                          .fitted(true).label("Inspiration").toggle(true).onChange(
+                          .fitted(true)
+                          .label("Inspiration")
+                          .toggle(true)
+                          .checked(info.inspiration)
+                          .onChange(
                             (
                               _,
                               data
-                            ) => modPCInfo(info => info.copy(inspiration = data.checked.getOrElse(pc.inspiration)))
+                            ) => modPCInfo(info.copy(inspiration = data.checked.getOrElse(info.inspiration)))
                           )
                       )
                     )
@@ -223,39 +229,35 @@ object PlayerCharacterComponent {
               ),
               <.div(
                 ^.className       := "characterDetails",
-                ^.backgroundColor := pc.health.lifeColor,
+                ^.backgroundColor := info.health.lifeColor,
                 EditableComponent(
                   view = <.table(
                     <.thead(
                       <.tr(<.th("HP"), <.th("Temp HP"))
                     ),
                     <.tbody(
-                      if (pc.health.currentHitPoints <= 0) {
+                      if (info.health.currentHitPoints <= 0) {
                         <.tr(
                           <.td(
-                            s"${pc.health.currentHitPoints}/${pc.health.currentMax}",
-                            if (pc.health.deathSave.isStabilized) " (stabilized)" else ""
+                            s"${info.health.currentHitPoints}/${info.health.currentMax}",
+                            if (info.health.deathSave.isStabilized) " (stabilized)" else ""
                           ),
-                          <.td(pc.health.temporaryHitPoints.toString)
+                          <.td(info.health.temporaryHitPoints.toString)
                         )
                       } else {
                         <.tr(
-                          <.td(s"${pc.health.currentHitPoints}/${pc.health.currentMax}"),
-                          <.td(pc.health.temporaryHitPoints.toString)
+                          <.td(s"${info.health.currentHitPoints}/${info.health.currentMax}"),
+                          <.td(info.health.temporaryHitPoints.toString)
                         )
                       }
                     )
                   ),
                   edit = HealthEditor(
-                    pc.health,
-                    onChange = hitPoints => modPCInfo(info => info.copy(health = hitPoints))
+                    info.health,
+                    onChange = hitPoints => modPCInfo(info.copy(health = hitPoints))
                   ),
                   title = "Hit Points",
-                  onModeChange = mode =>
-                    $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
-                      dmScreenState.changeDialogMode(
-                        if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
-                      )
+                  onEditingModeChange = doModeChange
                 )
               ),
               <.div(
@@ -274,20 +276,20 @@ object PlayerCharacterComponent {
                     ),
                     <.tbody(
                       <.tr(
-                        <.td(s"${pc.abilities.strength.overridenValue}"),
-                        <.td(s"${pc.abilities.dexterity.overridenValue}"),
-                        <.td(s"${pc.abilities.constitution.overridenValue}"),
-                        <.td(s"${pc.abilities.intelligence.overridenValue}"),
-                        <.td(s"${pc.abilities.wisdom.overridenValue}"),
-                        <.td(s"${pc.abilities.charisma.overridenValue}")
+                        <.td(s"${info.abilities.strength.overridenValue}"),
+                        <.td(s"${info.abilities.dexterity.overridenValue}"),
+                        <.td(s"${info.abilities.constitution.overridenValue}"),
+                        <.td(s"${info.abilities.intelligence.overridenValue}"),
+                        <.td(s"${info.abilities.wisdom.overridenValue}"),
+                        <.td(s"${info.abilities.charisma.overridenValue}")
                       ),
                       <.tr(
-                        <.td(s"(${pc.abilities.strength.modifierString})"),
-                        <.td(s"(${pc.abilities.dexterity.modifierString})"),
-                        <.td(s"(${pc.abilities.constitution.modifierString})"),
-                        <.td(s"(${pc.abilities.intelligence.modifierString})"),
-                        <.td(s"(${pc.abilities.wisdom.modifierString})"),
-                        <.td(s"(${pc.abilities.charisma.modifierString})")
+                        <.td(s"(${info.abilities.strength.modifierString})"),
+                        <.td(s"(${info.abilities.dexterity.modifierString})"),
+                        <.td(s"(${info.abilities.constitution.modifierString})"),
+                        <.td(s"(${info.abilities.intelligence.modifierString})"),
+                        <.td(s"(${info.abilities.wisdom.modifierString})"),
+                        <.td(s"(${info.abilities.charisma.modifierString})")
                       )
                     ),
                     <.thead(
@@ -303,25 +305,21 @@ object PlayerCharacterComponent {
                     ),
                     <.tbody(
                       <.tr(
-                        <.td(s"${pc.abilities.strength.savingThrowString(pc.proficiencyBonus)}"),
-                        <.td(s"${pc.abilities.dexterity.savingThrowString(pc.proficiencyBonus)}"),
-                        <.td(s"${pc.abilities.constitution.savingThrowString(pc.proficiencyBonus)}"),
-                        <.td(s"${pc.abilities.intelligence.savingThrowString(pc.proficiencyBonus)}"),
-                        <.td(s"${pc.abilities.wisdom.savingThrowString(pc.proficiencyBonus)}"),
-                        <.td(s"${pc.abilities.charisma.savingThrowString(pc.proficiencyBonus)}")
+                        <.td(s"${info.abilities.strength.savingThrowString(info.proficiencyBonus)}"),
+                        <.td(s"${info.abilities.dexterity.savingThrowString(info.proficiencyBonus)}"),
+                        <.td(s"${info.abilities.constitution.savingThrowString(info.proficiencyBonus)}"),
+                        <.td(s"${info.abilities.intelligence.savingThrowString(info.proficiencyBonus)}"),
+                        <.td(s"${info.abilities.wisdom.savingThrowString(info.proficiencyBonus)}"),
+                        <.td(s"${info.abilities.charisma.savingThrowString(info.proficiencyBonus)}")
                       )
                     )
                   ),
                   edit = AbilitiesEditor(
-                    pc.abilities,
-                    onChange = abilities => modPCInfo(info => info.copy(abilities = abilities))
+                    info.abilities,
+                    onChange = abilities => modPCInfo(info.copy(abilities = abilities))
                   ),
                   title = "Abilities",
-                  onModeChange = mode =>
-                    $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
-                      dmScreenState.changeDialogMode(
-                        if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
-                      )
+                  onEditingModeChange = doModeChange
                 )
               ),
               <.div(
@@ -337,9 +335,9 @@ object PlayerCharacterComponent {
                   ),
                   <.tbody(
                     <.tr(
-                      <.td(pc.passivePerception),
-                      <.td(pc.passiveInvestigation),
-                      <.td(pc.passiveInsight)
+                      <.td(info.passivePerception),
+                      <.td(info.passiveInvestigation),
+                      <.td(info.passiveInsight)
                     )
                   )
                 )
@@ -349,19 +347,15 @@ object PlayerCharacterComponent {
                 <.div(^.className := "sectionTitle", "Conditions"),
                 EditableComponent(
                   view = <.span(
-                    pc.conditions.headOption
-                      .fold("Click to change")(_ => pc.conditions.map(_.toString.capitalize).mkString(", "))
+                    info.conditions.headOption
+                      .fold("Click to change")(_ => info.conditions.map(_.toString.capitalize).mkString(", "))
                   ),
                   edit = ConditionsEditor(
-                    pc.conditions,
-                    onChange = conditions => modPCInfo(info => info.copy(conditions = conditions))
+                    info.conditions,
+                    onChange = conditions => modPCInfo(info.copy(conditions = conditions))
                   ),
                   title = "Conditions",
-                  onModeChange = mode =>
-                    $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
-                      dmScreenState.changeDialogMode(
-                        if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
-                      )
+                  onEditingModeChange = doModeChange
                 )
               ),
               <.div(
@@ -369,29 +363,25 @@ object PlayerCharacterComponent {
                 <.div(^.className := "sectionTitle", "Speed"),
                 EditableComponent(
                   edit = SpeedsEditor(
-                    pc.speeds,
-                    speeds => modPCInfo(info => info.copy(speeds = speeds))
+                    info.speeds,
+                    speeds => modPCInfo(info.copy(speeds = speeds))
                   ),
-                  view = pc.speeds.headOption.fold(<.div("Click to add")) { _ =>
+                  view = info.speeds.headOption.fold(<.div("Click to add")) { _ =>
                     <.table(
                       <.thead(
                         <.tr(
-                          pc.speeds.map(sp => <.th(^.key := sp.speedType.toString, sp.speedType.toString)).toVdomArray
+                          info.speeds.map(sp => <.th(^.key := sp.speedType.toString, sp.speedType.toString)).toVdomArray
                         )
                       ),
                       <.tbody(
                         <.tr(
-                          pc.speeds.map(sp => <.th(^.key := sp.speedType.toString, sp.value.toString)).toVdomArray
+                          info.speeds.map(sp => <.th(^.key := sp.speedType.toString, sp.value.toString)).toVdomArray
                         )
                       )
                     )
                   },
                   title = "Speeds",
-                  onModeChange = mode =>
-                    $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
-                      dmScreenState.changeDialogMode(
-                        if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
-                      )
+                  onEditingModeChange = doModeChange
                 )
               ),
               <.div(
@@ -402,116 +392,100 @@ object PlayerCharacterComponent {
                     ^.minHeight := 330.px,
                     <.tbody(
                       <.tr(
-                        <.th(^.width := 23.px, s"${profStr(pc.skills.acrobatics.proficiencyLevel)}Acrobatics"),
-                        <.td(^.width := "50%", pc.skills.acrobatics.modifierString(pc.abilities)),
-                        <.th(^.width := 23.px, s"${profStr(pc.skills.medicine.proficiencyLevel)}Medicine"),
-                        <.td(^.width := "50%", pc.skills.medicine.modifierString(pc.abilities))
+                        <.th(^.width := 23.px, s"${profStr(info.skills.acrobatics.proficiencyLevel)}Acrobatics"),
+                        <.td(^.width := "50%", info.skills.acrobatics.modifierString(info.abilities)),
+                        <.th(^.width := 23.px, s"${profStr(info.skills.medicine.proficiencyLevel)}Medicine"),
+                        <.td(^.width := "50%", info.skills.medicine.modifierString(info.abilities))
                       ),
                       <.tr(
-                        <.th(s"${profStr(pc.skills.animalHandling.proficiencyLevel)}Animal H."),
-                        <.td(pc.skills.animalHandling.modifierString(pc.abilities)),
-                        <.th(s"${profStr(pc.skills.nature.proficiencyLevel)}Nature"),
-                        <.td(pc.skills.nature.modifierString(pc.abilities))
+                        <.th(s"${profStr(info.skills.animalHandling.proficiencyLevel)}Animal H."),
+                        <.td(info.skills.animalHandling.modifierString(info.abilities)),
+                        <.th(s"${profStr(info.skills.nature.proficiencyLevel)}Nature"),
+                        <.td(info.skills.nature.modifierString(info.abilities))
                       ),
                       <.tr(
-                        <.th(s"${profStr(pc.skills.arcana.proficiencyLevel)}Arcana"),
-                        <.td(pc.skills.arcana.modifierString(pc.abilities)),
-                        <.th(s"${profStr(pc.skills.perception.proficiencyLevel)}Perception"),
-                        <.td(pc.skills.perception.modifierString(pc.abilities))
+                        <.th(s"${profStr(info.skills.arcana.proficiencyLevel)}Arcana"),
+                        <.td(info.skills.arcana.modifierString(info.abilities)),
+                        <.th(s"${profStr(info.skills.perception.proficiencyLevel)}Perception"),
+                        <.td(info.skills.perception.modifierString(info.abilities))
                       ),
                       <.tr(
-                        <.th(s"${profStr(pc.skills.athletics.proficiencyLevel)}Athletics"),
-                        <.td(pc.skills.athletics.modifierString(pc.abilities)),
-                        <.th(s"${profStr(pc.skills.performance.proficiencyLevel)}Perf."),
-                        <.td(pc.skills.performance.modifierString(pc.abilities))
+                        <.th(s"${profStr(info.skills.athletics.proficiencyLevel)}Athletics"),
+                        <.td(info.skills.athletics.modifierString(info.abilities)),
+                        <.th(s"${profStr(info.skills.performance.proficiencyLevel)}Perf."),
+                        <.td(info.skills.performance.modifierString(info.abilities))
                       ),
                       <.tr(
-                        <.th(s"${profStr(pc.skills.deception.proficiencyLevel)}Deception"),
-                        <.td(pc.skills.deception.modifierString(pc.abilities)),
-                        <.th(s"${profStr(pc.skills.persuasion.proficiencyLevel)}Persuasion"),
-                        <.td(pc.skills.persuasion.modifierString(pc.abilities))
+                        <.th(s"${profStr(info.skills.deception.proficiencyLevel)}Deception"),
+                        <.td(info.skills.deception.modifierString(info.abilities)),
+                        <.th(s"${profStr(info.skills.persuasion.proficiencyLevel)}Persuasion"),
+                        <.td(info.skills.persuasion.modifierString(info.abilities))
                       ),
                       <.tr(
-                        <.th(s"${profStr(pc.skills.history.proficiencyLevel)}History"),
-                        <.td(pc.skills.history.modifierString(pc.abilities)),
-                        <.th(s"${profStr(pc.skills.religion.proficiencyLevel)}Religion"),
-                        <.td(pc.skills.religion.modifierString(pc.abilities))
+                        <.th(s"${profStr(info.skills.history.proficiencyLevel)}History"),
+                        <.td(info.skills.history.modifierString(info.abilities)),
+                        <.th(s"${profStr(info.skills.religion.proficiencyLevel)}Religion"),
+                        <.td(info.skills.religion.modifierString(info.abilities))
                       ),
                       <.tr(
-                        <.th(s"${profStr(pc.skills.insight.proficiencyLevel)}Insight"),
-                        <.td(pc.skills.insight.modifierString(pc.abilities)),
-                        <.th(s"${profStr(pc.skills.sleightOfHand.proficiencyLevel)}Sleight of H."),
-                        <.td(pc.skills.sleightOfHand.modifierString(pc.abilities))
+                        <.th(s"${profStr(info.skills.insight.proficiencyLevel)}Insight"),
+                        <.td(info.skills.insight.modifierString(info.abilities)),
+                        <.th(s"${profStr(info.skills.sleightOfHand.proficiencyLevel)}Sleight of H."),
+                        <.td(info.skills.sleightOfHand.modifierString(info.abilities))
                       ),
                       <.tr(
-                        <.th(s"${profStr(pc.skills.intimidation.proficiencyLevel)}Intim."),
-                        <.td(pc.skills.intimidation.modifierString(pc.abilities)),
-                        <.th(s"${profStr(pc.skills.stealth.proficiencyLevel)}Stealth"),
-                        <.td(pc.skills.stealth.modifierString(pc.abilities))
+                        <.th(s"${profStr(info.skills.intimidation.proficiencyLevel)}Intim."),
+                        <.td(info.skills.intimidation.modifierString(info.abilities)),
+                        <.th(s"${profStr(info.skills.stealth.proficiencyLevel)}Stealth"),
+                        <.td(info.skills.stealth.modifierString(info.abilities))
                       ),
                       <.tr(
-                        <.th(s"${profStr(pc.skills.investigation.proficiencyLevel)}Invest."),
-                        <.td(pc.skills.investigation.modifierString(pc.abilities)),
-                        <.th(s"${profStr(pc.skills.survival.proficiencyLevel)}Survival"),
-                        <.td(pc.skills.survival.modifierString(pc.abilities))
+                        <.th(s"${profStr(info.skills.investigation.proficiencyLevel)}Invest."),
+                        <.td(info.skills.investigation.modifierString(info.abilities)),
+                        <.th(s"${profStr(info.skills.survival.proficiencyLevel)}Survival"),
+                        <.td(info.skills.survival.modifierString(info.abilities))
                       )
                     )
                   ),
                   edit = SkillsEditor(
-                    pc.skills,
-                    pc.abilities,
-                    onChange = skills => modPCInfo(info => info.copy(skills = skills))
+                    info.skills,
+                    info.abilities,
+                    onChange = skills => modPCInfo(info.copy(skills = skills))
                   ),
                   title = "Skills",
-                  onModeChange = mode =>
-                    $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
-                      dmScreenState.changeDialogMode(
-                        if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
-                      )
+                  onEditingModeChange = doModeChange
                 )
               ),
               <.div(
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Languages"),
                 EditableComponent(
-                  view = pc.languages.headOption.fold("Click to add")(_ => pc.languages.map(_.name).mkString(", ")),
-                  edit = LanguageEditor(pc.languages, languages => modPCInfo(info => info.copy(languages = languages))),
+                  view = info.languages.headOption.fold("Click to add")(_ => info.languages.map(_.name).mkString(", ")),
+                  edit = LanguageEditor(info.languages, languages => modPCInfo(info.copy(languages = languages))),
                   title = "Languages",
-                  onModeChange = mode =>
-                    $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
-                      dmScreenState.changeDialogMode(
-                        if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
-                      )
+                  onEditingModeChange = doModeChange
                 )
               ),
               <.div(
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Feats"),
                 EditableComponent(
-                  view = pc.feats.headOption.fold("Click to add")(_ => pc.feats.map(_.name).mkString(", ")),
-                  edit = FeatsEditor(pc.feats, feats => modPCInfo(info => info.copy(feats = feats))),
+                  view = info.feats.headOption.fold("Click to add")(_ => info.feats.map(_.name).mkString(", ")),
+                  edit = FeatsEditor(info.feats, feats => modPCInfo(info.copy(feats = feats))),
                   title = "Feats",
-                  onModeChange = mode =>
-                    $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
-                      dmScreenState.changeDialogMode(
-                        if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
-                      )
+                  onEditingModeChange = doModeChange
                 )
               ),
               <.div(
                 ^.className := "characterDetails",
                 <.div(^.className := "sectionTitle", "Senses"),
                 EditableComponent(
-                  view = <.div(pc.senses.headOption.fold("Click to add") { _ =>
-                    pc.senses.map(s => s"${s.sense} ${s.range}").mkString(", ")
+                  view = <.div(info.senses.headOption.fold("Click to add") { _ =>
+                    info.senses.map(s => s"${s.sense} ${s.range}").mkString(", ")
                   }),
-                  edit = SensesEditor(pc.senses, senses => modPCInfo(info => info.copy(senses = senses))),
+                  edit = SensesEditor(info.senses, senses => modPCInfo(info.copy(senses = senses))),
                   title = "Senses",
-                  onModeChange = mode =>
-                    $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
-                      dmScreenState.changeDialogMode(
-                        if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
-                      )
+                  onEditingModeChange = doModeChange
                 )
               ),
               <.div(
@@ -520,26 +494,22 @@ object PlayerCharacterComponent {
                 <.div(^.className := "sectionTitle", "Notes"),
                 EditableComponent(
                   view = <.div(
-                    ^.dangerouslySetInnerHtml := pc.notes.trim.headOption.fold("Click here to add")(_ => pc.notes)
+                    ^.dangerouslySetInnerHtml := info.notes.trim.headOption.fold("Click here to add")(_ => info.notes)
                   ),
                   edit = {
                     PlayerCharacterNotesEditor(
-                      pc.notes,
+                      info.notes,
                       onChange = (
                         notes,
                         personalityTraits,
                         ideals,
                         bonds,
                         flaws
-                      ) => modPCInfo(info => info.copy(notes = notes))
+                      ) => modPCInfo(info.copy(notes = notes))
                     )
                   },
                   title = "Notes",
-                  onModeChange = mode =>
-                    $.modState(_.copy(dialogOpen = mode == EditableComponent.Mode.edit)) >>
-                      dmScreenState.changeDialogMode(
-                        if (mode == EditableComponent.Mode.edit) DialogMode.open else DialogMode.closed
-                      )
+                  onEditingModeChange = doModeChange
                 )
               )
             )
@@ -554,16 +524,26 @@ object PlayerCharacterComponent {
     .builder[Props]("PlayerCharacterComponent")
     .initialStateFromProps(p => State(p.playerCharacter))
     .renderBackend[Backend]
-    .shouldComponentUpdatePure($ => ! $.nextState.dialogOpen)
+    .shouldComponentUpdatePure($ => $.nextState.editingMode != EditingMode.edit) // Don't update while we have a dialog open
     .build
 
   def apply(
-    playerCharacter: PlayerCharacter,
-    onDelete:        PlayerCharacter => Callback = _ => Callback.empty,
-    onSync:          PlayerCharacter => Callback = _ => Callback.empty
+    playerCharacter:     PlayerCharacter,
+    onEditingModeChange: EditableComponent.EditingMode => Callback,
+    onChange:            PlayerCharacter => Callback,
+    onDelete:            PlayerCharacter => Callback,
+    onSync:              PlayerCharacter => Callback = _ => Callback.empty
   ): Unmounted[Props, State, Backend] = {
     // Note the "withKey" here, this is to make sure that the component is properly updated when the key changes
-    component.withKey(playerCharacter.header.id.value.toString)(Props(playerCharacter, onDelete, onSync))
+    component.withKey(playerCharacter.header.id.value.toString)(
+      Props(
+        playerCharacter = playerCharacter,
+        onEditingModeChange = onEditingModeChange,
+        onChange = onChange,
+        onDelete = onDelete,
+        onSync = onSync
+      )
+    )
   }
 
 }

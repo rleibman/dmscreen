@@ -159,7 +159,7 @@ lazy val server = project
       "com.github.pathikrit"  %% "better-files"    % "3.9.2" withSources (),
       "com.github.daddykotex" %% "courier"         % "3.2.0" withSources (),
       "ch.qos.logback"         % "logback-classic" % "1.5.6" withSources (),
-      "commons-codec"          % "commons-codec"   % "1.17.0",
+      "commons-codec"          % "commons-codec"   % "1.17.1",
       // "com.dimafeng"          %% "testcontainers-scala-mariadb" % testContainerVersion withSources (),
       "com.dimafeng" %% "testcontainers-scala-mysql" % testContainerVersion withSources (),
       // Testing

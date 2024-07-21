@@ -23,7 +23,7 @@ package dmscreen.dnd5e.components
 
 import dmscreen.*
 import dmscreen.dnd5e.components.*
-import dmscreen.components.EditableComponent.Mode
+import dmscreen.components.EditableComponent.EditingMode
 import dmscreen.dnd5e.{*, given}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
