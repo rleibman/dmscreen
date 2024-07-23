@@ -57,6 +57,7 @@ Future (some ideas from Chatgpt)
 
 BUGS
 # General
+There's no error logging!
 ## CSS
 - Make menu thinner:
 menu column
@@ -68,6 +69,7 @@ content column
 ```
 width: 90%;
 ```
+- Modal headers are black on black, change color! 
 ## Functionality
 - Why is it changing pages on refresh and ignoring the # in the URL?
 # Dashboard
@@ -75,16 +77,16 @@ width: 90%;
 - Might want to see if we can fix the campaign notes now without a button.
 # Home
 ## Functionality
-- Hide "current button" if the campaign is already current
+DONE - Hide "current button" if the campaign is already current
 # PlayerCharacterPage/Component
 ## CSS
 - Align pc to top
 - Conditions bgcolor should be white
 - Inspiration bgcolor should be white
 ## Functionality
-- Character name is not sticking
-- Player name is not sticking
-- Inspiration is not sticking
+DONE - Character name is not sticking
+DONE - Player name is not sticking
+DONE - Inspiration is not sticking
 - Languages dialog broken
 - Feats Dialog broken
 

@@ -26,6 +26,7 @@ import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import zio.*
 import zio.config.magnolia.DeriveConfig
 import zio.config.typesafe.TypesafeConfigProvider
+import zio.nio.file.Path
 
 import java.io.File
 
@@ -49,15 +50,18 @@ case class DatabaseConfig(
 ) {}
 
 case class DMScreenConfiguration(
-  db:               DatabaseConfig,
-  host:             String,
-  port:             Int,
-  staticContentDir: String
+  db:                 DatabaseConfig,
+  host:               String,
+  port:               Int,
+  staticContentDir:   String,
+  dndBeyondFileStore: Path = zio.nio.file.Path("/home/rleibman/projects/dmscreen/fileStore/dndBeyondCharacters")
 )
 
 object AppConfig {
 
   def read(typesafeConfig: TypesafeConfig): UIO[AppConfig] = {
+    given DeriveConfig[zio.nio.file.Path] = DeriveConfig[String].map(string => zio.nio.file.Path(string))
+
     TypesafeConfigProvider
       .fromTypesafeConfig(typesafeConfig)
       .load(DeriveConfig.derived[AppConfig].desc)

@@ -41,6 +41,8 @@ enum MonsterSearchOrder {
 
 }
 
+case class PlayerCharacterSearch(dndBeyondId: Option[DndBeyondId] = None)
+
 case class MonsterSearch(
   name:            Option[String] = None,
   challengeRating: Option[ChallengeRating] = None,
@@ -80,7 +82,10 @@ trait DND5eRepository[F[_]] extends GameRepository {
     softDelete: Boolean = true
   ): F[Unit]
 
-  def playerCharacters(campaignId: CampaignId): F[Seq[PlayerCharacter]]
+  def playerCharacters(
+    campaignId: CampaignId,
+    search:     PlayerCharacterSearch = PlayerCharacterSearch()
+  ): F[Seq[PlayerCharacter]]
 
   def scenes(campaignId: CampaignId): F[Seq[Scene]]
 

@@ -52,7 +52,8 @@ case class DMScreenState(
   ) => Callback.empty,
   dialogMode:       DialogMode = DialogMode.closed,
   changeDialogMode: DialogMode => Callback = _ => Callback.empty,
-  campaignLog:      Seq[String] = Seq.empty
+  campaignLog:      Seq[String] = Seq.empty,
+  onForceSave:      Callback = Callback.empty
   //  operationStream: Option[WebSocketHandler] = None
 ) {
 

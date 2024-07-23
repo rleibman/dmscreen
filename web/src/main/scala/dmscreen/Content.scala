@@ -174,7 +174,8 @@ object Content {
                       )
                     ),
                   startSaveTicker.when(interval.isEmpty).map(_ => ())
-                )
+                ),
+              onForceSave = saveAll
             )
           )
         )

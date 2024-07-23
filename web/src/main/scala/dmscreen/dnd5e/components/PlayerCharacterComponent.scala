@@ -48,6 +48,7 @@ object PlayerCharacterComponent {
     onEditingModeChange: EditableComponent.EditingMode => Callback,
     onChange:            PlayerCharacter => Callback,
     onDelete:            PlayerCharacter => Callback,
+    onComponentClose:    PlayerCharacter => Callback,
     onSync:              PlayerCharacter => Callback
   )
 
@@ -115,11 +116,27 @@ object PlayerCharacterComponent {
                     _
                   ) => props.onSync(state.playerCharacter)
                 )
-                .when(info.source != DMScreenSource), // Only if the character originally came from a synchable source
+                .when(state.playerCharacter.header.source != DMScreenSource), // Only if the character originally came from a synchable source
               <.div(
                 ^.className := "characterHeader",
-                <.h2(EditableText(state.playerCharacter.header.name)), // TODO add onChange
-                <.span(EditableText(state.playerCharacter.header.playerName.getOrElse(""))) // TODO add onChange
+                <.h2(
+                  EditableText(
+                    state.playerCharacter.header.name,
+                    onChange = str =>
+                      modPlayerCharacter(
+                        state.playerCharacter.copy(header = state.playerCharacter.header.copy(name = str))
+                      )
+                  )
+                ),
+                <.span(
+                  EditableText(
+                    state.playerCharacter.header.playerName.getOrElse(""),
+                    onChange = str =>
+                      modPlayerCharacter(
+                        state.playerCharacter.copy(header = state.playerCharacter.header.copy(playerName = Some(str)))
+                      )
+                  )
+                )
               ),
               <.div(
                 ^.className := "characterDetails",
@@ -520,19 +537,29 @@ object PlayerCharacterComponent {
 
   }
 
-  private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
-    .builder[Props]("PlayerCharacterComponent")
-    .initialStateFromProps(p => State(p.playerCharacter))
-    .renderBackend[Backend]
-    .shouldComponentUpdatePure($ => $.nextState.editingMode != EditingMode.edit) // Don't update while we have a dialog open
-    .build
+  private val component: Component[Props, State, Backend, CtorType.Props] =
+    ScalaComponent
+      .builder[Props]("PlayerCharacterComponent")
+      .initialStateFromProps(p => State(p.playerCharacter))
+      .renderBackend[Backend]
+      .shouldComponentUpdatePure($ => $.nextState.editingMode != EditingMode.edit) // Don't update while we have a dialog open
+      .componentWillUnmount($ => $.props.onComponentClose($.state.playerCharacter))
+      // Enhancement: Let's force a save here, it's a bit wasteful if nothing is changed, what I'd really like would be to have the u
+      // upstream context force a save (and stop the save timer), but this will do for now.
+//        GraphQLRepository.live
+//          .upsert($.state.playerCharacter.header, $.state.playerCharacter.jsonInfo).map(_ =>
+//            Callback.empty
+//          ).completeWith(_.get)
+//      )
+      .build
 
   def apply(
     playerCharacter:     PlayerCharacter,
     onEditingModeChange: EditableComponent.EditingMode => Callback,
     onChange:            PlayerCharacter => Callback,
     onDelete:            PlayerCharacter => Callback,
-    onSync:              PlayerCharacter => Callback = _ => Callback.empty
+    onComponentClose:    PlayerCharacter => Callback,
+    onSync:              PlayerCharacter => Callback
   ): Unmounted[Props, State, Backend] = {
     // Note the "withKey" here, this is to make sure that the component is properly updated when the key changes
     component.withKey(playerCharacter.header.id.value.toString)(
@@ -541,6 +568,7 @@ object PlayerCharacterComponent {
         onEditingModeChange = onEditingModeChange,
         onChange = onChange,
         onDelete = onDelete,
+        onComponentClose = onComponentClose,
         onSync = onSync
       )
     )

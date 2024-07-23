@@ -154,6 +154,7 @@ object DND5eClient {
   sealed trait CreatureSize extends scala.Product with scala.Serializable { def value: String }
   object CreatureSize {
 
+    case object unknown extends CreatureSize { val value: String = "unknown" }
     case object gargantuan extends CreatureSize { val value: String = "gargantuan" }
     case object huge extends CreatureSize { val value: String = "huge" }
     case object large extends CreatureSize { val value: String = "large" }
@@ -162,6 +163,7 @@ object DND5eClient {
     case object tiny extends CreatureSize { val value: String = "tiny" }
 
     implicit val decoder: ScalarDecoder[CreatureSize] = {
+      case __StringValue("unknown")    => Right(CreatureSize.unknown)
       case __StringValue("gargantuan") => Right(CreatureSize.gargantuan)
       case __StringValue("huge")       => Right(CreatureSize.huge)
       case __StringValue("large")      => Right(CreatureSize.large)
@@ -171,6 +173,7 @@ object DND5eClient {
       case other                       => Left(DecodingError(s"Can't build CreatureSize from input $other"))
     }
     implicit val encoder: ArgEncoder[CreatureSize] = {
+      case CreatureSize.unknown    => __EnumValue("unknown")
       case CreatureSize.gargantuan => __EnumValue("gargantuan")
       case CreatureSize.huge       => __EnumValue("huge")
       case CreatureSize.large      => __EnumValue("large")
@@ -180,7 +183,7 @@ object DND5eClient {
     }
 
     val values: scala.collection.immutable.Vector[CreatureSize] =
-      scala.collection.immutable.Vector(gargantuan, huge, large, medium, small, tiny)
+      scala.collection.immutable.Vector(unknown, gargantuan, huge, large, medium, small, tiny)
 
   }
 
@@ -602,6 +605,8 @@ object DND5eClient {
       _root_.caliban.client.SelectionBuilder.Field("campaignId", Scalar())
     def name: SelectionBuilder[PlayerCharacterHeader, String] =
       _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def source: SelectionBuilder[PlayerCharacterHeader, String] =
+      _root_.caliban.client.SelectionBuilder.Field("source", Scalar())
     def playerName: SelectionBuilder[PlayerCharacterHeader, scala.Option[String]] =
       _root_.caliban.client.SelectionBuilder.Field("playerName", OptionOf(Scalar()))
 
@@ -794,6 +799,7 @@ object DND5eClient {
     id:         Long,
     campaignId: Long,
     name:       String,
+    source:     String,
     playerName: scala.Option[String] = None
   )
   object PlayerCharacterHeaderInput {
@@ -805,7 +811,23 @@ object DND5eClient {
             "id"         -> implicitly[ArgEncoder[Long]].encode(value.id),
             "campaignId" -> implicitly[ArgEncoder[Long]].encode(value.campaignId),
             "name"       -> implicitly[ArgEncoder[String]].encode(value.name),
+            "source"     -> implicitly[ArgEncoder[String]].encode(value.source),
             "playerName" -> value.playerName.fold(__NullValue: __Value)(value =>
+              implicitly[ArgEncoder[String]].encode(value)
+            )
+          )
+        )
+    }
+
+  }
+  final case class PlayerCharacterSearchInput(dndBeyondId: scala.Option[String] = None)
+  object PlayerCharacterSearchInput {
+
+    implicit val encoder: ArgEncoder[PlayerCharacterSearchInput] = new ArgEncoder[PlayerCharacterSearchInput] {
+      override def encode(value: PlayerCharacterSearchInput): __Value =
+        __ObjectValue(
+          List(
+            "dndBeyondId" -> value.dndBeyondId.fold(__NullValue: __Value)(value =>
               implicitly[ArgEncoder[String]].encode(value)
             )
           )
@@ -870,15 +892,21 @@ object DND5eClient {
       _root_.caliban.client.SelectionBuilder
         .Field("monster", OptionOf(Obj(innerSelection)), arguments = List(Argument("value", value, "Long!")(encoder0)))
     def playerCharacters[A](
-      value: Long
+      campaignId:            Long,
+      playerCharacterSearch: PlayerCharacterSearchInput
     )(
-      innerSelection:    SelectionBuilder[PlayerCharacter, A]
-    )(implicit encoder0: ArgEncoder[Long]
+      innerSelection: SelectionBuilder[PlayerCharacter, A]
+    )(implicit
+      encoder0: ArgEncoder[Long],
+      encoder1: ArgEncoder[PlayerCharacterSearchInput]
     ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
       _root_.caliban.client.SelectionBuilder.Field(
         "playerCharacters",
         OptionOf(ListOf(Obj(innerSelection))),
-        arguments = List(Argument("value", value, "Long!")(encoder0))
+        arguments = List(
+          Argument("campaignId", campaignId, "Long!")(encoder0),
+          Argument("playerCharacterSearch", playerCharacterSearch, "PlayerCharacterSearchInput!")(encoder1)
+        )
       )
     def scenes[A](value: Long)(innerSelection: SelectionBuilder[Scene, A])(implicit encoder0: ArgEncoder[Long])
       : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
@@ -1102,6 +1130,26 @@ object DND5eClient {
           Argument("entityType", entityType, "String!")(encoder0),
           Argument("id", id, "Long!")(encoder1),
           Argument("softDelete", softDelete, "Boolean!")(encoder2)
+        )
+      )
+    def importCharacterDNDBeyond[A](
+      campaignId:  Long,
+      dndBeyondId: String,
+      fresh:       Boolean
+    )(
+      innerSelection: SelectionBuilder[PlayerCharacter, A]
+    )(implicit
+      encoder0: ArgEncoder[Long],
+      encoder1: ArgEncoder[String],
+      encoder2: ArgEncoder[Boolean]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "importCharacterDNDBeyond",
+        OptionOf(Obj(innerSelection)),
+        arguments = List(
+          Argument("campaignId", campaignId, "Long!")(encoder0),
+          Argument("dndBeyondId", dndBeyondId, "String!")(encoder1),
+          Argument("fresh", fresh, "Boolean!")(encoder2)
         )
       )
     def applyOperations(

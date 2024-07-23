@@ -88,6 +88,8 @@ object ScalaJSClientAdapter extends TimerSupport {
 
   given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
 
+  // TODO if the return
+  // TODO switch this, insteaf of returning AsyncCallback, return an Either[Throwable, A]
   def asyncCalibanCall[Origin, A](
     selectionBuilder: SelectionBuilder[Origin, A]
   )(using ev:         IsOperation[Origin]

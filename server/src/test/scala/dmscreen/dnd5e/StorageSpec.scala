@@ -82,7 +82,13 @@ object StorageSpec extends ZIOSpecDefault {
           service         <- ZIO.service[DND5eZIORepository]
           startCharacters <- service.playerCharacters(testCampaignId)
           newId <- service.upsert(
-            PlayerCharacterHeader(PlayerCharacterId.empty, testCampaignId, "Test Character 2", Some("Test Player 2")),
+            PlayerCharacterHeader(
+              id = PlayerCharacterId.empty,
+              campaignId = testCampaignId,
+              name = "Test Character 2",
+              source = DMScreenSource,
+              playerName = Some("Test Player 2")
+            ),
             PlayerCharacterInfo(
               health = Health(
                 deathSave = DeathSave.empty,

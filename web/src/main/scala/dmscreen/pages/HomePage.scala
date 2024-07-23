@@ -258,7 +258,7 @@ object HomePage extends DMScreenTab {
                             _,
                             _
                           ) => dmScreenState.onSelectCampaign(Some(campaign))
-                        ),
+                        ).when(dmScreenState.campaignState.fold(true)(_.campaignHeader.id != campaign.id)),
                       Button
                         .title("Archive this campaign")
                         .icon(true)(Icon.name(SemanticICONS.archive))

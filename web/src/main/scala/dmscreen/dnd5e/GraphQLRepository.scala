@@ -49,6 +49,7 @@ import caliban.client.scalajs.DND5eClient.{
   PlayerCharacter as CalibanPlayerCharacter,
   PlayerCharacterHeader as CalibanPlayerCharacterHeader,
   PlayerCharacterHeaderInput,
+  PlayerCharacterSearchInput,
   Queries,
   Scene as CalibanScene,
   SceneHeader as CalibanSceneHeader,
@@ -57,6 +58,7 @@ import caliban.client.scalajs.DND5eClient.{
 import caliban.client.scalajs.{DND5eClient, given}
 import caliban.client.{ArgEncoder, SelectionBuilder}
 import dmscreen.*
+import dmscreen.dnd5e.ImportSource
 import japgolly.scalajs.react.callback.AsyncCallback
 import zio.*
 import zio.json.*
@@ -64,7 +66,17 @@ import zio.json.ast.Json
 
 object GraphQLRepository {
 
-  val live: DND5eRepository[AsyncCallback] = new DND5eRepository[AsyncCallback] {
+  trait ExtendedRepository extends DND5eRepository[AsyncCallback] {
+
+    def importDndBeyondCharacter(
+      campaignId:  CampaignId,
+      dndBeyondId: DndBeyondId,
+      fresh:       Boolean = false
+    ): AsyncCallback[PlayerCharacter]
+
+  }
+
+  val live = new ExtendedRepository {
 
     override def campaigns: AsyncCallback[Seq[CampaignHeader]] = {
       val sb = (
@@ -136,32 +148,42 @@ object GraphQLRepository {
       asyncCalibanCall(sb).map(_.get)
     }
 
-    override def playerCharacters(campaignId: CampaignId): AsyncCallback[Seq[PlayerCharacter]] = {
-      val sb: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
-        (CalibanPlayerCharacter.header(
-          CalibanPlayerCharacterHeader.campaignId ~
-            CalibanPlayerCharacterHeader.id ~
-            CalibanPlayerCharacterHeader.name ~
-            CalibanPlayerCharacterHeader.playerName
-        ) ~ CalibanPlayerCharacter.jsonInfo).map {
-          (
-            campaignId: Long,
-            pcId:       Long,
-            name:       String,
-            playerName: Option[String],
-            info:       Json
-          ) =>
-            PlayerCharacter(
-              PlayerCharacterHeader(
-                id = PlayerCharacterId(pcId),
-                campaignId = CampaignId(campaignId),
-                name = name,
-                playerName = playerName
-              ),
-              info
-            )
-        }
-      asyncCalibanCall(Queries.playerCharacters(campaignId.value)(sb)).map(_.toSeq.flatten)
+    private val playerCharacterSB: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
+      (CalibanPlayerCharacter.header(
+        CalibanPlayerCharacterHeader.campaignId ~
+          CalibanPlayerCharacterHeader.id ~
+          CalibanPlayerCharacterHeader.name ~
+          CalibanPlayerCharacterHeader.source ~
+          CalibanPlayerCharacterHeader.playerName
+      ) ~ CalibanPlayerCharacter.jsonInfo).map {
+        (
+          campaignId: Long,
+          pcId:       Long,
+          name:       String,
+          source:     String,
+          playerName: Option[String],
+          info:       Json
+        ) =>
+          PlayerCharacter(
+            PlayerCharacterHeader(
+              id = PlayerCharacterId(pcId),
+              campaignId = CampaignId(campaignId),
+              name = name,
+              source = source.fromJson[ImportSource].toOption.getOrElse(DMScreenSource),
+              playerName = playerName
+            ),
+            info
+          )
+      }
+
+    override def playerCharacters(
+      campaignId: CampaignId,
+      search:     PlayerCharacterSearch = PlayerCharacterSearch()
+    ): AsyncCallback[Seq[PlayerCharacter]] = {
+
+      val calibanSearch = PlayerCharacterSearchInput(dndBeyondId = search.dndBeyondId.map(_.value))
+      asyncCalibanCall(Queries.playerCharacters(campaignId.value, calibanSearch)(playerCharacterSB))
+        .map(_.toSeq.flatten)
 
     }
 
@@ -345,6 +367,7 @@ object GraphQLRepository {
         id = playerCharacterHeader.id.value,
         campaignId = playerCharacterHeader.campaignId.value,
         name = playerCharacterHeader.name,
+        source = playerCharacterHeader.source.toJson,
         playerName = playerCharacterHeader.playerName
       )
 
@@ -481,6 +504,17 @@ object GraphQLRepository {
 
       asyncCalibanCall(Queries.monster(monsterId.value)(monsterSB))
     }
+
+    def importDndBeyondCharacter(
+      campaignId:  CampaignId,
+      dndBeyondId: DndBeyondId,
+      fresh:       Boolean = false
+    ): AsyncCallback[PlayerCharacter] = {
+      asyncCalibanCall(
+        Mutations.importCharacterDNDBeyond(campaignId.value, dndBeyondId.value, fresh)(playerCharacterSB).map(_.get)
+      )
+    }
+
   }
 
 }

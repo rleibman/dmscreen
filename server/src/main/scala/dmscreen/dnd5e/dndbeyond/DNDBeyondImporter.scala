@@ -47,13 +47,56 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
 
   extension (obj: Json.Obj) {
 
-    private def getObjOption(key: String): Either[String, Option[Json.Obj]] = Right(obj.get(key).flatMap(_.asObject))
-    private def getArrOption(key: String): Either[String, Option[Chunk[Json]]] = Right(obj.get(key).flatMap(_.asArray))
-    private def getStrOption(key: String): Either[String, Option[String]] = Right(obj.get(key).flatMap(_.asString))
+    private def getObjOption(key: String): Either[String, Option[Json.Obj]] =
+      Right(
+        obj
+          .get(key).flatMap(j =>
+            j match {
+              case Json.Null => None
+              case _         => j.asObject
+            }
+          )
+      )
+    private def getArrOption(key: String): Either[String, Option[Chunk[Json]]] =
+      Right(
+        obj
+          .get(key).flatMap(j =>
+            j match {
+              case Json.Null => None
+              case _         => j.asArray
+            }
+          )
+      )
+    private def getStrOption(key: String): Either[String, Option[String]] =
+      Right(
+        obj
+          .get(key).flatMap(j =>
+            j match {
+              case Json.Null => None
+              case _         => j.asString
+            }
+          )
+      )
     private def getBooleanOption(key: String): Either[String, Option[Boolean]] =
-      Right(obj.get(key).flatMap(_.asBoolean))
+      Right(
+        obj
+          .get(key).flatMap(j =>
+            j match {
+              case Json.Null => None
+              case _         => j.asBoolean
+            }
+          )
+      )
     private def getIntOption(key: String): Either[String, Option[Int]] =
-      Right(obj.get(key).flatMap(_.asNumber).map(_.value.intValue))
+      Right(
+        obj
+          .get(key).flatMap(j =>
+            j match {
+              case Json.Null => None
+              case _         => j.asNumber.map(_.value.intValue)
+            }
+          )
+      )
 
     private def getObj(key: String): Either[String, Json.Obj] =
       for {
@@ -113,6 +156,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
       case 4 => CreatureSize.large
       case 5 => CreatureSize.huge
       case 6 => CreatureSize.gargantuan
+      case _ => CreatureSize.unknown
     }
   private def alignmentId2Alignment(id: Int): Alignment =
     id match {
@@ -125,6 +169,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
       case 7 => Alignment.lawfulEvil
       case 8 => Alignment.neutralEvil
       case 9 => Alignment.chaoticEvil
+      case _ => Alignment.unknown
     }
 
   private def lifestyleId2Lifestyle(i: Int): Lifestyle =
@@ -136,6 +181,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
       case 5 => Lifestyle.comfortable
       case 6 => Lifestyle.wealthy
       case 7 => Lifestyle.aristocratic
+      case _ => Lifestyle.unknown
     }
 
   private def listOfEither2EitherOfList[B](data: List[Either[String, B]]): Either[String, List[B]] = {
@@ -166,9 +212,9 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
         characterClassId <- CharacterClassId.values
           .find(s => name.equalsIgnoreCase(s.toString)).toRight(s"Unknown class $name")
         level              <- classObj.getInt("level")
-        subclassDefinition <- classObj.getObj("subclassDefinition")
-        subclassName       <- subclassDefinition.getStr("name")
-      } yield PlayerCharacterClass(characterClassId, Option(SubClass(subclassName)), level)
+        subclassDefinition <- classObj.getObjOption("subclassDefinition")
+        subclassName       <- subclassDefinition.fold(Right(None: Option[String]))(_.getStrOption("name"))
+      } yield PlayerCharacterClass(characterClassId, subclassName.map(SubClass.apply), level)
 
     def statTuple(json: Json): Either[String, (AbilityType, Int)] = {
       for {
@@ -183,7 +229,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
         json        <- str.fromJson[Json]
         d1          <- json.asObject.toRight("Not an object")
         data        <- d1.getObj("data")
-        id          <- data.getInt("id").map(_.toString)
+        dndBeyondId <- data.getInt("id").map(DndBeyondId.apply(_))
         player      <- data.getStr("username")
         name        <- data.getStr("name")
         gender      <- data.getStrOption("gender")
@@ -202,8 +248,8 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
         removedHitPoints    <- data.getIntOption("removedHitPoints")
         temporaryHitPoints  <- data.getIntOption("temporaryHitPoints")
         deathSaves          <- data.getObj("deathSaves")
-        deathSavesSuccesses <- deathSaves.getInt("successCount")
-        deathSavesFailures  <- deathSaves.getInt("failCount")
+        deathSavesSuccesses <- deathSaves.getIntOption("failCount").map(_.getOrElse(0))
+        deathSavesFailures  <- deathSaves.getIntOption("successCount").map(_.getOrElse(0))
         deathSavesIsStable  <- deathSaves.getBool("isStabilized")
         currentXp           <- data.getInt("currentXp")
         alignment           <- data.getInt("alignmentId").map(alignmentId2Alignment)
@@ -232,7 +278,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
         size <- raceObj
           .getIntOption("sizeId").map(_.map(sizeId2CreatureSize).getOrElse(CreatureSize.medium))
         notes          <- data.getObj("notes")
-        notesBackstory <- notes.getStr("backstory")
+        notesBackstory <- notes.getStrOption("backstory").map(_.getOrElse(""))
         currencies     <- data.getObj("currencies")
         currencyGP     <- currencies.getInt("gp")
         currencyPP     <- currencies.getInt("pp")
@@ -260,16 +306,14 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
           .getArr("classSpells").map(
             _.flatMap(_.asObject).flatMap(_.get("spells").flatMap(_.asArray)).flatten.flatMap(_.asObject).toList
           )
-        deathSavesSuccesses <- deathSaves.getInt("failCount")
-        deathSavesFailures  <- deathSaves.getInt("successCount")
-        creatures           <- data.getArr("creatures")
-        modifiers           <- data.getObj("modifiers")
-        traitsObj           <- data.getObj("traits")
-        personalityTraits   <- traitsObj.getStrOption("personalityTraits")
-        ideals              <- traitsObj.getStrOption("ideals")
-        bonds               <- traitsObj.getStrOption("bonds")
-        flaws               <- traitsObj.getStrOption("flaws")
-        appearance          <- traitsObj.getStrOption("appearance")
+        creatures         <- data.getArr("creatures")
+        modifiers         <- data.getObj("modifiers")
+        traitsObj         <- data.getObj("traits")
+        personalityTraits <- traitsObj.getStrOption("personalityTraits")
+        ideals            <- traitsObj.getStrOption("ideals")
+        bonds             <- traitsObj.getStrOption("bonds")
+        flaws             <- traitsObj.getStrOption("flaws")
+        appearance        <- traitsObj.getStrOption("appearance")
         raceModifiers <- modifiers
           .getArr("race").flatMap(chunk =>
             listOfEither2EitherOfList(chunk.map(_.asObject.toRight("Not an object")).toList)
@@ -468,15 +512,15 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
 
         PlayerCharacter(
           PlayerCharacterHeader(
-            PlayerCharacterId(0),
-            CampaignId(1),
-            name,
-            Some(player)
+            id = PlayerCharacterId(0),
+            campaignId = CampaignId(1),
+            name = name,
+            source = DNDBeyondImportSource(dndBeyondId),
+            playerName = Some(player)
           ),
           PlayerCharacterInfo(
             health = hitPoints,
             armorClass = ac,
-            source = DNDBeyondImportSource(uri),
             physicalCharacteristics = PhysicalCharacteristics(
               gender = gender,
               age = age,

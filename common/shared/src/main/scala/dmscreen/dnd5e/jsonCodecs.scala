@@ -75,6 +75,7 @@ given JsonCodec[ActionType] =
   )
 
 given JsonCodec[DiceRoll] = JsonCodec.string.transform(DiceRoll.apply, _.roll)
+given JsonCodec[DndBeyondId] = JsonCodec.string.transformOrFail(DndBeyondId.apply, _.value)
 given JsonCodec[Source] = JsonCodec.derived[Source]
 given JsonCodec[SubClass] = JsonCodec.derived[SubClass]
 given JsonCodec[CharacterClass] = JsonCodec.derived[CharacterClass]

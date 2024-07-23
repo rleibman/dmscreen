@@ -31,7 +31,7 @@ import zio.*
 
 type DMScreenTask[+A] = ZIO[Any, DMScreenError, A] // Succeed with an `A`, may fail with `Throwable`, no requirements.
 
-type DMScreenServerEnvironment = STAZIORepository & DND5eZIORepository & DNDBeyondImporter
+type DMScreenServerEnvironment = STAZIORepository & DND5eZIORepository & DNDBeyondImporter & ConfigurationService
 
 object EnvironmentBuilder {
 
@@ -75,7 +75,8 @@ object EnvironmentBuilder {
 
     }
 
-  def withContainer = {
+  def withContainer
+    : ULayer[STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter & InitializingLayer] = {
     ZLayer
       .make[STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter & InitializingLayer](
         DMScreenContainer.containerLayer,

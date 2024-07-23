@@ -12,7 +12,7 @@ lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time o
 // TODO switch to Mariadb
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
-lazy val SCALA = "3.5.0-RC4"
+lazy val SCALA = "3.5.0-RC5"
 Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
 Global / scalaVersion         := SCALA

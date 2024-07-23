@@ -35,8 +35,9 @@ import zio.json.*
 object PCPage extends DMScreenTab {
 
   case class State(
-    pcs:         Seq[PlayerCharacter] = Seq.empty,
-    editingMode: EditingMode = EditingMode.view
+    pcs:               Seq[PlayerCharacter] = Seq.empty,
+    editingMode:       EditingMode = EditingMode.view,
+    dndBeyondImportId: Option[String] = None
   )
 
   class Backend($ : BackendScope[CampaignId, State]) {
@@ -56,6 +57,57 @@ object PCPage extends DMScreenTab {
           val campaign = campaignState.campaign
 
           VdomArray(
+            Modal
+              .open(state.dndBeyondImportId.isDefined)(
+                Modal.Header("Import from dndbeyond.com"),
+                Modal.Content(
+                  <.p("Make sure that your character is public!"),
+                  Input
+                    .label("Character ID").onChange {
+                      (
+                        _,
+                        data
+                      ) =>
+                        val newVal = data.value match {
+                          case s: String => s
+                          case _ => state.dndBeyondImportId.getOrElse("")
+                        }
+                        $.modState(_.copy(dndBeyondImportId = Some(newVal)))
+                    }
+                ),
+                Modal.Actions(
+                  Button.onClick(
+                    (
+                      _,
+                      _
+                    ) => $.modState(_.copy(dndBeyondImportId = None))
+                  )("Cancel"),
+                  Button.onClick {
+                    (
+                      _,
+                      _
+                    ) =>
+                      val maybeId = DndBeyondId(state.dndBeyondImportId.get)
+                      maybeId.fold(
+                        s => Callback.alert(s),
+                        good =>
+                          GraphQLRepository.live
+                            .importDndBeyondCharacter(campaign.id, good)
+                            .map(newPC =>
+                              $.modState(
+                                s =>
+                                  s.copy(
+                                    s.pcs.filter(_.header.id != newPC.header.id) :+ newPC,
+                                    dndBeyondImportId = None
+                                  ),
+                                Callback.alert(s"Successfully imported '${newPC.header.name}'!")
+                              )
+                            )
+                            .completeWith(_.get)
+                      )
+                  }("Import!")
+                )
+              ),
             <.div(
               ^.className := "pageActions",
               ^.key       := "pageActions",
@@ -70,6 +122,7 @@ object PCPage extends DMScreenTab {
                       header = PlayerCharacterHeader(
                         id = PlayerCharacterId.empty,
                         campaignId = campaign.header.id,
+                        source = DMScreenSource,
                         name = "New Character"
                       ),
                       jsonInfo = PlayerCharacterInfo(
@@ -88,7 +141,12 @@ object PCPage extends DMScreenTab {
                       .completeWith(_.get)
                   }
                 )("Add Character"),
-              Button("Import from dndbeyond.com"), // TODO
+              Button.onClick(
+                (
+                  _,
+                  _
+                ) => $.modState(_.copy(dndBeyondImportId = Some("")))
+              )("Import from dndbeyond.com"),
               Button("Import from 5th Edition Tools"), // TODO
               Button("Long Rest (Reset resources)") // TODO long rest
             ),
@@ -124,7 +182,9 @@ object PCPage extends DMScreenTab {
                             s"Deleted player character ${pc.header.name}"
                           )
                         )
-                        .completeWith(_.get)
+                        .completeWith(_.get),
+                    onComponentClose = _ => dmScreenState.onForceSave,
+                    onSync = _ => Callback.empty // TODO write this
                   )
                 ).toVdomArray
             )

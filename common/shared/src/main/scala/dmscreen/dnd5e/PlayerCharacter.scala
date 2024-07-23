@@ -49,6 +49,7 @@ final case class PlayerCharacterHeader(
   id:         PlayerCharacterId,
   campaignId: CampaignId,
   name:       String,
+  source:     ImportSource,
   playerName: Option[String] = None
 ) extends HasId[PlayerCharacterId]
 
@@ -56,8 +57,26 @@ sealed trait ImportSource
 
 case object DMScreenSource extends ImportSource
 
+opaque type DndBeyondId = String
+
+object DndBeyondId {
+
+  val dndBeyondIdRegex = "^[1-9][0-9]{8}$".r
+
+  def apply(dndBeyondId: String): Either[String, DndBeyondId] =
+    if (dndBeyondIdRegex.matches(dndBeyondId)) Right(dndBeyondId) else Left(s"Invalid DnD Beyond Id: $dndBeyondId")
+  def apply(dndBeyondId: Long): DndBeyondId = dndBeyondId.toString
+
+  extension (dndBeyondId: DndBeyondId) {
+
+    def value: String = dndBeyondId
+
+  }
+
+}
+
 sealed case class DNDBeyondImportSource(
-  uri: URI
+  dndBeyondId: DndBeyondId
 ) extends ImportSource
 
 sealed case class FifthEditionCharacterSheetImportSource(
@@ -144,7 +163,7 @@ case class Feat(name: String)
 
 enum Lifestyle {
 
-  case wretched, squalid, poor, modest, comfortable, wealthy, aristocratic
+  case wretched, squalid, poor, modest, comfortable, wealthy, aristocratic, unknown
 
 }
 
@@ -160,6 +179,7 @@ enum Alignment(val name: String) {
   case neutralEvil extends Alignment("Neutral Evil")
   case chaoticEvil extends Alignment("Chaotic Evil")
   case unaligned extends Alignment("Unaligned")
+  case unknown extends Alignment("Unknown")
 
 }
 
@@ -308,7 +328,7 @@ case class Wallet(
 
 enum CreatureSize {
 
-  case tiny, small, medium, large, huge, gargantuan
+  case tiny, small, medium, large, huge, gargantuan, unknown
 
 }
 
@@ -499,7 +519,6 @@ case class PlayerCharacterInfo(
   health:                  Health,
   armorClass:              Int,
   classes:                 List[PlayerCharacterClass],
-  source:                  ImportSource = DMScreenSource,
   physicalCharacteristics: PhysicalCharacteristics = PhysicalCharacteristics(),
   faith:                   Option[String] = None,
   inspiration:             Boolean = false,

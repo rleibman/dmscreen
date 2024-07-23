@@ -95,6 +95,7 @@ object QuillRepository {
         id = header.id.value,
         campaignId = header.campaignId.value,
         name = header.name,
+        source = header.source,
         playerName = header.playerName,
         info = jsonInfo,
         version = dmscreen.BuildInfo.version,
@@ -110,6 +111,7 @@ object QuillRepository {
     name:       String,
     playerName: Option[String],
     info:       Json,
+    source:     ImportSource,
     version:    String,
     deleted:    Boolean
   ) {
@@ -120,6 +122,7 @@ object QuillRepository {
           id = PlayerCharacterId(id),
           campaignId = CampaignId(campaignId),
           name = name,
+          source = source,
           playerName = playerName
         ),
         jsonInfo = info,
@@ -498,13 +501,44 @@ object QuillRepository {
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
-        override def playerCharacters(campaignId: CampaignId): IO[DMScreenError, Seq[PlayerCharacter]] =
+        private given Decoder[ImportSource] =
+          decoder(
+            (
+              index,
+              row,
+              session
+            ) => row.getString(index).fromJson[ImportSource].toOption.get
+          )
+
+        private given Encoder[ImportSource] =
+          encoder(
+            java.sql.Types.VARCHAR,
+            (
+              index,
+              value,
+              row
+            ) => row.setString(index, value.toJson)
+          )
+
+        override def playerCharacters(
+          campaignId: CampaignId,
+          search:     PlayerCharacterSearch
+        ): DMScreenTask[Seq[PlayerCharacter]] = {
+          val q0: Quoted[EntityQuery[PlayerCharacterRow]] =
+            qPlayerCharacters.filter(v => !v.deleted && v.campaignId == lift(campaignId.value))
+          val q1: Quoted[EntityQuery[PlayerCharacterRow]] =
+            search.dndBeyondId.fold(q0)(dndBeyondId =>
+              q0.filter(_.source == lift(DNDBeyondImportSource(dndBeyondId).asInstanceOf[ImportSource]))
+            )
+
           ctx
-            .run(qPlayerCharacters.filter(v => !v.deleted && v.campaignId == lift(campaignId.value)))
+            .run(q1)
             .map(_.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+        }
+
         override def scenes(campaignId: CampaignId): IO[DMScreenError, Seq[Scene]] =
           ctx
             .run(qScenes.filter(v => !v.deleted && v.campaignId == lift(campaignId.value)).sortBy(_.orderCol))
@@ -868,6 +902,7 @@ object QuillRepository {
                          id = PlayerCharacterId.empty.value,
                          campaignId = header.campaignId.value,
                          name = header.name,
+                         source = header.source,
                          playerName = header.playerName,
                          info = info,
                          version = dmscreen.BuildInfo.version,

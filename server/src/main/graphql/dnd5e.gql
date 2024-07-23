@@ -140,7 +140,12 @@ input PlayerCharacterHeaderInput {
   id: Long!
   campaignId: Long!
   name: String!
+  source: String!
   playerName: String
+}
+
+input PlayerCharacterSearchInput {
+  dndBeyondId: String
 }
 
 input SceneHeaderInput {
@@ -262,6 +267,7 @@ type Mutations {
   upsertMonster(header: MonsterHeaderInput!, jsonInfo: Json!, version: String!): Long
   upsertEncounter(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): Long
   deleteEntity(entityType: String!, id: Long!, softDelete: Boolean!): Unit
+  importCharacterDNDBeyond(campaignId: Long!, dndBeyondId: String!, fresh: Boolean!): PlayerCharacter
   applyOperations(entityType: String!, id: Long!, events: [Json!]!): Unit
 }
 
@@ -287,6 +293,7 @@ type PlayerCharacterHeader {
   id: Long!
   campaignId: Long!
   name: String!
+  source: String!
   playerName: String
 }
 
@@ -294,7 +301,7 @@ type Queries {
   campaigns: [CampaignHeader!]
   campaign(value: Long!): Campaign
   monster(value: Long!): Monster
-  playerCharacters(value: Long!): [PlayerCharacter!]
+  playerCharacters(campaignId: Long!, playerCharacterSearch: PlayerCharacterSearchInput!): [PlayerCharacter!]
   scenes(value: Long!): [Scene!]
   nonPlayerCharacters(value: Long!): [NonPlayerCharacter!]
   encounters(value: Long!): [Encounter!]

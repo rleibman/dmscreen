@@ -255,12 +255,16 @@ class FifthEditionCharacterSheetImporter extends DND5eImporter[URI, URI, URI, UR
 
       Right(
         PlayerCharacter(
-          header = PlayerCharacterHeader(id = PlayerCharacterId.empty, campaignId = CampaignId(1), name = name),
+          header = PlayerCharacterHeader(
+            id = PlayerCharacterId.empty,
+            campaignId = CampaignId(1),
+            name = name,
+            source = FifthEditionCharacterSheetImportSource(uri)
+          ),
           jsonInfo = PlayerCharacterInfo(
             health = hitPoints,
             armorClass = armorClass,
             classes = classes,
-            source = FifthEditionCharacterSheetImportSource(uri),
 //physicalCharacteristics = ,
 //faith = ,
 //inspiration = ,

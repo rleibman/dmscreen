@@ -45,10 +45,10 @@ object TestCreator extends ZIOApp {
       id = PlayerCharacterId.empty,
       campaignId = CampaignId(1),
       name = "Chr'zyzx",
+      source = DMScreenSource,
       playerName = Some("Kyle")
     ),
     PlayerCharacterInfo(
-      source = DMScreenSource,
       race = Race("Thri-Kreen"),
       background = Some(Background("Volstrucker")),
       classes = List(

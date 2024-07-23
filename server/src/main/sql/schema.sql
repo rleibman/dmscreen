@@ -50,6 +50,7 @@ create table playerCharacter
     campaignId   int(11)    not null,
     `name`       text       NOT NULL,
     `playerName` text       NULL, -- TODO change to foreign key to user
+    source       text       not null, -- Really json, but we need to be able to perform stuff on it
     info         json       not null,
     `version`    text       NOT NULL,
     `deleted`    tinyint(4) NOT NULL DEFAULT '0',
