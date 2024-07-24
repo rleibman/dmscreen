@@ -20,6 +20,7 @@ enum Alignment {
   neutralGood
   trueNeutral
   unaligned
+  unknown
 }
 
 enum Biome {
@@ -48,6 +49,7 @@ enum CreatureSize {
   medium
   small
   tiny
+  unknown
 }
 
 enum GameSystem {
@@ -305,6 +307,7 @@ type Queries {
   scenes(value: Long!): [Scene!]
   nonPlayerCharacters(value: Long!): [NonPlayerCharacter!]
   encounters(value: Long!): [Encounter!]
+  encounter(campaignId: Long!, encounterId: Long!): Encounter
   bestiary(name: String, challengeRating: Float, size: CreatureSize, alignment: Alignment, biome: Biome, monsterType: MonsterType, source: SourceInput, orderCol: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): MonsterSearchResults
   sources: [Source!]
   classes: [CharacterClass!]

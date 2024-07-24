@@ -34,10 +34,12 @@ import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICON
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
 
+import java.util.UUID
+
 object FeatsEditor {
 
   case class State(
-    feats: List[Feat]
+    feats: Map[String, Feat]
   )
 
   case class Props(
@@ -52,13 +54,13 @@ object FeatsEditor {
       state: State
     ): VdomNode = {
       Table(
-        Table.Body(state.feats.zipWithIndex.map {
-          (
-            feat,
-            i
-          ) =>
+        Table.Body(state.feats.toList.zipWithIndex.map {
+          case (
+                (id, feat),
+                i
+              ) =>
             Table.Row
-              .withKey(feat.name)(
+              .withKey(id)(
                 Table.Cell(
                   Input
                     .value(feat.name)
@@ -72,8 +74,8 @@ object FeatsEditor {
                           case _ => feat.name
                         }
                         $.modState(
-                          s => s.copy(feats = s.feats.updated(i, feat.copy(name = newVal))),
-                          $.state.flatMap(s => props.onChange(s.feats.filter(_.name.trim.nonEmpty)))
+                          s => s.copy(feats = s.feats + (id -> Feat(newVal))),
+                          $.state.flatMap(s => props.onChange(s.feats.values.toList.filter(_.name.trim.nonEmpty)))
                         )
                       }
                     )
@@ -87,8 +89,8 @@ object FeatsEditor {
                         _
                       ) =>
                         $.modState(
-                          s => s.copy(feats = s.feats.filter(_ != feat)),
-                          $.state.flatMap(s => props.onChange(s.feats))
+                          s => s.copy(feats = s.feats.removed(id)),
+                          $.state.flatMap(s => props.onChange(s.feats.values.toList))
                         )
                     }(Icon.name(SemanticICONS.delete))
                 )
@@ -105,8 +107,8 @@ object FeatsEditor {
                     _
                   ) =>
                     $.modState(
-                      s => s.copy(feats = s.feats :+ Feat("")),
-                      $.state.flatMap(s => props.onChange(s.feats.filter(_.name.trim.nonEmpty)))
+                      s => s.copy(feats = s.feats + (UUID.randomUUID().toString -> Feat(""))),
+                      $.state.flatMap(s => props.onChange(s.feats.values.toList.filter(_.name.trim.nonEmpty)))
                     )
                 )(Icon.name(SemanticICONS.add))
             )
@@ -126,7 +128,7 @@ object FeatsEditor {
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
     .builder[Props]("FeatsEditor")
-    .initialStateFromProps(p => State(p.feats))
+    .initialStateFromProps(p => State(p.feats.map(UUID.randomUUID().toString -> _).toMap))
     .renderBackend[Backend]
     .configure(Reusability.shouldComponentUpdate)
     .build

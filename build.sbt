@@ -17,6 +17,9 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
 Global / scalaVersion         := SCALA
 
+import scala.concurrent.duration._
+Global / watchAntiEntropy :=  1.second
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Shared settings
 

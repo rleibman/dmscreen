@@ -544,13 +544,6 @@ object PlayerCharacterComponent {
       .renderBackend[Backend]
       .shouldComponentUpdatePure($ => $.nextState.editingMode != EditingMode.edit) // Don't update while we have a dialog open
       .componentWillUnmount($ => $.props.onComponentClose($.state.playerCharacter))
-      // Enhancement: Let's force a save here, it's a bit wasteful if nothing is changed, what I'd really like would be to have the u
-      // upstream context force a save (and stop the save timer), but this will do for now.
-//        GraphQLRepository.live
-//          .upsert($.state.playerCharacter.header, $.state.playerCharacter.jsonInfo).map(_ =>
-//            Callback.empty
-//          ).completeWith(_.get)
-//      )
       .build
 
   def apply(

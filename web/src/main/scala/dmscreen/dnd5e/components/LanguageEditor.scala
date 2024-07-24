@@ -34,10 +34,12 @@ import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICON
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
 
+import java.util.UUID
+
 object LanguageEditor {
 
   case class State(
-    languages: Seq[Language]
+    languages: Map[Int, Language]
   )
 
   case class Props(
@@ -57,10 +59,10 @@ object LanguageEditor {
             lang,
             i
           ) =>
-            Table.Row.withKey(lang.name)(
+            Table.Row.withKey(lang._1.toString)(
               Table.Cell(
                 Input
-                  .value(lang.name)
+                  .value(lang._2.name)
                   .onChange(
                     (
                       _,
@@ -68,11 +70,11 @@ object LanguageEditor {
                     ) => {
                       val newVal = data.value match {
                         case s: String => s
-                        case _ => lang.name
+                        case _ => lang._2.name
                       }
                       $.modState(
-                        s => s.copy(languages = s.languages.updated(i, lang.copy(name = newVal))),
-                        $.state.flatMap(s => props.onChange(s.languages.filter(_.name.trim.nonEmpty).toSet))
+                        s => s.copy(languages = s.languages + (lang._1 -> Language(newVal))),
+                        $.state.flatMap(s => props.onChange(s.languages.values.filter(_.name.trim.nonEmpty).toSet))
                       )
                     }
                   )
@@ -87,7 +89,7 @@ object LanguageEditor {
                     ) =>
                       $.modState(
                         s => s.copy(languages = s.languages.filter(_ != lang)),
-                        $.state.flatMap(s => props.onChange(s.languages.toSet))
+                        $.state.flatMap(s => props.onChange(s.languages.values.toSet))
                       )
                   }(Icon.name(SemanticICONS.delete))
               )
@@ -104,8 +106,8 @@ object LanguageEditor {
                     _
                   ) =>
                     $.modState(
-                      s => s.copy(languages = s.languages :+ Language("")),
-                      $.state.flatMap(s => props.onChange(s.languages.filter(_.name.trim.nonEmpty).toSet))
+                      s => s.copy(languages = s.languages + (UUID.randomUUID().toString.hashCode() -> Language(""))),
+                      $.state.flatMap(s => props.onChange(s.languages.values.filter(_.name.trim.nonEmpty).toSet))
                     )
                 )(Icon.name(SemanticICONS.add))
             )
@@ -119,20 +121,15 @@ object LanguageEditor {
 
   import scala.language.unsafeNulls
 
-  given Ordering[Language] = Ordering.by(_.name)
-  given Reusability[State] = Reusability.by((s: State) => s.languages.mkString)
-  given Reusability[Props] = Reusability.by((_: Props) => "") // make sure the props are ignored for re-rendering the component
-
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
     .builder[Props]("LanguageEditor")
-    .initialStateFromProps(p => State(p.languages))
+    .initialStateFromProps(p => State(p.languages.map(l => l.name.hashCode() -> l).toMap))
     .renderBackend[Backend]
-    .configure(Reusability.shouldComponentUpdate)
     .build
 
   def apply(
     languages: Set[Language],
     onChange:  Set[Language] => Callback = _ => Callback.empty
-  ): Unmounted[Props, State, Backend] = component(Props(languages = languages.toSeq.sorted, onChange = onChange))
+  ): Unmounted[Props, State, Backend] = component(Props(languages = languages.toSeq, onChange = onChange))
 
 }

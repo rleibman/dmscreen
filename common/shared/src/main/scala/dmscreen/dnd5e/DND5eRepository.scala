@@ -93,6 +93,10 @@ trait DND5eRepository[F[_]] extends GameRepository {
 
   def encounters(campaignId: CampaignId): F[Seq[Encounter]]
 
+  def encounter(
+    campaignId:  CampaignId,
+    encounterId: EncounterId
+  ): F[Option[Encounter]]
   // Stuff that's generic to all campaigns
 
   def bestiary(search: MonsterSearch): F[MonsterSearchResults]

@@ -125,6 +125,11 @@ object DND5eAPI {
     fresh:       Boolean
   )
 
+  case class EncounterByIdRequest(
+    campaignId:  CampaignId,
+    encounterId: EncounterId
+  )
+
   case class PlayerCharacterSearchRequest(
     campaignId:            CampaignId,
     playerCharacterSearch: PlayerCharacterSearch
@@ -162,6 +167,7 @@ object DND5eAPI {
   private given Schema[Any, PlayerCharacter] = Schema.gen[Any, PlayerCharacter]
   private given Schema[Any, NonPlayerCharacter] = Schema.gen[Any, NonPlayerCharacter]
   private given Schema[Any, Encounter] = Schema.gen[Any, Encounter]
+  private given Schema[Any, EncounterByIdRequest] = Schema.gen[Any, EncounterByIdRequest]
 
   private given ArgBuilder[PlayerCharacterId] = ArgBuilder.long.map(PlayerCharacterId.apply)
   private given ArgBuilder[SceneId] = ArgBuilder.long.map(SceneId.apply)
@@ -198,6 +204,7 @@ object DND5eAPI {
   private given ArgBuilder[NonPlayerCharacter] = ArgBuilder.gen[NonPlayerCharacter]
   private given ArgBuilder[Encounter] = ArgBuilder.gen[Encounter]
   private given ArgBuilder[ImportCharacterRequest] = ArgBuilder.gen[ImportCharacterRequest]
+  private given ArgBuilder[EncounterByIdRequest] = ArgBuilder.gen[EncounterByIdRequest]
 
   case class Queries(
     campaigns:           ZIO[DND5eZIORepository, DMScreenError, Seq[CampaignHeader]],
@@ -207,6 +214,7 @@ object DND5eAPI {
     scenes:              CampaignId => ZIO[DND5eZIORepository, DMScreenError, Seq[Scene]],
     nonPlayerCharacters: CampaignId => ZIO[DND5eZIORepository, DMScreenError, Seq[NonPlayerCharacter]],
     encounters:          CampaignId => ZIO[DND5eZIORepository, DMScreenError, Seq[Encounter]],
+    encounter:           EncounterByIdRequest => ZIO[DND5eZIORepository, DMScreenError, Option[Encounter]],
     bestiary:            MonsterSearch => ZIO[DND5eZIORepository, DMScreenError, MonsterSearchResults],
     sources:             ZIO[DND5eZIORepository, DMScreenError, Seq[Source]],
     classes:             ZIO[DND5eZIORepository, DMScreenError, Seq[CharacterClass]],
@@ -254,6 +262,8 @@ object DND5eAPI {
           scenes = campaignId => ZIO.serviceWithZIO[DND5eZIORepository](_.scenes(campaignId)),
           nonPlayerCharacters = campaignId => ZIO.serviceWithZIO[DND5eZIORepository](_.nonPlayerCharacters(campaignId)),
           encounters = campaignId => ZIO.serviceWithZIO[DND5eZIORepository](_.encounters(campaignId)),
+          encounter =
+            request => ZIO.serviceWithZIO[DND5eZIORepository](_.encounter(request.campaignId, request.encounterId)),
           bestiary = search => ZIO.serviceWithZIO[DND5eZIORepository](_.bestiary(search)),
           sources = ZIO.serviceWithZIO[DND5eZIORepository](_.sources),
           classes = ZIO.serviceWithZIO[DND5eZIORepository](_.classes),

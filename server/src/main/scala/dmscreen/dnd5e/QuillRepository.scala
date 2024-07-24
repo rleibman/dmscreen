@@ -1083,6 +1083,35 @@ object QuillRepository {
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
         }
 
+        override def encounter(
+          campaignId:  CampaignId,
+          encounterId: EncounterId
+        ): DMScreenTask[Option[Encounter]] = {
+          ctx
+            .run(
+              qEncounters
+                .filter(v => !v.deleted && v.campaignId == lift(campaignId.value) && v.id == lift(encounterId.value))
+                .map(a => (a.id, a.campaignId, a.sceneId, a.name, a.status, a.orderCol, a.info))
+            )
+            .map(
+              _.headOption.map(t =>
+                Encounter(
+                  header = EncounterHeader(
+                    id = EncounterId(t._1),
+                    campaignId = CampaignId(t._2),
+                    sceneId = t._3.map(i => SceneId(i)),
+                    name = t._4,
+                    status = EncounterStatus.valueOf(t._5),
+                    orderCol = t._6
+                  ),
+                  jsonInfo = t._7
+                )
+              )
+            )
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+        }
       }
     }
 

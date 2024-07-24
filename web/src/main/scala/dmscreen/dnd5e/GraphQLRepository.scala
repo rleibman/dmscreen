@@ -216,37 +216,38 @@ object GraphQLRepository {
 
     override def nonPlayerCharacters(campaignId: CampaignId): AsyncCallback[Seq[NonPlayerCharacter]] = ???
 
+    private val encounterSB: SelectionBuilder[CalibanEncounter, Encounter] = (CalibanEncounter.header(
+      CalibanEncounterHeader.id ~
+        CalibanEncounterHeader.campaignId ~
+        CalibanEncounterHeader.name ~
+        CalibanEncounterHeader.status ~
+        CalibanEncounterHeader.sceneId ~
+        CalibanEncounterHeader.orderCol
+    ) ~ CalibanEncounter.jsonInfo).map {
+      (
+        id:         Long,
+        campaignId: Long,
+        name:       String,
+        status:     String,
+        sceneId:    Option[Long],
+        orderCol:   Int,
+        info:       Json
+      ) =>
+        Encounter(
+          EncounterHeader(
+            EncounterId(id),
+            CampaignId(campaignId),
+            name,
+            EncounterStatus.valueOf(status),
+            sceneId.map(SceneId.apply),
+            orderCol
+          ),
+          info
+        )
+    }
+
     override def encounters(campaignId: CampaignId): AsyncCallback[Seq[Encounter]] = {
-      val sb: SelectionBuilder[CalibanEncounter, Encounter] = (CalibanEncounter.header(
-        CalibanEncounterHeader.id ~
-          CalibanEncounterHeader.campaignId ~
-          CalibanEncounterHeader.name ~
-          CalibanEncounterHeader.status ~
-          CalibanEncounterHeader.sceneId ~
-          CalibanEncounterHeader.orderCol
-      ) ~ CalibanEncounter.jsonInfo).map {
-        (
-          id:         Long,
-          campaignId: Long,
-          name:       String,
-          status:     String,
-          sceneId:    Option[Long],
-          orderCol:   Int,
-          info:       Json
-        ) =>
-          Encounter(
-            EncounterHeader(
-              EncounterId(id),
-              CampaignId(campaignId),
-              name,
-              EncounterStatus.valueOf(status),
-              sceneId.map(SceneId.apply),
-              orderCol
-            ),
-            info
-          )
-      }
-      asyncCalibanCall(Queries.encounters(campaignId.value)(sb)).map(_.toSeq.flatten)
+      asyncCalibanCall(Queries.encounters(campaignId.value)(encounterSB)).map(_.toSeq.flatten)
     }
 
     override def bestiary(monsterSearch: MonsterSearch): AsyncCallback[MonsterSearchResults] = {
@@ -514,6 +515,12 @@ object GraphQLRepository {
         Mutations.importCharacterDNDBeyond(campaignId.value, dndBeyondId.value, fresh)(playerCharacterSB).map(_.get)
       )
     }
+
+    override def encounter(
+      campaignId:  CampaignId,
+      encounterId: EncounterId
+    ): AsyncCallback[Option[Encounter]] =
+      asyncCalibanCall(Queries.encounter(campaignId.value, encounterId.value)(encounterSB))
 
   }
 

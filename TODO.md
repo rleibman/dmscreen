@@ -89,4 +89,6 @@ DONE - Player name is not sticking
 DONE - Inspiration is not sticking
 - Languages dialog broken
 - Feats Dialog broken
-
+# Combat Runner
+## CSS
+Heal/Damage buttons look ugly, maybe switch the whole table to white background

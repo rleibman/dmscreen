@@ -41,6 +41,7 @@ object DND5eClient {
     case object neutralGood extends Alignment { val value: String = "neutralGood" }
     case object trueNeutral extends Alignment { val value: String = "trueNeutral" }
     case object unaligned extends Alignment { val value: String = "unaligned" }
+    case object unknown extends Alignment { val value: String = "unknown" }
 
     implicit val decoder: ScalarDecoder[Alignment] = {
       case __StringValue("chaoticEvil")    => Right(Alignment.chaoticEvil)
@@ -53,6 +54,7 @@ object DND5eClient {
       case __StringValue("neutralGood")    => Right(Alignment.neutralGood)
       case __StringValue("trueNeutral")    => Right(Alignment.trueNeutral)
       case __StringValue("unaligned")      => Right(Alignment.unaligned)
+      case __StringValue("unknown")        => Right(Alignment.unknown)
       case other                           => Left(DecodingError(s"Can't build Alignment from input $other"))
     }
     implicit val encoder: ArgEncoder[Alignment] = {
@@ -66,6 +68,7 @@ object DND5eClient {
       case Alignment.neutralGood    => __EnumValue("neutralGood")
       case Alignment.trueNeutral    => __EnumValue("trueNeutral")
       case Alignment.unaligned      => __EnumValue("unaligned")
+      case Alignment.unknown        => __EnumValue("unknown")
     }
 
     val values: scala.collection.immutable.Vector[Alignment] = scala.collection.immutable.Vector(
@@ -78,7 +81,8 @@ object DND5eClient {
       neutralEvil,
       neutralGood,
       trueNeutral,
-      unaligned
+      unaligned,
+      unknown
     )
 
   }
@@ -154,36 +158,36 @@ object DND5eClient {
   sealed trait CreatureSize extends scala.Product with scala.Serializable { def value: String }
   object CreatureSize {
 
-    case object unknown extends CreatureSize { val value: String = "unknown" }
     case object gargantuan extends CreatureSize { val value: String = "gargantuan" }
     case object huge extends CreatureSize { val value: String = "huge" }
     case object large extends CreatureSize { val value: String = "large" }
     case object medium extends CreatureSize { val value: String = "medium" }
     case object small extends CreatureSize { val value: String = "small" }
     case object tiny extends CreatureSize { val value: String = "tiny" }
+    case object unknown extends CreatureSize { val value: String = "unknown" }
 
     implicit val decoder: ScalarDecoder[CreatureSize] = {
-      case __StringValue("unknown")    => Right(CreatureSize.unknown)
       case __StringValue("gargantuan") => Right(CreatureSize.gargantuan)
       case __StringValue("huge")       => Right(CreatureSize.huge)
       case __StringValue("large")      => Right(CreatureSize.large)
       case __StringValue("medium")     => Right(CreatureSize.medium)
       case __StringValue("small")      => Right(CreatureSize.small)
       case __StringValue("tiny")       => Right(CreatureSize.tiny)
+      case __StringValue("unknown")    => Right(CreatureSize.unknown)
       case other                       => Left(DecodingError(s"Can't build CreatureSize from input $other"))
     }
     implicit val encoder: ArgEncoder[CreatureSize] = {
-      case CreatureSize.unknown    => __EnumValue("unknown")
       case CreatureSize.gargantuan => __EnumValue("gargantuan")
       case CreatureSize.huge       => __EnumValue("huge")
       case CreatureSize.large      => __EnumValue("large")
       case CreatureSize.medium     => __EnumValue("medium")
       case CreatureSize.small      => __EnumValue("small")
       case CreatureSize.tiny       => __EnumValue("tiny")
+      case CreatureSize.unknown    => __EnumValue("unknown")
     }
 
     val values: scala.collection.immutable.Vector[CreatureSize] =
-      scala.collection.immutable.Vector(unknown, gargantuan, huge, large, medium, small, tiny)
+      scala.collection.immutable.Vector(gargantuan, huge, large, medium, small, tiny, unknown)
 
   }
 
@@ -932,6 +936,23 @@ object DND5eClient {
         "encounters",
         OptionOf(ListOf(Obj(innerSelection))),
         arguments = List(Argument("value", value, "Long!")(encoder0))
+      )
+    def encounter[A](
+      campaignId:  Long,
+      encounterId: Long
+    )(
+      innerSelection: SelectionBuilder[Encounter, A]
+    )(implicit
+      encoder0: ArgEncoder[Long],
+      encoder1: ArgEncoder[Long]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "encounter",
+        OptionOf(Obj(innerSelection)),
+        arguments = List(
+          Argument("campaignId", campaignId, "Long!")(encoder0),
+          Argument("encounterId", encounterId, "Long!")(encoder1)
+        )
       )
     def bestiary[A](
       name:            scala.Option[String] = None,
