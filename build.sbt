@@ -197,9 +197,9 @@ lazy val bundlerSettings: Project => Project =
   _.enablePlugins(ScalaJSBundlerPlugin)
     .settings(
       Compile / npmDependencies ++= Seq(
-        "@3d-dice/dice-ui"               -> "^0.4.0",
+        "@3d-dice/dice-ui"               -> "^0.5.0",
         "@3d-dice/dice-parser-interface" -> "^0.2.0",
-        "@3d-dice/dice-box"              -> "^1.0.0",
+        "@3d-dice/dice-box"              -> "^1.1.0",
         "@3d-dice/theme-rust"            -> "^0.2.0",
         "babylonjs-gltf2interface"       -> "^5.22.0"
       ),
@@ -284,7 +284,7 @@ lazy val web: Project = project
 lazy val commonWeb: Project => Project =
   _.settings(
     libraryDependencies ++= Seq(
-      "net.leibman" %%% "dmscreen-stlib"              % "0.4.0-SNAPSHOT" withSources (),
+      "net.leibman" %%% "dmscreen-stlib"              % "0.5.0-SNAPSHOT" withSources (),
       "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
       "dev.zio" %%% "zio"                             % zioVersion withSources (),
       "com.softwaremill.sttp.client3" %%% "core"      % "3.9.7" withSources (),

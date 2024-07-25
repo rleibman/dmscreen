@@ -11,4 +11,4 @@ addSbtPlugin("org.scala-js"                % "sbt-scalajs"              % "1.16.
 addSbtPlugin("org.portable-scala"          % "sbt-scalajs-crossproject" % "1.3.2")
 addSbtPlugin("org.scalablytyped.converter" % "sbt-converter"            % "1.0.0-beta44")
 
-libraryDependencies ++= Seq( "org.eclipse.jgit" % "org.eclipse.jgit" % "6.9.0.202403050737-r" )
+libraryDependencies ++= Seq("org.eclipse.jgit" % "org.eclipse.jgit" % "6.10.0.202406032230-r")

@@ -79,8 +79,7 @@ class DiceParser() extends js.Object {
 @js.native
 @JSImport("@3d-dice/dice-box", JSImport.Default)
 class DiceBox(
-  selector: String,
-  options:  DiceBoxOptions
+  options: DiceBoxOptions
 ) extends js.Object {
 
   def init(): js.Promise[Unit] = js.native
@@ -342,9 +341,9 @@ object DiceRoller extends DMScreenTab {
     .renderBackend[Backend]
     .componentDidMount($ => {
       val diceBox = DiceBox(
-        "#dice-box",
         DiceBoxOptions(
           id = "dice-canvas",
+          container = "#dice-box",
           assetPath = "/assets/dice-box/",
           startingHeight = 8,
           throwForce = 6,

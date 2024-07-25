@@ -41,7 +41,7 @@ import org.scalajs.dom.html.Span
 
 import scala.scalajs.js.JSConverters.*
 
-object PlayerCharacterClassEditor {
+object CharacterClassEditor {
 
   case class State(
     classes:    List[PlayerCharacterClass],

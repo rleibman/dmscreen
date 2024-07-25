@@ -107,6 +107,7 @@ given JsonCodec[SpellHeader] = JsonCodec.derived[SpellHeader]
 given JsonCodec[Speed] = JsonCodec.derived[Speed]
 given JsonCodec[PlayerCharacterInfo] = JsonCodec.derived[PlayerCharacterInfo]
 
+given JsonCodec[RollplayInfo] = JsonCodec.derived[RollplayInfo]
 given JsonCodec[NonPlayerCharacterInfo] = JsonCodec.derived[NonPlayerCharacterInfo]
 
 given JsonCodec[SpecialAbility] = JsonCodec.derived[SpecialAbility]

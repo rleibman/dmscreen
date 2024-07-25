@@ -37,19 +37,19 @@ import zio.json.*
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
 
-object PlayerCharacterComponent {
+object NonPlayerCharacterComponent {
 
   case class State(
-    playerCharacter: PlayerCharacter,
-    editingMode:     EditableComponent.EditingMode = EditableComponent.EditingMode.view
+    npc:         NonPlayerCharacter,
+    editingMode: EditableComponent.EditingMode = EditableComponent.EditingMode.view
   )
   case class Props(
-    playerCharacter:     PlayerCharacter,
+    npc:                 NonPlayerCharacter,
     onEditingModeChange: EditableComponent.EditingMode => Callback,
-    onChange:            PlayerCharacter => Callback,
-    onDelete:            PlayerCharacter => Callback,
-    onComponentClose:    PlayerCharacter => Callback,
-    onSync:              PlayerCharacter => Callback
+    onChange:            NonPlayerCharacter => Callback,
+    onDelete:            NonPlayerCharacter => Callback,
+    onComponentClose:    NonPlayerCharacter => Callback,
+    onSync:              NonPlayerCharacter => Callback
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -74,14 +74,14 @@ object PlayerCharacterComponent {
           .map(_.asInstanceOf[DND5eCampaignState]).getOrElse(throw RuntimeException("No campaign"))
 
         {
-          def modPlayerCharacter(playerCharacter: PlayerCharacter): Callback = {
-            $.modState(_.copy(playerCharacter = playerCharacter), props.onChange(playerCharacter))
+          def modNPC(npc: NonPlayerCharacter): Callback = {
+            $.modState(_.copy(npc = npc), props.onChange(npc))
           }
-          def modPCInfo(info: PlayerCharacterInfo): Callback = {
-            modPlayerCharacter(state.playerCharacter.copy(jsonInfo = info.toJsonAST.toOption.get))
+          def modNPCInfo(info: NonPlayerCharacterInfo): Callback = {
+            modNPC(state.npc.copy(jsonInfo = info.toJsonAST.toOption.get))
           }
 
-          val info: PlayerCharacterInfo = state.playerCharacter.info
+          val info: NonPlayerCharacterInfo = state.npc.info
           def allBackgrounds =
             (campaignState.backgrounds ++ info.background.fold(Seq.empty)(bk =>
               Seq(
@@ -103,37 +103,17 @@ object PlayerCharacterComponent {
                   ) =>
                     _root_.components.Confirm.confirm(
                       question = "Are you 100% sure you want to delete this character?",
-                      onConfirm = props.onDelete(state.playerCharacter)
+                      onConfirm = props.onDelete(state.npc)
                     )
                 ),
-              Button("Sync")
-                .title("Refresh this character with data from it's original source")
-                .size(SemanticSIZES.tiny)
-                .compact(true)
-                .onClick(
-                  (
-                    _,
-                    _
-                  ) => props.onSync(state.playerCharacter)
-                )
-                .when(state.playerCharacter.header.source != DMScreenSource), // Only if the character originally came from a synchable source
               <.div(
                 ^.className := "characterHeader",
                 <.h2(
                   EditableText(
-                    state.playerCharacter.header.name,
+                    state.npc.header.name,
                     onChange = str =>
-                      modPlayerCharacter(
-                        state.playerCharacter.copy(header = state.playerCharacter.header.copy(name = str))
-                      )
-                  )
-                ),
-                <.span(
-                  EditableText(
-                    state.playerCharacter.header.playerName.getOrElse(""),
-                    onChange = str =>
-                      modPlayerCharacter(
-                        state.playerCharacter.copy(header = state.playerCharacter.header.copy(playerName = Some(str)))
+                      modNPC(
+                        state.npc.copy(header = state.npc.header.copy(name = str))
                       )
                   )
                 )
@@ -162,7 +142,7 @@ object PlayerCharacterComponent {
                           ),
                           edit = CharacterClassEditor(
                             info.classes,
-                            onChange = classes => modPCInfo(info.copy(classes = classes))
+                            onChange = classes => modNPCInfo(info.copy(classes = classes))
                           ),
                           title = "Classes/Subclasses/Levels",
                           onEditingModeChange = doModeChange
@@ -191,7 +171,7 @@ object PlayerCharacterComponent {
                               _,
                               changedData
                             ) =>
-                              modPCInfo(
+                              modNPCInfo(
                                 info.copy(background = changedData.value match {
                                   case s: String if s.isEmpty => None
                                   case s: String =>
@@ -210,7 +190,7 @@ object PlayerCharacterComponent {
                           view = <.div(info.armorClass),
                           edit = ArmorClassEditor(
                             info.armorClass,
-                            onChange = armorClass => modPCInfo(info.copy(armorClass = armorClass))
+                            onChange = armorClass => modNPCInfo(info.copy(armorClass = armorClass))
                           ),
                           title = "Armor Class",
                           onEditingModeChange = doModeChange
@@ -237,7 +217,7 @@ object PlayerCharacterComponent {
                             (
                               _,
                               data
-                            ) => modPCInfo(info.copy(inspiration = data.checked.getOrElse(info.inspiration)))
+                            ) => modNPCInfo(info.copy(inspiration = data.checked.getOrElse(info.inspiration)))
                           )
                       )
                     )
@@ -271,7 +251,7 @@ object PlayerCharacterComponent {
                   ),
                   edit = HealthEditor(
                     info.health,
-                    onChange = hitPoints => modPCInfo(info.copy(health = hitPoints))
+                    onChange = hitPoints => modNPCInfo(info.copy(health = hitPoints))
                   ),
                   title = "Hit Points",
                   onEditingModeChange = doModeChange
@@ -333,7 +313,7 @@ object PlayerCharacterComponent {
                   ),
                   edit = AbilitiesEditor(
                     info.abilities,
-                    onChange = abilities => modPCInfo(info.copy(abilities = abilities))
+                    onChange = abilities => modNPCInfo(info.copy(abilities = abilities))
                   ),
                   title = "Abilities",
                   onEditingModeChange = doModeChange
@@ -369,7 +349,7 @@ object PlayerCharacterComponent {
                   ),
                   edit = ConditionsEditor(
                     info.conditions,
-                    onChange = conditions => modPCInfo(info.copy(conditions = conditions))
+                    onChange = conditions => modNPCInfo(info.copy(conditions = conditions))
                   ),
                   title = "Conditions",
                   onEditingModeChange = doModeChange
@@ -381,7 +361,7 @@ object PlayerCharacterComponent {
                 EditableComponent(
                   edit = SpeedsEditor(
                     info.speeds,
-                    speeds => modPCInfo(info.copy(speeds = speeds))
+                    speeds => modNPCInfo(info.copy(speeds = speeds))
                   ),
                   view = info.speeds.headOption.fold(<.div("Click to add")) { _ =>
                     <.table(
@@ -467,7 +447,7 @@ object PlayerCharacterComponent {
                   edit = SkillsEditor(
                     info.skills,
                     info.abilities,
-                    onChange = skills => modPCInfo(info.copy(skills = skills))
+                    onChange = skills => modNPCInfo(info.copy(skills = skills))
                   ),
                   title = "Skills",
                   onEditingModeChange = doModeChange
@@ -478,7 +458,7 @@ object PlayerCharacterComponent {
                 <.div(^.className := "sectionTitle", "Languages"),
                 EditableComponent(
                   view = info.languages.headOption.fold("Click to add")(_ => info.languages.map(_.name).mkString(", ")),
-                  edit = LanguageEditor(info.languages, languages => modPCInfo(info.copy(languages = languages))),
+                  edit = LanguageEditor(info.languages, languages => modNPCInfo(info.copy(languages = languages))),
                   title = "Languages",
                   onEditingModeChange = doModeChange
                 )
@@ -488,7 +468,7 @@ object PlayerCharacterComponent {
                 <.div(^.className := "sectionTitle", "Feats"),
                 EditableComponent(
                   view = info.feats.headOption.fold("Click to add")(_ => info.feats.map(_.name).mkString(", ")),
-                  edit = FeatsEditor(info.feats, feats => modPCInfo(info.copy(feats = feats))),
+                  edit = FeatsEditor(info.feats, feats => modNPCInfo(info.copy(feats = feats))),
                   title = "Feats",
                   onEditingModeChange = doModeChange
                 )
@@ -500,7 +480,7 @@ object PlayerCharacterComponent {
                   view = <.div(info.senses.headOption.fold("Click to add") { _ =>
                     info.senses.map(s => s"${s.sense} ${s.range}").mkString(", ")
                   }),
-                  edit = SensesEditor(info.senses, senses => modPCInfo(info.copy(senses = senses))),
+                  edit = SensesEditor(info.senses, senses => modNPCInfo(info.copy(senses = senses))),
                   title = "Senses",
                   onEditingModeChange = doModeChange
                 )
@@ -522,7 +502,7 @@ object PlayerCharacterComponent {
                         ideals,
                         bonds,
                         flaws
-                      ) => modPCInfo(info.copy(notes = notes))
+                      ) => modNPCInfo(info.copy(notes = notes))
                     )
                   },
                   title = "Notes",
@@ -539,25 +519,25 @@ object PlayerCharacterComponent {
 
   private val component: Component[Props, State, Backend, CtorType.Props] =
     ScalaComponent
-      .builder[Props]("PlayerCharacterComponent")
-      .initialStateFromProps(p => State(p.playerCharacter))
+      .builder[Props]("NonPlayerCharacterComponent")
+      .initialStateFromProps(p => State(p.npc))
       .renderBackend[Backend]
       .shouldComponentUpdatePure($ => $.nextState.editingMode != EditingMode.edit) // Don't update while we have a dialog open
-      .componentWillUnmount($ => $.props.onComponentClose($.state.playerCharacter))
+      .componentWillUnmount($ => $.props.onComponentClose($.state.npc))
       .build
 
   def apply(
-    playerCharacter:     PlayerCharacter,
+    npc:                 NonPlayerCharacter,
     onEditingModeChange: EditableComponent.EditingMode => Callback,
-    onChange:            PlayerCharacter => Callback,
-    onDelete:            PlayerCharacter => Callback,
-    onComponentClose:    PlayerCharacter => Callback,
-    onSync:              PlayerCharacter => Callback
+    onChange:            NonPlayerCharacter => Callback,
+    onDelete:            NonPlayerCharacter => Callback,
+    onComponentClose:    NonPlayerCharacter => Callback,
+    onSync:              NonPlayerCharacter => Callback
   ): Unmounted[Props, State, Backend] = {
     // Note the "withKey" here, this is to make sure that the component is properly updated when the key changes
-    component.withKey(playerCharacter.header.id.value.toString)(
+    component.withKey(npc.header.id.value.toString)(
       Props(
-        playerCharacter = playerCharacter,
+        npc = npc,
         onEditingModeChange = onEditingModeChange,
         onChange = onChange,
         onDelete = onDelete,

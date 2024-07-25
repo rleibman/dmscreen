@@ -51,33 +51,73 @@ case class NonPlayerCharacterHeader(
 ) extends HasId[NonPlayerCharacterId]
 
 case class NonPlayerCharacterInfo(
-  gender:         String,
-  race:           Race,
-  characterClass: CharacterClass,
-  level:          Int,
-  age:            Int,
-  background:     Background,
-  occupation:     String,
-  personality:    String,
-  ideal:          String,
-  bond:           String,
-  flaw:           String,
-  characteristic: String,
-  speech:         String,
-  hobby:          String,
-  fear:           String,
-  currently:      String,
-  nickname:       String,
-  weapon:         String,
-  rumor:          String,
-  raisedBy:       String,
-  parent1:        String,
-  parent2:        String,
-  siblingCount:   Int,
-  childhood:      String,
-  children:       String,
-  spouse:         String,
-  monster:        MonsterId
+  health:                  Health,
+  armorClass:              Int,
+  classes:                 List[PlayerCharacterClass],
+  physicalCharacteristics: PhysicalCharacteristics = PhysicalCharacteristics(),
+  faith:                   Option[String] = None,
+  inspiration:             Boolean = false,
+  overrideInitiative:      Option[Int] = None,
+  currentXp:               Option[Long] = None,
+  alignment:               Alignment = Alignment.trueNeutral,
+  lifestyle:               Lifestyle = Lifestyle.modest,
+  abilities:               Abilities = Abilities(),
+  skills:                  Skills = Skills(),
+  background:              Option[Background] = None,
+  race:                    Race = Race("Human"),
+  traits:                  Traits = Traits(),
+  inventory:               List[InventoryItem] = List.empty,
+  wallet:                  Wallet = Wallet.empty,
+  feats:                   List[Feat] = List.empty,
+  conditions:              Set[Condition] = Set.empty,
+  spellSlots:              List[SpellSlots] = List.empty,
+  pactMagic:               List[SpellSlots] = List.empty,
+  languages:               Set[Language] = Set(Language.common),
+  actions:                 List[Action] = List.empty,
+  classSpells:             List[SpellHeader] = List.empty,
+  creatures:               List[Creature] = List.empty,
+  notes:                   String = "",
+  speeds:                  List[Speed] = List(Speed(SpeedType.walk, 30)),
+  senses:                  List[SenseRange] = List(SenseRange(Sense.sight, 10560)), // Normal sight, 2 miles
+  rollplayInfo:            RollplayInfo = RollplayInfo(),
+  monster:                 Option[MonsterId] = None
+) extends CharacterInfo {
+
+  /** This method will make a copy of this character info, but will auto calculate some of the fields based on the
+    * options passed in.
+    */
+  def autoCalculate(
+    spellSlots:       Boolean = false,
+    armorClass:       Boolean = false,
+    hitPoints:        Boolean = false,
+    abilityModifiers: Boolean = false,
+    skillModifiers:   Boolean = false,
+    level:            Boolean = false
+  ): NonPlayerCharacterInfo = this.copy()
+
+}
+
+case class RollplayInfo(
+  occupation:     String = "",
+  personality:    String = "",
+  ideal:          String = "",
+  bond:           String = "",
+  flaw:           String = "",
+  characteristic: String = "",
+  speech:         String = "",
+  hobby:          String = "",
+  fear:           String = "",
+  currently:      String = "",
+  nickname:       String = "",
+  weapon:         String = "",
+  rumor:          String = "",
+  raisedBy:       String = "",
+  parent1:        String = "",
+  parent2:        String = "",
+  siblingCount:   Int = 0,
+  childhood:      String = "",
+  children:       String = "",
+  spouse:         String = ""
 )
 
 case class NonPlayerCharacter(

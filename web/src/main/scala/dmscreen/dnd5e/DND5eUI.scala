@@ -41,7 +41,7 @@ case object DND5eUI extends GameUI {
       AppPage(DND5eUIPages.dashboard, "Dashboard", campaignId => DashboardPage(campaignId)),
       AppPage(DND5eUIPages.pcs, "PCs", campaignId => PCPage(campaignId)),
       AppPage(DND5eUIPages.encounters, "Encounters", campaignId => EncounterPage(campaignId)),
-      AppPage(DND5eUIPages.npcs, "NPCs", _ => NPCPage()),
+      AppPage(DND5eUIPages.npcs, "NPCs", campaignId => NPCPage(campaignId)),
       AppPage(DND5eUIPages.scenes, "Scenes", campaignId => ScenePage(campaignId))
     )
 

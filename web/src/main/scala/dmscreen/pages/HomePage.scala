@@ -26,13 +26,11 @@ import dmscreen.{*, given}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Generic.UnmountedRaw
 import japgolly.scalajs.react.component.Scala.Unmounted
-import japgolly.scalajs.react.component.ScalaFn
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
 import zio.json.*
-import zio.json.ast.*
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
@@ -259,6 +257,17 @@ object HomePage extends DMScreenTab {
                             _
                           ) => dmScreenState.onSelectCampaign(Some(campaign))
                         ).when(dmScreenState.campaignState.fold(true)(_.campaignHeader.id != campaign.id)),
+                      Table.Cell(
+                        Button
+                          .title("Take a snapshot of this campaign").icon(true)(
+                            Icon.name(SemanticICONS.`camera`)
+                          ).onClick(
+                            (
+                              _,
+                              _
+                            ) => Callback.empty // TODO snapshot
+                          )
+                      ),
                       Button
                         .title("Archive this campaign")
                         .icon(true)(Icon.name(SemanticICONS.archive))

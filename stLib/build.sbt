@@ -1,11 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
-lazy val SCALA = "3.5.0-RC2"
+lazy val SCALA = "3.5.0-RC5"
 
 val scalajsReactVersion = "2.1.1"
-val reactVersion = "^18.3.1"
+val reactVersion = "^18.3.0"
 
-version := "0.4.0-SNAPSHOT"
+version := "0.5.0-SNAPSHOT"
 
 enablePlugins(ScalablyTypedConverterGenSourcePlugin)
 
@@ -28,15 +28,15 @@ Compile / npmDependencies ++= Seq(
   "@types/react-dom"               -> reactVersion,
   "react"                          -> reactVersion,
   "@types/react"                   -> reactVersion,
-  "csstype"                        -> "^3.0.0",
-  "@types/prop-types"              -> "^15.0.0",
+  "csstype"                        -> "^3.1.0",
+  "@types/prop-types"              -> "^15.7.0",
   "semantic-ui-react"              -> "^2.1.5",
-  "react-apexcharts"               -> "^1.0.0",
-  "apexcharts"                     -> "^3.0.0",
+  "react-apexcharts"               -> "^1.4.0",
+  "apexcharts"                     -> "^3.51.0",
   "react-quill"                    -> "^2.0.0",
-  "@3d-dice/dice-ui"               -> "^0.4.0",
+  "@3d-dice/dice-ui"               -> "^0.5.0",
   "@3d-dice/dice-parser-interface" -> "^0.2.0",
-  "@3d-dice/dice-box"              -> "^1.0.0"
+  "@3d-dice/dice-box"              -> "^1.1.0"
 )
 
 Test / npmDependencies ++= Seq(

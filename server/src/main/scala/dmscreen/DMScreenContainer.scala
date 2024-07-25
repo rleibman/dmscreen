@@ -105,7 +105,7 @@ object DMScreenContainer {
 //      val c = MySQLContainer(mysqlImageVersion = DockerImageName.parse("mysql:8.4.0").nn)
       // latest known to work
       val c = MySQLContainer(mysqlImageVersion = DockerImageName.parse("mysql:8.2.0").nn)
-      c.container.setPortBindings(List("3306:3306").asJava)
+      c.container.setPortBindings(List("3307:3306").asJava)
       c.container.start()
       c
     }

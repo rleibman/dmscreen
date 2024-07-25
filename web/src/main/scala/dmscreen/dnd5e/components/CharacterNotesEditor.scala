@@ -33,7 +33,7 @@ import net.leibman.dmscreen.semanticUiReact.components.*
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
 
-object PlayerCharacterNotesEditor {
+object CharacterNotesEditor {
 
   case class State(
     notes: String,
