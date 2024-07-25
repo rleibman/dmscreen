@@ -257,17 +257,15 @@ object HomePage extends DMScreenTab {
                             _
                           ) => dmScreenState.onSelectCampaign(Some(campaign))
                         ).when(dmScreenState.campaignState.fold(true)(_.campaignHeader.id != campaign.id)),
-                      Table.Cell(
-                        Button
-                          .title("Take a snapshot of this campaign").icon(true)(
-                            Icon.name(SemanticICONS.`camera`)
-                          ).onClick(
-                            (
-                              _,
-                              _
-                            ) => Callback.empty // TODO snapshot
-                          )
-                      ),
+                      Button
+                        .title("Take a snapshot of this campaign").icon(true)(
+                          Icon.name(SemanticICONS.`camera`)
+                        ).onClick(
+                          (
+                            _,
+                            _
+                          ) => Callback.empty // TODO snapshot
+                        ),
                       Button
                         .title("Archive this campaign")
                         .icon(true)(Icon.name(SemanticICONS.archive))

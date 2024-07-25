@@ -44,6 +44,8 @@ import caliban.client.scalajs.DND5eClient.{
   MonsterSearchResults as CalibanMonsterSearchResults,
   MonsterType as CalibanMonsterType,
   Mutations,
+  NonPlayerCharacter as CalibanNonPlayerCharacter,
+  NonPlayerCharacterHeader as CalibanNonPlayerCharacterHeader,
   NonPlayerCharacterHeaderInput,
   OrderDirection as CalibanOrderDirection,
   PlayerCharacter as CalibanPlayerCharacter,
@@ -76,7 +78,7 @@ object GraphQLRepository {
 
   }
 
-  val live = new ExtendedRepository {
+  val live: ExtendedRepository = new ExtendedRepository {
 
     override def campaigns: AsyncCallback[Seq[CampaignHeader]] = {
       val sb = (
@@ -176,6 +178,28 @@ object GraphQLRepository {
           )
       }
 
+    private val nonPlayerCharacterSB: SelectionBuilder[CalibanNonPlayerCharacter, NonPlayerCharacter] =
+      (CalibanNonPlayerCharacter.header(
+        CalibanNonPlayerCharacterHeader.campaignId ~
+          CalibanNonPlayerCharacterHeader.id ~
+          CalibanNonPlayerCharacterHeader.name
+      ) ~ CalibanNonPlayerCharacter.jsonInfo).map {
+        (
+          campaignId: Long,
+          pcId:       Long,
+          name:       String,
+          info:       Json
+        ) =>
+          NonPlayerCharacter(
+            NonPlayerCharacterHeader(
+              id = NonPlayerCharacterId(pcId),
+              campaignId = CampaignId(campaignId),
+              name = name
+            ),
+            info
+          )
+      }
+
     override def playerCharacters(
       campaignId: CampaignId,
       search:     PlayerCharacterSearch = PlayerCharacterSearch()
@@ -214,7 +238,10 @@ object GraphQLRepository {
 
     }
 
-    override def nonPlayerCharacters(campaignId: CampaignId): AsyncCallback[Seq[NonPlayerCharacter]] = ???
+    override def nonPlayerCharacters(campaignId: CampaignId): AsyncCallback[Seq[NonPlayerCharacter]] = {
+      asyncCalibanCall(Queries.nonPlayerCharacters(campaignId.value)(nonPlayerCharacterSB))
+        .map(_.toSeq.flatten)
+    }
 
     private val encounterSB: SelectionBuilder[CalibanEncounter, Encounter] = (CalibanEncounter.header(
       CalibanEncounterHeader.id ~
