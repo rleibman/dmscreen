@@ -22,7 +22,7 @@
 package dmscreen.dnd5e.pages
 
 import dmscreen.components.EditableComponent.EditingMode
-import dmscreen.dnd5e.components.NonPlayerCharacterComponent
+import dmscreen.dnd5e.components.NPCEditComponent
 import dmscreen.dnd5e.{*, given}
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.component.Scala.Unmounted
@@ -95,7 +95,7 @@ object NPCPage extends DMScreenTab {
               ^.key       := "pageContainer",
               state.npcs
                 .map(npc =>
-                  NonPlayerCharacterComponent( // Internally, make sure each item has a key!
+                  NPCEditComponent( // Internally, make sure each item has a key!
                     npc = npc,
                     onEditingModeChange = newMode => $.modState(s => s.copy(editingMode = newMode)),
                     onChange = updatedNPC =>

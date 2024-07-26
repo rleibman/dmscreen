@@ -21,10 +21,10 @@
 
 package caliban.client.scalajs
 
+import caliban.client.*
 import caliban.client.CalibanClientError.DecodingError
-import caliban.client.FieldBuilder._
-import caliban.client._
-import caliban.client.__Value._
+import caliban.client.FieldBuilder.*
+import caliban.client.__Value.*
 
 object STAClient {
 

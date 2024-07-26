@@ -59,9 +59,11 @@ sealed abstract class EncounterCombatant(
 
   def otherMarkers: List[Marker]
 
+  def isNPC: Boolean
+
 }
 
-case class MonsterCombatant(
+final case class MonsterCombatant(
   override val id:              CombatantId,
   monsterHeader:                MonsterHeader,
   override val name:            String,
@@ -72,13 +74,31 @@ case class MonsterCombatant(
   conditions:                   Set[Condition] = Set.empty,
   override val otherMarkers:    List[Marker] = List.empty,
   override val initiativeBonus: Int
-) extends EncounterCombatant()
+) extends EncounterCombatant() {
+
+  val isNPC = true
+
+}
 
 /** Used for things like Hunter's Mark, Hex, Hidden, concentration, etc.
   */
 case class Marker(name: String)
 
-case class PlayerCharacterCombatant(
+final case class NonPlayerCharacterCombatant(
+  override val id:              CombatantId,
+  override val name:            String,
+  nonPlayerCharacterId:         NonPlayerCharacterId,
+  override val notes:           String,
+  override val initiative:      Int,
+  override val initiativeBonus: Int,
+  override val otherMarkers:    List[Marker] = List.empty
+) extends EncounterCombatant() {
+
+  val isNPC = true
+
+}
+
+final case class PlayerCharacterCombatant(
   override val id:              CombatantId,
   override val name:            String,
   playerCharacterId:            PlayerCharacterId,
@@ -86,7 +106,11 @@ case class PlayerCharacterCombatant(
   override val initiative:      Int,
   override val initiativeBonus: Int,
   override val otherMarkers:    List[Marker] = List.empty
-) extends EncounterCombatant() {}
+) extends EncounterCombatant() {
+
+  val isNPC = false
+
+}
 
 opaque type EncounterId = Long
 
@@ -142,6 +166,7 @@ case class EncounterInfo(
   }.sum
 
   def monsters: List[MonsterCombatant] = combatants.collect { case m: MonsterCombatant => m }
+  def npcs:     List[NonPlayerCharacterCombatant] = combatants.collect { case npc: NonPlayerCharacterCombatant => npc }
 
 }
 

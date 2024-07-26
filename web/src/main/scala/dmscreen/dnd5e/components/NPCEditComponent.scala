@@ -37,7 +37,7 @@ import zio.json.*
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
 
-object NonPlayerCharacterComponent {
+object NPCEditComponent {
 
   case class State(
     npc:         NonPlayerCharacter,

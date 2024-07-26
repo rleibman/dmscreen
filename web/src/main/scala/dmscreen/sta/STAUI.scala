@@ -21,8 +21,8 @@
 
 package dmscreen.sta
 
-import dmscreen.sta.pages.*
 import dmscreen.*
+import dmscreen.sta.pages.*
 
 enum STAUIPages {
 

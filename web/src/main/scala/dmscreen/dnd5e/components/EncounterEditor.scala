@@ -21,37 +21,17 @@
 
 package dmscreen.dnd5e.components
 
-import caliban.ScalaJSClientAdapter.*
-import caliban.client.SelectionBuilder
-import caliban.client.scalajs.DND5eClient.{
-  Monster as CalibanMonster,
-  MonsterHeader as CalibanMonsterHeader,
-  MonsterSearchOrder as CalibanMonsterSearchOrder,
-  MonsterSearchResults as CalibanMonsterSearchResults,
-  MonsterType as CalibanMonsterType,
-  OrderDirection as CalibanOrderDirection,
-  Queries
-}
-import caliban.client.scalajs.{*, given}
 import dmscreen.components.{EditableNumber, EditableText}
-import dmscreen.{*, given}
-import dmscreen.dnd5e.{*, given}
 import dmscreen.dnd5e.components.*
-import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
+import dmscreen.dnd5e.{*, given}
+import dmscreen.{CampaignId, DMScreenState}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{CtorType, *}
-import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsAddonsPaginationPaginationMod.PaginationProps
-import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{
-  SemanticCOLORS,
-  SemanticICONS,
-  SemanticSIZES,
-  SemanticWIDTHS
-}
-import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesAccordionAccordionTitleMod.*
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
 import net.leibman.dmscreen.semanticUiReact.semanticUiReactStrings.*
 import org.scalablytyped.runtime.StObject
@@ -114,11 +94,14 @@ object EncounterEditor {
   }
 
   case class State(
+    npcs:           List[NonPlayerCharacter] = List.empty,
     monsters:       List[MonsterHeader] = List.empty,
     monsterSearch:  MonsterSearch = MonsterSearch(),
     monsterCount:   Long = 0,
     editingMonster: Option[(MonsterId, CloneMonster)] = None,
-    viewMonsterId:  Option[MonsterId] = None
+    viewMonsterId:  Option[MonsterId] = None,
+    isAddingNPC:    Boolean = false,
+    npcToAdd:       Option[NonPlayerCharacter] = None
   )
 
   case class Props(
@@ -130,15 +113,23 @@ object EncounterEditor {
 
   case class Backend($ : BackendScope[Props, State]) {
 
-    def monsterSearch: Callback = {
-      val ajax = for {
-        oldState      <- $.state.asAsyncCallback
-        searchResults <- GraphQLRepository.live.bestiary(oldState.monsterSearch)
-      } yield $.modState(_.copy(monsters = searchResults.results, monsterCount = searchResults.total))
+    def initializeState: Callback =
+      (
+        for {
+          oldState <- $.state.asAsyncCallback
+          props    <- $.props.asAsyncCallback
+          monsters <- GraphQLRepository.live.bestiary(oldState.monsterSearch)
+          npcs     <- GraphQLRepository.live.nonPlayerCharacters(props.encounter.header.campaignId)
+        } yield $.modState(_.copy(monsters = monsters.results, monsterCount = monsters.total, npcs = npcs.toList))
+      ).completeWith(_.get)
 
-      ajax.completeWith(_.get)
-
-    }
+    def monsterSearch: Callback =
+      (
+        for {
+          oldState      <- $.state.asAsyncCallback
+          searchResults <- GraphQLRepository.live.bestiary(oldState.monsterSearch)
+        } yield $.modState(_.copy(monsters = searchResults.results, monsterCount = searchResults.total))
+      ).completeWith(_.get)
 
     def modMonsterSearch(f: MonsterSearch => MonsterSearch): Callback =
       $.modState(s => s.copy(monsterSearch = f(s.monsterSearch)), monsterSearch)
@@ -161,11 +152,6 @@ object EncounterEditor {
 
       def modEncounter(encounter: Encounter) = {
         props.onChange(encounter)
-//        $.modState(
-//          s => s.copy(encounter = s.encounter.map(f)),
-//          callback >> $.state.flatMap(s => s.encounter.fold(Callback.empty)(props.onChange(_)))
-//        )
-        // TODO persist
       }
 
       DMScreenState.ctx.consume { dmScreenState =>
@@ -187,6 +173,82 @@ object EncounterEditor {
                   Modal.Content(^.padding := 5.px, MonsterStatBlock(monsterId))
                 ): VdomNode
             ),
+            Modal
+              .open(state.isAddingNPC)
+              .size(semanticUiReactStrings.tiny)
+              .closeIcon(false)(
+                Modal.Header("Select NPC to add"),
+                Modal.Content(
+                  Dropdown
+                    .compact(true)
+                    .search(false)
+                    .clearable(true)
+                    .placeholder("Npcs")
+                    .options(
+                      state.npcs
+                        .filter(npc =>
+                          !encounter.info.combatants.exists(c =>
+                            c.isInstanceOf[NonPlayerCharacterCombatant] && c
+                              .asInstanceOf[NonPlayerCharacterCombatant].nonPlayerCharacterId == npc.id
+                          )
+                        )
+                        .map(npc => DropdownItemProps().setValue(npc.header.id.value.toDouble).setText(npc.header.name))
+                        .toJSArray
+                    )
+                    .onChange {
+                      (
+                        _,
+                        data
+                      ) =>
+                        val newVal = data.value match {
+                          case s: String if s.trim.isEmpty => None
+                          case s: String                   => state.npcs.find(_.id.value == s.toInt)
+                          case s: Double                   => state.npcs.find(_.id.value == s.toInt)
+                          case s =>
+                            println(s)
+                            None
+                        }
+
+                        $.modState(_.copy(npcToAdd = newVal))
+                    }
+                    .value(state.npcToAdd.fold(0.0)(_.header.id.value.toDouble))
+                ),
+                Modal.Actions(
+                  Button("Cancel").onClick(
+                    (
+                      _,
+                      _
+                    ) => $.modState(_.copy(isAddingNPC = false, npcToAdd = None))
+                  ),
+                  Button("Ok").onClick {
+                    (
+                      _,
+                      _
+                    ) =>
+                      {
+
+                        val newCombatant = state.npcToAdd.map { npc =>
+                          NonPlayerCharacterCombatant(
+                            id = CombatantId.create,
+                            nonPlayerCharacterId = npc.id,
+                            name = npc.header.name,
+                            notes = "",
+                            initiative = 10,
+                            initiativeBonus = npc.info.initiativeBonus
+                          )
+                        }
+                        modEncounter(
+                          encounter.copy(
+                            jsonInfo = encounter.info
+                              .copy(combatants = encounter.info.combatants ++ newCombatant)
+                              .toJsonAST.toOption.get
+                          )
+                        ) >> $.modState(_.copy(isAddingNPC = false, npcToAdd = None))
+                      }
+                  }
+                )
+              )
+              .when(state.isAddingNPC),
             state.editingMonster.fold(EmptyVdom)(
               (
                 monsterId,
@@ -214,6 +276,28 @@ object EncounterEditor {
                     .colSpan(4)
                     .singleLine(true)
                     .textAlign(semanticUiReactStrings.right)(
+                      Button
+                        .compact(true)
+                        .icon(true)
+                        .title("Add NPC")
+                        .onClick(
+                          (
+                            _,
+                            _
+                          ) =>
+                            if (
+                              state.npcs.exists(npc =>
+                                !encounter.info.combatants.exists(c =>
+                                  c.isInstanceOf[NonPlayerCharacterCombatant] && c
+                                    .asInstanceOf[NonPlayerCharacterCombatant].nonPlayerCharacterId == npc.id
+                                )
+                              )
+                            ) {
+                              $.modState(_.copy(isAddingNPC = true))
+                            } else {
+                              Callback.alert("There are no NPCs you can add, create one in the NPC page first!")
+                            }
+                        )(Icon.name(SemanticICONS.`add user`)),
                       Button
                         .compact(true)
                         .icon(true)
@@ -259,11 +343,60 @@ object EncounterEditor {
                 )
               ),
               Table.Body(
-                encounter.info.combatants
-                  .sortBy {
-                    case monsterCombatant: MonsterCombatant         => monsterCombatant.name
-                    case pcCombatant:      PlayerCharacterCombatant => pcCombatant.name // Not really important
-                  }.collect { case combatant: MonsterCombatant =>
+                encounter.info.combatants.sortBy(_.name).collect {
+                  case combatant: NonPlayerCharacterCombatant =>
+                    state.npcs
+                      .find(_.id == combatant.nonPlayerCharacterId)
+                      .fold(EmptyVdom) { npc =>
+                        Table.Row
+                          .withKey(s"combatant ${combatant.id.value}")(
+                            Table.Cell(combatant.name),
+                            Table.Cell(
+                              s"NPC (${npc.info.race.name},${npc.info.classes.map(_.characterClass.name).mkString(",")})"
+                            ),
+                            Table.Cell("-"),
+                            Table.Cell(npc.info.alignment.name),
+                            Table.Cell("-"),
+                            Table.Cell("-"),
+                            Table.Cell(npc.info.armorClass),
+                            Table.Cell(npc.info.health.maxHitPoints),
+                            Table.Cell("-"), // TODO what happened to creature size???
+                            Table.Cell.singleLine(true)(
+                              Button
+                                .compact(true)
+                                .size(SemanticSIZES.mini)
+                                .title("Delete this combatant from the encounter")
+                                .icon(true)
+                                .onClick {
+                                  (
+                                    _,
+                                    _
+                                  ) =>
+                                    modEncounter(
+                                      encounter
+                                        .copy(jsonInfo =
+                                          encounter.info
+                                            .copy(combatants = encounter.info.combatants.filter(_.id != combatant.id))
+                                            .toJsonAST.toOption.get
+                                        )
+                                    )
+                                }(Icon.name(SemanticICONS.`trash`))
+                                .when(encounter.header.status != EncounterStatus.archived),
+                              Button
+                                .title("View NPC stats")
+                                .compact(true)
+                                .size(SemanticSIZES.mini)
+                                .icon(true)(Icon.name(SemanticICONS.`eye`))
+                                .onClick(
+                                  (
+                                    _,
+                                    _
+                                  ) => Callback.empty // TODO view npc stats. $.modState(_.copy(viewMonsterId = Some(combatant.nonPlayerCharacterId)))
+                                )
+                            )
+                          )
+                      }
+                  case combatant: MonsterCombatant =>
                     Table.Row
                       .withKey(s"combatant ${combatant.id.value}")(
                         Table.Cell(
@@ -391,7 +524,7 @@ object EncounterEditor {
                             )
                         )
                       )
-                  }*
+                }*
               )
             ),
             Divider.section(true),
@@ -767,7 +900,7 @@ object EncounterEditor {
     .builder[Props]("EncounterEditor")
     .initialState(State())
     .renderBackend[Backend]
-    .componentDidMount($ => $.backend.monsterSearch)
+    .componentDidMount($ => $.backend.initializeState)
     .build
 
   def apply(

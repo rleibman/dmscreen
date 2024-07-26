@@ -21,10 +21,10 @@
 
 package dmscreen.dnd5e.pages
 
-import NPCPage.State
 import dmscreen.components.EditableText
-import dmscreen.dnd5e.components.PlayerCharacterComponent
+import dmscreen.dnd5e.components.PCEditComponent
 import dmscreen.dnd5e.pages.EncounterPage.State
+import dmscreen.dnd5e.pages.NPCPage.State
 import dmscreen.dnd5e.{*, given}
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
 import japgolly.scalajs.react.component.Scala.Unmounted

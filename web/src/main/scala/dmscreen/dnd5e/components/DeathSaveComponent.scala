@@ -22,12 +22,12 @@
 package dmscreen.dnd5e.components
 
 import dmscreen.*
-import dmscreen.dnd5e.components.*
 import dmscreen.components.EditableComponent.EditingMode
+import dmscreen.dnd5e.components.*
 import dmscreen.dnd5e.{*, given}
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
-import japgolly.scalajs.react.*
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
@@ -60,7 +60,7 @@ def DeathSaveComponent(
     .render { props =>
       <.table(
         ^.className := "deathSave",
-        <.tr(<.th("Fails")),
+        <.tr(<.th("Fails"), <.th("Successes")),
         <.tr(
           <.td(
             ^.className := "deathSaveFail",
@@ -94,10 +94,7 @@ def DeathSaveComponent(
                 )
               )
             )
-          )
-        ),
-        <.tr(<.th("Successes")),
-        <.tr(
+          ),
           <.td(
             ^.className := "deathSaveSucceed",
             <.input(

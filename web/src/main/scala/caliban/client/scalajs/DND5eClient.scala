@@ -930,6 +930,28 @@ object DND5eClient {
         OptionOf(ListOf(Obj(innerSelection))),
         arguments = List(Argument("value", value, "Long!")(encoder0))
       )
+    def playerCharacter[A](
+      value: Long
+    )(
+      innerSelection:    SelectionBuilder[PlayerCharacter, A]
+    )(implicit encoder0: ArgEncoder[Long]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "playerCharacter",
+        OptionOf(Obj(innerSelection)),
+        arguments = List(Argument("value", value, "Long!")(encoder0))
+      )
+    def nonPlayerCharacter[A](
+      value: Long
+    )(
+      innerSelection:    SelectionBuilder[NonPlayerCharacter, A]
+    )(implicit encoder0: ArgEncoder[Long]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "nonPlayerCharacter",
+        OptionOf(Obj(innerSelection)),
+        arguments = List(Argument("value", value, "Long!")(encoder0))
+      )
     def encounters[A](value: Long)(innerSelection: SelectionBuilder[Encounter, A])(implicit encoder0: ArgEncoder[Long])
       : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
       _root_.caliban.client.SelectionBuilder.Field(

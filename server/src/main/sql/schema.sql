@@ -23,7 +23,7 @@ create table campaign
     gameSystem     enum ('dnd5e', 'pathfinder2e', 'starTrekAdventures') not null,
     campaignStatus enum ('active', 'archived')                          not null,
     key campaign_dm (dmUserId),
-    constraint campaign_dm foreign key (dmUserId) references `dmscreenUser` (id),
+    constraint campaign_dm foreign key (dmUserId) references `dmscreenUser` (id) on delete cascade,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
@@ -40,7 +40,7 @@ create table scene
     `isActive` boolean    not null,
     PRIMARY KEY (`id`),
     key scene_character_campaign (campaignId),
-    constraint scene_character_campaign foreign key (campaignId) references `campaign` (id)
+    constraint scene_character_campaign foreign key (campaignId) references `campaign` (id) on delete cascade
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -49,14 +49,14 @@ create table playerCharacter
     `id`         int(11)    NOT NULL AUTO_INCREMENT,
     campaignId   int(11)    not null,
     `name`       text       NOT NULL,
-    `playerName` text       NULL, -- TODO change to foreign key to user
+    `playerName` text       NULL,     -- TODO change to foreign key to user
     source       text       not null, -- Really json, but we need to be able to perform stuff on it
     info         json       not null,
     `version`    text       NOT NULL,
     `deleted`    tinyint(4) NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
     key player_character_campaign (campaignId),
-    constraint player_character_campaign foreign key (campaignId) references `campaign` (id)
+    constraint player_character_campaign foreign key (campaignId) references `campaign` (id) on delete cascade
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -73,9 +73,9 @@ create table encounter
     `deleted`  tinyint(4) NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
     key encounter_campaign (campaignId),
-    constraint encounter_campaign foreign key (campaignId) references `campaign` (id),
+    constraint encounter_campaign foreign key (campaignId) references `campaign` (id) on delete cascade,
     key encounter_scene (sceneId),
-    constraint encounter_scene foreign key (sceneId) references `scene` (id)
+    constraint encounter_scene foreign key (sceneId) references `scene` (id) on delete cascade
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -90,7 +90,7 @@ create table nonPlayerCharacter
     `deleted`  tinyint(4) NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
     key non_player_character_campaign (campaignId),
-    constraint non_player_character_campaign foreign key (campaignId) references `campaign` (id)
+    constraint non_player_character_campaign foreign key (campaignId) references `campaign` (id) on delete cascade
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -165,7 +165,7 @@ create table subclass
     `version` text    NOT NULL,
     PRIMARY KEY (`id`),
     key subclass_character_class (classId),
-    constraint subclass_character_class foreign key (classId) references `characterClass` (id)
+    constraint subclass_character_class foreign key (classId) references `characterClass` (id) on delete cascade
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 

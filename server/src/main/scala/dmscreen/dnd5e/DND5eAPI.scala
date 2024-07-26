@@ -213,6 +213,8 @@ object DND5eAPI {
     playerCharacters:    PlayerCharacterSearchRequest => ZIO[DND5eZIORepository, DMScreenError, Seq[PlayerCharacter]],
     scenes:              CampaignId => ZIO[DND5eZIORepository, DMScreenError, Seq[Scene]],
     nonPlayerCharacters: CampaignId => ZIO[DND5eZIORepository, DMScreenError, Seq[NonPlayerCharacter]],
+    playerCharacter:     PlayerCharacterId => ZIO[DND5eZIORepository, DMScreenError, Option[PlayerCharacter]],
+    nonPlayerCharacter:  NonPlayerCharacterId => ZIO[DND5eZIORepository, DMScreenError, Option[NonPlayerCharacter]],
     encounters:          CampaignId => ZIO[DND5eZIORepository, DMScreenError, Seq[Encounter]],
     encounter:           EncounterByIdRequest => ZIO[DND5eZIORepository, DMScreenError, Option[Encounter]],
     bestiary:            MonsterSearch => ZIO[DND5eZIORepository, DMScreenError, MonsterSearchResults],
@@ -261,6 +263,8 @@ object DND5eAPI {
             ),
           scenes = campaignId => ZIO.serviceWithZIO[DND5eZIORepository](_.scenes(campaignId)),
           nonPlayerCharacters = campaignId => ZIO.serviceWithZIO[DND5eZIORepository](_.nonPlayerCharacters(campaignId)),
+          playerCharacter = id => ZIO.serviceWithZIO[DND5eZIORepository](_.playerCharacter(id)),
+          nonPlayerCharacter = id => ZIO.serviceWithZIO[DND5eZIORepository](_.nonPlayerCharacter(id)),
           encounters = campaignId => ZIO.serviceWithZIO[DND5eZIORepository](_.encounters(campaignId)),
           encounter =
             request => ZIO.serviceWithZIO[DND5eZIORepository](_.encounter(request.campaignId, request.encounterId)),

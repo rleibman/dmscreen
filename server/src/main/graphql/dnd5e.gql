@@ -306,6 +306,8 @@ type Queries {
   playerCharacters(campaignId: Long!, playerCharacterSearch: PlayerCharacterSearchInput!): [PlayerCharacter!]
   scenes(value: Long!): [Scene!]
   nonPlayerCharacters(value: Long!): [NonPlayerCharacter!]
+  playerCharacter(value: Long!): PlayerCharacter
+  nonPlayerCharacter(value: Long!): NonPlayerCharacter
   encounters(value: Long!): [Encounter!]
   encounter(campaignId: Long!, encounterId: Long!): Encounter
   bestiary(name: String, challengeRating: Float, size: CreatureSize, alignment: Alignment, biome: Biome, monsterType: MonsterType, source: SourceInput, orderCol: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): MonsterSearchResults

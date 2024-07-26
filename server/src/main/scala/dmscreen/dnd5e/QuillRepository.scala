@@ -789,30 +789,46 @@ object QuillRepository {
               case CampaignEntityType =>
                 ctx
                   .run(qCampaigns.filter(_.id == lift(id.asInstanceOf[CampaignId].value)).update(_.deleted -> true))
+              // TODO DELETE all the scenes, encounters, monsters, and characters as well
               case DND5eEntityType.playerCharacter =>
                 ctx
                   .run(
                     qPlayerCharacters
                       .filter(_.id == lift(id.asInstanceOf[PlayerCharacterId].value)).update(_.deleted -> true)
                   )
+              // TODO remove the character from encounters it may be in
               case DND5eEntityType.nonPlayerCharacter =>
                 ctx
                   .run(
                     qNonPlayerCharacters
                       .filter(_.id == lift(id.asInstanceOf[NonPlayerCharacterId].value)).update(_.deleted -> true)
                   )
+              // TODO remove the character from encounters it may be in
               case DND5eEntityType.monster =>
                 ctx
                   .run(qMonsters.filter(_.id == lift(id.asInstanceOf[MonsterId].value)).update(_.deleted -> true))
+              // TODO remove the monster from encounters it may be in
               case DND5eEntityType.scene =>
-                ctx
-                  .run(qScenes.filter(_.id == lift(id.asInstanceOf[SceneId].value)).update(_.deleted -> true))
+                for {
+                  a <- ctx
+                    .run(
+                      qScenes
+                        .filter(_.id == lift(id.asInstanceOf[SceneId].value))
+                        .update(_.deleted -> true)
+                    )
+                  b <- ctx.run(
+                    qEncounters
+                      .filter(_.sceneId.exists(_ == lift(id.asInstanceOf[SceneId].value)))
+                      .update(_.deleted -> true)
+                  )
+                } yield a + b
               case DND5eEntityType.encounter =>
                 ctx
                   .run(qEncounters.filter(_.id == lift(id.asInstanceOf[EncounterId].value)).update(_.deleted -> true))
               case _ => ZIO.fail(DMScreenError(s"Don't know how to delete ${entityType.name}"))
             }
-          } else
+          } else {
+            // Hard delete's are a bit easier, because we have ON DELETE CASCADE, so we don't have to delete anything else except for the main class
             entityType match {
               case CampaignEntityType =>
                 ctx
@@ -820,20 +836,23 @@ object QuillRepository {
               case DND5eEntityType.playerCharacter =>
                 ctx
                   .run(qPlayerCharacters.filter(_.id == lift(id.asInstanceOf[PlayerCharacterId].value)).delete)
+              // TODO remove it as a combatant from any encounters it's in (that doesn't cascade)
               case DND5eEntityType.nonPlayerCharacter =>
                 ctx
                   .run(qNonPlayerCharacters.filter(_.id == lift(id.asInstanceOf[NonPlayerCharacterId].value)).delete)
+              // TODO remove it as a combatant from any encounters it's in (that doesn't cascade)
               case DND5eEntityType.monster =>
                 ctx
                   .run(qMonsters.filter(_.id == lift(id.asInstanceOf[MonsterId].value)).delete)
+              // TODO remove it as a combatant from any encounters it's in (that doesn't cascade)
               case DND5eEntityType.scene =>
-                ctx
-                  .run(qScenes.filter(_.id == lift(id.asInstanceOf[SceneId].value)).delete)
+                ctx.run(qScenes.filter(_.id == lift(id.asInstanceOf[SceneId].value)).delete)
               case DND5eEntityType.encounter =>
                 ctx
                   .run(qEncounters.filter(_.id == lift(id.asInstanceOf[EncounterId].value)).delete)
               case _ => ZIO.fail(DMScreenError(s"Don't know how to delete ${entityType.name}"))
             }
+          }
 
         }.unit
           .provideLayer(dataSourceLayer)
@@ -1112,6 +1131,23 @@ object QuillRepository {
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
         }
+
+        override def playerCharacter(playerCharacterId: PlayerCharacterId): DMScreenTask[Option[PlayerCharacter]] =
+          ctx
+            .run(qPlayerCharacters.filter(v => !v.deleted && v.id == lift(playerCharacterId.value)))
+            .map(_.headOption.map(_.toModel))
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+
+        override def nonPlayerCharacter(nonPlayerCharacterId: NonPlayerCharacterId)
+          : DMScreenTask[Option[NonPlayerCharacter]] =
+          ctx
+            .run(qNonPlayerCharacters.filter(v => !v.deleted && v.id == lift(nonPlayerCharacterId.value)))
+            .map(_.headOption.map(_.toModel))
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
       }
     }
 

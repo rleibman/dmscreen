@@ -40,17 +40,7 @@ import caliban.client.SelectionBuilder
 //  Scene as CalibanScene,
 //  SceneHeader as CalibanSceneHeader
 //}
-import dmscreen.{
-  Campaign,
-  CampaignHeader,
-  CampaignId,
-  CampaignState,
-  CampaignStatus,
-  DiceRoll,
-  GameSystem,
-  GameUI,
-  UserId
-}
+import dmscreen.*
 import japgolly.scalajs.react.callback.*
 import zio.json.ast.Json
 

@@ -21,6 +21,7 @@
 
 package dmscreen
 
+import _root_.components.{Confirm, Toast}
 import caliban.ScalaJSClientAdapter.*
 import caliban.client.CalibanClientError.DecodingError
 import caliban.client.Operations.RootQuery
@@ -41,7 +42,6 @@ import caliban.client.scalajs.DND5eClient.{
   SceneHeader as CalibanSceneHeader
 }
 import caliban.client.{ScalarDecoder, SelectionBuilder}
-import _root_.components.{Confirm, Toast}
 import dmscreen.dnd5e.*
 import dmscreen.sta.STACampaignState
 import japgolly.scalajs.react.*

@@ -34,13 +34,13 @@ import caliban.client.scalajs.DND5eClient.{
 }
 import caliban.client.scalajs.{*, given}
 import dmscreen.*
+import dmscreen.components.EditableComponent.EditingMode
 import dmscreen.components.{DiceRoller, EditableComponent, EditableNumber, EditableText}
 import dmscreen.dnd5e.components.*
-import dmscreen.components.EditableComponent.EditingMode
 import dmscreen.dnd5e.{*, given}
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
-import japgolly.scalajs.react.*
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}
@@ -70,9 +70,12 @@ object CombatRunner {
   case class State(
     encounter:     Option[Encounter] = None,
     pcs:           Seq[PlayerCharacter] = Seq.empty,
+    npcs:          Seq[NonPlayerCharacter] = Seq.empty,
     healOrDamage:  Map[CombatantId, Int] = Map.empty,
     dialogMode:    DialogMode = DialogMode.closed,
-    viewMonsterId: Option[MonsterId] = None
+    viewMonsterId: Option[MonsterId] = None,
+    viewPCId:      Option[PlayerCharacterId] = None,
+    viewNPCId:     Option[NonPlayerCharacterId] = None
   )
   case class Props(
     campaignId:         CampaignId,
@@ -87,7 +90,8 @@ object CombatRunner {
 
     private def initializeEncounter(
       encounter: Encounter,
-      pcs:       Seq[PlayerCharacter]
+      pcs:       Seq[PlayerCharacter],
+      npcs:      Seq[NonPlayerCharacter]
     ): Encounter = {
       // Prep for combat, if the combat doesn't have the pcs yet, create them, if it does, update them.
       val playerCombatants = pcs
@@ -117,7 +121,7 @@ object CombatRunner {
           header = encounter.header.copy(status = EncounterStatus.active),
           jsonInfo = encounter.info
             .copy(
-              combatants = encounter.info.monsters ++ playerCombatants,
+              combatants = encounter.info.monsters ++ encounter.info.npcs ++ playerCombatants,
               round = if (encounter.info.round == 0) 1 else encounter.info.round // This is the first time we're running this encounter
             ).toJsonAST.toOption.get
         )
@@ -127,9 +131,10 @@ object CombatRunner {
       (for {
         encounter <- GraphQLRepository.live.encounter(props.campaignId, props.encounterId)
         pcs       <- GraphQLRepository.live.playerCharacters(props.campaignId)
-        initialized = encounter.map(e => initializeEncounter(e, pcs))
+        npcs      <- GraphQLRepository.live.nonPlayerCharacters(props.campaignId)
+        initialized = encounter.map(e => initializeEncounter(e, pcs, npcs))
       } yield $.modState(
-        _.copy(encounter = initialized, pcs = pcs),
+        _.copy(encounter = initialized, pcs = pcs, npcs = npcs),
         $.state.flatMap(_.encounter.fold(Callback.empty)(e => props.onChange(e, "Initialized Encounter for combat")))
       ))
         .completeWith(_.get)
@@ -180,7 +185,23 @@ object CombatRunner {
               )
             }
 
+            def modNPC(
+              updatedNPC: NonPlayerCharacter,
+              log:        String
+            ): Callback = {
+              $.modState(
+                _.copy(npcs = state.npcs.map(p => if (p.header.id == updatedNPC.header.id) updatedNPC else p)),
+                dmScreenState.onModifyCampaignState(
+                  campaignState.copy(
+                    changeStack = campaignState.changeStack.logNPCChanges(updatedNPC)
+                  ),
+                  log
+                )
+              )
+            }
+
             val pcs = state.pcs
+            val npcs = state.npcs
 
             VdomArray(
               state.viewMonsterId.fold(EmptyVdom: VdomNode)(monsterId =>
@@ -197,6 +218,38 @@ object CombatRunner {
                     ) => $.modState(_.copy(viewMonsterId = None))
                   )(
                     Modal.Content(MonsterStatBlock(monsterId))
+                  ): VdomNode
+              ),
+              state.viewPCId.fold(EmptyVdom: VdomNode)(pcId =>
+                Modal
+                  .withKey("monsterStackBlockModal")
+                  .style(CSSProperties().set("backgroundColor", "#ffffff"))
+                  .open(true)
+                  .size(semanticUiReactStrings.tiny)
+                  .closeIcon(true)
+                  .onClose(
+                    (
+                      _,
+                      _
+                    ) => $.modState(_.copy(viewPCId = None))
+                  )(
+                    Modal.Content(PCStatBlock(pcId))
+                  ): VdomNode
+              ),
+              state.viewNPCId.fold(EmptyVdom: VdomNode)(npcId =>
+                Modal
+                  .withKey("monsterStackBlockModal")
+                  .style(CSSProperties().set("backgroundColor", "#ffffff"))
+                  .open(true)
+                  .size(semanticUiReactStrings.tiny)
+                  .closeIcon(true)
+                  .onClose(
+                    (
+                      _,
+                      _
+                    ) => $.modState(_.copy(viewNPCId = None))
+                  )(
+                    Modal.Content(NPCStatBlock(npcId))
                   ): VdomNode
               ),
               Table
@@ -229,29 +282,29 @@ object CombatRunner {
                                 _
                               ) =>
 
-                                val monsterCount = encounter.info.combatants.count(_.isInstanceOf[MonsterCombatant])
+                                val npcCount = encounter.info.combatants.count(_.isNPC)
                                 DiceRoller
-                                  .roll(s"${monsterCount}d20")
+                                  .roll(s"${npcCount}d20")
                                   .map { results =>
                                     modEncounterInfo(
                                       { e =>
-                                        val (monsters, pcs) =
-                                          encounter.info.combatants.partition(_.isInstanceOf[MonsterCombatant])
+                                        val (npcs, pcs) = encounter.info.combatants.partition(_.isNPC)
                                         val initiatives = results.map(_.value)
 
-                                        val newCombatants = monsters
-                                          .map(_.asInstanceOf[MonsterCombatant])
-                                          .zip(initiatives)
-                                          .map(
-                                            (
-                                              monsterCombatant,
-                                              initiative
-                                            ) =>
-                                              monsterCombatant.copy(initiative =
-                                                scala.math.max(1, initiative + monsterCombatant.initiativeBonus)
-                                              )
-                                          ) ++
-                                          pcs
+                                        val newCombatants =
+                                          npcs
+                                            .zip(initiatives)
+                                            .collect {
+                                              case (combatant: MonsterCombatant, initiative) =>
+                                                combatant.copy(initiative =
+                                                  scala.math.max(1, initiative + combatant.initiativeBonus)
+                                                )
+                                              case (combatant: NonPlayerCharacterCombatant, initiative) =>
+                                                combatant.copy(initiative =
+                                                  scala.math.max(1, initiative + combatant.initiativeBonus)
+                                                )
+                                            } ++
+                                            pcs
 
                                         e.copy(
                                           currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
@@ -273,33 +326,36 @@ object CombatRunner {
                                 _,
                                 _
                               ) =>
-                                val monsterCount = encounter.info.combatants.count(_.isInstanceOf[MonsterCombatant])
+                                val npcCount = encounter.info.combatants.count(_.isNPC)
                                 DiceRoller
-                                  .roll(s"${monsterCount}d20")
+                                  .roll(s"${npcCount}d20")
                                   .map { results =>
                                     modEncounterInfo(
                                       { e =>
-                                        val (monsters, pcs) =
-                                          encounter.info.combatants.partition(_.isInstanceOf[MonsterCombatant])
+                                        val (npcs, pcs) = encounter.info.combatants.partition(_.isNPC)
                                         val initiatives = results.map(_.value)
 
-                                        val newCombatants = monsters
-                                          .map(_.asInstanceOf[MonsterCombatant])
-                                          .zip(initiatives)
-                                          .map(
-                                            (
-                                              monsterCombatant,
-                                              initiative
-                                            ) =>
-                                              monsterCombatant.copy(
-                                                initiative =
-                                                  scala.math.max(1, initiative + monsterCombatant.initiativeBonus),
-                                                health = monsterCombatant.health
-                                                  .copy(currentHitPoints = monsterCombatant.health.maxHitPoints),
-                                                conditions = Set.empty,
-                                                otherMarkers = List.empty
-                                              )
-                                          ) ++
+                                        val newCombatants =
+                                          npcs
+                                            .zip(initiatives)
+                                            .collect {
+                                              case (combatant: MonsterCombatant, initiative) =>
+                                                combatant.copy(
+                                                  initiative =
+                                                    scala.math.max(1, initiative + combatant.initiativeBonus),
+                                                  health = combatant.health
+                                                    .copy(currentHitPoints = combatant.health.maxHitPoints),
+                                                  conditions = Set.empty,
+                                                  otherMarkers = List.empty
+                                                )
+                                              case (combatant: NonPlayerCharacterCombatant, initiative) =>
+                                                combatant.copy(
+                                                  initiative =
+                                                    scala.math.max(1, initiative + combatant.initiativeBonus),
+                                                  otherMarkers = List.empty
+                                                  // TODO remove conditions and set health to full in npc
+                                                )
+                                            } ++
                                       pcs.map(_.asInstanceOf[PlayerCharacterCombatant].copy(otherMarkers = List.empty))
 
                                       e.copy(currentTurn = 0, round = 0, combatants = newCombatants)
@@ -396,7 +452,7 @@ object CombatRunner {
                                     )
                                 )
                               ),
-                              Table.Cell(pc.header.name),
+                              Table.Cell(s"${pc.header.name}${pc.header.playerName.fold("")(n=>s" ($n)")}"),
                               Table.Cell(
                                 Button("Heal")
                                   .className("healButton")
@@ -590,6 +646,241 @@ object CombatRunner {
                                   .compact(true)
                                   .size(SemanticSIZES.mini)
                                   .icon(true)(Icon.name(SemanticICONS.`eye`))
+                                  .onClick(
+                                    (
+                                      _,
+                                      _
+                                    ) => $.modState(_.copy(viewPCId = Some(pc.header.id)))
+                                  )
+                              )
+                            )
+                        case (npcCombatant: NonPlayerCharacterCombatant, i: Int) =>
+                          val npc = npcs.find(_.header.id.value == npcCombatant.nonPlayerCharacterId.value).get
+                          val npcInfo = npc.info
+
+                          Table.Row
+                            .withKey(npcCombatant.id.value.toString)(
+                              Table.Cell(
+                                Icon.name(SemanticICONS.`arrow right`).when(i == encounter.info.currentTurn),
+                                EditableNumber(
+                                  value = npcCombatant.initiative,
+                                  min = 1,
+                                  max = 30,
+                                  onChange = v =>
+                                    modEncounterInfo(
+                                      info =>
+                                        info.copy(
+                                          currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
+                                          combatants =
+                                            info.combatants.filter(_.id.value != npcCombatant.id.value) :+ npcCombatant
+                                              .copy(initiative = v.toInt)
+                                        ),
+                                      s"Setting initiative for ${npcCombatant.name} to $v"
+                                    )
+                                )
+                              ),
+                              Table.Cell(npc.header.name),
+                              Table.Cell(
+                                Button("Heal")
+                                  .className("healButton")
+                                  .compact(true)
+                                  .title("Enter points in the damage box and click here to heal")
+                                  .color(SemanticCOLORS.green)
+                                  .basic(true)
+                                  .size(SemanticSIZES.mini)
+                                  .disabled(!state.healOrDamage.contains(npcCombatant.id))
+                                  .onClick {
+                                    (
+                                      _,
+                                      _
+                                    ) =>
+                                      val fromIncapacitated = npc.info.health.isDead
+                                      val newHitPoints =
+                                        npcInfo.health.currentHitPoints + state.healOrDamage(npcCombatant.id)
+                                      val toIncapacitated = newHitPoints <= 0
+                                      modNPC(
+                                        npc.copy(jsonInfo =
+                                          npcInfo
+                                            .copy(health =
+                                              npcInfo.health.copy(
+                                                deathSave = DeathSave.empty, // A bit inefficient, but it's ok
+                                                currentHitPoints = newHitPoints
+                                              )
+                                            ).toJsonAST.toOption.get
+                                        ), {
+                                          if (fromIncapacitated && !toIncapacitated)
+                                            s"${npcCombatant.name} healed ${state.healOrDamage(npcCombatant.id)} points and is no longer incapacitated"
+                                          else
+                                            s"${npcCombatant.name} healed ${state.healOrDamage(npcCombatant.id)} points"
+                                        }
+                                      ) >> $.modState(s =>
+                                        s.copy(healOrDamage = s.healOrDamage.filter(_._1 != npcCombatant.id))
+                                      )
+
+                                  },
+                                Input
+                                  .id(npcCombatant.id.value.toString)
+                                  .className("damageInput")
+                                  .size(SemanticSIZES.mini)
+                                  .`type`("number")
+                                  .min(0)
+                                  .maxLength(4)
+                                  .value(state.healOrDamage.get(npcCombatant.id).fold("")(identity))
+                                  .onChange {
+                                    (
+                                      _,
+                                      data
+                                    ) =>
+                                      val newVal = data.value match {
+                                        case s: String => s.toDouble
+                                        case d: Double => d
+                                      }
+                                      $.modState(s =>
+                                        s.copy(healOrDamage = s.healOrDamage + (npcCombatant.id -> newVal.toInt))
+                                      )
+                                  },
+                                Button("Damage")
+                                  .className("damageButton")
+                                  .compact(true)
+                                  .title("Enter points in the damage box and click here for damage")
+                                  .color(SemanticCOLORS.red)
+                                  .basic(true)
+                                  .size(SemanticSIZES.mini)
+                                  .disabled(!state.healOrDamage.contains(npcCombatant.id))
+                                  .onClick {
+                                    (
+                                      _,
+                                      _
+                                    ) =>
+                                      val fromIncapacitated = npc.info.health.isDead
+                                      val newHitPoints =
+                                        npcInfo.health.currentHitPoints - state.healOrDamage(npcCombatant.id)
+                                      val toIncapacitated = newHitPoints <= 0
+                                      modNPC(
+                                        npc.copy(jsonInfo =
+                                          npcInfo
+                                            .copy(health =
+                                              npcInfo.health.copy(
+                                                deathSave = npcInfo.health.deathSave
+                                                  .copy(isStabilized = !toIncapacitated),
+                                                currentHitPoints = newHitPoints
+                                              )
+                                            ).toJsonAST.toOption.get
+                                        ),
+                                        if (toIncapacitated && !fromIncapacitated)
+                                          s"${npc.header.name} got ${state.healOrDamage(npcCombatant.id)} points of damage, and is now below zero hitpoints!"
+                                        else
+                                          s"${npc.header.name} got ${state.healOrDamage(npcCombatant.id)} points of damage"
+                                      ) >> $.modState(s =>
+                                        s.copy(healOrDamage = s.healOrDamage.filter(_._1 != npcCombatant.id))
+                                      )
+                                  },
+                                DeathSaveComponent(
+                                  npc.info.health.deathSave,
+                                  onChange = deathSave =>
+                                    modNPC(
+                                      npc.copy(jsonInfo =
+                                        npcInfo
+                                          .copy(health =
+                                            npcInfo.health.copy(deathSave = deathSave)
+                                          ).toJsonAST.toOption.get
+                                      ),
+                                      ""
+                                    )
+                                )
+                                  .when(npc.info.health.currentHitPoints <= 0)
+                              ),
+                              Table.Cell
+                                .singleLine(true).style(
+                                  CSSProperties().set("backgroundColor", npcInfo.health.lifeColor)
+                                )(
+                                  EditableComponent(
+                                    view = s"${npcInfo.health.currentHitPoints} / ${npcInfo.health.maxHitPoints}",
+                                    edit = HealthEditor(
+                                      npcInfo.health,
+                                      hp =>
+                                        modNPC(
+                                          npc.copy(jsonInfo = npcInfo.copy(health = hp).toJsonAST.toOption.get),
+                                          s"Setting hit points for ${npc.header.name} to $hp"
+                                        )
+                                    ),
+                                    title = "Hit points",
+                                    onEditingModeChange = modeChange
+                                  )
+                                ),
+                              Table.Cell.textAlign(semanticUiReactStrings.center)(
+                                EditableNumber(
+                                  value = npcInfo.armorClass,
+                                  min = 1,
+                                  max = 30,
+                                  onChange = v =>
+                                    modNPC(
+                                      npc.copy(jsonInfo = npcInfo.copy(armorClass = v.toInt).toJsonAST.toOption.get),
+                                      s"Setting armor class for ${npc.header.name} to $v"
+                                    )
+                                )
+                              ),
+                              Table.Cell.textAlign(semanticUiReactStrings.center)(
+                                EditableComponent(
+                                  view = npcInfo.conditions.headOption.fold(
+                                    Icon.name(SemanticICONS.`plus circle`): VdomNode
+                                  )(_ => VdomNode(npcInfo.conditions.mkString(", "))),
+                                  edit = ConditionsEditor(
+                                    conditions = npcInfo.conditions,
+                                    onChange = c =>
+                                      modNPC(
+                                        npc.copy(jsonInfo = npcInfo.copy(conditions = c).toJsonAST.toOption.get),
+                                        if (c.isEmpty) s"Removing all conditions from ${npc.header.name}"
+                                        else
+                                          s"Setting conditions for ${npc.header.name} to ${c.map(_.toString).mkString(", ")}"
+                                      )
+                                  ),
+                                  title = "Conditions",
+                                  onEditingModeChange = modeChange
+                                )
+                              ),
+                              Table.Cell.textAlign(semanticUiReactStrings.center)(
+                                EditableComponent(
+                                  view = npcCombatant.otherMarkers.headOption
+                                    .fold(
+                                      Icon.name(SemanticICONS.`plus circle`): VdomNode
+                                    )(_ => VdomNode(npcCombatant.otherMarkers.map(_.name).mkString(", "))),
+                                  edit = OtherMarkersEditor(
+                                    otherMarkers = npcCombatant.otherMarkers,
+                                    onChange = otherMarkers =>
+                                      modEncounterInfo(
+                                        info =>
+                                          info.copy(
+                                            combatants = info.combatants.map {
+                                              case npcCombatant2: PlayerCharacterCombatant
+                                                  if npcCombatant2.id == npcCombatant.id =>
+                                                npcCombatant2.copy(otherMarkers = otherMarkers)
+                                              case c => c
+                                            }
+                                          ),
+                                        if (otherMarkers.isEmpty)
+                                          s"Removing all other markers from ${npcCombatant.name}"
+                                        else
+                                          s"Setting other markers for ${npcCombatant.name} to ${otherMarkers
+                                              .map(_.name).mkString(", ")}"
+                                      )
+                                  ),
+                                  title = "Other Markers",
+                                  onEditingModeChange = modeChange
+                                )
+                              ),
+                              Table.Cell.singleLine(true)(
+                                Button
+                                  .title("View character stats")
+                                  .compact(true)
+                                  .size(SemanticSIZES.mini)
+                                  .icon(true)(Icon.name(SemanticICONS.`eye`))
+                                  .onClick(
+                                    (
+                                      _,
+                                      _
+                                    ) => $.modState(_.copy(viewNPCId = Some(npc.header.id)))
+                                  )
                               )
                             )
                         case (monsterCombatant: MonsterCombatant, i: Int) =>

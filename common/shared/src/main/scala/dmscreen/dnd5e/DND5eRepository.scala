@@ -87,6 +87,14 @@ trait DND5eRepository[F[_]] extends GameRepository {
     search:     PlayerCharacterSearch = PlayerCharacterSearch()
   ): F[Seq[PlayerCharacter]]
 
+  def playerCharacter(
+    playerCharacterId: PlayerCharacterId
+  ): F[Option[PlayerCharacter]]
+
+  def nonPlayerCharacter(
+    nonPlayerCharacterId: NonPlayerCharacterId
+  ): F[Option[NonPlayerCharacter]]
+
   def scenes(campaignId: CampaignId): F[Seq[Scene]]
 
   def nonPlayerCharacters(campaignId: CampaignId): F[Seq[NonPlayerCharacter]]

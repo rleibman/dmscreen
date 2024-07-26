@@ -23,7 +23,7 @@ package dmscreen
 
 import dmscreen.components.DiceRoller
 import dmscreen.dnd5e.*
-import dmscreen.dnd5e.pages.{DashboardPage, EncounterPage, NPCPage, PCPage, ScenePage}
+import dmscreen.dnd5e.pages.*
 import dmscreen.pages.{AboutPage, HomePage}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted

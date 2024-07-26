@@ -150,7 +150,7 @@ object GraphQLRepository {
       asyncCalibanCall(sb).map(_.get)
     }
 
-    private val playerCharacterSB: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
+    private val pcSB: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
       (CalibanPlayerCharacter.header(
         CalibanPlayerCharacterHeader.campaignId ~
           CalibanPlayerCharacterHeader.id ~
@@ -178,7 +178,7 @@ object GraphQLRepository {
           )
       }
 
-    private val nonPlayerCharacterSB: SelectionBuilder[CalibanNonPlayerCharacter, NonPlayerCharacter] =
+    private val npcSB: SelectionBuilder[CalibanNonPlayerCharacter, NonPlayerCharacter] =
       (CalibanNonPlayerCharacter.header(
         CalibanNonPlayerCharacterHeader.campaignId ~
           CalibanNonPlayerCharacterHeader.id ~
@@ -206,7 +206,7 @@ object GraphQLRepository {
     ): AsyncCallback[Seq[PlayerCharacter]] = {
 
       val calibanSearch = PlayerCharacterSearchInput(dndBeyondId = search.dndBeyondId.map(_.value))
-      asyncCalibanCall(Queries.playerCharacters(campaignId.value, calibanSearch)(playerCharacterSB))
+      asyncCalibanCall(Queries.playerCharacters(campaignId.value, calibanSearch)(pcSB))
         .map(_.toSeq.flatten)
 
     }
@@ -239,7 +239,7 @@ object GraphQLRepository {
     }
 
     override def nonPlayerCharacters(campaignId: CampaignId): AsyncCallback[Seq[NonPlayerCharacter]] = {
-      asyncCalibanCall(Queries.nonPlayerCharacters(campaignId.value)(nonPlayerCharacterSB))
+      asyncCalibanCall(Queries.nonPlayerCharacters(campaignId.value)(npcSB))
         .map(_.toSeq.flatten)
     }
 
@@ -539,7 +539,7 @@ object GraphQLRepository {
       fresh:       Boolean = false
     ): AsyncCallback[PlayerCharacter] = {
       asyncCalibanCall(
-        Mutations.importCharacterDNDBeyond(campaignId.value, dndBeyondId.value, fresh)(playerCharacterSB).map(_.get)
+        Mutations.importCharacterDNDBeyond(campaignId.value, dndBeyondId.value, fresh)(pcSB).map(_.get)
       )
     }
 
@@ -549,6 +549,13 @@ object GraphQLRepository {
     ): AsyncCallback[Option[Encounter]] =
       asyncCalibanCall(Queries.encounter(campaignId.value, encounterId.value)(encounterSB))
 
+    override def playerCharacter(id: PlayerCharacterId): AsyncCallback[Option[PlayerCharacter]] = {
+      asyncCalibanCall(Queries.playerCharacter(id.value)(pcSB))
+    }
+
+    override def nonPlayerCharacter(id: NonPlayerCharacterId): AsyncCallback[Option[NonPlayerCharacter]] = {
+      asyncCalibanCall(Queries.nonPlayerCharacter(id.value)(npcSB))
+    }
   }
 
 }
