@@ -452,7 +452,7 @@ object CombatRunner {
                                     )
                                 )
                               ),
-                              Table.Cell(s"${pc.header.name}${pc.header.playerName.fold("")(n=>s" ($n)")}"),
+                              Table.Cell(s"${pc.header.name}${pc.header.playerName.fold("")(n => s" ($n)")}"),
                               Table.Cell(
                                 Button("Heal")
                                   .className("healButton")
