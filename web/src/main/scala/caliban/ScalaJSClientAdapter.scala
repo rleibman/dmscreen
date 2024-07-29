@@ -88,14 +88,13 @@ object ScalaJSClientAdapter extends TimerSupport {
 
   given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
 
-  // TODO if the return
   // TODO switch this, insteaf of returning AsyncCallback, return an Either[Throwable, A]
   def asyncCalibanCall[Origin, A](
     selectionBuilder: SelectionBuilder[Origin, A]
   )(using ev:         IsOperation[Origin]
   ): AsyncCallback[A] = {
     val request = selectionBuilder.toRequest(serverUri)
-    // TODO add headers as necessary
+    // ENHANCEMENT add headers as necessary
     import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
     AsyncCallback
       .fromFuture(request.send(backend))
@@ -107,31 +106,13 @@ object ScalaJSClientAdapter extends TimerSupport {
       }
   }
 
-  def asyncCalibanCallThroughJsonOpt[Origin, A: JsonDecoder](
-    selectionBuilder: SelectionBuilder[Origin, Option[Json]]
-  )(using ev:         IsOperation[Origin]
-  ): AsyncCallback[Option[A]] =
-    asyncCalibanCall[Origin, Option[Json]](selectionBuilder).map { jsonOpt =>
-      import scala.language.unsafeNulls
-
-      val decoder = summon[JsonDecoder[A]]
-
-      jsonOpt.map(decoder.fromJsonAST) match {
-        case Some(Right(value)) => Some(value)
-        case Some(Left(error)) =>
-          Callback.throwException(Exception(error)).runNow()
-          None
-        case None => None
-      }
-    }
-
   def calibanCall[Origin, A](
     selectionBuilder: SelectionBuilder[Origin, A],
     callback:         A => Callback
   )(using ev:         IsOperation[Origin]
   ): Callback = {
     val request = selectionBuilder.toRequest(serverUri)
-    // TODO add headers as necessary
+    // ENHANCEMENT add headers as necessary
     import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
     AsyncCallback
@@ -150,44 +131,6 @@ object ScalaJSClientAdapter extends TimerSupport {
           Callback.log(s"2 Error: ${response.statusText}") // TODO handle error responses better
       }
   }
-
-  def calibanCallThroughJsonOpt[Origin, A: JsonDecoder](
-    selectionBuilder: SelectionBuilder[Origin, Option[Json]],
-    callback:         Option[A] => Callback
-  )(using ev:         IsOperation[Origin]
-  ): Callback =
-    calibanCall[Origin, Option[Json]](
-      selectionBuilder,
-      {
-        case Some(json) =>
-          import scala.language.unsafeNulls
-          val decoder = summon[JsonDecoder[A]]
-          decoder.fromJsonAST(json) match {
-            case Right(obj) => callback(Option(obj))
-            case Left(error) =>
-              Callback.log(s"3 Error: $error") // TODO handle error responses better
-          }
-        case None => callback(None)
-      }
-    )
-
-  def calibanCallThroughJson[Origin, A: JsonDecoder](
-    selectionBuilder: SelectionBuilder[Origin, Json],
-    callback:         A => Callback
-  )(using ev:         IsOperation[Origin]
-  ): Callback =
-    calibanCall[Origin, Json](
-      selectionBuilder,
-      { json =>
-        import scala.language.unsafeNulls
-        val decoder = summon[JsonDecoder[A]]
-        decoder.fromJsonAST(json) match {
-          case Right(obj) => callback(obj)
-          case Left(error) =>
-            Callback.log(s"4 Error: $error") // TODO handle error responses better
-        }
-      }
-    )
 
   import GQLOperationMessage.*
 

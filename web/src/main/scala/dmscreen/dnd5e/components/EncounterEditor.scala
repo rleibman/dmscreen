@@ -28,6 +28,7 @@ import dmscreen.{CampaignId, DMScreenState}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{CtorType, *}
+import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsAddonsPaginationPaginationMod.PaginationProps
@@ -100,6 +101,7 @@ object EncounterEditor {
     monsterCount:   Long = 0,
     editingMonster: Option[(MonsterId, CloneMonster)] = None,
     viewMonsterId:  Option[MonsterId] = None,
+    viewNPCId:      Option[NonPlayerCharacterId] = None,
     isAddingNPC:    Boolean = false,
     npcToAdd:       Option[NonPlayerCharacter] = None
   )
@@ -161,6 +163,8 @@ object EncounterEditor {
           Container(
             state.viewMonsterId.fold(EmptyVdom: VdomNode)(monsterId =>
               Modal
+                .withKey("monsterStackBlockModal")
+                .style(CSSProperties().set("backgroundColor", "#ffffff"))
                 .open(true)
                 .size(semanticUiReactStrings.tiny)
                 .closeIcon(true)
@@ -171,6 +175,22 @@ object EncounterEditor {
                   ) => $.modState(_.copy(viewMonsterId = None))
                 )(
                   Modal.Content(^.padding := 5.px, MonsterStatBlock(monsterId))
+                ): VdomNode
+            ),
+            state.viewNPCId.fold(EmptyVdom: VdomNode)(npcId =>
+              Modal
+                .withKey("npcBlockModal")
+                .style(CSSProperties().set("backgroundColor", "#ffffff"))
+                .open(true)
+                .size(semanticUiReactStrings.tiny)
+                .closeIcon(true)
+                .onClose(
+                  (
+                    _,
+                    _
+                  ) => $.modState(_.copy(viewNPCId = None))
+                )(
+                  Modal.Content(NPCStatBlock(npcId))
                 ): VdomNode
             ),
             Modal
@@ -360,7 +380,7 @@ object EncounterEditor {
                             Table.Cell("-"),
                             Table.Cell(npc.info.armorClass),
                             Table.Cell(npc.info.health.maxHitPoints),
-                            Table.Cell("-"), // TODO what happened to creature size???
+                            Table.Cell(npc.info.size.toString.capitalize),
                             Table.Cell.singleLine(true)(
                               Button
                                 .compact(true)
@@ -391,7 +411,7 @@ object EncounterEditor {
                                   (
                                     _,
                                     _
-                                  ) => Callback.empty // TODO view npc stats. $.modState(_.copy(viewMonsterId = Some(combatant.nonPlayerCharacterId)))
+                                  ) => $.modState(_.copy(viewNPCId = Some(npc.header.id)))
                                 )
                             )
                           )

@@ -217,7 +217,7 @@ object CombatRunner {
                       _
                     ) => $.modState(_.copy(viewMonsterId = None))
                   )(
-                    Modal.Content(MonsterStatBlock(monsterId))
+                    Modal.Content(^.padding := 5.px, MonsterStatBlock(monsterId))
                   ): VdomNode
               ),
               state.viewPCId.fold(EmptyVdom: VdomNode)(pcId =>
@@ -238,7 +238,7 @@ object CombatRunner {
               ),
               state.viewNPCId.fold(EmptyVdom: VdomNode)(npcId =>
                 Modal
-                  .withKey("monsterStackBlockModal")
+                  .withKey("npcBlockModal")
                   .style(CSSProperties().set("backgroundColor", "#ffffff"))
                   .open(true)
                   .size(semanticUiReactStrings.tiny)
@@ -353,7 +353,6 @@ object CombatRunner {
                                                   initiative =
                                                     scala.math.max(1, initiative + combatant.initiativeBonus),
                                                   otherMarkers = List.empty
-                                                  // TODO remove conditions and set health to full in npc
                                                 )
                                             } ++
                                       pcs.map(_.asInstanceOf[PlayerCharacterCombatant].copy(otherMarkers = List.empty))
@@ -361,7 +360,27 @@ object CombatRunner {
                                       e.copy(currentTurn = 0, round = 0, combatants = newCombatants)
                                       },
                                       "Cleared all NPC stats to beginning of combat"
-                                    )
+                                    ) >> Callback.traverse(encounter.info.combatants.collect {
+                                      case c: NonPlayerCharacterCombatant => c
+                                    }) { npcCombatant =>
+                                      state.npcs
+                                        .find(_.header.id == npcCombatant.nonPlayerCharacterId).fold(Callback.empty) {
+                                          npc =>
+                                            modNPC(
+                                              npc.copy(
+                                                jsonInfo = npc.info
+                                                  .copy(
+                                                    conditions = Set.empty,
+                                                    health = npc.info.health.copy(
+                                                      currentHitPoints = npc.info.health.maxHitPoints,
+                                                      deathSave = DeathSave.empty
+                                                    )
+                                                  ).toJsonAST.toOption.get
+                                              ),
+                                              ""
+                                            )
+                                        }
+                                    }
                                   }
                                   .completeWith(_.get)
                             }

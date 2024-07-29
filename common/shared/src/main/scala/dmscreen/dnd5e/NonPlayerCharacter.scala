@@ -56,7 +56,6 @@ case class NonPlayerCharacterInfo(
   classes:                 List[PlayerCharacterClass],
   physicalCharacteristics: PhysicalCharacteristics = PhysicalCharacteristics(),
   faith:                   Option[String] = None,
-  inspiration:             Boolean = false,
   overrideInitiative:      Option[Int] = None,
   currentXp:               Option[Long] = None,
   alignment:               Alignment = Alignment.trueNeutral,
@@ -65,6 +64,7 @@ case class NonPlayerCharacterInfo(
   skills:                  Skills = Skills(),
   background:              Option[Background] = None,
   race:                    Race = Race("Human"),
+  size:                    CreatureSize = CreatureSize.medium,
   traits:                  Traits = Traits(),
   inventory:               List[InventoryItem] = List.empty,
   wallet:                  Wallet = Wallet.empty,
@@ -118,7 +118,11 @@ case class RollplayInfo(
   childhood:      String = "",
   children:       String = "",
   spouse:         String = ""
-)
+) {
+
+  def isEmpty: Boolean = this == RollplayInfo()
+
+}
 
 case class NonPlayerCharacter(
   header:               NonPlayerCharacterHeader,

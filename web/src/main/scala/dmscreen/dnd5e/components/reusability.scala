@@ -51,6 +51,7 @@ given Reusability[SkillType] = Reusability.by(_.toString)
 given Reusability[AdvantageDisadvantage] = Reusability.by(_.toString)
 given Reusability[PlayerCharacterClass] = Reusability.derive[PlayerCharacterClass]
 given Reusability[Marker] = Reusability.string.contramap(_.name)
+given Reusability[Race] = Reusability.string.contramap(_.name)
 given Reusability[Background] = Reusability.string.contramap(_.name)
 given Reusability[DiceRoll] = Reusability.string.contramap(_.roll)
 given Reusability[CharacterClass] = Reusability.derive[CharacterClass]

@@ -193,13 +193,14 @@ object Content {
   given Reusability[Json] = Reusability.string.contramap(_.toString)
   given Reusability[CampaignHeader] = Reusability.by(c => (c.id, c.campaignStatus, c.name, c.gameSystem, c.dmUserId))
   given Reusability[Campaign] = Reusability.by(c => (c.header, c.jsonInfo))
+  given rsr: Reusability[Seq[Race]] = Reusability.list[Race].contramap(_.toList)
   given rsb: Reusability[Seq[Background]] = Reusability.list[Background].contramap(_.toList)
   given rsc: Reusability[Seq[CharacterClass]] = Reusability.list[CharacterClass].contramap(_.toList)
 
   given Reusability[CampaignState] =
     Reusability[CampaignState] {
       case (s1: DND5eCampaignState, s2: DND5eCampaignState) =>
-        Reusability.by((s: DND5eCampaignState) => (s.campaign, s.backgrounds, s.classes)).test(s1, s2)
+        Reusability.by((s: DND5eCampaignState) => (s.campaign, s.races, s.backgrounds, s.classes)).test(s1, s2)
       case (s1: STACampaignState, s2: STACampaignState) =>
         Reusability.by((s: STACampaignState) => s.campaign).test(s1, s2)
       case _ => false

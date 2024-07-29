@@ -28,11 +28,13 @@ object DND5eCampaignState {
 
   def load(campaign: Campaign): AsyncCallback[DND5eCampaignState] = {
     for {
+      races       <- GraphQLRepository.live.races
       backgrounds <- GraphQLRepository.live.backgrounds
       classes     <- GraphQLRepository.live.classes
     } yield {
       DND5eCampaignState(
         campaign = campaign,
+        races = races,
         backgrounds = backgrounds,
         classes = classes
       )
@@ -45,6 +47,7 @@ object DND5eCampaignState {
 case class DND5eCampaignState(
   campaign:    Campaign,
   backgrounds: Seq[Background] = Seq.empty,
+  races:       Seq[Race] = Seq.empty,
   classes:     Seq[CharacterClass] = Seq.empty,
   changeStack: ChangeStack = ChangeStack()
 

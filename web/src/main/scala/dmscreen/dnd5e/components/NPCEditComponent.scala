@@ -91,6 +91,10 @@ object NPCEditComponent {
             ))
               .sortBy(_.name)
               .distinctBy(_.name)
+          def allRaces =
+            (campaignState.races ++ Seq(info.race))
+              .sortBy(_.name)
+              .distinctBy(_.name)
 
           <.div(
             Container.className("characterCard")(
@@ -150,6 +154,66 @@ object NPCEditComponent {
                       )
                     ),
                     <.tr(
+                      <.th("Race"),
+                      <.td(
+                        Dropdown
+                          .placeholder("Choose")
+                          .clearable(true)
+                          .compact(true)
+                          .allowAdditions(true)
+                          .search(true)
+                          .options(
+                            allRaces
+                              .map(race =>
+                                DropdownItemProps()
+                                  .setValue(race.name)
+                                  .setText(race.name),
+                              ).toJSArray
+                          )
+                          .onChange(
+                            (
+                              _,
+                              changedData
+                            ) =>
+                              modNPCInfo(
+                                info.copy(race = changedData.value match {
+                                  case s: String if s.isEmpty => info.race
+                                  case s: String =>
+                                    allRaces.find(_.name == s).getOrElse(Race(s))
+                                  case _ => throw RuntimeException("Unexpected value")
+                                })
+                              )
+                          )
+                          .value(info.race.name)
+                      )
+                    ),
+                    <.tr(
+                      <.th("Size"),
+                      <.td(
+                        Dropdown
+                          .placeholder("Choose").compact(true).options(
+                            CreatureSize.values
+                              .map(s =>
+                                DropdownItemProps()
+                                  .setValue(s.ordinal)
+                                  .setText(s.toString.capitalize)
+                              ).toJSArray
+                          ).onChange {
+                            (
+                              _,
+                              changedData
+                            ) =>
+                              val newVal = changedData.value match {
+                                case s: String => s.toInt
+                                case s: Double => s.toInt
+                                case _ => throw RuntimeException("Unexpected value")
+                              }
+
+                              modNPCInfo(info.copy(size = CreatureSize.fromOrdinal(newVal)))
+                          }.value(info.size.ordinal)
+                      )
+                    ),
+                    <.tr(
                       <.th("Background"),
                       <.td(
                         Dropdown
@@ -202,24 +266,12 @@ object NPCEditComponent {
                       <.td(info.proficiencyBonusString)
                     ),
                     <.tr(
+                      <.th("Spell DC"),
+                      <.td(info.spellDC.map(s => s"${s._1.abilityType.short} (${s._2})").mkString(" / "))
+                    ).when(info.spellDC.nonEmpty),
+                    <.tr(
                       <.th("Initiative"),
                       <.td(info.initiativeBonusString)
-                    ),
-                    <.tr(
-                      <.td(
-                        ^.colSpan := 2,
-                        Checkbox
-                          .fitted(true)
-                          .label("Inspiration")
-                          .toggle(true)
-                          .checked(info.inspiration)
-                          .onChange(
-                            (
-                              _,
-                              data
-                            ) => modNPCInfo(info.copy(inspiration = data.checked.getOrElse(info.inspiration)))
-                          )
-                      )
                     )
                   )
                 )

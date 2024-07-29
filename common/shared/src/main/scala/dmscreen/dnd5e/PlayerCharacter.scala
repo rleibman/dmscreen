@@ -68,6 +68,7 @@ case class PlayerCharacterInfo(
   skills:                  Skills = Skills(),
   background:              Option[Background] = None,
   race:                    Race = Race("Human"),
+  size:                    CreatureSize = CreatureSize.medium,
   traits:                  Traits = Traits(),
   inventory:               List[InventoryItem] = List.empty,
   wallet:                  Wallet = Wallet.empty,

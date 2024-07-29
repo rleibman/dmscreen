@@ -150,7 +150,7 @@ object HomePage extends DMScreenTab {
           ConfirmDelete(
             open = state.confirmDeleteOpen,
             onConfirm =
-              dmScreenState.onSelectCampaign(None) >> $.modState(_.copy(confirmDeleteOpen = false, deleteMe = None)), // TODO delete here, if it's current, then we need to change the current campaign
+              dmScreenState.onSelectCampaign(None) >> $.modState(_.copy(confirmDeleteOpen = false, deleteMe = None)),
             onCancel = $.modState(_.copy(confirmDeleteOpen = false, deleteMe = None))
           ),
           state.newCampaign.fold(EmptyVdom) { newCampaign =>
@@ -264,7 +264,7 @@ object HomePage extends DMScreenTab {
                           (
                             _,
                             _
-                          ) => Callback.empty // TODO snapshot
+                          ) => Callback.empty // ENHANCEMENT snapshot
                         ),
                       Button
                         .title("Archive this campaign")
@@ -276,7 +276,7 @@ object HomePage extends DMScreenTab {
                           ) => modCampaignHeader(campaign.copy(campaignStatus = CampaignStatus.archived))
                         }.when(
                           campaign.campaignStatus != CampaignStatus.archived
-                        ) // TODO archive
+                        )
                     )
                   )
               }*

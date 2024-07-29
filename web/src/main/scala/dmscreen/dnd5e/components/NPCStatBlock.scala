@@ -48,157 +48,220 @@ object NPCStatBlock {
         .completeWith(_.get)
     }
 
+    def profStr(proficiencyLevel: ProficiencyLevel): String =
+      proficiencyLevel match {
+        case ProficiencyLevel.none       => ""
+        case ProficiencyLevel.half       => "½"
+        case ProficiencyLevel.proficient => "*"
+        case ProficiencyLevel.expert     => "**"
+      }
+
     def render(
       props: Props,
       state: State
     ): VdomNode = {
-      state.npc.fold(EmptyVdom) { npc =>
-        val info = npc.info
+      DMScreenState.ctx.consume { dmScreenState =>
+        val campaignState = dmScreenState.campaignState
+          .map(_.asInstanceOf[DND5eCampaignState]).getOrElse(throw RuntimeException("No campaign"))
+        state.npc.fold(EmptyVdom) { npc =>
+          val info = npc.info
 
-        Container.className("stat-block")(
-          <.hr(^.className := "orange-border"),
-          Container
-            .className("creature-heading")(
-              Header
-                .size(SemanticSIZES.large).as("h1")(npc.header.name)
-                //              Header.size(SemanticSIZES.small).as("h2")(s"${pc.header.size.toString.capitalize} ${pc.header.pcType.toString.capitalize}, ${monster.header.alignment.fold("")(_.toString)}")
+          Container.className("stat-block")(
+            <.hr(^.className := "orange-border"),
+            Container
+              .className("creature-heading")(
+                Header
+                  .size(SemanticSIZES.large).as("h1")(npc.header.name),
+                Header
+                  .size(SemanticSIZES.small).as("h2")(
+                    s"${info.size.toString.capitalize} ${info.race.name}, ${info.alignment.name}"
+                  ),
+                Header
+                  .size(SemanticSIZES.small).as("h2")(
+                    info.classes.zipWithIndex.map {
+                      (
+                        cl,
+                        i
+                      ) =>
+                        <.p(
+                          s"${cl.characterClass.name} ${cl.subclass.fold("")(sc => s"(${sc.name})")} ${cl.level}"
+                        )
+                    }*
+                  )
+              ),
+            taperedLine,
+            Container.className("top-stats")(
+              Container
+                .className("property-line")(
+                  Header.size(SemanticSIZES.small).as("h4")("Background"),
+                  <.p(info.background.map(_.name))
+                ).when(info.background.isDefined),
+              Container.className("property-line")(
+                Header.size(SemanticSIZES.small).as("h4")("Armor Class"),
+                <.p(info.armorClass)
+              ),
+              Container.className("property-line")(
+                Header.size(SemanticSIZES.small).as("h4")("Max Hit points"),
+                <.p(info.health.currentMax)
+              ),
+              Container.className("property-line")(
+                Header.size(SemanticSIZES.small).as("h4")("Proficiency Bonus"),
+                <.p(info.proficiencyBonusString)
+              ),
+              Container.className("property-line")(
+                Header.size(SemanticSIZES.small).as("h4")("Spell DC"),
+                <.p(info.spellDC.map(s => s"${s._1.abilityType.short} (${s._2})").mkString(" / "))
+              ),
+              Container.className("property-line")(
+                Header.size(SemanticSIZES.small).as("h4")("Initiative Bonus"),
+                <.p(info.initiativeBonus)
+              )
             ),
-          taperedLine,
-          //          Container.className("top-stats")(
-          //            Container.className("property-line")(
-          //              Header.size(SemanticSIZES.small).as("h4")("Armor Class"),
-          //              <.p(monster.header.armorClass)
-          //            ),
-          //            Container.className("property-line")(
-          //              Header.size(SemanticSIZES.small).as("h4")("Hit points"),
-          //              <.p(s"${monster.header.maximumHitPoints} ${info.hitDice.fold("")(hd => s"(${hd.roll})")})")
-          //            ),
-          //            Container.className("property-line")(
-          //              Header.size(SemanticSIZES.small).as("h4")("Speed"),
-          //              <.p(info.speeds.map(speed => s"${speed.value} (${speed.speedType.toString})").mkString(", "))
-          //            ),
-          //            taperedLine,
-          //            Container.className("abilities")(
-          //              <.div(
-          //                Header.size(SemanticSIZES.small).as("h4")("STR"),
-          //                <.p(s"${info.abilities.strength.value} (${info.abilities.strength.modifierString})")
-          //              ),
-          //              <.div(
-          //                Header.size(SemanticSIZES.small).as("h4")("DEX"),
-          //                <.p(s"${info.abilities.dexterity.value} (${info.abilities.dexterity.modifierString})")
-          //              ),
-          //              <.div(
-          //                Header.size(SemanticSIZES.small).as("h4")("CON"),
-          //                <.p(s"${info.abilities.constitution.value} (${info.abilities.constitution.modifierString})")
-          //              ),
-          //              <.div(
-          //                Header.size(SemanticSIZES.small).as("h4")("INT"),
-          //                <.p(s"${info.abilities.intelligence.value} (${info.abilities.intelligence.modifierString})")
-          //              ),
-          //              <.div(
-          //                Header.size(SemanticSIZES.small).as("h4")("WIS"),
-          //                <.p(s"${info.abilities.wisdom.value} (${info.abilities.wisdom.modifierString})")
-          //              ),
-          //              <.div(
-          //                Header.size(SemanticSIZES.small).as("h4")("CHA"),
-          //                <.p(s"${info.abilities.charisma.value} (${info.abilities.charisma.modifierString})")
-          //              )
-          //            ),
-          //            taperedLine,
-          //            info.damageImmunities.headOption
-          //              .fold(EmptyVdom)(_ =>
-          //                Container.className("property-line")(
-          //                  Header.size(SemanticSIZES.small).as("h4")("Damage Immunities"),
-          //                  <.p(info.damageImmunities.map(_.description).mkString(", "))
-          //                )
-          //              ),
-          //            info.damageVulnerabilities.headOption
-          //              .fold(EmptyVdom)(_ =>
-          //                Container.className("property-line")(
-          //                  Header.size(SemanticSIZES.small).as("h4")("Damage Vulnelabilities"),
-          //                  <.p(info.damageVulnerabilities.map(_.description).mkString(", "))
-          //                )
-          //              ),
-          //            info.damageResistances.headOption
-          //              .fold(EmptyVdom)(_ =>
-          //                Container.className("property-line")(
-          //                  Header.size(SemanticSIZES.small).as("h4")("Damage Resistances"),
-          //                  <.p(info.damageResistances.map(_.description).mkString(", "))
-          //                )
-          //              ),
-          //            info.conditionImmunities.headOption
-          //              .fold(EmptyVdom)(_ =>
-          //                Container.className("property-line")(
-          //                  Header.size(SemanticSIZES.small).as("h4")("Condition Immunities"),
-          //                  <.p(info.conditionImmunities.map(_.toString).mkString(", "))
-          //                )
-          //              ),
-          //            info.senses.headOption
-          //              .fold(EmptyVdom)(_ =>
-          //                Container.className("property-line")(
-          //                  Header.size(SemanticSIZES.small).as("h4")("Senses"),
-          //                  <.p(info.senses.map(_.sense).mkString(", "))
-          //                )
-          //              ),
-          //            info.languages.headOption
-          //              .fold(EmptyVdom)(_ =>
-          //                Container.className("property-line")(
-          //                  Header.size(SemanticSIZES.small).as("h4")("Languages"),
-          //                  <.p(info.languages.map(_.name).mkString(", "))
-          //                )
-          //              ),
-          //            Container.className("property-line")(
-          //              Header.size(SemanticSIZES.small).as("h4")("Challenge"),
-          //              <.p(s"${monster.header.cr} (${monster.header.xp} XP)")
-          //            ),
-          //            taperedLine,
-          //            info.actions.headOption.fold(EmptyVdom)(_ =>
-          //              Container.className("actions")(
-          //                (Header.size(SemanticSIZES.medium).as("h3")("Actions"): TagMod) +:
-          //                  info.actions.map { action =>
-          //                    Container.className("property-block")(
-          //                      Header.size(SemanticSIZES.small).as("h4")(action.name),
-          //                      <.p(action.description)
-          //                    ): TagMod
-          //                  }*
-          //              )
-          //            ),
-          //            info.reactions.headOption.fold(EmptyVdom)(_ =>
-          //              Container.className("actions")(
-          //                (Header.size(SemanticSIZES.medium).as("h3")("Reactions"): TagMod) +:
-          //                  info.reactions.map { action =>
-          //                    Container.className("property-block")(
-          //                      Header.size(SemanticSIZES.small).as("h4")(action.name),
-          //                      <.p(action.description)
-          //                    ): TagMod
-          //                  }*
-          //              )
-          //            ),
-          //            info.legendaryActions.headOption.fold(EmptyVdom)(_ =>
-          //              Container.className("actions")(
-          //                (Header.size(SemanticSIZES.medium).as("h3")("Legendary Actions"): TagMod) +:
-          //                  info.legendaryActions.map { action =>
-          //                    Container.className("property-block")(
-          //                      Header.size(SemanticSIZES.small).as("h4")(action.name),
-          //                      <.p(action.description)
-          //                    ): TagMod
-          //                  }*
-          //              )
-          //            ),
-          //            info.specialAbilities.headOption.fold(EmptyVdom)(_ =>
-          //              Container.className("actions")(
-          //                (Header.size(SemanticSIZES.medium).as("h3")("Special Abilities"): TagMod) +:
-          //                  info.specialAbilities.map { specialAbility =>
-          //                    Container.className("property-block")(
-          //                      Header.size(SemanticSIZES.small).as("h4")(specialAbility.name),
-          //                      <.p(specialAbility.description)
-          //                    ): TagMod
-          //                  }*
-          //              )
-          //            )
-          //          ),
-          <.hr(^.className := "orange-border bottom")
-        )
+            Container.className("property-line")(
+              Header.size(SemanticSIZES.small).as("h4")("Speed"),
+              <.p(info.speeds.map(speed => s"${speed.value} (${speed.speedType.toString})").mkString(", "))
+            ),
+            Container
+              .className("property-line")(
+                Header.size(SemanticSIZES.small).as("h4")("Senses"),
+                <.p(info.senses.map(s => s"${s.sense} ${s.range}").mkString(", "))
+              ).when(info.senses.nonEmpty),
+            Container
+              .className("property-line")(
+                Header.size(SemanticSIZES.small).as("h4")("Languages"),
+                <.p(info.languages.map(_.name).mkString(", "))
+              ).when(info.languages.nonEmpty),
+            Container
+              .className("property-line")(
+                Header.size(SemanticSIZES.small).as("h4")("Feats"),
+                <.p(info.feats.map(_.name).mkString(", "))
+              ).when(info.feats.nonEmpty),
+            Container
+              .className("property-line")(
+                Header.size(SemanticSIZES.small).as("h4")("Conditions"),
+                <.span(info.conditions.map(_.toString.capitalize).mkString(", "))
+              ).when(info.conditions.nonEmpty),
+            taperedLine,
+            Container.className("abilities")(
+              <.div(
+                Header.size(SemanticSIZES.small).as("h4")("STR"),
+                <.p(s"${info.abilities.strength.value} (${info.abilities.strength.modifierString})")
+              ),
+              <.div(
+                Header.size(SemanticSIZES.small).as("h4")("DEX"),
+                <.p(s"${info.abilities.dexterity.value} (${info.abilities.dexterity.modifierString})")
+              ),
+              <.div(
+                Header.size(SemanticSIZES.small).as("h4")("CON"),
+                <.p(s"${info.abilities.constitution.value} (${info.abilities.constitution.modifierString})")
+              ),
+              <.div(
+                Header.size(SemanticSIZES.small).as("h4")("INT"),
+                <.p(s"${info.abilities.intelligence.value} (${info.abilities.intelligence.modifierString})")
+              ),
+              <.div(
+                Header.size(SemanticSIZES.small).as("h4")("WIS"),
+                <.p(s"${info.abilities.wisdom.value} (${info.abilities.wisdom.modifierString})")
+              ),
+              <.div(
+                Header.size(SemanticSIZES.small).as("h4")("CHA"),
+                <.p(s"${info.abilities.charisma.value} (${info.abilities.charisma.modifierString})")
+              )
+            ),
+            taperedLine,
+            Container.className("abilities")(
+              <.div(
+                Header.size(SemanticSIZES.small).as("h4")("Passive Perception"),
+                <.p(info.passivePerception)
+              ),
+              <.div(
+                Header.size(SemanticSIZES.small).as("h4")("Passive Insight"),
+                <.p(info.passiveInsight)
+              ),
+              <.div(
+                Header.size(SemanticSIZES.small).as("h4")("Passive Investigation"),
+                <.p(info.passivePerception)
+              )
+            ),
+            taperedLine,
+            Container.className("abilities")(
+              <.table(
+                <.tbody({
+                  val groupedSkills: List[List[Skill]] = info.skills.all
+                    .filter(sk =>
+                      sk.modifier(info.abilities) != 0 || sk.proficiencyLevel != ProficiencyLevel.none
+                    ).grouped(2).toList
+                  groupedSkills.map { group =>
+                    val sk1 = group.head
+                    val sk2 = group.last
+                  <.tr(
+                    <.th(
+                      ^.width := 25.pct,
+                      Header
+                        .size(SemanticSIZES.small).as("h4")(s"${profStr(sk1.proficiencyLevel)}${sk1.skillType.name}")
+                    ),
+                    <.td(^.width := 25.pct, sk1.modifierString(info.abilities)),
+                    <.th(
+                      ^.width := 25.pct,
+                      Header
+                        .size(SemanticSIZES.small).as("h4")(s"${profStr(sk2.proficiencyLevel)}${sk2.skillType.name}")
+                    ),
+                    <.td(^.width := 25.pct, sk2.modifierString(info.abilities))
+                  )
+                  }
+                }*)
+              )
+            ),
+            taperedLine,
+            info.actions.headOption.fold(EmptyVdom)(_ =>
+              Container.className("actions")(
+                (Header.size(SemanticSIZES.medium).as("h3")("Actions"): TagMod) +:
+                  info.actions.map { action =>
+                    Container.className("property-block")(
+                      Header.size(SemanticSIZES.small).as("h4")(action.name),
+                      <.p(action.description)
+                    ): TagMod
+                  }*
+              )
+            ),
+            taperedLine,
+            info.notes.headOption.fold(EmptyVdom)(_ =>
+              Container.className("notes")(
+                Header.size(SemanticSIZES.medium).as("h3")("Notes"),
+                <.p(
+                  ^.dangerouslySetInnerHtml := info.notes.trim.headOption.fold("Click here to add")(_ => info.notes)
+                )
+              )
+            ),
+            taperedLine.when(!info.rollplayInfo.isEmpty),
+            Container
+              .className("rollplayInfo")(
+                <.p("Occupation: ", info.rollplayInfo.occupation).when(info.rollplayInfo.occupation.nonEmpty),
+                <.p("Occupation: ", info.rollplayInfo.occupation).when(info.rollplayInfo.occupation.nonEmpty),
+                <.p("Personality: ", info.rollplayInfo.personality).when(info.rollplayInfo.personality.nonEmpty),
+                <.p("Ideal: ", info.rollplayInfo.ideal).when(info.rollplayInfo.ideal.nonEmpty),
+                <.p("Bond: ", info.rollplayInfo.bond).when(info.rollplayInfo.bond.nonEmpty),
+                <.p("Flaw: ", info.rollplayInfo.flaw).when(info.rollplayInfo.flaw.nonEmpty),
+                <.p("Characteristic: ", info.rollplayInfo.characteristic)
+                  .when(info.rollplayInfo.characteristic.nonEmpty),
+                <.p("Speech: ", info.rollplayInfo.speech).when(info.rollplayInfo.speech.nonEmpty),
+                <.p("Hobby: ", info.rollplayInfo.hobby).when(info.rollplayInfo.hobby.nonEmpty),
+                <.p("Fear: ", info.rollplayInfo.fear).when(info.rollplayInfo.fear.nonEmpty),
+                <.p("Currently: ", info.rollplayInfo.currently).when(info.rollplayInfo.currently.nonEmpty),
+                <.p("Nickname: ", info.rollplayInfo.nickname).when(info.rollplayInfo.nickname.nonEmpty),
+                <.p("Weapon: ", info.rollplayInfo.weapon).when(info.rollplayInfo.weapon.nonEmpty),
+                <.p("Rumor: ", info.rollplayInfo.rumor).when(info.rollplayInfo.rumor.nonEmpty),
+                <.p("Raised By: ", info.rollplayInfo.raisedBy).when(info.rollplayInfo.raisedBy.nonEmpty),
+                <.p("Parent 1: ", info.rollplayInfo.parent1).when(info.rollplayInfo.parent1.nonEmpty),
+                <.p("Parent 2: ", info.rollplayInfo.parent2).when(info.rollplayInfo.parent2.nonEmpty),
+                <.p("Childhood: ", info.rollplayInfo.childhood).when(info.rollplayInfo.childhood.nonEmpty),
+                <.p("Children: ", info.rollplayInfo.children).when(info.rollplayInfo.children.nonEmpty),
+                <.p("Spouse: ", info.rollplayInfo.spouse).when(info.rollplayInfo.spouse.nonEmpty),
+                <.p("Siblings: ", info.rollplayInfo.siblingCount).when(info.rollplayInfo.siblingCount > 0)
+              ).when(!info.rollplayInfo.isEmpty),
+            <.hr(^.className := "orange-border bottom")
+          )
+        }
       }
     }
 

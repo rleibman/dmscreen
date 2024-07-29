@@ -92,3 +92,6 @@ DONE - Inspiration is not sticking
 # Combat Runner
 ## CSS
 Heal/Damage buttons look ugly, maybe switch the whole table to white background
+# StatBlock
+## CSS
+Notes should be black on white, furthermore, notes should be html

@@ -28,7 +28,6 @@ trait CharacterInfo {
   def classes:                 List[PlayerCharacterClass]
   def physicalCharacteristics: PhysicalCharacteristics
   def faith:                   Option[String]
-  def inspiration:             Boolean
   def overrideInitiative:      Option[Int]
   def currentXp:               Option[Long]
   def alignment:               Alignment
@@ -80,5 +79,31 @@ trait CharacterInfo {
   def passiveInvestigation: Int = skills.investigation.modifier(abilities) + 10
 
   def passiveInsight: Int = skills.insight.modifier(abilities) + 10
+
+  def spellDC: Seq[(Ability, Int)] = {
+    def calc(ability: Ability) = 8 + Math.floor((ability.value - 10) / 2.0).toInt + proficiencyBonus
+
+    classes.map { clazz =>
+      clazz match {
+        case PlayerCharacterClass(CharacterClassId.artificer, _, _) |
+            PlayerCharacterClass(CharacterClassId.`blood hunter`, _, _) |
+            PlayerCharacterClass(CharacterClassId.wizard, _, _) |
+            PlayerCharacterClass(CharacterClassId.fighter, Some(SubClass("eldritch knight")), _) |
+            PlayerCharacterClass(CharacterClassId.rogue, Some(SubClass("arcane trickster")), _) =>
+          Some((abilities.intelligence, calc(abilities.intelligence)))
+
+        case PlayerCharacterClass(CharacterClassId.cleric, _, _) | PlayerCharacterClass(CharacterClassId.druid, _, _) |
+            PlayerCharacterClass(CharacterClassId.ranger, _, _) | PlayerCharacterClass(CharacterClassId.monk, _, _) =>
+          Some((abilities.wisdom, calc(abilities.wisdom)))
+
+        case PlayerCharacterClass(CharacterClassId.bard, _, _) | PlayerCharacterClass(CharacterClassId.sorcerer, _, _) |
+            PlayerCharacterClass(CharacterClassId.paladin, _, _) |
+            PlayerCharacterClass(CharacterClassId.warlock, _, _) =>
+          Some((abilities.charisma, calc(abilities.charisma)))
+
+        case _ => None // Class/subclass is not a spellcaster
+      }
+    }.flatten
+  }
 
 }

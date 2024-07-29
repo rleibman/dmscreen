@@ -68,6 +68,7 @@ case class Race(name: String)
 
 enum CharacterClassId(val name: String) {
 
+  case artificer extends CharacterClassId("Artificer")
   case barbarian extends CharacterClassId("Barbarian")
   case bard extends CharacterClassId("Bard")
   case cleric extends CharacterClassId("Cleric")
@@ -374,26 +375,29 @@ object Language {
 
 }
 
-enum SkillType(val abilityType: AbilityType) {
+enum SkillType(
+  val name:        String,
+  val abilityType: AbilityType
+) {
 
-  case acrobatics extends SkillType(AbilityType.dexterity)
-  case animalHandling extends SkillType(AbilityType.wisdom)
-  case arcana extends SkillType(AbilityType.intelligence)
-  case athletics extends SkillType(AbilityType.strength)
-  case deception extends SkillType(AbilityType.charisma)
-  case history extends SkillType(AbilityType.intelligence)
-  case insight extends SkillType(AbilityType.wisdom)
-  case intimidation extends SkillType(AbilityType.charisma)
-  case investigation extends SkillType(AbilityType.intelligence)
-  case medicine extends SkillType(AbilityType.wisdom)
-  case nature extends SkillType(AbilityType.intelligence)
-  case perception extends SkillType(AbilityType.wisdom)
-  case performance extends SkillType(AbilityType.charisma)
-  case persuasion extends SkillType(AbilityType.charisma)
-  case religion extends SkillType(AbilityType.intelligence)
-  case sleightOfHand extends SkillType(AbilityType.dexterity)
-  case stealth extends SkillType(AbilityType.dexterity)
-  case survival extends SkillType(AbilityType.wisdom)
+  case acrobatics extends SkillType("Acrobatics", AbilityType.dexterity)
+  case animalHandling extends SkillType("Animal Handling", AbilityType.wisdom)
+  case arcana extends SkillType("Arcana", AbilityType.intelligence)
+  case athletics extends SkillType("Athletics", AbilityType.strength)
+  case deception extends SkillType("Deception", AbilityType.charisma)
+  case history extends SkillType("History", AbilityType.intelligence)
+  case insight extends SkillType("Insight", AbilityType.wisdom)
+  case intimidation extends SkillType("Intimidation", AbilityType.charisma)
+  case investigation extends SkillType("Investigation", AbilityType.intelligence)
+  case medicine extends SkillType("Medicine", AbilityType.wisdom)
+  case nature extends SkillType("Nature", AbilityType.intelligence)
+  case perception extends SkillType("Perception", AbilityType.wisdom)
+  case performance extends SkillType("Performance", AbilityType.charisma)
+  case persuasion extends SkillType("Persuasion", AbilityType.charisma)
+  case religion extends SkillType("Religion", AbilityType.intelligence)
+  case sleightOfHand extends SkillType("Sleigh of Hand", AbilityType.dexterity)
+  case stealth extends SkillType("Stealth", AbilityType.dexterity)
+  case survival extends SkillType("Survival", AbilityType.wisdom)
 
 }
 
@@ -453,7 +457,31 @@ case class Skills(
   sleightOfHand:  Skill = Skill(SkillType.sleightOfHand),
   stealth:        Skill = Skill(SkillType.stealth),
   survival:       Skill = Skill(SkillType.survival)
-)
+) {
+
+  def all =
+    List(
+      acrobatics,
+      animalHandling,
+      arcana,
+      athletics,
+      deception,
+      history,
+      insight,
+      intimidation,
+      investigation,
+      medicine,
+      nature,
+      perception,
+      performance,
+      persuasion,
+      religion,
+      sleightOfHand,
+      stealth,
+      survival
+    )
+
+}
 
 case class Language(name: String)
 

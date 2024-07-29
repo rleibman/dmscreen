@@ -787,29 +787,113 @@ object QuillRepository {
           if (softDelete) {
             entityType match {
               case CampaignEntityType =>
-                ctx
-                  .run(qCampaigns.filter(_.id == lift(id.asInstanceOf[CampaignId].value)).update(_.deleted -> true))
-              // TODO DELETE all the scenes, encounters, monsters, and characters as well
+                val idVal = id.asInstanceOf[CampaignId].value
+                val total = for {
+                  a <- ctx.run(qCampaigns.filter(_.id == lift(idVal)).update(_.deleted -> true))
+                  b <- ctx.run(qScenes.filter(_.campaignId == lift(idVal)).update(_.deleted -> true))
+                  c <- ctx.run(qEncounters.filter(_.campaignId == lift(idVal)).update(_.deleted -> true))
+                  d <- ctx.run(qPlayerCharacters.filter(_.campaignId == lift(idVal)).update(_.deleted -> true))
+                  e <- ctx.run(qNonPlayerCharacters.filter(_.campaignId == lift(idVal)).update(_.deleted -> true))
+                } yield a + b + c + d + e
+                ctx.transaction(total)
               case DND5eEntityType.playerCharacter =>
-                ctx
-                  .run(
-                    qPlayerCharacters
-                      .filter(_.id == lift(id.asInstanceOf[PlayerCharacterId].value)).update(_.deleted -> true)
-                  )
-              // TODO remove the character from encounters it may be in
+                val valId = id.asInstanceOf[PlayerCharacterId].value
+                val rawQuery = quote {
+                  // Enhancement this could be made more efficient by adding a where clause
+                  sql"""UPDATE encounter
+                       SET info = JSON_SET(
+                               info,
+                               '$$.combatants',
+                               JSON_ARRAY(
+                                       (
+                                           SELECT JSON_ARRAYAGG(c)
+                                           FROM JSON_TABLE(
+                                                        info,
+                                                        '$$.combatants[*]' COLUMNS (
+                                                            c JSON PATH '$$',
+                                                            id INT PATH '$$.PlayerCharacterCombatant.playerCharacterId'
+                                                            )
+                                                ) AS jt
+                                           WHERE jt.id != $valId OR jt.id IS NULL
+                                       )
+                               )
+                       )
+                       """.as[Action[Long]]
+                }
+                val total = for {
+                  a <- ctx
+                    .run(
+                      qPlayerCharacters
+                        .filter(_.id == lift(id.asInstanceOf[PlayerCharacterId].value)).update(_.deleted -> true)
+                    )
+
+                  b <- ctx.run(rawQuery)
+                } yield a + b
+                ctx.transaction(total)
               case DND5eEntityType.nonPlayerCharacter =>
-                ctx
-                  .run(
-                    qNonPlayerCharacters
-                      .filter(_.id == lift(id.asInstanceOf[NonPlayerCharacterId].value)).update(_.deleted -> true)
-                  )
-              // TODO remove the character from encounters it may be in
+                val valId = id.asInstanceOf[NonPlayerCharacterId].value
+                val rawQuery = quote {
+                  // Enhancement this could be made more efficient by adding a where clause
+                  sql"""UPDATE encounter
+                       SET info = JSON_SET(
+                               info,
+                               '$$.combatants',
+                               JSON_ARRAY(
+                                       (
+                                           SELECT JSON_ARRAYAGG(c)
+                                           FROM JSON_TABLE(
+                                                        info,
+                                                        '$$.combatants[*]' COLUMNS (
+                                                            c JSON PATH '$$',
+                                                            id INT PATH '$$.NonPlayerCharacterCombatant.nonPlayerCharacterId'
+                                                            )
+                                                ) AS jt
+                                           WHERE jt.id != $valId OR jt.id IS NULL
+                                       )
+                               )
+                       )
+                       """.as[Action[Long]]
+                }
+                val total = for {
+                  a <- ctx
+                    .run(
+                      qNonPlayerCharacters
+                        .filter(_.id == lift(id.asInstanceOf[NonPlayerCharacterId].value)).update(_.deleted -> true)
+                    )
+                  b <- ctx.run(rawQuery)
+                } yield a + b
+                ctx.transaction(total)
               case DND5eEntityType.monster =>
-                ctx
-                  .run(qMonsters.filter(_.id == lift(id.asInstanceOf[MonsterId].value)).update(_.deleted -> true))
-              // TODO remove the monster from encounters it may be in
+                val valId = id.asInstanceOf[MonsterId].value
+                val rawQuery = quote {
+                  // Enhancement this could be made more efficient by adding a where clause
+                  sql"""UPDATE encounter
+                       SET info = JSON_SET(
+                               info,
+                               '$$.combatants',
+                               JSON_ARRAY(
+                                       (
+                                           SELECT JSON_ARRAYAGG(c)
+                                           FROM JSON_TABLE(
+                                                        info,
+                                                        '$$.combatants[*]' COLUMNS (
+                                                            c JSON PATH '$$',
+                                                            id INT PATH '$$.MonsterCombatant.monsterHeader.id'
+                                                            )
+                                                ) AS jt
+                                           WHERE jt.id != $valId OR jt.id IS NULL
+                                       )
+                               )
+                       )
+                       """.as[Action[Long]]
+                }
+                val total = for {
+                  a <- ctx.run(qMonsters.filter(_.id == lift(valId)).update(_.deleted -> true))
+                  b <- ctx.run(rawQuery)
+                } yield a + b
+                ctx.transaction(total)
               case DND5eEntityType.scene =>
-                for {
+                val total = for {
                   a <- ctx
                     .run(
                       qScenes
@@ -822,6 +906,7 @@ object QuillRepository {
                       .update(_.deleted -> true)
                   )
                 } yield a + b
+                ctx.transaction(total)
               case DND5eEntityType.encounter =>
                 ctx
                   .run(qEncounters.filter(_.id == lift(id.asInstanceOf[EncounterId].value)).update(_.deleted -> true))
@@ -834,17 +919,94 @@ object QuillRepository {
                 ctx
                   .run(qCampaigns.filter(_.id == lift(id.asInstanceOf[CampaignId].value)).delete)
               case DND5eEntityType.playerCharacter =>
-                ctx
-                  .run(qPlayerCharacters.filter(_.id == lift(id.asInstanceOf[PlayerCharacterId].value)).delete)
-              // TODO remove it as a combatant from any encounters it's in (that doesn't cascade)
+                val valId = id.asInstanceOf[PlayerCharacterId].value
+                val rawQuery = quote {
+                  // Enhancement this could be made more efficient by adding a where clause
+                  sql"""UPDATE encounter
+                       SET info = JSON_SET(
+                               info,
+                               '$$.combatants',
+                               JSON_ARRAY(
+                                       (
+                                           SELECT JSON_ARRAYAGG(c)
+                                           FROM JSON_TABLE(
+                                                        info,
+                                                        '$$.combatants[*]' COLUMNS (
+                                                            c JSON PATH '$$',
+                                                            id INT PATH '$$.PlayerCharacterCombatant.playerCharacterId'
+                                                            )
+                                                ) AS jt
+                                           WHERE jt.id != $valId OR jt.id IS NULL
+                                       )
+                               )
+                       )
+                       """.as[Action[Long]]
+                }
+                val total = for {
+                  a <- ctx.run(qPlayerCharacters.filter(_.id == lift(id.asInstanceOf[PlayerCharacterId].value)).delete)
+                  b <- ctx.run(rawQuery)
+                } yield a + b
+                ctx.transaction(total)
               case DND5eEntityType.nonPlayerCharacter =>
-                ctx
-                  .run(qNonPlayerCharacters.filter(_.id == lift(id.asInstanceOf[NonPlayerCharacterId].value)).delete)
-              // TODO remove it as a combatant from any encounters it's in (that doesn't cascade)
+                val valId = id.asInstanceOf[NonPlayerCharacterId].value
+                val rawQuery = quote {
+                  // Enhancement this could be made more efficient by adding a where clause
+                  sql"""UPDATE encounter
+                       SET info = JSON_SET(
+                               info,
+                               '$$.combatants',
+                               JSON_ARRAY(
+                                       (
+                                           SELECT JSON_ARRAYAGG(c)
+                                           FROM JSON_TABLE(
+                                                        info,
+                                                        '$$.combatants[*]' COLUMNS (
+                                                            c JSON PATH '$$',
+                                                            id INT PATH '$$.NonPlayerCharacterCombatant.nonPlayerCharacterId'
+                                                            )
+                                                ) AS jt
+                                           WHERE jt.id != $valId OR jt.id IS NULL
+                                       )
+                               )
+                       )
+                       """.as[Action[Long]]
+                }
+                val total = for {
+                  a <- ctx.run(
+                    qNonPlayerCharacters.filter(_.id == lift(id.asInstanceOf[NonPlayerCharacterId].value)).delete
+                  )
+                  b <- ctx.run(rawQuery)
+                } yield a + b
+                ctx.transaction(total)
               case DND5eEntityType.monster =>
-                ctx
-                  .run(qMonsters.filter(_.id == lift(id.asInstanceOf[MonsterId].value)).delete)
-              // TODO remove it as a combatant from any encounters it's in (that doesn't cascade)
+                val valId = id.asInstanceOf[MonsterId].value
+                val rawQuery = quote {
+                  // Enhancement this could be made more efficient by adding a where clause
+                  sql"""UPDATE encounter
+                       SET info = JSON_SET(
+                               info,
+                               '$$.combatants',
+                               JSON_ARRAY(
+                                       (
+                                           SELECT JSON_ARRAYAGG(c)
+                                           FROM JSON_TABLE(
+                                                        info,
+                                                        '$$.combatants[*]' COLUMNS (
+                                                            c JSON PATH '$$',
+                                                            id INT PATH '$$.MonsterCombatant.monsterHeader.id'
+                                                            )
+                                                ) AS jt
+                                           WHERE jt.id != $valId OR jt.id IS NULL
+                                       )
+                               )
+                       )
+                       """.as[Action[Long]]
+                }
+                val total = for {
+                  a <- ctx.run(qMonsters.filter(_.id == lift(id.asInstanceOf[MonsterId].value)).delete)
+                  b <- ctx.run(rawQuery)
+                } yield a + b
+                ctx.transaction(total)
               case DND5eEntityType.scene =>
                 ctx.run(qScenes.filter(_.id == lift(id.asInstanceOf[SceneId].value)).delete)
               case DND5eEntityType.encounter =>

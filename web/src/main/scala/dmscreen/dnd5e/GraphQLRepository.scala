@@ -53,6 +53,7 @@ import caliban.client.scalajs.DND5eClient.{
   PlayerCharacterHeaderInput,
   PlayerCharacterSearchInput,
   Queries,
+  Race as CalibanRace,
   Scene as CalibanScene,
   SceneHeader as CalibanSceneHeader,
   SceneHeaderInput
@@ -360,7 +361,11 @@ object GraphQLRepository {
       asyncCalibanCall(sb).map(_.toList.flatten)
     }
 
-    override def races: AsyncCallback[Seq[Race]] = ???
+    override def races: AsyncCallback[Seq[Race]] = {
+      val sb = Queries.races(CalibanRace.name.map(Race.apply))
+      asyncCalibanCall(sb).map(_.toList.flatten)
+
+    }
 
     override def backgrounds: AsyncCallback[Seq[Background]] = {
       val sb = Queries.backgrounds(CalibanBackground.name.map(Background.apply))
