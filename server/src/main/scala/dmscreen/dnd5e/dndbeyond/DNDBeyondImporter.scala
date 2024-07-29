@@ -493,7 +493,7 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
             used         <- usedObj.asNumber.map(_.value.intValue)
             availableObj <- obj.get("available")
             available    <- availableObj.asNumber.map(_.value.intValue)
-          } yield SpellSlots(level = level, used = used, available = available)
+          } yield SpellSlots(level = level, used = used, total = used + available)
         }
 
         val classSpells = spellsArr.flatMap { o =>

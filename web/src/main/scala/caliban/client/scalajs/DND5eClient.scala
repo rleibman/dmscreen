@@ -427,21 +427,24 @@ object DND5eClient {
 
   }
 
+  type CampaignLogEntry
+  object CampaignLogEntry {
+
+    def campaignId: SelectionBuilder[CampaignLogEntry, Long] =
+      _root_.caliban.client.SelectionBuilder.Field("campaignId", Scalar())
+    def message: SelectionBuilder[CampaignLogEntry, String] =
+      _root_.caliban.client.SelectionBuilder.Field("message", Scalar())
+    def timestamp: SelectionBuilder[CampaignLogEntry, java.time.LocalDateTime] =
+      _root_.caliban.client.SelectionBuilder.Field("timestamp", Scalar())
+
+  }
+
   type CharacterClass
   object CharacterClass {
 
     def id: SelectionBuilder[CharacterClass, String] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def hitDice[A](innerSelection: SelectionBuilder[DiceRoll, A]): SelectionBuilder[CharacterClass, A] =
       _root_.caliban.client.SelectionBuilder.Field("hitDice", Obj(innerSelection))
-
-  }
-
-  type CombatLog
-  object CombatLog {
-
-    def message: SelectionBuilder[CombatLog, String] = _root_.caliban.client.SelectionBuilder.Field("message", Scalar())
-    def json: SelectionBuilder[CombatLog, zio.json.ast.Json] =
-      _root_.caliban.client.SelectionBuilder.Field("json", Scalar())
 
   }
 
@@ -486,16 +489,6 @@ object DND5eClient {
       _root_.caliban.client.SelectionBuilder.Field("sceneId", OptionOf(Scalar()))
     def orderCol: SelectionBuilder[EncounterHeader, Int] =
       _root_.caliban.client.SelectionBuilder.Field("orderCol", Scalar())
-
-  }
-
-  type GeneralLog
-  object GeneralLog {
-
-    def message: SelectionBuilder[GeneralLog, String] =
-      _root_.caliban.client.SelectionBuilder.Field("message", Scalar())
-    def json: SelectionBuilder[GeneralLog, zio.json.ast.Json] =
-      _root_.caliban.client.SelectionBuilder.Field("json", Scalar())
 
   }
 
@@ -1043,6 +1036,21 @@ object DND5eClient {
         OptionOf(ListOf(Obj(innerSelection))),
         arguments = List(Argument("value", value, "String!")(encoder0))
       )
+    def campaignLogs[A](
+      campaignId: Long,
+      maxNum:     Int
+    )(
+      innerSelection: SelectionBuilder[CampaignLogEntry, A]
+    )(implicit
+      encoder0: ArgEncoder[Long],
+      encoder1: ArgEncoder[Int]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "campaignLogs",
+        OptionOf(ListOf(Obj(innerSelection))),
+        arguments =
+          List(Argument("campaignId", campaignId, "Long!")(encoder0), Argument("maxNum", maxNum, "Int!")(encoder1))
+      )
 
   }
 
@@ -1195,6 +1203,19 @@ object DND5eClient {
           Argument("fresh", fresh, "Boolean!")(encoder2)
         )
       )
+    def campaignLog(
+      campaignId: Long,
+      message:    String
+    )(implicit
+      encoder0: ArgEncoder[Long],
+      encoder1: ArgEncoder[String]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Unit]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "campaignLog",
+        OptionOf(Scalar()),
+        arguments =
+          List(Argument("campaignId", campaignId, "Long!")(encoder0), Argument("message", message, "String!")(encoder1))
+      )
     def applyOperations(
       entityType: String,
       id:         Long,
@@ -1224,14 +1245,12 @@ object DND5eClient {
       id:         Long,
       events:     List[zio.json.ast.Json] = Nil
     )(
-      onAdd:        SelectionBuilder[Add, A],
-      onCombatLog:  SelectionBuilder[CombatLog, A],
-      onCopy:       SelectionBuilder[Copy, A],
-      onGeneralLog: SelectionBuilder[GeneralLog, A],
-      onMove:       SelectionBuilder[Move, A],
-      onRemove:     SelectionBuilder[Remove, A],
-      onReplace:    SelectionBuilder[Replace, A],
-      onTest:       SelectionBuilder[Test, A]
+      onAdd:     SelectionBuilder[Add, A],
+      onCopy:    SelectionBuilder[Copy, A],
+      onMove:    SelectionBuilder[Move, A],
+      onRemove:  SelectionBuilder[Remove, A],
+      onReplace: SelectionBuilder[Replace, A],
+      onTest:    SelectionBuilder[Test, A]
     )(implicit
       encoder0: ArgEncoder[String],
       encoder1: ArgEncoder[Long],
@@ -1242,14 +1261,12 @@ object DND5eClient {
         OptionOf(
           ChoiceOf(
             Map(
-              "Add"        -> Obj(onAdd),
-              "CombatLog"  -> Obj(onCombatLog),
-              "Copy"       -> Obj(onCopy),
-              "GeneralLog" -> Obj(onGeneralLog),
-              "Move"       -> Obj(onMove),
-              "Remove"     -> Obj(onRemove),
-              "Replace"    -> Obj(onReplace),
-              "Test"       -> Obj(onTest)
+              "Add"     -> Obj(onAdd),
+              "Copy"    -> Obj(onCopy),
+              "Move"    -> Obj(onMove),
+              "Remove"  -> Obj(onRemove),
+              "Replace" -> Obj(onReplace),
+              "Test"    -> Obj(onTest)
             )
           )
         ),

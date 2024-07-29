@@ -48,8 +48,7 @@ object NPCEditComponent {
     onEditingModeChange: EditableComponent.EditingMode => Callback,
     onChange:            NonPlayerCharacter => Callback,
     onDelete:            NonPlayerCharacter => Callback,
-    onComponentClose:    NonPlayerCharacter => Callback,
-    onSync:              NonPlayerCharacter => Callback
+    onComponentClose:    NonPlayerCharacter => Callback
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -583,8 +582,7 @@ object NPCEditComponent {
     onEditingModeChange: EditableComponent.EditingMode => Callback,
     onChange:            NonPlayerCharacter => Callback,
     onDelete:            NonPlayerCharacter => Callback,
-    onComponentClose:    NonPlayerCharacter => Callback,
-    onSync:              NonPlayerCharacter => Callback
+    onComponentClose:    NonPlayerCharacter => Callback
   ): Unmounted[Props, State, Backend] = {
     // Note the "withKey" here, this is to make sure that the component is properly updated when the key changes
     component.withKey(npc.header.id.value.toString)(
@@ -593,8 +591,7 @@ object NPCEditComponent {
         onEditingModeChange = onEditingModeChange,
         onChange = onChange,
         onDelete = onDelete,
-        onComponentClose = onComponentClose,
-        onSync = onSync
+        onComponentClose = onComponentClose
       )
     )
   }

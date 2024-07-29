@@ -36,6 +36,7 @@ import net.leibman.dmscreen.semanticUiReact.distCommonjsCollectionsMenuMenuItemM
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticWIDTHS
 import net.leibman.dmscreen.std.*
 import org.scalajs.dom.HTMLAnchorElement
+import org.scalajs.dom.html.Paragraph
 
 object AppRouter {
 
@@ -46,18 +47,19 @@ object AppRouter {
 
   }
 
-  private val homePage = AppPage(CommonPages.home, "Home", _ => HomePage())
-  private val aboutPage = AppPage(CommonPages.about, "About", _ => AboutPage())
+  private val homePage = PageAppMenuItem(CommonPages.home, "Home", _ => HomePage())
+  private val aboutPage = PageAppMenuItem(CommonPages.about, "About", _ => AboutPage())
 
   private def layout(
-    gameUI: Option[GameUI]
+    campaignId: Option[CampaignId],
+    gameUI:     Option[GameUI]
   )(
     page:       RouterCtl[AppPageType],
     resolution: Resolution[AppPageType]
   ) = {
-    val allPages: Seq[AppPage] =
+    val allPageMenuItems: Seq[AppMenuItem] =
       homePage +:
-        gameUI.map(_.pages).toSeq.flatten :+
+        gameUI.map(_.menuItems).toSeq.flatten :+
         aboutPage
 
     def renderMenu = {
@@ -67,18 +69,33 @@ object AppRouter {
         .tabular(true)
         .withKey("mainMenu")
         .className("mainMenu")(
-          allPages.map { pageInfo =>
-            Menu.Item
-              .withKey(pageInfo.title)
-              .active(resolution.page == pageInfo.pageType)
-              .onClick {
-                (
-                  event: ReactMouseEventFrom[HTMLAnchorElement],
-                  data:  MenuItemProps
-                ) =>
-                  page.setEH(pageInfo.pageType)(event.asInstanceOf[ReactEvent])
+          allPageMenuItems.map {
+            case menuItemInfo: PageAppMenuItem =>
+              Menu.Item
+                .withKey(menuItemInfo.pageType.toString)
+                .active(resolution.page == menuItemInfo.pageType)
+                .onClick {
+                  (
+                    event: ReactMouseEventFrom[HTMLAnchorElement],
+                    _
+                  ) =>
+                    page.setEH(menuItemInfo.pageType)(event.asInstanceOf[ReactEvent])
 
-              }(pageInfo.title): VdomElement
+                }(menuItemInfo.title): VdomNode
+            case menuItemInfo: ButtonAppMenuItem =>
+              campaignId.fold(EmptyVdom) { id =>
+                Menu.Item
+                  .withKey(menuItemInfo.pageType.toString)
+                  .active(resolution.page == menuItemInfo.pageType)
+                  .onClick {
+                    (
+                      _,
+                      _
+                    ) =>
+                      menuItemInfo.onClick(id)
+
+                  }(menuItemInfo.title)
+              }: VdomNode
           }.toVdomArray,
           <.div(^.width := 100.pct, ^.textAlign := "center", ^.display := "inline-block", DiceRoller())
         )
@@ -110,11 +127,11 @@ object AppRouter {
       val campaignPageRules = {
         campaignId.fold(trimSlashes)(id =>
           gameUI
-            .map(_.pages)
+            .map(_.menuItems.collect { case p: PageAppMenuItem => p })
             .toSeq
             .flatten
             .map { page =>
-              staticRoute(s"#${page.title}", page.pageType) ~> renderR(_ => page.createComponentFn(id))
+              staticRoute(s"#${page.pageType.toString}", page.pageType) ~> renderR(_ => page.createComponentFn(id))
             }
             .fold(trimSlashes)(_ | _)
         )
@@ -125,11 +142,11 @@ object AppRouter {
           homePage.createComponentFn(campaignId.getOrElse(CampaignId.empty))
         )
         | campaignPageRules
-        | staticRoute(s"#${aboutPage.title}", aboutPage.pageType) ~> renderR(_ =>
+        | staticRoute(s"#${aboutPage.pageType.toString}", aboutPage.pageType) ~> renderR(_ =>
           aboutPage.createComponentFn(campaignId.getOrElse(CampaignId.empty))
         ))
         .notFound(redirectToPage(homePage.pageType)(SetRouteVia.HistoryReplace))
-        .renderWith(layout(gameUI))
+        .renderWith(layout(campaignId, gameUI))
     }
 
   private val baseUrl: BaseUrl = BaseUrl.fromWindowOrigin_/

@@ -23,6 +23,9 @@ package dmscreen.dnd5e
 
 import dmscreen.*
 import dmscreen.dnd5e.pages.*
+import japgolly.scalajs.react.callback.Callback
+import japgolly.scalajs.react.vdom.*
+import japgolly.scalajs.react.vdom.html_<^.*
 
 enum DND5eUIPages {
 
@@ -31,18 +34,24 @@ enum DND5eUIPages {
   case pcs extends DND5eUIPages with AppPageType
   case npcs extends DND5eUIPages with AppPageType
   case scenes extends DND5eUIPages with AppPageType
+  case campaignLog extends DND5eUIPages with AppPageType
 
 }
 
 case object DND5eUI extends GameUI {
 
-  override def pages: Seq[AppPage] =
+  override def menuItems: Seq[AppMenuItem] =
     Seq(
-      AppPage(DND5eUIPages.dashboard, "Dashboard", campaignId => DashboardPage(campaignId)),
-      AppPage(DND5eUIPages.pcs, "PCs", campaignId => PCPage(campaignId)),
-      AppPage(DND5eUIPages.encounters, "Encounters", campaignId => EncounterPage(campaignId)),
-      AppPage(DND5eUIPages.npcs, "NPCs", campaignId => NPCPage(campaignId)),
-      AppPage(DND5eUIPages.scenes, "Scenes", campaignId => ScenePage(campaignId))
+      PageAppMenuItem(DND5eUIPages.dashboard, "Dashboard", campaignId => DashboardPage(campaignId)),
+      PageAppMenuItem(DND5eUIPages.pcs, "PCs", campaignId => PCPage(campaignId)),
+      PageAppMenuItem(DND5eUIPages.encounters, "Encounters", campaignId => EncounterPage(campaignId)),
+      PageAppMenuItem(DND5eUIPages.npcs, "NPCs", campaignId => NPCPage(campaignId)),
+      PageAppMenuItem(DND5eUIPages.scenes, "Scenes", campaignId => ScenePage(campaignId)),
+      ButtonAppMenuItem(
+        DND5eUIPages.campaignLog,
+        VdomArray("Campaign Log", CampaignLog.render()),
+        onClick = _ => CampaignLog.showLog
+      )
     )
 
   override def cssFiles: Seq[String] =

@@ -25,6 +25,7 @@ import just.semver.SemVer
 import zio.json.ast.Json
 import zio.json.*
 import zio.{IO, ZIO}
+import java.time.LocalDateTime
 
 opaque type CampaignId = Long
 
@@ -98,4 +99,10 @@ case class Campaign(
 
 case class CampaignInfo(
   notes: String
+)
+
+case class CampaignLogEntry(
+  campaignId: CampaignId,
+  message:    String,
+  timestamp:  LocalDateTime
 )

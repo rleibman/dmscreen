@@ -377,32 +377,6 @@ object EncounterPage extends DMScreenTab {
                         )
                       )
                     )
-                  ),
-                Grid.Column
-                  .withKey("campaignLog")
-                  .width(SemanticWIDTHS.`2`)(
-                    Container
-                      .className("campaignLogContainer")
-                      .fluid(true)(
-                        if (state.encounterMode == EncounterMode.combat && currentEncounter.nonEmpty) {
-                          VdomArray(
-                            <.h2("Campaign Log"),
-                            Container.className("campaignLog")(
-                              <.table(
-                                ^.className := "campaignLog", // TODO make this pretty, make it a fixed size, give it a scrollbar, etc
-                                <.tbody(
-                                  dmScreenState.campaignLog.map(logEntry =>
-                                    <.tr(
-                                      <.td(logEntry)
-                                    )
-                                  )*
-                                )
-                              )
-                            )
-                          )
-
-                        } else <.div()
-                      )
                   )
               )
             }

@@ -32,6 +32,7 @@ import zio.json.ast.Json
 import zio.nio.file.*
 
 import java.sql.SQLException
+import java.time.LocalDateTime
 import javax.sql.DataSource
 import scala.annotation.nowarn
 import scala.reflect.ClassTag
@@ -59,6 +60,7 @@ object QuillRepository {
     }
 
   }
+
   private case class CampaignRow(
     id:             Long,
     name:           String,
@@ -433,6 +435,9 @@ object QuillRepository {
               )
           )
 
+        given MappedEncoding[Long, CampaignId] = MappedEncoding[Long, CampaignId](CampaignId.apply)
+        given MappedEncoding[CampaignId, Long] = MappedEncoding[CampaignId, Long](_.value)
+
         inline private def qCampaigns =
           quote {
             querySchema[CampaignRow]("campaign")
@@ -465,6 +470,11 @@ object QuillRepository {
         inline private def qEncounters =
           quote {
             querySchema[EncounterRow]("encounter")
+          }
+
+        inline private def qCampaignLog =
+          quote {
+            querySchema[CampaignLogEntry]("campaignLog")
           }
 
         override def campaigns: IO[DMScreenError, Seq[CampaignHeader]] =
@@ -1310,6 +1320,43 @@ object QuillRepository {
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+
+        override def campaignLogs(
+          campaignId: CampaignId,
+          maxNum:     Int
+        ): DMScreenTask[Seq[CampaignLogEntry]] =
+          ctx
+            .run(
+              qCampaignLog
+                .filter(v => v.campaignId == lift(campaignId))
+                .sortBy(_.timestamp)(Ord.desc)
+                .take(lift(maxNum))
+            )
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+
+        override def campaignLog(
+          campaignId: CampaignId,
+          message:    String
+        ): DMScreenTask[Unit] = {
+          val entry = CampaignLogEntry(
+            campaignId = campaignId,
+            message = message,
+            timestamp = LocalDateTime.now()
+          )
+          ctx
+            .run(
+              qCampaignLog
+                .insertValue(
+                  lift(entry)
+                )
+            )
+            .unit
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+        }
       }
     }
 

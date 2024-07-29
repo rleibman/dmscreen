@@ -4,6 +4,8 @@ schema {
   subscription: Subscriptions
 }
 scalar Json
+"A date-time without a time-zone in the ISO-8601 calendar system in the format of 1970-01-01T00:00:00"
+scalar LocalDateTime
 scalar Long
 scalar Unit
 
@@ -187,6 +189,12 @@ type CampaignHeader {
   campaignStatus: CampaignStatus!
 }
 
+type CampaignLogEntry {
+  campaignId: Long!
+  message: String!
+  timestamp: LocalDateTime!
+}
+
 type CharacterClass {
   id: String!
   hitDice: DiceRoll!
@@ -270,6 +278,7 @@ type Mutations {
   upsertEncounter(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): Long
   deleteEntity(entityType: String!, id: Long!, softDelete: Boolean!): Unit
   importCharacterDNDBeyond(campaignId: Long!, dndBeyondId: String!, fresh: Boolean!): PlayerCharacter
+  campaignLog(campaignId: Long!, message: String!): Unit
   applyOperations(entityType: String!, id: Long!, events: [Json!]!): Unit
 }
 
@@ -316,6 +325,7 @@ type Queries {
   races: [Race!]
   backgrounds: [Background!]
   subclasses(value: String!): [SubClass!]
+  campaignLogs(campaignId: Long!, maxNum: Int!): [CampaignLogEntry!]
 }
 
 type Race {

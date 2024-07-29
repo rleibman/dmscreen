@@ -49,7 +49,7 @@ create table playerCharacter
     `id`         int(11)    NOT NULL AUTO_INCREMENT,
     campaignId   int(11)    not null,
     `name`       text       NOT NULL,
-    `playerName` text       NULL,     -- TODO change to foreign key to user
+    `playerName` text       NULL,     -- Enhancement change to foreign key to user
     source       text       not null, -- Really json, but we need to be able to perform stuff on it
     info         json       not null,
     `version`    text       NOT NULL,
@@ -169,3 +169,12 @@ create table subclass
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
+create table campaignLog
+(
+    campaignId int(11)    not null,
+    message    text       not null,
+    timestamp  timestamp  not null,
+    key campaign_log_campaign (campaignId),
+    constraint campaign_log_campaign foreign key (campaignId) references `campaign` (id) on delete cascade
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;

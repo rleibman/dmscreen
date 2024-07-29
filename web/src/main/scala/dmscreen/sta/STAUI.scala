@@ -23,6 +23,9 @@ package dmscreen.sta
 
 import dmscreen.*
 import dmscreen.sta.pages.*
+import japgolly.scalajs.react.callback.Callback
+import japgolly.scalajs.react.vdom.*
+import japgolly.scalajs.react.vdom.html_<^.*
 
 enum STAUIPages {
 
@@ -37,14 +40,14 @@ enum STAUIPages {
 
 case object STAUI extends GameUI {
 
-  override def pages: Seq[AppPage] =
+  override def menuItems: Seq[PageAppMenuItem] =
     Seq(
-      AppPage(STAUIPages.dashboard, "Dashboard", _ => DashboardPage()),
-      AppPage(STAUIPages.characters, "Characters", _ => CharacterPage()),
-      AppPage(STAUIPages.ships, "Ships", _ => ShipPage()),
-      AppPage(STAUIPages.encounters, "Encounters", _ => EncounterPage()),
-      AppPage(STAUIPages.scenes, "Scenes", _ => ScenePage()),
-      AppPage(STAUIPages.npcs, "NPCs", _ => NPCPage())
+      PageAppMenuItem(STAUIPages.dashboard, "Dashboard", _ => DashboardPage()),
+      PageAppMenuItem(STAUIPages.characters, "Characters", _ => CharacterPage()),
+      PageAppMenuItem(STAUIPages.ships, "Ships", _ => ShipPage()),
+      PageAppMenuItem(STAUIPages.encounters, "Encounters", _ => EncounterPage()),
+      PageAppMenuItem(STAUIPages.scenes, "Scenes", _ => ScenePage()),
+      PageAppMenuItem(STAUIPages.npcs, "NPCs", _ => NPCPage())
     )
 
   override def cssFiles: Seq[String] =

@@ -29,6 +29,7 @@ import caliban.client.scalajs.DND5eClient.{
   Campaign as CalibanCampaign,
   CampaignHeader as CalibanCampaignHeader,
   CampaignHeaderInput,
+  CampaignLogEntry as CalibanCampaignLogEntry,
   CampaignStatus as CalibanCampaignStatus,
   CharacterClass as CalibanCharacterClass,
   CreatureSize as CalibanCreatureSize,
@@ -560,6 +561,38 @@ object GraphQLRepository {
 
     override def nonPlayerCharacter(id: NonPlayerCharacterId): AsyncCallback[Option[NonPlayerCharacter]] = {
       asyncCalibanCall(Queries.nonPlayerCharacter(id.value)(npcSB))
+    }
+
+    private val campaignLogSB: SelectionBuilder[CalibanCampaignLogEntry, CampaignLogEntry] = (
+      CalibanCampaignLogEntry.campaignId ~
+        CalibanCampaignLogEntry.message ~
+        CalibanCampaignLogEntry.timestamp
+    ).map {
+      (
+        campaignId,
+        message,
+        timestamp
+      ) =>
+        CampaignLogEntry(
+          campaignId = CampaignId(campaignId),
+          message = message,
+          timestamp = timestamp
+        )
+    }
+
+    override def campaignLogs(
+      campaignId: CampaignId,
+      maxNum:     Int
+    ): AsyncCallback[Seq[CampaignLogEntry]] = {
+      asyncCalibanCall(Queries.campaignLogs(campaignId.value, maxNum)(campaignLogSB)).map(_.toSeq.flatten)
+    }
+
+    override def campaignLog(
+      campaignId: CampaignId,
+      message:    String
+    ): AsyncCallback[Unit] = {
+      val sb = Mutations.campaignLog(campaignId.value, message)
+      asyncCalibanCall(sb).map(_ => ())
     }
   }
 

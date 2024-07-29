@@ -34,16 +34,6 @@ case class JsonPath(value: String)
 
 sealed abstract class DMScreenEvent
 
-sealed case class CombatLog(
-  message: String,
-  json:    Json
-) extends DMScreenEvent
-
-sealed case class GeneralLog(
-  message: String,
-  json:    Json
-) extends DMScreenEvent
-
 sealed case class Add(
   path:  JsonPath,
   value: Json

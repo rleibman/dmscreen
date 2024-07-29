@@ -277,9 +277,9 @@ case class DeathSave(
 )
 
 case class SpellSlots(
-  level:     Int,
-  used:      Int,
-  available: Int
+  level: Int,
+  used:  Int,
+  total: Int
 )
 
 case class Creature(

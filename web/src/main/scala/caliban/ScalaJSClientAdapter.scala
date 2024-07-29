@@ -88,7 +88,7 @@ object ScalaJSClientAdapter extends TimerSupport {
 
   given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
 
-  // TODO switch this, insteaf of returning AsyncCallback, return an Either[Throwable, A]
+  // Enhancement error management switch this, insteaf of returning AsyncCallback, return an Either[Throwable, A]
   def asyncCalibanCall[Origin, A](
     selectionBuilder: SelectionBuilder[Origin, A]
   )(using ev:         IsOperation[Origin]
@@ -123,12 +123,14 @@ object ScalaJSClientAdapter extends TimerSupport {
             case Right(a) =>
               callback(a)
             case Left(error) =>
-              Callback.log(s"1 Error: $error") // TODO handle error responses better
+              Callback.log(s"1 Error: $error") // Enhancement error management switch this, insteaf of returning AsyncCallback, return an Either[Throwable, A]
+
           }
         case Failure(exception) =>
           Callback.throwException(exception)
         case Success(response) =>
-          Callback.log(s"2 Error: ${response.statusText}") // TODO handle error responses better
+          Callback.log(s"2 Error: ${response.statusText}") // Enhancement error management switch this, insteaf of returning AsyncCallback, return an Either[Throwable, A]
+
       }
   }
 
@@ -229,7 +231,7 @@ object ScalaJSClientAdapter extends TimerSupport {
         case Right(webSocket) => webSocket
       }
 
-      // TODO, move this into some sort of Ref/state class
+      // Enhancement, move this into some sort of Ref/state class
       case class ConnectionState(
         lastKAOpt:       Option[Instant] = None,
         kaIntervalOpt:   Option[Int] = None,

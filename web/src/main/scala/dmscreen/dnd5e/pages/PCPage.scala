@@ -147,8 +147,40 @@ object PCPage extends DMScreenTab {
                   _
                 ) => $.modState(_.copy(dndBeyondImportId = Some("")))
               )("Import from dndbeyond.com"),
-              Button("Import from 5th Edition Tools"), // TODO
-              Button("Long Rest (Reset resources)") // TODO long rest
+              Button("Import from 5th Edition Tools").when(false), // Enhanceement
+              Button("Long Rest (Reset resources)").onClick(
+                (
+                  _,
+                  _
+                ) =>
+                  $.modState(
+                    s =>
+                      s.copy(
+                        pcs = s.pcs.map(pc =>
+                          pc.copy(
+                            jsonInfo = pc.info
+                              .copy(
+                                health = pc.info.health.copy(
+                                  currentHitPoints = pc.info.health.maxHitPoints,
+                                  deathSave = DeathSave.empty
+                                ),
+                                spellSlots = pc.info.spellSlots.map(s => s.copy(used = 0))
+                                // There's of course many other things that are reset on long (or short) rests,
+                                // channel divinity, bardic inspiration, ki points, etc, but we're currently not tracking those
+                              ).toJsonAST.toOption.get
+                          )
+                        )
+                      ),
+                    $.state.flatMap(s =>
+                      dmScreenState.onModifyCampaignState(
+                        campaignState.copy(
+                          changeStack = campaignState.changeStack.logPCChanges(s.pcs*)
+                        ),
+                        "Long Rest, all pc resources are reset"
+                      )
+                    )
+                  ) >> $.forceUpdate
+              )
             ),
             <.div(
               ^.className := "pageContainer",
@@ -184,7 +216,26 @@ object PCPage extends DMScreenTab {
                         )
                         .completeWith(_.get),
                     onComponentClose = _ => dmScreenState.onForceSave,
-                    onSync = _ => Callback.empty // TODO write this
+                    onSync = pc => {
+
+                      pc.header.source match {
+                        case source: DNDBeyondImportSource =>
+                          GraphQLRepository.live
+                            .importDndBeyondCharacter(campaignId = campaign.id, source.dndBeyondId, fresh = true)
+                            .map(newPC =>
+                              $.modState(
+                                s =>
+                                  s.copy(
+                                    s.pcs.filter(_.header.id != newPC.header.id) :+ newPC
+                                  ),
+                                Callback.alert(s"Successfully synched '${newPC.header.name}'!")
+                              )
+                            )
+                            .completeWith(_.get)
+                        case s => Callback.alert(s"Sorry, I can't synch this character, I just don't know how. ($s)")
+                      }
+
+                    }
                   )
                 ).toVdomArray
             )

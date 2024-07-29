@@ -64,9 +64,27 @@ case class MonsterSearchResults(
 
 trait DND5eRepository[F[_]] extends GameRepository {
 
+  // Generic stuff, this belongs in it's own repository
+  def upsert(
+    header: CampaignHeader,
+    info:   Json
+  ): F[CampaignId]
+
   def campaigns: F[Seq[CampaignHeader]]
 
   def campaign(campaignId: CampaignId): F[Option[Campaign]]
+
+  def campaignLogs(
+    campaignId: CampaignId,
+    maxNum:     Int
+  ): F[Seq[CampaignLogEntry]]
+
+  def campaignLog(
+    campaignId: CampaignId,
+    message:    String
+  ): F[Unit]
+
+  // DND5e specific stuff
 
   def monster(monsterId: MonsterId): F[Option[Monster]]
 
@@ -121,10 +139,6 @@ trait DND5eRepository[F[_]] extends GameRepository {
 
   def spells: F[Seq[Spell]]
 
-  def upsert(
-    header: CampaignHeader,
-    info:   Json
-  ): F[CampaignId]
   def upsert(
     header: PlayerCharacterHeader,
     info:   Json

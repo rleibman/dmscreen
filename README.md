@@ -48,6 +48,6 @@ Example here: https://codesandbox.io/s/react-roller-advanced-notation-v1-0-5-rz0
 http://localhost:8079/api/dnd5e/schema
 
 # Client code generation
-calibanGenClient /home/rleibman/projects/dmscreen/server/src/main/graphql/dnd5e.gql /home/rleibman/projects/dmscreen/web/src/main/scala/caliban/client/scalajs/DND5eClient.scala --genview true --scalarMappings Json:zio.json.ast.Json --packageName caliban.client.scalajs
+calibanGenClient /home/rleibman/projects/dmscreen/server/src/main/graphql/dnd5e.gql /home/rleibman/projects/dmscreen/web/src/main/scala/caliban/client/scalajs/DND5eClient.scala --genView true --scalarMappings Json:zio.json.ast.Json,LocalDateTime:java.time.LocalDateTime --packageName caliban.client.scalajs
 
 //Remember to ALWAYS put keys on lists in react!

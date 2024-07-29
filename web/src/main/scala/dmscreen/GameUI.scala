@@ -22,21 +22,35 @@
 package dmscreen
 
 import dmscreen.components.DieType
+import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.component.Generic.UnmountedRaw
-import japgolly.scalajs.react.vdom.{VdomElement, VdomNode}
+import japgolly.scalajs.react.vdom.{TagMod, VdomElement, VdomNode}
 
 trait AppPageType
 
-case class AppPage(
-  pageType:          AppPageType,
-  title:             String,
-  createComponentFn: CampaignId => VdomElement
-)
+trait AppMenuItem {
+
+  def pageType: AppPageType
+  def title:    TagMod
+
+}
+
+case class PageAppMenuItem(
+  override val pageType: AppPageType,
+  override val title:    TagMod,
+  createComponentFn:     CampaignId => VdomElement
+) extends AppMenuItem
+
+case class ButtonAppMenuItem(
+  override val pageType: AppPageType,
+  override val title:    TagMod,
+  onClick:               CampaignId => Callback
+) extends AppMenuItem
 
 trait GameUI {
 
-  def pages:    Seq[AppPage]
-  def cssFiles: Seq[String]
+  def menuItems: Seq[AppMenuItem]
+  def cssFiles:  Seq[String]
 
   // Enhancement, allow different game ui to decide what dice are available, and what custom dice rolls are available
   // Put all of this into a DiceUIConfiguration

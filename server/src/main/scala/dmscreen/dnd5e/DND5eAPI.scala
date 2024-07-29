@@ -32,7 +32,7 @@ import dmscreen.*
 import dmscreen.dnd5e.DND5eZIORepository
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
 import just.semver.SemVer
-import zio.*
+import zio.{ZIO, *}
 import zio.http.{Client, Request}
 import zio.json.*
 import zio.json.ast.Json
@@ -135,6 +135,16 @@ object DND5eAPI {
     playerCharacterSearch: PlayerCharacterSearch
   )
 
+  case class CampaignLogRequest(
+    campaignId: CampaignId,
+    maxNum:     Int
+  )
+
+  case class CampaignLogInsertRequest(
+    campaignId: CampaignId,
+    message:    String
+  )
+
   private given Schema[Any, UserId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, CampaignId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, SemVer] = Schema.stringSchema.contramap(_.render)
@@ -154,8 +164,6 @@ object DND5eAPI {
   private given Schema[Any, ChallengeRating] = Schema.doubleSchema.contramap(_.value)
   private given Schema[Any, SourceId] = Schema.stringSchema.contramap(_.value)
   private given Schema[Any, EncounterStatus] = Schema.stringSchema.contramap(_.toString)
-  private given Schema[Any, GeneralLog] = Schema.gen[Any, GeneralLog]
-  private given Schema[Any, CombatLog] = Schema.gen[Any, CombatLog]
   private given Schema[Any, DMScreenEvent] = Schema.gen[Any, DMScreenEvent]
   private given Schema[Any, Source] = Schema.gen[Any, Source]
   private given Schema[Any, MonsterSearch] = Schema.gen[Any, MonsterSearch]
@@ -168,6 +176,7 @@ object DND5eAPI {
   private given Schema[Any, NonPlayerCharacter] = Schema.gen[Any, NonPlayerCharacter]
   private given Schema[Any, Encounter] = Schema.gen[Any, Encounter]
   private given Schema[Any, EncounterByIdRequest] = Schema.gen[Any, EncounterByIdRequest]
+  private given Schema[Any, CampaignLogEntry] = Schema.gen[Any, CampaignLogEntry]
 
   private given ArgBuilder[PlayerCharacterId] = ArgBuilder.long.map(PlayerCharacterId.apply)
   private given ArgBuilder[SceneId] = ArgBuilder.long.map(SceneId.apply)
@@ -185,8 +194,6 @@ object DND5eAPI {
   private given ArgBuilder[ChallengeRating] = ArgBuilder.double.map(n => ChallengeRating.fromDouble(n).get)
   private given ArgBuilder[EntityType[?]] = ArgBuilder.string.map(DND5eEntityType.valueOf)
 
-  private given ArgBuilder[GeneralLog] = ArgBuilder.gen[GeneralLog]
-  private given ArgBuilder[CombatLog] = ArgBuilder.gen[CombatLog]
   private given ArgBuilder[DMScreenEvent] = ArgBuilder.gen[DMScreenEvent]
   private given ArgBuilder[Add] = ArgBuilder.gen[Add]
   private given ArgBuilder[Copy] = ArgBuilder.gen[Copy]
@@ -205,6 +212,8 @@ object DND5eAPI {
   private given ArgBuilder[Encounter] = ArgBuilder.gen[Encounter]
   private given ArgBuilder[ImportCharacterRequest] = ArgBuilder.gen[ImportCharacterRequest]
   private given ArgBuilder[EncounterByIdRequest] = ArgBuilder.gen[EncounterByIdRequest]
+  private given ArgBuilder[CampaignLogRequest] = ArgBuilder.gen[CampaignLogRequest]
+  private given ArgBuilder[CampaignLogInsertRequest] = ArgBuilder.gen[CampaignLogInsertRequest]
 
   case class Queries(
     campaigns:           ZIO[DND5eZIORepository, DMScreenError, Seq[CampaignHeader]],
@@ -222,7 +231,8 @@ object DND5eAPI {
     classes:             ZIO[DND5eZIORepository, DMScreenError, Seq[CharacterClass]],
     races:               ZIO[DND5eZIORepository, DMScreenError, Seq[Race]],
     backgrounds:         ZIO[DND5eZIORepository, DMScreenError, Seq[Background]],
-    subclasses:          CharacterClassId => ZIO[DND5eZIORepository, DMScreenError, Seq[SubClass]]
+    subclasses:          CharacterClassId => ZIO[DND5eZIORepository, DMScreenError, Seq[SubClass]],
+    campaignLogs:        CampaignLogRequest => ZIO[DND5eZIORepository, DMScreenError, Seq[CampaignLogEntry]]
   )
   case class Mutations(
     // All these mutations are temporary, eventually, only the headers will be saved, and the infos will be saved in the events
@@ -238,6 +248,7 @@ object DND5eAPI {
       DMScreenError,
       PlayerCharacter
     ],
+    campaignLog: CampaignLogInsertRequest => ZIO[DND5eZIORepository, DMScreenError, Unit],
     // This one is the one that will be used to apply operations to the entities
     applyOperations: CampaignEventsArgs => ZIO[DND5eZIORepository, DMScreenError, Unit]
   )
@@ -273,7 +284,9 @@ object DND5eAPI {
           classes = ZIO.serviceWithZIO[DND5eZIORepository](_.classes),
           races = ZIO.serviceWithZIO[DND5eZIORepository](_.races),
           backgrounds = ZIO.serviceWithZIO[DND5eZIORepository](_.backgrounds),
-          subclasses = characterClassId => ZIO.serviceWithZIO[DND5eZIORepository](_.subClasses(characterClassId))
+          subclasses = characterClassId => ZIO.serviceWithZIO[DND5eZIORepository](_.subClasses(characterClassId)),
+          campaignLogs =
+            request => ZIO.serviceWithZIO[DND5eZIORepository](_.campaignLogs(request.campaignId, request.maxNum))
         ),
         Mutations(
           upsertCampaign =
@@ -295,6 +308,8 @@ object DND5eAPI {
               )
             ),
           importCharacterDNDBeyond = request => doImportCharacterDNDBeyond(request),
+          campaignLog =
+            request => ZIO.serviceWithZIO[DND5eZIORepository](_.campaignLog(request.campaignId, request.message)),
           applyOperations = args => ???
           // ZIO.serviceWithZIO[DND5eRepository](_.applyOperations(args.entityType.asInstanceOf[EntityType], args.id, args.operations *))
         ),

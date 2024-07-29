@@ -44,11 +44,8 @@ import dmscreen.dnd5e.*
 import zio.json.*
 import zio.json.ast.Json
 
-given ScalarDecoder[Json] = {
-  case input: __ObjectValue =>
-    writeToString(input).fromJson[Json].left.map(DecodingError(_))
-  case _ => Left(DecodingError("Expected an object"))
-}
+import java.time.LocalDateTime
+import scala.util.Try
 
 /*
 Note, this will only work if json is guaranteed to be an object, we need to do something like this:
@@ -63,6 +60,17 @@ Note, this will only work if json is guaranteed to be an object, we need to do s
   loop(json0)
 }
  */
+given ScalarDecoder[Json] = {
+  case input: __ObjectValue =>
+    writeToString(input).fromJson[Json].left.map(DecodingError(_))
+  case _ => Left(DecodingError("Expected an object"))
+}
+given ScalarDecoder[LocalDateTime] = {
+  case __Value.__StringValue(value) =>
+    Try(LocalDateTime.parse(value)).toEither.left.map(e => DecodingError("Error parsing date", Option(e)))
+  case _ => throw DecodingError("Expected a string")
+}
+
 given ArgEncoder[Json] = { (json: Json) =>
   ArgEncoder.json.encode {
     readFromString[__ObjectValue](json.toJson)

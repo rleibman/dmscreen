@@ -123,8 +123,7 @@ object NPCPage extends DMScreenTab {
                           )
                         )
                         .completeWith(_.get),
-                    onComponentClose = _ => dmScreenState.onForceSave,
-                    onSync = _ => Callback.empty // TODO write this
+                    onComponentClose = _ => dmScreenState.onForceSave
                   )
                 ).toVdomArray
             )

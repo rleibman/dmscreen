@@ -21,8 +21,8 @@
 
 package dmscreen.dnd5e.pages
 
-import dmscreen.dnd5e.{DND5eCampaignState, GraphQLRepository, PlayerCharacter, Scene}
-import dmscreen.{CampaignId, DMScreenState, DMScreenTab, given}
+import dmscreen.{*, given}
+import dmscreen.dnd5e.{*, given}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{BackendScope, Callback, CtorType, ScalaComponent}
@@ -369,7 +369,6 @@ object DashboardPage extends DMScreenTab {
                     ),
                     ReactQuill
                       .defaultValue(campaign.info.notes)
-                      .style(CSSProperties().set("backgroundColor", "#ced9e4").set("color", "#000000")) // TODO move colors to css
                       .onChange(
                         (
                           newValue,

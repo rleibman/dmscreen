@@ -86,15 +86,6 @@ object STAClient {
 
   }
 
-  type CombatLog
-  object CombatLog {
-
-    def message: SelectionBuilder[CombatLog, String] = _root_.caliban.client.SelectionBuilder.Field("message", Scalar())
-    def json: SelectionBuilder[CombatLog, zio.json.ast.Json] =
-      _root_.caliban.client.SelectionBuilder.Field("json", Scalar())
-
-  }
-
   type Copy
   object Copy {
 
@@ -129,16 +120,6 @@ object STAClient {
       _root_.caliban.client.SelectionBuilder.Field("sceneId", OptionOf(Scalar()))
     def orderCol: SelectionBuilder[EncounterHeader, Int] =
       _root_.caliban.client.SelectionBuilder.Field("orderCol", Scalar())
-
-  }
-
-  type GeneralLog
-  object GeneralLog {
-
-    def message: SelectionBuilder[GeneralLog, String] =
-      _root_.caliban.client.SelectionBuilder.Field("message", Scalar())
-    def json: SelectionBuilder[GeneralLog, zio.json.ast.Json] =
-      _root_.caliban.client.SelectionBuilder.Field("json", Scalar())
 
   }
 
@@ -545,14 +526,12 @@ object STAClient {
       id:         Long,
       events:     List[zio.json.ast.Json] = Nil
     )(
-      onAdd:        SelectionBuilder[Add, A],
-      onCombatLog:  SelectionBuilder[CombatLog, A],
-      onCopy:       SelectionBuilder[Copy, A],
-      onGeneralLog: SelectionBuilder[GeneralLog, A],
-      onMove:       SelectionBuilder[Move, A],
-      onRemove:     SelectionBuilder[Remove, A],
-      onReplace:    SelectionBuilder[Replace, A],
-      onTest:       SelectionBuilder[Test, A]
+      onAdd:     SelectionBuilder[Add, A],
+      onCopy:    SelectionBuilder[Copy, A],
+      onMove:    SelectionBuilder[Move, A],
+      onRemove:  SelectionBuilder[Remove, A],
+      onReplace: SelectionBuilder[Replace, A],
+      onTest:    SelectionBuilder[Test, A]
     )(implicit
       encoder0: ArgEncoder[String],
       encoder1: ArgEncoder[Long],
@@ -563,14 +542,12 @@ object STAClient {
         OptionOf(
           ChoiceOf(
             Map(
-              "Add"        -> Obj(onAdd),
-              "CombatLog"  -> Obj(onCombatLog),
-              "Copy"       -> Obj(onCopy),
-              "GeneralLog" -> Obj(onGeneralLog),
-              "Move"       -> Obj(onMove),
-              "Remove"     -> Obj(onRemove),
-              "Replace"    -> Obj(onReplace),
-              "Test"       -> Obj(onTest)
+              "Add"     -> Obj(onAdd),
+              "Copy"    -> Obj(onCopy),
+              "Move"    -> Obj(onMove),
+              "Remove"  -> Obj(onRemove),
+              "Replace" -> Obj(onReplace),
+              "Test"    -> Obj(onTest)
             )
           )
         ),
