@@ -90,3 +90,20 @@ object JsonImport extends ZIOAppDefault {
   }
 
 }
+
+object count extends ZIOAppDefault {
+
+  def run: ZIO[ZIOAppArgs & Scope, Throwable, Unit] = {
+    val file = File("/home/rleibman/projects/dmscreen/common/shared/src/main/resources/monstersFromXLS.json")
+    case class MyObject(
+      id:   Int,
+      name: String
+    )
+    object MyObject {
+      implicit val decoder: JsonDecoder[MyObject] = DeriveJsonDecoder.gen[MyObject]
+    }
+
+    jsonStream[Json](file).runCount.map(count => println(count))
+  }
+
+}

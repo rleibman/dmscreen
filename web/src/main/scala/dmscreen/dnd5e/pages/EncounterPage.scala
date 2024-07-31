@@ -24,7 +24,7 @@ package dmscreen.dnd5e.pages
 import caliban.ScalaJSClientAdapter.*
 import caliban.client.SelectionBuilder
 import caliban.client.scalajs.given
-import dmscreen.components.EditableComponent
+import dmscreen.components.*
 import dmscreen.dnd5e.components.*
 import dmscreen.dnd5e.{*, given}
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab, DialogMode}
@@ -122,7 +122,7 @@ object EncounterPage extends DMScreenTab {
                 campaignState.copy(
                   changeStack = campaignState.changeStack.logEncounterChanges(encounter)
                 ),
-                ""
+                log
               )
             )
 
@@ -203,42 +203,59 @@ object EncounterPage extends DMScreenTab {
                                   .active(state.accordionState._1 == sceneIndex).onClick(
                                     onAccordionChange((sceneIndex, 0))
                                   )(
-                                    sceneOpt.fold("No Scene")(_.header.name),
-                                    Button
-                                      .title("Add Encounter to Scene")
-                                      .icon(true)(Icon.name(SemanticICONS.`plus circle`))
-                                      .onClick {
-                                        (
-                                          _,
-                                          _
-                                        ) =>
-                                          val newEncounter = Encounter(
-                                            header = EncounterHeader(
-                                              id = EncounterId.empty,
-                                              campaignId = campaign.header.id,
-                                              name = s"Encounter ${encounters.size + 1}",
-                                              status = EncounterStatus.planned,
-                                              sceneId = sceneOpt.map(_.header.id),
-                                              orderCol = encounters.size
-                                            ),
-                                            jsonInfo = EncounterInfo().toJsonAST.toOption.get
+                                    <.table(
+                                      ^.cellPadding := 0,
+                                      ^.cellSpacing := 0,
+                                      ^.border      := "0px",
+                                      ^.width       := 100.pct,
+                                      <.tbody(
+                                        <.tr(
+                                          <.td(
+                                            ^.textAlign := "left",
+                                            s"${sceneOpt.fold("0")(_.header.orderCol + 1)}.${sceneOpt
+                                                .fold("No Scene")(_.header.name)}"
+                                          ),
+                                          <.td(
+                                            ^.textAlign := "right",
+                                            Button
+                                              .title("Add Encounter to Scene")
+                                              .icon(true)(Icon.name(SemanticICONS.`plus circle`))
+                                              .onClick {
+                                                (
+                                                  _,
+                                                  _
+                                                ) =>
+                                                  val newEncounter = Encounter(
+                                                    header = EncounterHeader(
+                                                      id = EncounterId.empty,
+                                                      campaignId = campaign.header.id,
+                                                      name = s"Encounter ${encounters.size + 1}",
+                                                      status = EncounterStatus.planned,
+                                                      sceneId = sceneOpt.map(_.header.id),
+                                                      orderCol = encounters.size
+                                                    ),
+                                                    jsonInfo = EncounterInfo().toJsonAST.toOption.get
+                                                  )
+                                                  GraphQLRepository.live
+                                                    .upsert(newEncounter.header, newEncounter.jsonInfo)
+                                                    .map { id =>
+                                                      $.modState(
+                                                        s =>
+                                                          s.copy(
+                                                            currentEncounterId = Some(id),
+                                                            encounterMode = EncounterMode.edit,
+                                                            encounters = s.encounters :+ newEncounter
+                                                              .copy(header = newEncounter.header.copy(id = id))
+                                                          ),
+                                                        dmScreenState.log("Added new encounter")
+                                                      )
+                                                    }
+                                                    .completeWith(_.get)
+                                              }
                                           )
-                                          GraphQLRepository.live
-                                            .upsert(newEncounter.header, newEncounter.jsonInfo)
-                                            .map { id =>
-                                              $.modState(
-                                                s =>
-                                                  s.copy(
-                                                    currentEncounterId = Some(id),
-                                                    encounterMode = EncounterMode.edit,
-                                                    encounters = s.encounters :+ newEncounter
-                                                      .copy(header = newEncounter.header.copy(id = id))
-                                                  ),
-                                                dmScreenState.log("Added new encounter")
-                                              )
-                                            }
-                                            .completeWith(_.get)
-                                      }
+                                        )
+                                      )
+                                    )
                                   ),
                                 Accordion.Content
                                   .active(state.accordionState._1 == sceneIndex)(
@@ -262,11 +279,22 @@ object EncounterPage extends DMScreenTab {
                                                     ^.cellPadding := 0,
                                                     ^.cellSpacing := 0,
                                                     ^.border      := "0px",
+                                                    ^.width       := 100.pct,
                                                     <.tbody(
                                                       <.tr(
                                                         <.td(
                                                           ^.textAlign := "left",
-                                                          s"${encounter.header.name} (${encounter.header.status.name})"
+                                                          s"${sceneOpt.fold("0")(_.header.orderCol + 1)}.${encounter.header.orderCol + 1}. ",
+                                                          EditableText(
+                                                            value = s"${encounter.header.name}",
+                                                            onChange = str =>
+                                                              modEncounter(
+                                                                encounter
+                                                                  .copy(header = encounter.header.copy(name = str)),
+                                                                s"Changed encounter name to $str"
+                                                              )
+                                                          ),
+                                                          s" (${encounter.header.status.name})"
                                                         ),
                                                         <.td(
                                                           ^.textAlign  := "right",

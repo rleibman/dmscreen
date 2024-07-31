@@ -741,7 +741,6 @@ object QuillRepository {
                   case Move(from, path) => ??? // Currently Not supported, but probably just read, then a delete followed by an insert
                   case Copy(from, path) => ??? // Currently Not supported, but probably just a read followed by an insert
                   case Test(path, value) => ??? // Currently Not supported
-                  case _                 => ???
                 }.unit
             }.provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
@@ -783,7 +782,6 @@ object QuillRepository {
                   case Move(from, path) => ??? // Currently Not supported, but probably just read, then a delete followed by an insert
                   case Copy(from, path) => ??? // Currently Not supported, but probably just a read followed by an insert
                   case Test(path, value) => ??? // Currently Not supported
-                  case _                 => ???
                 }.unit
             }.provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)

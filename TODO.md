@@ -1,8 +1,8 @@
 
 - General
   - Work on GraphQL API for Campaign
-  - Work on first app page, retrieve a campaign
-  - Dice: https://www.npmjs.com/package/@3d-dice/dice-box
+DONE  - Work on first app page, retrieve a campaign
+DONE  - Dice: https://www.npmjs.com/package/@3d-dice/dice-box
   - Modal component CSS
   - Error handling, errors are not being displayed, logged, or anything!
   - Move the campaign stuff out of the dnd5e module and into a general module
@@ -15,25 +15,25 @@
   - Encounter
 - About page
 - Bestiary Page
-- Dashboard Page
-- EncounterPlanner Page
-  - Encounter balancing
-- Encounter Page
-- Home Page
-- NPC Page
-- Player Page
-  - Feats Editor
-  - Hitpoints Editor
-  - Notes Editor
-  - Player Character Class Editor
-  - Skills Editor
-  - New Player Character
-  - Delete Player Character
-  - Sync Player Character
-  - DNDBeyond Import
-  - Fifth Edition Character Sheet Import
-  - Short Rest
-  - Long Rest (reset all stats)
+DONE- Dashboard Page
+DONE- EncounterPlanner Page
+- Encounter balancing
+DONE - Encounter Page
+DONE - Home Page
+DONE - NPC Page
+DONE - Player Page
+DONE - Feats Editor
+DONE - Hitpoints Editor
+DONE - Notes Editor
+DONE - Player Character Class Editor
+DONE - Skills Editor
+DONE - New Player Character
+DONE - Delete Player Character
+DONE - Sync Player Character
+DONE - DNDBeyond Import
+- Fifth Edition Character Sheet Import
+- Short Rest
+DONE - Long Rest (reset all stats)
 - Scene Page
 
 Future (some ideas from Chatgpt)
@@ -42,12 +42,12 @@ Future (some ideas from Chatgpt)
   - Timeline feature to track campaign events chronologically.
 - Session Notes and Log:
   - Digital notepad for session planning and real-time note-taking.
-  - Automatically log session events, dice rolls, and decisions for future reference.
+DONE  - Automatically log session events, dice rolls, and decisions for future reference.
 - Maps (others do it much better)
 - Audio/video/image library
 - Messaging (others do it much better)
 - Integration with discord
-- Dice roller
+DONE - Dice roller
 - NPC Automatic Generator
 - Mobile mode
 - DND Beyond plugin
@@ -78,6 +78,7 @@ width: 90%;
 # Home
 ## Functionality
 DONE - Hide "current button" if the campaign is already current
+Super ugly if there's no campaigns.
 # PlayerCharacterPage/Component
 ## CSS
 - Align pc to top
@@ -89,9 +90,11 @@ DONE - Player name is not sticking
 DONE - Inspiration is not sticking
 - Languages dialog broken
 - Feats Dialog broken
+# Encounter Editor
+- Need to be able to edit encounter name 
 # Combat Runner
 ## CSS
-Heal/Damage buttons look ugly, maybe switch the whole table to white background
+- Heal/Damage buttons look ugly, maybe switch the whole table to white background
 # StatBlock
 ## CSS
 Notes should be black on white, furthermore, notes should be html

@@ -32,7 +32,8 @@ object DMScreen extends ZIOApp {
   override type Environment = DMScreenServerEnvironment & ConfigurationService
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
-  override def bootstrap: ULayer[DMScreenServerEnvironment & ConfigurationService] = EnvironmentBuilder.withContainer
+  override def bootstrap: ULayer[DMScreenServerEnvironment & ConfigurationService] = EnvironmentBuilder.live
+//    EnvironmentBuilder.withContainer
 
   private val defaultRouteZio: ZIO[ConfigurationService, ConfigurationError, Routes[ConfigurationService, Throwable]] =
     for {

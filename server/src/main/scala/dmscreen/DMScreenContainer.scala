@@ -22,11 +22,11 @@
 package dmscreen
 
 import com.dimafeng.testcontainers.*
-import com.mysql.cj.jdbc.MysqlDataSource
 import com.typesafe.config
 import com.typesafe.config.ConfigFactory
 import dmscreen.RepositoryError
 import io.getquill.jdbczio.Quill
+import org.mariadb.jdbc.MariaDbDataSource
 import org.testcontainers.utility.DockerImageName
 import zio.{IO, ZIO, ZLayer}
 
@@ -37,7 +37,7 @@ import scala.jdk.CollectionConverters.*
 
 trait DMScreenContainer {
 
-  def container: MySQLContainer
+  def container: MariaDBContainer
 
 }
 
@@ -102,9 +102,7 @@ object DMScreenContainer {
   val containerLayer: ZLayer[Any, RepositoryError, DMScreenContainer] = ZLayer.fromZIO((for {
     _ <- ZIO.logDebug("Creating container")
     newContainer <- ZIO.attemptBlocking {
-//      val c = MySQLContainer(mysqlImageVersion = DockerImageName.parse("mysql:8.4.0").nn)
-      // latest known to work
-      val c = MySQLContainer(mysqlImageVersion = DockerImageName.parse("mysql:8.2.0").nn)
+      val c = MariaDBContainer()
       c.container.setPortBindings(List("3307:3306").asJava)
       c.container.start()
       c
@@ -114,8 +112,8 @@ object DMScreenContainer {
       Migrator("server/src/main/sql")
         .migrate()
         .provideLayer(Quill.DataSource.fromDataSource {
-          val dataSource = new MysqlDataSource()
-          dataSource.setURL(newContainer.container.getJdbcUrl)
+          val dataSource = new MariaDbDataSource()
+          dataSource.setUrl(newContainer.container.getJdbcUrl)
           dataSource.setUser(newContainer.container.getUsername)
           dataSource.setPassword(newContainer.container.getPassword)
           dataSource
@@ -123,16 +121,16 @@ object DMScreenContainer {
         .mapError(RepositoryError.apply)
   } yield new DMScreenContainer {
 
-    override def container: MySQLContainer = newContainer
+    override def container: MariaDBContainer = newContainer
 
   }).mapError(RepositoryError.apply))
 
   // Add profileSQL=true& to the url if you need more information
-  private def getConfig(container: MySQLContainer): config.Config =
+  private def getConfig(container: MariaDBContainer): config.Config =
     ConfigFactory
       .parseString(s"""
-      DMScreen.db.dataSourceClassName=com.mysql.cj.jdbc.MysqlDataSource
-      DMScreen.db.dataSource.url="${container.container.getJdbcUrl}?logger=com.mysql.cj.log.Slf4JLogger&serverTimezone=UTC&useLegacyDatetimeCode=false"
+      DMScreen.db.dataSourceClassName=org.mariadb.jdbc.MariaDbDataSource
+      DMScreen.db.dataSource.url="${container.container.getJdbcUrl}"
       DMScreen.db.dataSource.user="${container.container.getUsername}"
       DMScreen.db.dataSource.password="${container.container.getPassword}"
       DMScreen.db.dataSource.cachePrepStmts=true
@@ -152,7 +150,7 @@ object DMScreenContainer {
             baseConfig.dmscreen.db.copy(
               dataSource = baseConfig.dmscreen.db.dataSource.copy(
                 // Add profileSQL=true& to the url if you need more information
-                url = s"${container.container.getJdbcUrl}?logger=com.mysql.cj.log.Slf4JLogger&serverTimezone=UTC&useLegacyDatetimeCode=false",
+                url = container.container.getJdbcUrl.nn,
                 user = container.container.getUsername.nn,
                 password = container.container.getPassword.nn
               )

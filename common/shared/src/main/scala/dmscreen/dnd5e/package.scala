@@ -99,6 +99,7 @@ object SourceId {
 
   val homebrew:                SourceId = "homebrew"
   val systemReferenceDocument: SourceId = "srd"
+  def other(sourceId: String): SourceId = sourceId
 
   extension (value: SourceId) {
 

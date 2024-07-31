@@ -46,7 +46,7 @@ object EnvironmentBuilder {
 
   case class InitializingLayer()
 
-  private val initializingLayer: ZLayer[
+  private val containerInitializingLayer: ZLayer[
     STAZIORepository & DND5eZIORepository & SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter,
     DMScreenError,
     InitializingLayer
@@ -86,7 +86,7 @@ object EnvironmentBuilder {
         DNDBeyondImporter.live,
         FifthEditionCharacterSheetImporter.live,
         SRDImporter.live,
-        initializingLayer
+        containerInitializingLayer
       ).orDie
   }
 

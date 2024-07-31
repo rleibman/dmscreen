@@ -18,7 +18,7 @@ scalaVersion                  := SCALA
 Global / scalaVersion         := SCALA
 
 import scala.concurrent.duration._
-Global / watchAntiEntropy :=  1.second
+Global / watchAntiEntropy := 1.second
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Shared settings
@@ -138,9 +138,8 @@ lazy val server = project
     name := "dmscreen-server",
     libraryDependencies ++= Seq(
       // DB
-      "mysql" % "mysql-connector-java" % "8.0.33" withSources (),
-      // "org.mariadb.jdbc" % "mariadb-java-client" % "3.4.0"
-      "io.getquill" %% "quill-jdbc-zio" % quillVersion withSources (),
+      "org.mariadb.jdbc" % "mariadb-java-client" % "3.4.1" withSources (),
+      "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
       // ZIO
       "dev.zio"                %% "zio"                   % zioVersion withSources (),
       "dev.zio"                %% "zio-nio"               % "2.0.2" withSources (),
@@ -159,12 +158,11 @@ lazy val server = project
       "dev.zio"                %% "zio-json"              % zioJsonVersion withSources (),
       "org.scala-lang.modules" %% "scala-xml"             % "2.3.0" withSources (),
       // Other random utilities
-      "com.github.pathikrit"  %% "better-files"    % "3.9.2" withSources (),
-      "com.github.daddykotex" %% "courier"         % "3.2.0" withSources (),
-      "ch.qos.logback"         % "logback-classic" % "1.5.6" withSources (),
-      "commons-codec"          % "commons-codec"   % "1.17.1",
-      // "com.dimafeng"          %% "testcontainers-scala-mariadb" % testContainerVersion withSources (),
-      "com.dimafeng" %% "testcontainers-scala-mysql" % testContainerVersion withSources (),
+      "com.github.pathikrit"  %% "better-files"                 % "3.9.2" withSources (),
+      "com.github.daddykotex" %% "courier"                      % "3.2.0" withSources (),
+      "ch.qos.logback"         % "logback-classic"              % "1.5.6" withSources (),
+      "commons-codec"          % "commons-codec"                % "1.17.1",
+      "com.dimafeng"          %% "testcontainers-scala-mariadb" % testContainerVersion withSources (),
       // Testing
       "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
       "dev.zio" %% "zio-test-sbt" % zioVersion % "test" withSources ()
@@ -192,7 +190,6 @@ lazy val debianSettings =
 // Web
 val scalajsReactVersion = "2.1.2"
 
-
 lazy val bundlerSettings: Project => Project =
   _.enablePlugins(ScalaJSBundlerPlugin)
     .settings(
@@ -214,8 +211,8 @@ lazy val bundlerSettings: Project => Project =
       Compile / scalaJSUseMainModuleInitializer := true,
       Test / scalaJSUseMainModuleInitializer    := false,
       webpackEmitSourceMaps                     := false,
-      scalaJSLinkerConfig ~= {a =>
-        a.withSourceMap(true) //.withRelativizeSourceMapBase(None)
+      scalaJSLinkerConfig ~= { a =>
+        a.withSourceMap(true) // .withRelativizeSourceMapBase(None)
       }
     )
 

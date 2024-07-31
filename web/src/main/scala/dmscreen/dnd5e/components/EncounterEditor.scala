@@ -224,9 +224,7 @@ object EncounterEditor {
                           case s: String if s.trim.isEmpty => None
                           case s: String                   => state.npcs.find(_.id.value == s.toInt)
                           case s: Double                   => state.npcs.find(_.id.value == s.toInt)
-                          case s =>
-                            println(s)
-                            None
+                          case s => None
                         }
 
                         $.modState(_.copy(npcToAdd = newVal))

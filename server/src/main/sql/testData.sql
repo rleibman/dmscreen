@@ -1,7 +1,7 @@
 insert into dmscreenUser (`id`,
                           `name`,
                           `email`)
-values (1, 'test', 'test@localhost');
+values (1, 'administrator', 'roberto+dmscreen@leibman.net');
 
 insert into campaign (`id`,
                       dmUserId,

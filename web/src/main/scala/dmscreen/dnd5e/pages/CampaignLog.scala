@@ -22,6 +22,7 @@
 package dmscreen.dnd5e.pages
 
 import dmscreen.*
+import dmscreen.dnd5e.GraphQLRepository
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -33,38 +34,46 @@ import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICON
 
 object CampaignLog {
 
-  case class State(logOpen: Boolean = false)
+  case class State(
+    logOpen:     Boolean = false,
+    campaignLog: Seq[String] = Seq.empty
+  )
 
+  // Enhancement add button to clear log
   case class Backend($ : BackendScope[Unit, State]) {
 
+    def showLog(campaignId: CampaignId): Callback =
+      GraphQLRepository.live
+        .campaignLogs(campaignId, 20)
+        .map(logs => $.modState(_.copy(campaignLog = logs.map(_.message), logOpen = true)))
+        .completeWith(_.get)
+
     def render(state: State): VdomNode = {
-      DMScreenState.ctx.consume { dmScreenState =>
-        Modal
-          .open(state.logOpen)
-          .closeIcon(true)
-          .onClose(
-            (
-              _,
-              _
-            ) => $.modState(_.copy(logOpen = false))
-          )(
-            Modal.Header(<.h2("Campaign Log")),
-            Modal.Content(
-              Container.className("campaignLog")(
-                <.table(
-                  ^.className := "campaignLog",
-                  <.tbody(
-                    dmScreenState.campaignLog.map(logEntry =>
-                      <.tr(
-                        <.td(logEntry)
-                      )
-                    )*
-                  )
+      Modal
+        .open(state.logOpen)
+        .closeIcon(true)
+        .onClose(
+          (
+            _,
+            _
+          ) => $.modState(_.copy(logOpen = false))
+        )(
+          Modal.Header(<.h2("Campaign Log")),
+          Modal.Content(
+            Container.className("campaignLog")(
+              <.table(
+                ^.className := "campaignLog",
+                <.tbody(
+                  state.campaignLog.map(logEntry =>
+                    <.tr(
+                      <.td(logEntry)
+                    )
+                  )*
                 )
               )
             )
           )
-      }
+        )
     }
 
   }
@@ -79,10 +88,10 @@ object CampaignLog {
 
   def render(): Unmounted[Unit, State, Backend] = ref.component()
 
-  def showLog: Callback =
+  def showLog(campaignId: CampaignId): Callback =
     ref.get
       .flatMap(
-        _.fold(Callback.empty)(_.backend.$.modState(_.copy(logOpen = true)))
+        _.fold(Callback.empty)(_.backend.showLog(campaignId))
       )
 
 }

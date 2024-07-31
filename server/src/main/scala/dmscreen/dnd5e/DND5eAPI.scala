@@ -66,13 +66,9 @@ object DND5eAPI {
           // Get the text from the URL
           response <- Client.request(Request.get(dndBeyondURI))
 
-          dndBeyondResponse <- {
-            println(response)
-            response.body.asString
-          }
+          dndBeyondResponse <- response.body.asString
           // Save the file we just got
           _ <- {
-            println(dndBeyondResponse)
             Files.writeBytes(
               filePath,
               Chunk.fromArray(dndBeyondResponse.getBytes),

@@ -161,9 +161,11 @@ case class EncounterInfo(
   notes:       String = ""
 ) {
 
-  lazy val xp = combatants.collect { case m: MonsterCombatant =>
-    m.monsterHeader.xp
-  }.sum
+  lazy val xp: Long = combatants
+    .collect { case m: MonsterCombatant =>
+      if (m.monsterHeader.xp != 0) m.monsterHeader.xp.toDouble
+      else (m.monsterHeader.cr.value + (m.monsterHeader.cr.value.toLong / 7)) * 100.0
+    }.sum.toLong
 
   def monsters: List[MonsterCombatant] = combatants.collect { case m: MonsterCombatant => m }
   def npcs:     List[NonPlayerCharacterCombatant] = combatants.collect { case npc: NonPlayerCharacterCombatant => npc }
@@ -252,7 +254,13 @@ case class Encounter(
       hard = (thresholdXP.hard * pcMultiplierThreshold).toLong,
       deadly = (thresholdXP.deadly * pcMultiplierThreshold).toLong
     )
-    val monsterXP:   Long = info.monsters.map(_.monsterHeader.xp).sum
+
+    val monsterXP: Long = info.monsters
+      .map { m =>
+        if (m.monsterHeader.xp != 0) m.monsterHeader.xp.toDouble
+        else (m.monsterHeader.cr.value + (m.monsterHeader.cr.value.toLong / 7)) * 100.0
+      }.sum.toLong
+
     val mMultiplier: Double = monsterMultiplier.getOrElse(info.monsters.size, 4)
     val adjustedXP = (monsterXP * mMultiplier).toLong
     if (adjustedXP <= adjustedThresholdXP.easy) EncounterDifficulty.Easy

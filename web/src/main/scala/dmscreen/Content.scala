@@ -135,6 +135,8 @@ object Content {
         _ <- AsyncCallback.pure(window.sessionStorage.setItem("currentCampaignId", id.value.toString)) // Store the current campaign Id in the session storage for next time
         _ <- Callback.log(s"Loading campaign data (campaign = $id) from server...").asAsyncCallback
         campaignOpt <- GraphQLRepository.live.campaign(id) // First load the campaign, this will allow us to ask for the GameSystem-specific data
+        campaignLogs <- AsyncCallback
+          .traverseOption(campaignOpt)(c => GraphQLRepository.live.campaignLogs(c.header.id, 20)).map(_.toSeq.flatten)
         campaignState <- AsyncCallback.traverseOption(campaignOpt) { c =>
           c.header.gameSystem match {
             case GameSystem.dnd5e              => DND5eCampaignState.load(c)
@@ -153,7 +155,7 @@ object Content {
                 newMode => $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(dialogMode = newMode)))
             )
         )
-      }
+      } >> Callback.traverse(campaignLogs)(l => Callback.log(l.message))
 
       ajax.completeWith(_.get) >>
         // We need to add the methods to the state
@@ -169,11 +171,19 @@ object Content {
                   s =>
                     s.copy(
                       dmScreenState = s.dmScreenState.copy(
-                        campaignState = Some(newState),
-                        campaignLog = log.trim.headOption.map(_ => log.trim).toSeq ++ s.dmScreenState.campaignLog
+                        campaignState = Some(newState)
                       )
                     ),
-                  startSaveTicker.when(interval.isEmpty).map(_ => ())
+                  startSaveTicker.when(interval.isEmpty).map(_ => ()) >>
+                    $.state.flatMap(s =>
+                      (for {
+                        cs <- s.dmScreenState.campaignState
+                        _  <- log.headOption
+                      } yield cs).fold(Callback.empty) { cs =>
+                        GraphQLRepository.live
+                          .campaignLog(cs.campaignHeader.id, log).toCallback
+                      }
+                    )
                 ),
               onForceSave = saveAll
             )

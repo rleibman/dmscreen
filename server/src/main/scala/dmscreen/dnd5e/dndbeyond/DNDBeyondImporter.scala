@@ -252,9 +252,9 @@ class DNDBeyondImporter extends DND5eImporter[URI, URI, URI, URI] {
         deathSavesFailures  <- deathSaves.getIntOption("successCount").map(_.getOrElse(0))
         deathSavesIsStable  <- deathSaves.getBool("isStabilized")
         currentXp           <- data.getInt("currentXp")
-        alignment           <- data.getInt("alignmentId").map(alignmentId2Alignment)
-        lifestyle           <- data.getInt("lifestyleId").map(lifestyleId2Lifestyle)
-        inventoryArr        <- data.getArr("inventory").map(_.flatMap(_.asObject))
+        alignment    <- data.getIntOption("alignmentId").map(_.map(alignmentId2Alignment).getOrElse(Alignment.unknown))
+        lifestyle    <- data.getIntOption("lifestyleId").map(_.map(lifestyleId2Lifestyle).getOrElse(Lifestyle.unknown))
+        inventoryArr <- data.getArr("inventory").map(_.flatMap(_.asObject))
         inventory = inventoryArr
           .flatMap(
             _.get("definition").flatMap(

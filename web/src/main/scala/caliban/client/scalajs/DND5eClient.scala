@@ -388,6 +388,16 @@ object DND5eClient {
   type Add
   object Add {
 
+    final case class AddView[PathSelection](
+      path:  PathSelection,
+      value: zio.json.ast.Json
+    )
+
+    type ViewSelection[PathSelection] = SelectionBuilder[Add, AddView[PathSelection]]
+
+    def view[PathSelection](pathSelection: SelectionBuilder[JsonPath, PathSelection]): ViewSelection[PathSelection] =
+      (path(pathSelection) ~ value).map { case (path, value) => AddView(path, value) }
+
     def path[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Add, A] =
       _root_.caliban.client.SelectionBuilder.Field("path", Obj(innerSelection))
     def value: SelectionBuilder[Add, zio.json.ast.Json] =
@@ -398,12 +408,32 @@ object DND5eClient {
   type Background
   object Background {
 
+    final case class BackgroundView(name: String)
+
+    type ViewSelection = SelectionBuilder[Background, BackgroundView]
+
+    def view: ViewSelection = name.map(name => BackgroundView(name))
+
     def name: SelectionBuilder[Background, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
 
   }
 
   type Campaign
   object Campaign {
+
+    final case class CampaignView[HeaderSelection](
+      header:   HeaderSelection,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )
+
+    type ViewSelection[HeaderSelection] = SelectionBuilder[Campaign, CampaignView[HeaderSelection]]
+
+    def view[HeaderSelection](headerSelection: SelectionBuilder[CampaignHeader, HeaderSelection])
+      : ViewSelection[HeaderSelection] =
+      (header(headerSelection) ~ jsonInfo ~ version).map { case (header, jsonInfo, version) =>
+        CampaignView(header, jsonInfo, version)
+      }
 
     def header[A](innerSelection: SelectionBuilder[CampaignHeader, A]): SelectionBuilder[Campaign, A] =
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
@@ -415,6 +445,22 @@ object DND5eClient {
 
   type CampaignHeader
   object CampaignHeader {
+
+    final case class CampaignHeaderView(
+      id:             Long,
+      dmUserId:       Long,
+      name:           String,
+      gameSystem:     GameSystem,
+      campaignStatus: CampaignStatus
+    )
+
+    type ViewSelection = SelectionBuilder[CampaignHeader, CampaignHeaderView]
+
+    def view: ViewSelection =
+      (id ~ dmUserId ~ name ~ gameSystem ~ campaignStatus).map {
+        case (id, dmUserId, name, gameSystem, campaignStatus) =>
+          CampaignHeaderView(id, dmUserId, name, gameSystem, campaignStatus)
+      }
 
     def id: SelectionBuilder[CampaignHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def dmUserId: SelectionBuilder[CampaignHeader, Long] =
@@ -430,6 +476,19 @@ object DND5eClient {
   type CampaignLogEntry
   object CampaignLogEntry {
 
+    final case class CampaignLogEntryView(
+      campaignId: Long,
+      message:    String,
+      timestamp:  java.time.LocalDateTime
+    )
+
+    type ViewSelection = SelectionBuilder[CampaignLogEntry, CampaignLogEntryView]
+
+    def view: ViewSelection =
+      (campaignId ~ message ~ timestamp).map { case (campaignId, message, timestamp) =>
+        CampaignLogEntryView(campaignId, message, timestamp)
+      }
+
     def campaignId: SelectionBuilder[CampaignLogEntry, Long] =
       _root_.caliban.client.SelectionBuilder.Field("campaignId", Scalar())
     def message: SelectionBuilder[CampaignLogEntry, String] =
@@ -442,14 +501,56 @@ object DND5eClient {
   type CharacterClass
   object CharacterClass {
 
+    final case class CharacterClassView[HitDiceSelection](
+      id:      String,
+      hitDice: HitDiceSelection
+    )
+
+    type ViewSelection[HitDiceSelection] = SelectionBuilder[CharacterClass, CharacterClassView[HitDiceSelection]]
+
+    def view[HitDiceSelection](hitDiceSelection: SelectionBuilder[DiceRoll, HitDiceSelection])
+      : ViewSelection[HitDiceSelection] =
+      (id ~ hitDice(hitDiceSelection)).map { case (id, hitDice) => CharacterClassView(id, hitDice) }
+
     def id: SelectionBuilder[CharacterClass, String] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def hitDice[A](innerSelection: SelectionBuilder[DiceRoll, A]): SelectionBuilder[CharacterClass, A] =
       _root_.caliban.client.SelectionBuilder.Field("hitDice", Obj(innerSelection))
 
   }
 
+  type CombatLog
+  object CombatLog {
+
+    final case class CombatLogView(
+      message: String,
+      json:    zio.json.ast.Json
+    )
+
+    type ViewSelection = SelectionBuilder[CombatLog, CombatLogView]
+
+    def view: ViewSelection = (message ~ json).map { case (message, json) => CombatLogView(message, json) }
+
+    def message: SelectionBuilder[CombatLog, String] = _root_.caliban.client.SelectionBuilder.Field("message", Scalar())
+    def json: SelectionBuilder[CombatLog, zio.json.ast.Json] =
+      _root_.caliban.client.SelectionBuilder.Field("json", Scalar())
+
+  }
+
   type Copy
   object Copy {
+
+    final case class CopyView[FromSelection, ToSelection](
+      from: FromSelection,
+      to:   ToSelection
+    )
+
+    type ViewSelection[FromSelection, ToSelection] = SelectionBuilder[Copy, CopyView[FromSelection, ToSelection]]
+
+    def view[FromSelection, ToSelection](
+      fromSelection: SelectionBuilder[JsonPath, FromSelection],
+      toSelection:   SelectionBuilder[JsonPath, ToSelection]
+    ): ViewSelection[FromSelection, ToSelection] =
+      (from(fromSelection) ~ to(toSelection)).map { case (from, to) => CopyView(from, to) }
 
     def from[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Copy, A] =
       _root_.caliban.client.SelectionBuilder.Field("from", Obj(innerSelection))
@@ -461,12 +562,32 @@ object DND5eClient {
   type DiceRoll
   object DiceRoll {
 
+    final case class DiceRollView(roll: String)
+
+    type ViewSelection = SelectionBuilder[DiceRoll, DiceRollView]
+
+    def view: ViewSelection = roll.map(roll => DiceRollView(roll))
+
     def roll: SelectionBuilder[DiceRoll, String] = _root_.caliban.client.SelectionBuilder.Field("roll", Scalar())
 
   }
 
   type Encounter
   object Encounter {
+
+    final case class EncounterView[HeaderSelection](
+      header:   HeaderSelection,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )
+
+    type ViewSelection[HeaderSelection] = SelectionBuilder[Encounter, EncounterView[HeaderSelection]]
+
+    def view[HeaderSelection](headerSelection: SelectionBuilder[EncounterHeader, HeaderSelection])
+      : ViewSelection[HeaderSelection] =
+      (header(headerSelection) ~ jsonInfo ~ version).map { case (header, jsonInfo, version) =>
+        EncounterView(header, jsonInfo, version)
+      }
 
     def header[A](innerSelection: SelectionBuilder[EncounterHeader, A]): SelectionBuilder[Encounter, A] =
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
@@ -478,6 +599,23 @@ object DND5eClient {
 
   type EncounterHeader
   object EncounterHeader {
+
+    final case class EncounterHeaderView(
+      id:         Long,
+      campaignId: Long,
+      name:       String,
+      status:     String,
+      sceneId:    scala.Option[Long],
+      orderCol:   Int
+    )
+
+    type ViewSelection = SelectionBuilder[EncounterHeader, EncounterHeaderView]
+
+    def view: ViewSelection =
+      (id ~ campaignId ~ name ~ status ~ sceneId ~ orderCol).map {
+        case (id, campaignId, name, status, sceneId, orderCol) =>
+          EncounterHeaderView(id, campaignId, name, status, sceneId, orderCol)
+      }
 
     def id: SelectionBuilder[EncounterHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def campaignId: SelectionBuilder[EncounterHeader, Long] =
@@ -492,8 +630,33 @@ object DND5eClient {
 
   }
 
+  type GeneralLog
+  object GeneralLog {
+
+    final case class GeneralLogView(
+      message: String,
+      json:    zio.json.ast.Json
+    )
+
+    type ViewSelection = SelectionBuilder[GeneralLog, GeneralLogView]
+
+    def view: ViewSelection = (message ~ json).map { case (message, json) => GeneralLogView(message, json) }
+
+    def message: SelectionBuilder[GeneralLog, String] =
+      _root_.caliban.client.SelectionBuilder.Field("message", Scalar())
+    def json: SelectionBuilder[GeneralLog, zio.json.ast.Json] =
+      _root_.caliban.client.SelectionBuilder.Field("json", Scalar())
+
+  }
+
   type JsonPath
   object JsonPath {
+
+    final case class JsonPathView(value: String)
+
+    type ViewSelection = SelectionBuilder[JsonPath, JsonPathView]
+
+    def view: ViewSelection = value.map(value => JsonPathView(value))
 
     def value: SelectionBuilder[JsonPath, String] = _root_.caliban.client.SelectionBuilder.Field("value", Scalar())
 
@@ -501,6 +664,20 @@ object DND5eClient {
 
   type Monster
   object Monster {
+
+    final case class MonsterView[HeaderSelection](
+      header:   HeaderSelection,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )
+
+    type ViewSelection[HeaderSelection] = SelectionBuilder[Monster, MonsterView[HeaderSelection]]
+
+    def view[HeaderSelection](headerSelection: SelectionBuilder[MonsterHeader, HeaderSelection])
+      : ViewSelection[HeaderSelection] =
+      (header(headerSelection) ~ jsonInfo ~ version).map { case (header, jsonInfo, version) =>
+        MonsterView(header, jsonInfo, version)
+      }
 
     def header[A](innerSelection: SelectionBuilder[MonsterHeader, A]): SelectionBuilder[Monster, A] =
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
@@ -512,6 +689,56 @@ object DND5eClient {
 
   type MonsterHeader
   object MonsterHeader {
+
+    final case class MonsterHeaderView(
+      id:               Long,
+      sourceId:         String,
+      name:             String,
+      monsterType:      MonsterType,
+      biome:            scala.Option[Biome],
+      alignment:        scala.Option[Alignment],
+      cr:               Double,
+      xp:               Long,
+      armorClass:       Int,
+      maximumHitPoints: Int,
+      size:             CreatureSize,
+      initiativeBonus:  Int
+    )
+
+    type ViewSelection = SelectionBuilder[MonsterHeader, MonsterHeaderView]
+
+    def view: ViewSelection =
+      (id ~ sourceId ~ name ~ monsterType ~ biome ~ alignment ~ cr ~ xp ~ armorClass ~ maximumHitPoints ~ size ~ initiativeBonus)
+        .map {
+          case (
+                id,
+                sourceId,
+                name,
+                monsterType,
+                biome,
+                alignment,
+                cr,
+                xp,
+                armorClass,
+                maximumHitPoints,
+                size,
+                initiativeBonus
+              ) =>
+            MonsterHeaderView(
+              id,
+              sourceId,
+              name,
+              monsterType,
+              biome,
+              alignment,
+              cr,
+              xp,
+              armorClass,
+              maximumHitPoints,
+              size,
+              initiativeBonus
+            )
+        }
 
     def id: SelectionBuilder[MonsterHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def sourceId: SelectionBuilder[MonsterHeader, String] =
@@ -539,6 +766,18 @@ object DND5eClient {
   type MonsterSearchResults
   object MonsterSearchResults {
 
+    final case class MonsterSearchResultsView[ResultsSelection](
+      results: List[ResultsSelection],
+      total:   Long
+    )
+
+    type ViewSelection[ResultsSelection] =
+      SelectionBuilder[MonsterSearchResults, MonsterSearchResultsView[ResultsSelection]]
+
+    def view[ResultsSelection](resultsSelection: SelectionBuilder[MonsterHeader, ResultsSelection])
+      : ViewSelection[ResultsSelection] =
+      (results(resultsSelection) ~ total).map { case (results, total) => MonsterSearchResultsView(results, total) }
+
     def results[A](innerSelection: SelectionBuilder[MonsterHeader, A])
       : SelectionBuilder[MonsterSearchResults, List[A]] =
       _root_.caliban.client.SelectionBuilder.Field("results", ListOf(Obj(innerSelection)))
@@ -550,6 +789,19 @@ object DND5eClient {
   type Move
   object Move {
 
+    final case class MoveView[FromSelection, ToSelection](
+      from: FromSelection,
+      to:   ToSelection
+    )
+
+    type ViewSelection[FromSelection, ToSelection] = SelectionBuilder[Move, MoveView[FromSelection, ToSelection]]
+
+    def view[FromSelection, ToSelection](
+      fromSelection: SelectionBuilder[JsonPath, FromSelection],
+      toSelection:   SelectionBuilder[JsonPath, ToSelection]
+    ): ViewSelection[FromSelection, ToSelection] =
+      (from(fromSelection) ~ to(toSelection)).map { case (from, to) => MoveView(from, to) }
+
     def from[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Move, A] =
       _root_.caliban.client.SelectionBuilder.Field("from", Obj(innerSelection))
     def to[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Move, A] =
@@ -559,6 +811,20 @@ object DND5eClient {
 
   type NonPlayerCharacter
   object NonPlayerCharacter {
+
+    final case class NonPlayerCharacterView[HeaderSelection](
+      header:   HeaderSelection,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )
+
+    type ViewSelection[HeaderSelection] = SelectionBuilder[NonPlayerCharacter, NonPlayerCharacterView[HeaderSelection]]
+
+    def view[HeaderSelection](headerSelection: SelectionBuilder[NonPlayerCharacterHeader, HeaderSelection])
+      : ViewSelection[HeaderSelection] =
+      (header(headerSelection) ~ jsonInfo ~ version).map { case (header, jsonInfo, version) =>
+        NonPlayerCharacterView(header, jsonInfo, version)
+      }
 
     def header[A](innerSelection: SelectionBuilder[NonPlayerCharacterHeader, A])
       : SelectionBuilder[NonPlayerCharacter, A] =
@@ -573,6 +839,17 @@ object DND5eClient {
   type NonPlayerCharacterHeader
   object NonPlayerCharacterHeader {
 
+    final case class NonPlayerCharacterHeaderView(
+      id:         Long,
+      campaignId: Long,
+      name:       String
+    )
+
+    type ViewSelection = SelectionBuilder[NonPlayerCharacterHeader, NonPlayerCharacterHeaderView]
+
+    def view: ViewSelection =
+      (id ~ campaignId ~ name).map { case (id, campaignId, name) => NonPlayerCharacterHeaderView(id, campaignId, name) }
+
     def id: SelectionBuilder[NonPlayerCharacterHeader, Long] =
       _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def campaignId: SelectionBuilder[NonPlayerCharacterHeader, Long] =
@@ -585,6 +862,20 @@ object DND5eClient {
   type PlayerCharacter
   object PlayerCharacter {
 
+    final case class PlayerCharacterView[HeaderSelection](
+      header:   HeaderSelection,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )
+
+    type ViewSelection[HeaderSelection] = SelectionBuilder[PlayerCharacter, PlayerCharacterView[HeaderSelection]]
+
+    def view[HeaderSelection](headerSelection: SelectionBuilder[PlayerCharacterHeader, HeaderSelection])
+      : ViewSelection[HeaderSelection] =
+      (header(headerSelection) ~ jsonInfo ~ version).map { case (header, jsonInfo, version) =>
+        PlayerCharacterView(header, jsonInfo, version)
+      }
+
     def header[A](innerSelection: SelectionBuilder[PlayerCharacterHeader, A]): SelectionBuilder[PlayerCharacter, A] =
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
     def jsonInfo: SelectionBuilder[PlayerCharacter, zio.json.ast.Json] =
@@ -596,6 +887,21 @@ object DND5eClient {
 
   type PlayerCharacterHeader
   object PlayerCharacterHeader {
+
+    final case class PlayerCharacterHeaderView(
+      id:         Long,
+      campaignId: Long,
+      name:       String,
+      source:     String,
+      playerName: scala.Option[String]
+    )
+
+    type ViewSelection = SelectionBuilder[PlayerCharacterHeader, PlayerCharacterHeaderView]
+
+    def view: ViewSelection =
+      (id ~ campaignId ~ name ~ source ~ playerName).map { case (id, campaignId, name, source, playerName) =>
+        PlayerCharacterHeaderView(id, campaignId, name, source, playerName)
+      }
 
     def id: SelectionBuilder[PlayerCharacterHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def campaignId: SelectionBuilder[PlayerCharacterHeader, Long] =
@@ -612,12 +918,25 @@ object DND5eClient {
   type Race
   object Race {
 
+    final case class RaceView(name: String)
+
+    type ViewSelection = SelectionBuilder[Race, RaceView]
+
+    def view: ViewSelection = name.map(name => RaceView(name))
+
     def name: SelectionBuilder[Race, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
 
   }
 
   type Remove
   object Remove {
+
+    final case class RemoveView[PathSelection](path: PathSelection)
+
+    type ViewSelection[PathSelection] = SelectionBuilder[Remove, RemoveView[PathSelection]]
+
+    def view[PathSelection](pathSelection: SelectionBuilder[JsonPath, PathSelection]): ViewSelection[PathSelection] =
+      path(pathSelection).map(path => RemoveView(path))
 
     def path[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Remove, A] =
       _root_.caliban.client.SelectionBuilder.Field("path", Obj(innerSelection))
@@ -626,6 +945,16 @@ object DND5eClient {
 
   type Replace
   object Replace {
+
+    final case class ReplaceView[PathSelection](
+      path:  PathSelection,
+      value: zio.json.ast.Json
+    )
+
+    type ViewSelection[PathSelection] = SelectionBuilder[Replace, ReplaceView[PathSelection]]
+
+    def view[PathSelection](pathSelection: SelectionBuilder[JsonPath, PathSelection]): ViewSelection[PathSelection] =
+      (path(pathSelection) ~ value).map { case (path, value) => ReplaceView(path, value) }
 
     def path[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Replace, A] =
       _root_.caliban.client.SelectionBuilder.Field("path", Obj(innerSelection))
@@ -637,6 +966,20 @@ object DND5eClient {
   type Scene
   object Scene {
 
+    final case class SceneView[HeaderSelection](
+      header:   HeaderSelection,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )
+
+    type ViewSelection[HeaderSelection] = SelectionBuilder[Scene, SceneView[HeaderSelection]]
+
+    def view[HeaderSelection](headerSelection: SelectionBuilder[SceneHeader, HeaderSelection])
+      : ViewSelection[HeaderSelection] =
+      (header(headerSelection) ~ jsonInfo ~ version).map { case (header, jsonInfo, version) =>
+        SceneView(header, jsonInfo, version)
+      }
+
     def header[A](innerSelection: SelectionBuilder[SceneHeader, A]): SelectionBuilder[Scene, A] =
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
     def jsonInfo: SelectionBuilder[Scene, zio.json.ast.Json] =
@@ -647,6 +990,21 @@ object DND5eClient {
 
   type SceneHeader
   object SceneHeader {
+
+    final case class SceneHeaderView(
+      id:         Long,
+      campaignId: Long,
+      name:       String,
+      orderCol:   Int,
+      isActive:   Boolean
+    )
+
+    type ViewSelection = SelectionBuilder[SceneHeader, SceneHeaderView]
+
+    def view: ViewSelection =
+      (id ~ campaignId ~ name ~ orderCol ~ isActive).map { case (id, campaignId, name, orderCol, isActive) =>
+        SceneHeaderView(id, campaignId, name, orderCol, isActive)
+      }
 
     def id: SelectionBuilder[SceneHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def campaignId: SelectionBuilder[SceneHeader, Long] =
@@ -662,6 +1020,16 @@ object DND5eClient {
   type Source
   object Source {
 
+    final case class SourceView(
+      name: String,
+      id:   String,
+      url:  scala.Option[String]
+    )
+
+    type ViewSelection = SelectionBuilder[Source, SourceView]
+
+    def view: ViewSelection = (name ~ id ~ url).map { case (name, id, url) => SourceView(name, id, url) }
+
     def name: SelectionBuilder[Source, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
     def id:   SelectionBuilder[Source, String] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def url: SelectionBuilder[Source, scala.Option[String]] =
@@ -672,12 +1040,28 @@ object DND5eClient {
   type SubClass
   object SubClass {
 
+    final case class SubClassView(name: String)
+
+    type ViewSelection = SelectionBuilder[SubClass, SubClassView]
+
+    def view: ViewSelection = name.map(name => SubClassView(name))
+
     def name: SelectionBuilder[SubClass, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
 
   }
 
   type Test
   object Test {
+
+    final case class TestView[PathSelection](
+      path:  PathSelection,
+      value: zio.json.ast.Json
+    )
+
+    type ViewSelection[PathSelection] = SelectionBuilder[Test, TestView[PathSelection]]
+
+    def view[PathSelection](pathSelection: SelectionBuilder[JsonPath, PathSelection]): ViewSelection[PathSelection] =
+      (path(pathSelection) ~ value).map { case (path, value) => TestView(path, value) }
 
     def path[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Test, A] =
       _root_.caliban.client.SelectionBuilder.Field("path", Obj(innerSelection))
@@ -1245,12 +1629,14 @@ object DND5eClient {
       id:         Long,
       events:     List[zio.json.ast.Json] = Nil
     )(
-      onAdd:     SelectionBuilder[Add, A],
-      onCopy:    SelectionBuilder[Copy, A],
-      onMove:    SelectionBuilder[Move, A],
-      onRemove:  SelectionBuilder[Remove, A],
-      onReplace: SelectionBuilder[Replace, A],
-      onTest:    SelectionBuilder[Test, A]
+      onAdd:        SelectionBuilder[Add, A],
+      onCombatLog:  SelectionBuilder[CombatLog, A],
+      onCopy:       SelectionBuilder[Copy, A],
+      onGeneralLog: SelectionBuilder[GeneralLog, A],
+      onMove:       SelectionBuilder[Move, A],
+      onRemove:     SelectionBuilder[Remove, A],
+      onReplace:    SelectionBuilder[Replace, A],
+      onTest:       SelectionBuilder[Test, A]
     )(implicit
       encoder0: ArgEncoder[String],
       encoder1: ArgEncoder[Long],
@@ -1261,12 +1647,14 @@ object DND5eClient {
         OptionOf(
           ChoiceOf(
             Map(
-              "Add"     -> Obj(onAdd),
-              "Copy"    -> Obj(onCopy),
-              "Move"    -> Obj(onMove),
-              "Remove"  -> Obj(onRemove),
-              "Replace" -> Obj(onReplace),
-              "Test"    -> Obj(onTest)
+              "Add"        -> Obj(onAdd),
+              "CombatLog"  -> Obj(onCombatLog),
+              "Copy"       -> Obj(onCopy),
+              "GeneralLog" -> Obj(onGeneralLog),
+              "Move"       -> Obj(onMove),
+              "Remove"     -> Obj(onRemove),
+              "Replace"    -> Obj(onReplace),
+              "Test"       -> Obj(onTest)
             )
           )
         ),

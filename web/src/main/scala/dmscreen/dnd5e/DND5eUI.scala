@@ -50,7 +50,7 @@ case object DND5eUI extends GameUI {
       ButtonAppMenuItem(
         DND5eUIPages.campaignLog,
         VdomArray("Campaign Log", CampaignLog.render()),
-        onClick = _ => CampaignLog.showLog
+        onClick = campaignId => CampaignLog.showLog(campaignId)
       )
     )
 

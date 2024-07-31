@@ -976,10 +976,11 @@ object CombatRunner {
                                             case c => c
                                           })
                                         },
-                                        if (fromIsDead && !toIsDead)
-                                          s"${monsterCombatant.name} healed ${state.healOrDamage(monsterCombatant.id)} points, thus coming back to life"
-                                        else
-                                          s"${monsterCombatant.name} healed ${state.healOrDamage(monsterCombatant.id)} points"
+                                        log =
+                                          if (fromIsDead && !toIsDead)
+                                            s"${monsterCombatant.name} healed ${state.healOrDamage(monsterCombatant.id)} points, thus coming back to life"
+                                          else
+                                            s"${monsterCombatant.name} healed ${state.healOrDamage(monsterCombatant.id)} points"
                                       ) >> $.modState(s =>
                                         s.copy(healOrDamage = s.healOrDamage.filter(_._1 != monsterCombatant.id))
                                       )

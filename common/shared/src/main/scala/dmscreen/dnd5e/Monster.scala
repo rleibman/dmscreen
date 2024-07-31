@@ -139,6 +139,7 @@ enum Biome {
   case Underdark
   case Underwater
   case Urban
+  case Unknown
 
 }
 
