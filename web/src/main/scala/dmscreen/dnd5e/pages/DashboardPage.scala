@@ -113,7 +113,7 @@ object DashboardPage extends DMScreenTab {
                 ^.width   := 100.pct,
                 ^.display := "contents",
                 Container.className("radarCard")(
-                  ^.width := 19.pct,
+                  ^.width := 33.pct,
                   <.h2("Ability Scores"),
                   ReactApexcharts
                     .`type`(radar)
@@ -136,7 +136,7 @@ object DashboardPage extends DMScreenTab {
                           .setColor(radarColors(i))
                     }.toJSArray)
                     .width(100.pct)
-                    .height(270)
+                    .height(400)
                     .options(
                       ApexOptions()
                         .setLabels(js.Array("Str", "Con", "Dex", "Int", "Wis", "Cha"))
@@ -149,7 +149,7 @@ object DashboardPage extends DMScreenTab {
                     )
                 ),
                 Container.className("radarCard")(
-                  ^.width := 19.pct,
+                  ^.width := 33.pct,
                   <.h2("Saving Throws"),
                   ReactApexcharts
                     .`type`(radar)
@@ -172,7 +172,7 @@ object DashboardPage extends DMScreenTab {
                           .setColor(radarColors(i))
                     }.toJSArray)
                     .width(100.pct)
-                    .height(270)
+                    .height(400)
                     .options(
                       ApexOptions()
                         .setLabels(js.Array("Str", "Con", "Dex", "Int", "Wis", "Cha"))
@@ -185,7 +185,7 @@ object DashboardPage extends DMScreenTab {
                     )
                 ),
                 Container.className("radarCard")(
-                  ^.width := 19.pct,
+                  ^.width := 33.pct,
                   <.h2("Passive Scores"),
                   ReactApexcharts
                     .`type`(radar)
@@ -205,7 +205,7 @@ object DashboardPage extends DMScreenTab {
                           .setColor(radarColors(i))
                     }.toJSArray)
                     .width(100.pct)
-                    .height(270)
+                    .height(400)
                     .options(
                       ApexOptions()
                         .setLabels(js.Array("Insp", "Perc", "Inv"))
@@ -218,7 +218,7 @@ object DashboardPage extends DMScreenTab {
                     )
                 ),
                 Container.className("radarCard")(
-                  ^.width := 19.pct,
+                  ^.width := 33.pct,
                   <.h2("Skills"),
                   ReactApexcharts
                     .`type`(radar)
@@ -252,7 +252,7 @@ object DashboardPage extends DMScreenTab {
                           .setColor(radarColors(i))
                     }.toJSArray)
                     .width(100.pct)
-                    .height(270)
+                    .height(400)
                     .options(
                       ApexOptions()
                         .setLabels(
@@ -285,7 +285,7 @@ object DashboardPage extends DMScreenTab {
                     )
                 ),
                 Container.className("radarCard")(
-                  ^.width := 19.pct,
+                  ^.width := 33.pct,
                   <.h2("Health"), {
                     val (names, ratios, ratioStrings, lifeColors) = {
                       state.pcs.toList.map { pc =>
@@ -302,7 +302,7 @@ object DashboardPage extends DMScreenTab {
                     ReactApexcharts
                       .`type`(bar)
                       .width(100.pct)
-                      .height(270)
+                      .height(400)
                       .series {
                         js.Array(Data(data = ratios.toJSArray).setName("Health"))
                       }
