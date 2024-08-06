@@ -41,51 +41,45 @@ object CharacterId {
 
 }
 
-final case class CharacterHeader(
-  id:         CharacterId,
-  campaignId: CampaignId,
-  name:       Option[String],
-  playerName: Option[String] = None
-) extends HasId[CharacterId]
+import scala.compiletime.ops.int.*
 
-case class Character(
-  header:               CharacterHeader,
-  jsonInfo:             Json,
-  override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
-) extends DMScreenEntity[CharacterId, CharacterHeader, CharacterInfo] {
-
-  override def entityType: EntityType[CharacterId] = STAEntityType.character
-
+type Bounded[MIN <: Int, MAX <: Int] <: Int = MAX match {
+  case MIN => MIN
+  case _   => MAX | Bounded[MIN, MAX - 1]
 }
+
+type AttributeRating = Bounded[7, 12]
 
 object Attributes {
 
-  val default = Attributes(7, 7, 7, 7, 7, 7)
+  val default = Attributes(control = 8, daring = 8, fitness = 8, insight = 8, presence = 8, reason = 8)
 
 }
 
 case class Attributes(
-  control:  Int,
-  daring:   Int,
-  fitness:  Int,
-  insight:  Int,
-  presence: Int,
-  reason:   Int
+  control:  AttributeRating,
+  daring:   AttributeRating,
+  fitness:  AttributeRating,
+  insight:  AttributeRating,
+  presence: AttributeRating,
+  reason:   AttributeRating
 )
 
-object Skills {
+type DepartmentRating = Bounded[0, 5]
 
-  val default = Skills(1, 1, 1, 1, 1, 1)
+object Departments {
+
+  val default = Departments(command = 1, conn = 1, engineering = 1, security = 1, science = 1, medicine = 1)
 
 }
 
-case class Skills(
-  command:     Int,
-  conn:        Int,
-  engineering: Int,
-  security:    Int,
-  science:     Int,
-  medicine:    Int
+case class Departments(
+  command:     DepartmentRating,
+  conn:        DepartmentRating,
+  engineering: DepartmentRating,
+  security:    DepartmentRating,
+  science:     DepartmentRating,
+  medicine:    DepartmentRating
 )
 case class Trait(name: String)
 
@@ -105,6 +99,7 @@ object LineageType {
   val ferengi = new LineageType("Ferengi")
   val gorn = new LineageType("Gorn")
   val human = new LineageType("Human")
+  val android = new LineageType("Android")
   val kelpien = new LineageType("Kelpien")
   val klingon = new LineageType("Klingon")
   val lanthanite = new LineageType("Lanthanite")
@@ -133,11 +128,57 @@ object LineageType {
   val talaxian = new LineageType("Talaxian")
   val `tellarite` = new LineageType("Tellarite")
 
+  def other(name: String) = new LineageType(name)
+
+  val values: Seq[LineageType] = Seq(
+    andorian,
+    andorianAenar,
+    bajoran,
+    benzite,
+    betazoid,
+    bolian,
+    borg,
+    breen,
+    caitian,
+    cardassian,
+    ferengi,
+    gorn,
+    human,
+    android,
+    kelpien,
+    klingon,
+    lanthanite,
+    napean,
+    orion,
+    progenitor,
+    q,
+    rigellian,
+    romulan,
+    tholian,
+    tribble,
+    trill,
+    vorta,
+    vulcan,
+    xindi,
+    yridian,
+    zaldan,
+    denobulan,
+    `el-aurian`,
+    hirogen,
+    `jem'hadar`,
+    ocampa,
+    pakled,
+    reman,
+    `species-8472`,
+    talaxian,
+    `tellarite`
+  )
+
 }
 
 class LineageType(val name: String)
 
-case class Lineage(name: String)
+case class Lineage(lineageType: LineageType)
 
 enum Rank {
 
@@ -222,7 +263,129 @@ enum Rank {
     LorC,
     LorBB,
     LorAA,
+    Praetor,
+    Proconsul,
+    ViceProconsul,
+    FirstConsul,
+    Drone,
+    Queen,
+    Senator,
+    Chairman,
+    ViceChairman,
+    Prod,
+
+    // other
     None
+
+  def possibleRanks(organization: Organization): Seq[Rank] =
+    organization match {
+      case Organization.federation =>
+        Seq(
+          Captain,
+          Commander,
+          LtCommander,
+          Lieutenant,
+          LieutenantJG,
+          Ensign,
+          MasterChiefPettyOfficer,
+          MasterChiefSpecialist,
+          SeniorChiefPettyOfficer,
+          SeniorChiefSpecialist,
+          ChiefPettyOfficer,
+          ChiefSpecialist,
+          PettyOfficer1stClass,
+          PettyOfficer2ndClass,
+          PettyOfficer3rdClass,
+          Specialist1stClass,
+          Specialist2ndClass,
+          Specialist3rdClass,
+          Yeoman1stClass,
+          Yeoman2ndClass,
+          Yeoman3rdClass,
+          Crewman1stClass,
+          Crewman2ndClass,
+          Crewman3rdClass,
+          RearAdmiral,
+          RearAdmiralLower,
+          RearAdmiralUpper,
+          ViceAdmiral,
+          Admiral,
+          FleetAdmiral,
+          Commodore,
+          FleetCaptain,
+          Civilian,
+          Praetor,
+          Proconsul,
+          ViceProconsul,
+          FirstConsul,
+          SubLieutenant,
+          Uhlan,
+          Drone,
+          Queen
+        )
+      case Organization.klingon =>
+        Seq(
+          General,
+          Brigadier,
+          Colonel,
+          Captain,
+          Commander,
+          Lieutenant,
+          Sergeant,
+          Bekk,
+          Civilian
+        )
+      case Organization.romulan =>
+        Seq(
+          General,
+          Admiral,
+          Commander,
+          SubCommander,
+          Colonel,
+          Centurion,
+          Major,
+          SubLieutenant,
+          Uhlan,
+          Captain,
+          Praetor,
+          Proconsul,
+          ViceProconsul,
+          FirstConsul,
+          Senator,
+          Chairman,
+          ViceChairman,
+          Prod,
+          Civilian
+        )
+      case Organization.cardassian =>
+        Seq(
+          Legate,
+          Gul,
+          Dal,
+          Glinn,
+          Gil,
+          Garresh,
+          Trooper,
+          Administrator,
+          Civilian
+        )
+      case Organization.ferengi =>
+        Seq(
+          DaiMon,
+          Adhar,
+          LorC,
+          LorBB,
+          LorAA,
+          Civilian
+        )
+      case Organization.borg =>
+        Seq(
+          Drone,
+          Queen
+        )
+      case Organization.orion =>
+        ???
+    }
 
 }
 
@@ -288,6 +451,9 @@ enum Role {
     SquadLeader,
     TacticalOfficer,
 
+    // not specified
+    Other
+
 }
 
 case class Focus(name: String)
@@ -300,34 +466,79 @@ enum Division {
 
 case class EthicalValue(name: String)
 
-enum CharacterType {
+case class Organization(name: String)
 
-  case Starfleet,
-    KlingonWarrior,
-    AlliedMilitary,
-    AmbassadorDiplomat,
-    Civilian,
-    Cadet,
-    Child,
-    Tribble,
-    Other
+object Organization {
+
+  val none:       Organization = Organization("none")
+  val cardassian: Organization = Organization("cardassian")
+  val federation: Organization = Organization("federation")
+  val ferengi:    Organization = Organization("ferengi")
+  val klingon:    Organization = Organization("klingon")
+  val orion:      Organization = Organization("orion")
+  val romulan:    Organization = Organization("romulan")
+  val borg:       Organization = Organization("borg")
+  def other(name: String): Organization = Organization(name)
+
+  def knownOrganizations: Seq[Organization] =
+    Seq(
+      cardassian,
+      federation,
+      ferengi,
+      klingon,
+      orion,
+      romulan,
+      borg
+    )
 
 }
+
+case class CareerEvent(name: String)
+
 case class CharacterInfo(
-  attributes:    Attributes = Attributes.default,
-  skills:        Skills = Skills.default,
-  lineage:       Lineage,
-  characterType: CharacterType = CharacterType.Starfleet,
-  reputation:    Int = 10,
-  reprimands:    Int = 0,
+  determination:    Int,
+  stress:           Int, // maximum stress is typically your fitness attribute
+  organization:     Organization = Organization.federation,
+  pronouns:         Option[String] = None,
+  rank:             Option[Rank] = None,
+  jobAssignment:    Option[String] = None,
+  roles:            Seq[Role] = Seq.empty,
+  reputation:       Int = 10,
+  lineage:          Seq[Lineage] = Seq(Lineage(LineageType.human)),
+  environment:      Option[String] = None,
+  upbringing:       Option[String] = None,
+  careerPath:       Option[String] = None,
+  experience:       Option[String] = None,
+  careerEvents:     Seq[CareerEvent] = Seq.empty,
+  attributes:       Attributes = Attributes.default,
+  departments:      Departments = Departments.default,
+  values:           Seq[EthicalValue],
+  focuses:          Seq[Focus], //Main characters have 6 focuses
+  pastTimes:        Seq[String],
+  attacks:          Seq[String],
+  speciesAbilities: Seq[String],
+  talents:          Seq[String],
+  specialRules:     Seq[String],
+  otherEquipment:   Seq[String],
+  reprimands:       Int = 0,
   age: Option[Int], // Might want to add more to age, like "adolescent", etc, things that would be different by species
-  house:         Option[String],
-  values:        Seq[EthicalValue],
-  rank:          Option[Rank],
-  roles:         Seq[Role],
-  jobAssignment: Option[String],
-  assignedShip:  Option[String],
-  focuses:       Seq[Focus],
-  pronouns:      Option[String],
-  notes:         String
+  assignedShip: Option[String],
+  notes:        String
 )
+
+final case class CharacterHeader(
+  id:         CharacterId,
+  campaignId: CampaignId,
+  name:       Option[String],
+  playerName: Option[String] = None
+) extends HasId[CharacterId]
+
+case class Character(
+  header:               CharacterHeader,
+  jsonInfo:             Json,
+  override val version: SemVer = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
+) extends DMScreenEntity[CharacterId, CharacterHeader, CharacterInfo] {
+
+  override def entityType: EntityType[CharacterId] = STAEntityType.character
+
+}
