@@ -46,8 +46,8 @@ given JsonCodec[STACampaignInfo] = JsonCodec.derived[STACampaignInfo]
 given JsonCodec[AttributeRating] =
   JsonCodec.int.transformOrFail(
     {
-      case v: Int if v >= 7 && v <= 12 => Right(v.asInstanceOf[AttributeRating]) //Ugly cast
-      case v: Int => Left("AttributeRating must be between 7 and 12, not $v")
+      case v: Int if v >= 7 && v <= 12 => Right(v.asInstanceOf[AttributeRating]) // Ugly cast
+      case v: Int                      => Left("AttributeRating must be between 7 and 12, not $v")
     },
     a => a
   )
@@ -55,8 +55,8 @@ given JsonCodec[AttributeRating] =
 given JsonCodec[DepartmentRating] =
   JsonCodec.int.transformOrFail(
     {
-      case v: Int if v >= 0 && v <= 5 => Right(v.asInstanceOf[DepartmentRating]) //Ugly cast
-      case v: Int => Left("DepartmentRating must be between 0 and 5, not $v")
+      case v: Int if v >= 0 && v <= 5 => Right(v.asInstanceOf[DepartmentRating]) // Ugly cast
+      case v: Int                     => Left("DepartmentRating must be between 0 and 5, not $v")
     },
     a => a
   )

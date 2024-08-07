@@ -43,7 +43,7 @@ object NPCPage extends DMScreenTab {
   class Backend($ : BackendScope[CampaignId, State]) {
 
     def loadState(campaignId: CampaignId): Callback = {
-      GraphQLRepository.live
+      DND5eGraphQLRepository.live
         .nonPlayerCharacters(campaignId).map { npcs =>
           $.modState(_.copy(npcs = npcs))
         }.completeWith(_.get)
@@ -80,7 +80,7 @@ object NPCPage extends DMScreenTab {
                       ).toJsonAST.toOption.get
                     )
 
-                    GraphQLRepository.live
+                    DND5eGraphQLRepository.live
                       .upsert(header = newNPC.header, info = newNPC.jsonInfo)
                       .map(id =>
                         $.modState(s => s.copy(npcs = s.npcs :+ newNPC.copy(header = newNPC.header.copy(id = id)))) >>
@@ -113,7 +113,7 @@ object NPCPage extends DMScreenTab {
                         )
                       ),
                     onDelete = deleteMe =>
-                      GraphQLRepository.live
+                      DND5eGraphQLRepository.live
                         .deleteEntity(entityType = DND5eEntityType.nonPlayerCharacter, id = npc.header.id)
                         .map(_ =>
                           $.modState(s =>

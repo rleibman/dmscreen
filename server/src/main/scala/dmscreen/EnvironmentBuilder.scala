@@ -31,14 +31,16 @@ import zio.*
 
 type DMScreenTask[+A] = ZIO[Any, DMScreenError, A] // Succeed with an `A`, may fail with `Throwable`, no requirements.
 
-type DMScreenServerEnvironment = STAZIORepository & DND5eZIORepository & DNDBeyondImporter & ConfigurationService
+type DMScreenServerEnvironment = DMScreenZIORepository & STAZIORepository & DND5eZIORepository & DNDBeyondImporter &
+  ConfigurationService
 
 object EnvironmentBuilder {
 
   def live =
     ZLayer
-      .make[STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter](
+      .make[DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter](
         ConfigurationService.live,
+        dmscreen.QuillRepository.db,
         dmscreen.dnd5e.QuillRepository.db,
         dmscreen.sta.QuillRepository.db,
         DNDBeyondImporter.live
@@ -47,14 +49,16 @@ object EnvironmentBuilder {
   case class InitializingLayer()
 
   private val containerInitializingLayer: ZLayer[
-    STAZIORepository & DND5eZIORepository & SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter,
+    DMScreenZIORepository & STAZIORepository & DND5eZIORepository & SRDImporter & DNDBeyondImporter &
+      FifthEditionCharacterSheetImporter,
     DMScreenError,
     InitializingLayer
   ] =
     ZLayer.fromZIO {
       for {
-        pcs       <- TestCreator.createPcs
-        dnd5eRepo <- ZIO.service[DND5eZIORepository]
+        pcs          <- TestCreator.createPcs
+        dmscreenRepo <- ZIO.service[DMScreenZIORepository]
+        dnd5eRepo    <- ZIO.service[DND5eZIORepository]
         pcsWithIds <- ZIO.foreach(pcs)(pc =>
           dnd5eRepo.upsert(pc.header, pc.jsonInfo).map(id => pc.copy(pc.header.copy(id = id)))
         )
@@ -75,12 +79,18 @@ object EnvironmentBuilder {
 
     }
 
-  def withContainer
-    : ULayer[STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter & InitializingLayer] = {
+  def withContainer: ULayer[
+    DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter &
+      InitializingLayer
+  ] = {
     ZLayer
-      .make[STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter & InitializingLayer](
+      .make[
+        DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter &
+          InitializingLayer
+      ](
         DMScreenContainer.containerLayer,
         ConfigurationService.live >>> DMScreenContainer.configLayer,
+        dmscreen.QuillRepository.db,
         dmscreen.dnd5e.QuillRepository.db,
         dmscreen.sta.QuillRepository.db,
         DNDBeyondImporter.live,

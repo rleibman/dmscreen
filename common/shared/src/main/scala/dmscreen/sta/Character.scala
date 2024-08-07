@@ -513,7 +513,7 @@ case class CharacterInfo(
   attributes:       Attributes = Attributes.default,
   departments:      Departments = Departments.default,
   values:           Seq[EthicalValue],
-  focuses:          Seq[Focus], //Main characters have 6 focuses
+  focuses:          Seq[Focus], // Main characters have 6 focuses
   pastTimes:        Seq[String],
   attacks:          Seq[String],
   speciesAbilities: Seq[String],

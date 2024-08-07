@@ -120,8 +120,8 @@ object EncounterEditor {
         for {
           oldState <- $.state.asAsyncCallback
           props    <- $.props.asAsyncCallback
-          monsters <- GraphQLRepository.live.bestiary(oldState.monsterSearch)
-          npcs     <- GraphQLRepository.live.nonPlayerCharacters(props.encounter.header.campaignId)
+          monsters <- DND5eGraphQLRepository.live.bestiary(oldState.monsterSearch)
+          npcs     <- DND5eGraphQLRepository.live.nonPlayerCharacters(props.encounter.header.campaignId)
         } yield $.modState(_.copy(monsters = monsters.results, monsterCount = monsters.total, npcs = npcs.toList))
       ).completeWith(_.get)
 
@@ -129,7 +129,7 @@ object EncounterEditor {
       (
         for {
           oldState      <- $.state.asAsyncCallback
-          searchResults <- GraphQLRepository.live.bestiary(oldState.monsterSearch)
+          searchResults <- DND5eGraphQLRepository.live.bestiary(oldState.monsterSearch)
         } yield $.modState(_.copy(monsters = searchResults.results, monsterCount = searchResults.total))
       ).completeWith(_.get)
 
@@ -817,7 +817,7 @@ object EncounterEditor {
                             ) =>
                               _root_.components.Confirm.confirm(
                                 question = "Are you 100% sure you want to delete this monster?",
-                                onConfirm = GraphQLRepository.live
+                                onConfirm = DND5eGraphQLRepository.live
                                   .deleteEntity(DND5eEntityType.monster, header.id)
                                   .map(_ => modMonsterSearch(_ => MonsterSearch()))
                                   .completeWith(_.get)

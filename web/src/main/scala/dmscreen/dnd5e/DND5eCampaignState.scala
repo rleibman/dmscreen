@@ -21,16 +21,16 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{Campaign, CampaignHeader, CampaignState, GameUI}
+import dmscreen.{Campaign, CampaignHeader, CampaignState, DMScreenGraphQLRepository, GameUI}
 import japgolly.scalajs.react.callback.*
 
 object DND5eCampaignState {
 
   def load(campaign: Campaign): AsyncCallback[DND5eCampaignState] = {
     for {
-      races       <- GraphQLRepository.live.races
-      backgrounds <- GraphQLRepository.live.backgrounds
-      classes     <- GraphQLRepository.live.classes
+      races       <- DND5eGraphQLRepository.live.races
+      backgrounds <- DND5eGraphQLRepository.live.backgrounds
+      classes     <- DND5eGraphQLRepository.live.classes
     } yield {
       DND5eCampaignState(
         campaign = campaign,
@@ -67,18 +67,20 @@ case class DND5eCampaignState(
               .mkString(",")}, npcs = ${changeStack.npcs.keys.mkString(",")}, scenes = ${changeStack.scenes.keys
               .mkString(",")}, encounters = ${changeStack.encounters.keys.mkString(",")})"
         ).asAsyncCallback
-      campaign <- GraphQLRepository.live
+      campaign <- DMScreenGraphQLRepository.live
         .upsert(campaign.header, campaign.jsonInfo)
         .when(changeStack.campaign)
-      _ <- AsyncCallback.traverse(changeStack.pcs.values)(pc => GraphQLRepository.live.upsert(pc.header, pc.jsonInfo))
+      _ <- AsyncCallback.traverse(changeStack.pcs.values)(pc =>
+        DND5eGraphQLRepository.live.upsert(pc.header, pc.jsonInfo)
+      )
       _ <- AsyncCallback.traverse(changeStack.npcs.values)(npc =>
-        GraphQLRepository.live.upsert(npc.header, npc.jsonInfo)
+        DND5eGraphQLRepository.live.upsert(npc.header, npc.jsonInfo)
       )
       _ <- AsyncCallback.traverse(changeStack.scenes.values)(scene =>
-        GraphQLRepository.live.upsert(scene.header, scene.jsonInfo)
+        DND5eGraphQLRepository.live.upsert(scene.header, scene.jsonInfo)
       )
       _ <- AsyncCallback.traverse(changeStack.encounters.values)(encounter =>
-        GraphQLRepository.live.upsert(encounter.header, encounter.jsonInfo)
+        DND5eGraphQLRepository.live.upsert(encounter.header, encounter.jsonInfo)
       )
     } yield copy(changeStack = ChangeStack())
   }

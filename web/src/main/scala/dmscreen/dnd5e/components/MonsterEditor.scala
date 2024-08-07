@@ -75,7 +75,7 @@ object MonsterEditor {
     ): Callback = {
       val newId = if (clone) MonsterId.empty else monsterId
 
-      GraphQLRepository.live
+      DND5eGraphQLRepository.live
         .monster(monsterId)
         .map(m =>
           $.modState(
@@ -107,7 +107,7 @@ object MonsterEditor {
               _,
               _
             ) =>
-              GraphQLRepository.live
+              DND5eGraphQLRepository.live
                 .upsert(monster.header, monster.jsonInfo)
                 .map(monsterId =>
                   modMonster(

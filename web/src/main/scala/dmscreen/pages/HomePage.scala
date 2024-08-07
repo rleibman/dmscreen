@@ -21,7 +21,7 @@
 
 package dmscreen.pages
 
-import dmscreen.dnd5e.GraphQLRepository
+import dmscreen.dnd5e.DND5eGraphQLRepository
 import dmscreen.{*, given}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Generic.UnmountedRaw
@@ -48,7 +48,7 @@ object HomePage extends DMScreenTab {
   class Backend($ : BackendScope[Unit, State]) {
 
     def loadState: Callback = {
-      GraphQLRepository.live.campaigns
+      DMScreenGraphQLRepository.live.campaigns
         .map { campaigns =>
           $.modState(_.copy(campaigns = campaigns))
         }.completeWith(_.get)
@@ -129,8 +129,9 @@ object HomePage extends DMScreenTab {
               }),
             // after setting it locally, persist it.
             (for {
-              campaign <- GraphQLRepository.live.campaign(campaignHeader.id)
-              upserted <- GraphQLRepository.live.upsert(campaignHeader, campaign.get.jsonInfo).when(campaign.isDefined)
+              campaign <- DMScreenGraphQLRepository.live.campaign(campaignHeader.id)
+              upserted <- DMScreenGraphQLRepository.live
+                .upsert(campaignHeader, campaign.get.jsonInfo).when(campaign.isDefined)
             } yield Callback.empty).completeWith(_.get)
           )
         }
@@ -204,8 +205,9 @@ object HomePage extends DMScreenTab {
                       _
                     ) =>
                       (for {
-                        _ <- GraphQLRepository.live.upsert(newCampaign, CampaignInfo(notes = "").toJsonAST.toOption.get)
-                        reloaded <- GraphQLRepository.live.campaigns
+                        _ <- DMScreenGraphQLRepository.live
+                          .upsert(newCampaign, CampaignInfo(notes = "").toJsonAST.toOption.get)
+                        reloaded <- DMScreenGraphQLRepository.live.campaigns
                       } yield $.modState(_.copy(newCampaign = None, campaigns = reloaded))).completeWith(_.get)
                   },
                   Button("Cancel").onClick(

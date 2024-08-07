@@ -42,7 +42,7 @@ object NPCStatBlock {
   case class Backend($ : BackendScope[Props, State]) {
 
     def loadState(id: NonPlayerCharacterId): Callback = {
-      GraphQLRepository.live
+      DND5eGraphQLRepository.live
         .nonPlayerCharacter(id)
         .map(npc => $.modState(_.copy(npc = npc)))
         .completeWith(_.get)

@@ -95,8 +95,8 @@ object DashboardPage extends DMScreenTab {
 
     def loadState(campaignId: CampaignId): Callback = {
       (for {
-        pcs    <- GraphQLRepository.live.playerCharacters(campaignId)
-        scenes <- GraphQLRepository.live.scenes(campaignId)
+        pcs    <- DND5eGraphQLRepository.live.playerCharacters(campaignId)
+        scenes <- DND5eGraphQLRepository.live.scenes(campaignId)
       } yield $.modState(_.copy(pcs = pcs, scenes = scenes))).completeWith(_.get)
     }
 

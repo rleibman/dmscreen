@@ -43,7 +43,7 @@ object PCPage extends DMScreenTab {
   class Backend($ : BackendScope[CampaignId, State]) {
 
     def loadState(campaignId: CampaignId): Callback = {
-      GraphQLRepository.live
+      DND5eGraphQLRepository.live
         .playerCharacters(campaignId).map { pcs =>
           $.modState(_.copy(pcs = pcs))
         }.completeWith(_.get)
@@ -91,7 +91,7 @@ object PCPage extends DMScreenTab {
                       maybeId.fold(
                         s => Callback.alert(s),
                         good =>
-                          GraphQLRepository.live
+                          DND5eGraphQLRepository.live
                             .importDndBeyondCharacter(campaign.id, good)
                             .map(newPC =>
                               $.modState(
@@ -132,7 +132,7 @@ object PCPage extends DMScreenTab {
                       ).toJsonAST.toOption.get
                     )
 
-                    GraphQLRepository.live
+                    DND5eGraphQLRepository.live
                       .upsert(header = newPC.header, info = newPC.jsonInfo)
                       .map(id =>
                         $.modState(s => s.copy(pcs = s.pcs :+ newPC.copy(header = newPC.header.copy(id = id)))) >>
@@ -205,7 +205,7 @@ object PCPage extends DMScreenTab {
                         )
                       ),
                     onDelete = deleteMe =>
-                      GraphQLRepository.live
+                      DND5eGraphQLRepository.live
                         .deleteEntity(entityType = DND5eEntityType.playerCharacter, id = pc.header.id)
                         .map(_ =>
                           $.modState(s =>
@@ -220,7 +220,7 @@ object PCPage extends DMScreenTab {
 
                       pc.header.source match {
                         case source: DNDBeyondImportSource =>
-                          GraphQLRepository.live
+                          DND5eGraphQLRepository.live
                             .importDndBeyondCharacter(campaignId = campaign.id, source.dndBeyondId, fresh = true)
                             .map(newPC =>
                               $.modState(

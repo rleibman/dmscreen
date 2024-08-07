@@ -26,18 +26,12 @@ import caliban.client.scalajs.DND5eClient.{
   Alignment as CalibanAlignment,
   Background as CalibanBackground,
   Biome as CalibanBiome,
-  Campaign as CalibanCampaign,
-  CampaignHeader as CalibanCampaignHeader,
-  CampaignHeaderInput,
-  CampaignLogEntry as CalibanCampaignLogEntry,
-  CampaignStatus as CalibanCampaignStatus,
   CharacterClass as CalibanCharacterClass,
   CreatureSize as CalibanCreatureSize,
   DiceRoll as CalibanDiceRoll,
   Encounter as CalibanEncounter,
   EncounterHeader as CalibanEncounterHeader,
   EncounterHeaderInput,
-  GameSystem as CalibanGameSystem,
   Monster as CalibanMonster,
   MonsterHeader as CalibanMonsterHeader,
   MonsterHeaderInput,
@@ -68,7 +62,7 @@ import zio.*
 import zio.json.*
 import zio.json.ast.Json
 
-object GraphQLRepository {
+object DND5eGraphQLRepository {
 
   trait ExtendedRepository extends DND5eRepository[AsyncCallback] {
 
@@ -81,66 +75,6 @@ object GraphQLRepository {
   }
 
   val live: ExtendedRepository = new ExtendedRepository {
-
-    override def campaigns: AsyncCallback[Seq[CampaignHeader]] = {
-      val sb = (
-        CalibanCampaignHeader.id ~
-          CalibanCampaignHeader.dmUserId ~
-          CalibanCampaignHeader.name ~
-          CalibanCampaignHeader.gameSystem ~
-          CalibanCampaignHeader.campaignStatus
-      ).map {
-        case (
-              id:             Long,
-              dmUserId:       Long,
-              name:           String,
-              gameSystem:     CalibanGameSystem,
-              campaignStatus: CalibanCampaignStatus
-            ) =>
-          CampaignHeader(
-            id = CampaignId(id),
-            dmUserId = UserId(dmUserId),
-            name = name,
-            gameSystem = GameSystem.valueOf(gameSystem.value),
-            campaignStatus = CampaignStatus.valueOf(campaignStatus.value)
-          )
-      }
-
-      asyncCalibanCall(Queries.campaigns(sb)).map(_.toSeq.flatten)
-    }
-
-    override def campaign(campaignId: CampaignId): AsyncCallback[Option[Campaign]] = {
-      val sb: SelectionBuilder[CalibanCampaign, Campaign] = (CalibanCampaign.header(
-        CalibanCampaignHeader.id ~ CalibanCampaignHeader.name ~ CalibanCampaignHeader.dmUserId ~ CalibanCampaignHeader.gameSystem ~ CalibanCampaignHeader.campaignStatus
-      ) ~ CalibanCampaign.jsonInfo).map {
-        (
-          id:             Long,
-          name:           String,
-          dmUserId:       Long,
-          system:         CalibanGameSystem,
-          campaignStatus: CalibanCampaignStatus,
-          info:           Json
-        ) =>
-          Campaign(
-            CampaignHeader(
-              CampaignId(id),
-              UserId(dmUserId),
-              name,
-              GameSystem.valueOf(system.value),
-              CampaignStatus.valueOf(campaignStatus.value)
-            ),
-            info
-          )
-      }
-
-      asyncCalibanCall(Queries.campaign(campaignId.value)(sb))
-    }
-
-    override def applyOperations[IDType](
-      entityType: EntityType[IDType],
-      id:         IDType,
-      operations: DMScreenEvent*
-    ): AsyncCallback[Unit] = ???
 
     override def deleteEntity[IDType](
       entityType: EntityType[IDType],
@@ -378,22 +312,6 @@ object GraphQLRepository {
     override def spells: AsyncCallback[Seq[Spell]] = ???
 
     override def upsert(
-      campaignHeader: CampaignHeader,
-      info:           Json
-    ): AsyncCallback[CampaignId] = {
-      val headerInput = CampaignHeaderInput(
-        id = campaignHeader.id.value,
-        dmUserId = campaignHeader.dmUserId.value,
-        name = campaignHeader.name,
-        gameSystem = CalibanGameSystem.values.find(_.value == campaignHeader.gameSystem.toString).get,
-        campaignStatus = CalibanCampaignStatus.values.find(_.value == campaignHeader.campaignStatus.toString).get
-      )
-
-      val sb = Mutations.upsertCampaign(headerInput, info, dmscreen.BuildInfo.version)
-      asyncCalibanCall(sb).map(_.fold(CampaignId.empty)(CampaignId.apply))
-    }
-
-    override def upsert(
       playerCharacterHeader: PlayerCharacterHeader,
       info:                  Json
     ): AsyncCallback[PlayerCharacterId] = {
@@ -563,37 +481,6 @@ object GraphQLRepository {
       asyncCalibanCall(Queries.nonPlayerCharacter(id.value)(npcSB))
     }
 
-    private val campaignLogSB: SelectionBuilder[CalibanCampaignLogEntry, CampaignLogEntry] = (
-      CalibanCampaignLogEntry.campaignId ~
-        CalibanCampaignLogEntry.message ~
-        CalibanCampaignLogEntry.timestamp
-    ).map {
-      (
-        campaignId,
-        message,
-        timestamp
-      ) =>
-        CampaignLogEntry(
-          campaignId = CampaignId(campaignId),
-          message = message,
-          timestamp = timestamp
-        )
-    }
-
-    override def campaignLogs(
-      campaignId: CampaignId,
-      maxNum:     Int
-    ): AsyncCallback[Seq[CampaignLogEntry]] = {
-      asyncCalibanCall(Queries.campaignLogs(campaignId.value, maxNum)(campaignLogSB)).map(_.toSeq.flatten)
-    }
-
-    override def campaignLog(
-      campaignId: CampaignId,
-      message:    String
-    ): AsyncCallback[Unit] = {
-      val sb = Mutations.campaignLog(campaignId.value, message)
-      asyncCalibanCall(sb).map(_ => ())
-    }
   }
 
 }

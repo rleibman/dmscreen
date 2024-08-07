@@ -279,7 +279,6 @@ type Mutations {
   deleteEntity(entityType: String!, id: Long!, softDelete: Boolean!): Unit
   importCharacterDNDBeyond(campaignId: Long!, dndBeyondId: String!, fresh: Boolean!): PlayerCharacter
   campaignLog(campaignId: Long!, message: String!): Unit
-  applyOperations(entityType: String!, id: Long!, events: [Json!]!): Unit
 }
 
 type NonPlayerCharacter {

@@ -49,7 +49,7 @@ object ScenePage extends DMScreenTab {
   class Backend($ : BackendScope[CampaignId, State]) {
 
     def loadState(campaignId: CampaignId): Callback = {
-      GraphQLRepository.live
+      DND5eGraphQLRepository.live
         .scenes(campaignId)
         .map(scenes => Callback.log(s"Yo, got ${scenes.size} scenes") >> $.modState(_.copy(scenes = scenes)))
         .completeWith(_.get)
@@ -141,7 +141,7 @@ object ScenePage extends DMScreenTab {
                             jsonInfo = SceneInfo().toJsonAST.toOption.get
                           )
 
-                          GraphQLRepository.live
+                          DND5eGraphQLRepository.live
                             .upsert(header = newScene.header, info = newScene.jsonInfo)
                             .map(id =>
                               $.modState(
@@ -217,7 +217,7 @@ object ScenePage extends DMScreenTab {
                             ) =>
                               _root_.components.Confirm.confirm(
                                 question = s"Are you sure you want to delete this scene (${scene.header.name})?",
-                                onConfirm = GraphQLRepository.live
+                                onConfirm = DND5eGraphQLRepository.live
                                   .deleteEntity(entityType = DND5eEntityType.scene, id = scene.header.id)
                                   .map(_ =>
                                     $.modState(

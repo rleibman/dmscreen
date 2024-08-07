@@ -37,10 +37,11 @@ object StorageSpec extends ZIOSpecDefault {
     suite("Testing Storage")(
       test("Should be able to store and retrieve a campaign") {
         for {
-          service     <- ZIO.service[DND5eZIORepository]
-          listAtStart <- service.campaigns
-          startObject <- service.campaign(listAtStart.head.id)
-          newId <- service.upsert(
+          dnd5eRepo    <- ZIO.service[DND5eZIORepository]
+          dmScreenRepo <- ZIO.service[DMScreenZIORepository]
+          listAtStart  <- dmScreenRepo.campaigns
+          startObject  <- dmScreenRepo.campaign(listAtStart.head.id)
+          newId <- dmScreenRepo.upsert(
             CampaignHeader(
               CampaignId.empty,
               testUser,
@@ -50,18 +51,18 @@ object StorageSpec extends ZIOSpecDefault {
             ),
             CampaignInfo(notes = "These are some notes").toJsonAST.getOrElse(Json.Null)
           )
-          listAfterInsert <- service.campaigns
-          insertedObject  <- service.campaign(newId)
-          _ <- service.applyOperations(
-            entityType = CampaignEntityType,
-            id = newId,
-            operations = Replace(JsonPath("$.notes"), Json.Str("These are some updated notes"))
-          )
-          listAfterUpdates <- service.campaigns
-          updatedCampaign  <- service.campaign(newId)
-          _                <- service.deleteEntity(entityType = CampaignEntityType, id = newId)
-          listAfterDelete  <- service.campaigns
-          deletedObject    <- service.campaign(newId)
+          listAfterInsert <- dmScreenRepo.campaigns
+          insertedObject  <- dmScreenRepo.campaign(newId)
+          //          _ <- service.applyOperations(
+          //            entityType = CampaignEntityType,
+          //            id = newId,
+          //            operations = Replace(JsonPath("$.notes"), Json.Str("These are some updated notes"))
+          //          )
+          listAfterUpdates <- dmScreenRepo.campaigns
+          updatedCampaign  <- dmScreenRepo.campaign(newId)
+          _                <- dmScreenRepo.deleteEntity(entityType = CampaignEntityType, id = newId)
+          listAfterDelete  <- dmScreenRepo.campaigns
+          deletedObject    <- dmScreenRepo.campaign(newId)
         } yield {
           assertTrue(
             listAtStart.nonEmpty,
@@ -106,12 +107,12 @@ object StorageSpec extends ZIOSpecDefault {
             ).toJsonAST.getOrElse(Json.Null)
           )
           listAfterInsert <- service.playerCharacters(testCampaignId)
-          _ <- service.applyOperations(
-            entityType = DND5eEntityType.playerCharacter,
-            id = newId,
-            Replace(JsonPath("$.notes"), Json.Str("These are some updated notes")),
-            Replace(JsonPath("$.armorClass"), Json.Num(17))
-          )
+//          _ <- service.applyOperations(
+//            entityType = DND5eEntityType.playerCharacter,
+//            id = newId,
+//            Replace(JsonPath("$.notes"), Json.Str("These are some updated notes")),
+//            Replace(JsonPath("$.armorClass"), Json.Num(17))
+//          )
           _               <- service.deleteEntity(entityType = DND5eEntityType.playerCharacter, id = newId)
           listAfterDelete <- service.playerCharacters(testCampaignId)
         } yield assertTrue(
