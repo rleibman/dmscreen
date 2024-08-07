@@ -25,16 +25,18 @@ import _root_.components.{Confirm, Toast}
 import caliban.ScalaJSClientAdapter.*
 import caliban.client.CalibanClientError.DecodingError
 import caliban.client.Operations.RootQuery
-import caliban.client.scalajs.DND5eClient.{
-  Background as CalibanBackground,
+import caliban.client.scalajs.DMScreenClient.{
   Campaign as CalibanCampaign,
   CampaignHeader as CalibanCampaignHeader,
   CampaignStatus as CalibanCampaignStatus,
+  GameSystem as CalibanGameSystem
+}
+import caliban.client.scalajs.DND5eClient.{
+  Background as CalibanBackground,
   CharacterClass as CalibanCharacterClass,
   DiceRoll as CalibanDiceRoll,
   Encounter as CalibanEncounter,
   EncounterHeader as CalibanEncounterHeader,
-  GameSystem as CalibanGameSystem,
   PlayerCharacter as CalibanPlayerCharacter,
   PlayerCharacterHeader as CalibanPlayerCharacterHeader,
   Queries,
@@ -134,9 +136,11 @@ object Content {
         oldState <- $.state.asAsyncCallback
         _ <- AsyncCallback.pure(window.sessionStorage.setItem("currentCampaignId", id.value.toString)) // Store the current campaign Id in the session storage for next time
         _ <- Callback.log(s"Loading campaign data (campaign = $id) from server...").asAsyncCallback
-        campaignOpt <- GraphQLRepository.live.campaign(id) // First load the campaign, this will allow us to ask for the GameSystem-specific data
+        campaignOpt <- DMScreenGraphQLRepository.live.campaign(id) // First load the campaign, this will allow us to ask for the GameSystem-specific data
         campaignLogs <- AsyncCallback
-          .traverseOption(campaignOpt)(c => GraphQLRepository.live.campaignLogs(c.header.id, 20)).map(_.toSeq.flatten)
+          .traverseOption(campaignOpt)(c => DMScreenGraphQLRepository.live.campaignLogs(c.header.id, 20)).map(
+            _.toSeq.flatten
+          )
         campaignState <- AsyncCallback.traverseOption(campaignOpt) { c =>
           c.header.gameSystem match {
             case GameSystem.dnd5e              => DND5eCampaignState.load(c)
@@ -180,7 +184,7 @@ object Content {
                         cs <- s.dmScreenState.campaignState
                         _  <- log.headOption
                       } yield cs).fold(Callback.empty) { cs =>
-                        GraphQLRepository.live
+                        DMScreenGraphQLRepository.live
                           .campaignLog(cs.campaignHeader.id, log).toCallback
                       }
                     )

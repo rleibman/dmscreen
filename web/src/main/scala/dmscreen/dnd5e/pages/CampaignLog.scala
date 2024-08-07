@@ -22,7 +22,7 @@
 package dmscreen.dnd5e.pages
 
 import dmscreen.*
-import dmscreen.dnd5e.GraphQLRepository
+import dmscreen.dnd5e.DND5eGraphQLRepository
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -43,7 +43,7 @@ object CampaignLog {
   case class Backend($ : BackendScope[Unit, State]) {
 
     def showLog(campaignId: CampaignId): Callback =
-      GraphQLRepository.live
+      DMScreenGraphQLRepository.live
         .campaignLogs(campaignId, 20)
         .map(logs => $.modState(_.copy(campaignLog = logs.map(_.message), logOpen = true)))
         .completeWith(_.get)

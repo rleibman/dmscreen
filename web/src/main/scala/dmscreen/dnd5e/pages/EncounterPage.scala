@@ -64,9 +64,9 @@ object EncounterPage extends DMScreenTab {
 
     def loadState(campaignId: CampaignId): Callback = {
       (for {
-        encounters <- GraphQLRepository.live.encounters(campaignId)
-        scenes     <- GraphQLRepository.live.scenes(campaignId)
-        pcs        <- GraphQLRepository.live.playerCharacters(campaignId)
+        encounters <- DND5eGraphQLRepository.live.encounters(campaignId)
+        scenes     <- DND5eGraphQLRepository.live.scenes(campaignId)
+        pcs        <- DND5eGraphQLRepository.live.playerCharacters(campaignId)
       } yield $.modState(_.copy(encounters = encounters, scenes = scenes, pcs = pcs))).completeWith(_.get)
     }
 
@@ -94,7 +94,7 @@ object EncounterPage extends DMScreenTab {
           }
 
           def doDelete(deleteMe: Encounter): Callback =
-            GraphQLRepository.live
+            DND5eGraphQLRepository.live
               .deleteEntity(entityType = DND5eEntityType.encounter, id = deleteMe.header.id)
               .map(_ =>
                 $.modState(
@@ -236,7 +236,7 @@ object EncounterPage extends DMScreenTab {
                                                     ),
                                                     jsonInfo = EncounterInfo().toJsonAST.toOption.get
                                                   )
-                                                  GraphQLRepository.live
+                                                  DND5eGraphQLRepository.live
                                                     .upsert(newEncounter.header, newEncounter.jsonInfo)
                                                     .map { id =>
                                                       $.modState(

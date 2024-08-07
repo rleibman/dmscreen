@@ -60,12 +60,6 @@ object QuillRepository {
 
         override def scene(sceneId: SceneId): DMScreenTask[Option[Scene]] = ???
 
-        override def applyOperations[IDType](
-          entityType: EntityType[IDType],
-          id:         IDType,
-          operations: DMScreenEvent*
-        ): DMScreenTask[Unit] = ???
-
         override def deleteEntity[IDType](
           entityType: EntityType[IDType],
           id:         IDType,

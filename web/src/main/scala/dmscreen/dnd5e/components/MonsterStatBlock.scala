@@ -54,7 +54,7 @@ object MonsterStatBlock {
   case class Backend($ : BackendScope[Props, State]) {
 
     def loadState(monsterId: MonsterId): Callback = {
-      GraphQLRepository.live
+      DND5eGraphQLRepository.live
         .monster(monsterId)
         .map(m => $.modState(_.copy(monster = m)))
         .completeWith(_.get)

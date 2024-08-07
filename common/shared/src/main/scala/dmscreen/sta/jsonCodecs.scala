@@ -42,10 +42,34 @@ given JsonCodec[CaptureType] = JsonCodec.string.transform(CaptureType.valueOf, _
 given JsonCodec[ShipClass] = JsonCodec.string.transform(ShipClass.valueOf, _.toString)
 
 given JsonCodec[STACampaignInfo] = JsonCodec.derived[STACampaignInfo]
+
+given JsonCodec[AttributeRating] =
+  JsonCodec.int.transformOrFail(
+    {
+      case v: Int if v >= 7 && v <= 12 => Right(v.asInstanceOf[AttributeRating]) // Ugly cast
+      case v: Int                      => Left("AttributeRating must be between 7 and 12, not $v")
+    },
+    a => a
+  )
+
+given JsonCodec[DepartmentRating] =
+  JsonCodec.int.transformOrFail(
+    {
+      case v: Int if v >= 0 && v <= 5 => Right(v.asInstanceOf[DepartmentRating]) // Ugly cast
+      case v: Int                     => Left("DepartmentRating must be between 0 and 5, not $v")
+    },
+    a => a
+  )
+
 given JsonCodec[Attributes] = JsonCodec.derived[Attributes]
 given JsonCodec[EthicalValue] = JsonCodec.derived[EthicalValue]
 given JsonCodec[Focus] = JsonCodec.derived[Focus]
-given JsonCodec[Skills] = JsonCodec.derived[Skills]
+given JsonCodec[Departments] = JsonCodec.derived[Departments]
+given JsonCodec[LineageType] =
+  JsonCodec.string
+    .transform(s => LineageType.values.find(_.name.equalsIgnoreCase(s)).getOrElse(LineageType.other(s)), _.toString)
+given JsonCodec[Organization] = JsonCodec.derived[Organization]
+given JsonCodec[CareerEvent] = JsonCodec.derived[CareerEvent]
 given JsonCodec[Lineage] = JsonCodec.derived[Lineage]
 given JsonCodec[StarshipTrait] = JsonCodec.derived[StarshipTrait]
 given JsonCodec[WeaponQualities] = JsonCodec.derived[WeaponQualities]

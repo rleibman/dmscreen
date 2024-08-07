@@ -41,52 +41,6 @@ trait DND5eZIORepository extends DND5eRepository[DMScreenTask]
 
 object QuillRepository {
 
-  private object CampaignRow {
-
-    def fromModel(
-      header:   CampaignHeader,
-      jsonInfo: Json
-    ): CampaignRow = {
-      CampaignRow(
-        id = header.id.value,
-        name = header.name,
-        dmUserId = header.dmUserId.value,
-        gameSystem = header.gameSystem.toString,
-        campaignStatus = header.campaignStatus.toString,
-        info = jsonInfo,
-        version = dmscreen.BuildInfo.version,
-        deleted = false
-      )
-    }
-
-  }
-
-  private case class CampaignRow(
-    id:             Long,
-    name:           String,
-    dmUserId:       Long,
-    gameSystem:     String,
-    campaignStatus: String,
-    info:           Json,
-    version:        String,
-    deleted:        Boolean
-  ) {
-
-    def toModel: Campaign =
-      Campaign(
-        header = CampaignHeader(
-          id = CampaignId(id),
-          dmUserId = UserId(dmUserId),
-          name = name,
-          gameSystem = GameSystem.valueOf(gameSystem),
-          campaignStatus = CampaignStatus.valueOf(campaignStatus)
-        ),
-        jsonInfo = info,
-        version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
-      )
-
-  }
-
   private object PlayerCharacterRow {
 
     def fromModel(
@@ -438,11 +392,6 @@ object QuillRepository {
         given MappedEncoding[Long, CampaignId] = MappedEncoding[Long, CampaignId](CampaignId.apply)
         given MappedEncoding[CampaignId, Long] = MappedEncoding[CampaignId, Long](_.value)
 
-        inline private def qCampaigns =
-          quote {
-            querySchema[CampaignRow]("campaign")
-          }
-
         inline private def qScenes =
           quote {
             querySchema[SceneRow]("scene")
@@ -472,40 +421,9 @@ object QuillRepository {
             querySchema[EncounterRow]("encounter")
           }
 
-        inline private def qCampaignLog =
-          quote {
-            querySchema[CampaignLogEntry]("campaignLog")
-          }
-
-        override def campaigns: IO[DMScreenError, Seq[CampaignHeader]] =
-          ctx
-            .run(qCampaigns.map(a => (a.id, a.dmUserId, a.name, a.gameSystem, a.campaignStatus)))
-            .map(
-              _.map(t =>
-                CampaignHeader(
-                  id = CampaignId(t._1),
-                  dmUserId = UserId(t._2),
-                  name = t._3,
-                  gameSystem = GameSystem.valueOf(t._4),
-                  campaignStatus = CampaignStatus.valueOf(t._5)
-                )
-              )
-            )
-            .provideLayer(dataSourceLayer)
-            .mapError(RepositoryError.apply)
-            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-
         override def monster(monsterId: MonsterId): DMScreenTask[Option[Monster]] =
           ctx
             .run(qMonsters.filter(v => !v.deleted && v.id == lift(monsterId.value)))
-            .map(_.headOption.map(_.toModel))
-            .provideLayer(dataSourceLayer)
-            .mapError(RepositoryError.apply)
-            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-
-        override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[Campaign]] =
-          ctx
-            .run(qCampaigns.filter(v => !v.deleted && v.id == lift(campaignId.value)))
             .map(_.headOption.map(_.toModel))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
@@ -691,102 +609,6 @@ object QuillRepository {
           ) => sql"JSON_REMOVE($doc, $path)".as[Json]
         }
 
-        @nowarn // We're using ClassTag to inject compile info to runtime so we can match on the IDType, but it still produces a warning
-        override def applyOperations[IDType](
-          entityType: EntityType[IDType],
-          id:         IDType,
-          operations: DMScreenEvent*
-        ): IO[DMScreenError, Unit] = {
-          entityType match {
-            case CampaignEntityType => applyOperationsCampaign(CampaignId(id.asInstanceOf[Long]), operations*)
-            case DND5eEntityType.playerCharacter =>
-              applyOperationsPlayerCharacter(PlayerCharacterId(id.asInstanceOf[Long]), operations*)
-            case _ => ZIO.fail(DMScreenError("Can't apply operation to an id $id"))
-          }
-        }
-
-        def applyOperationsCampaign(
-          campaignId: CampaignId,
-          operations: DMScreenEvent*
-        ): IO[DMScreenError, Unit] =
-          ctx
-            .transaction {
-              // UPDATE t SET json_col = JSON_SET(json_col, '$.name', 'Knut') WHERE id = 123
-              ZIO
-                .foreach(operations) {
-                  case Add(path, value) =>
-                    ctx
-                      .run(
-                        qCampaigns
-                          .filter(v => !v.deleted && v.id == lift(campaignId.value)).update(a =>
-                            a.info -> jsonInsert(a.info, lift(path.value), lift(value))
-                          )
-                      )
-                  case Remove(path) =>
-                    ctx
-                      .run(
-                        qCampaigns
-                          .filter(v => !v.deleted && v.id == lift(campaignId.value)).update(a =>
-                            a.info -> jsonRemove(a.info, lift(path.value))
-                          )
-                      )
-                  case Replace(path, value) =>
-                    ctx
-                      .run(
-                        qCampaigns
-                          .filter(v => !v.deleted && v.id == lift(campaignId.value)).update(a =>
-                            a.info -> jsonReplace(a.info, lift(path.value), lift(value))
-                          )
-                      )
-                  case Move(from, path) => ??? // Currently Not supported, but probably just read, then a delete followed by an insert
-                  case Copy(from, path) => ??? // Currently Not supported, but probably just a read followed by an insert
-                  case Test(path, value) => ??? // Currently Not supported
-                }.unit
-            }.provideLayer(dataSourceLayer)
-            .mapError(RepositoryError.apply)
-            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-
-        def applyOperationsPlayerCharacter(
-          playerCharacterId: PlayerCharacterId,
-          operations:        DMScreenEvent*
-        ): IO[DMScreenError, Unit] =
-          ctx
-            .transaction {
-              // UPDATE t SET json_col = JSON_SET(json_col, '$.name', 'Knut') WHERE id = 123
-              ZIO
-                .foreach(operations) {
-                  case Add(path, value) =>
-                    ctx
-                      .run(
-                        qPlayerCharacters
-                          .filter(v => !v.deleted && v.id == lift(playerCharacterId.value)).update(a =>
-                            a.info -> jsonInsert(a.info, lift(path.value), lift(value))
-                          )
-                      )
-                  case Remove(path) =>
-                    ctx
-                      .run(
-                        qPlayerCharacters
-                          .filter(v => !v.deleted && v.id == lift(playerCharacterId.value)).update(a =>
-                            a.info -> jsonRemove(a.info, lift(path.value))
-                          )
-                      )
-                  case Replace(path, value) =>
-                    ctx
-                      .run(
-                        qPlayerCharacters
-                          .filter(v => !v.deleted && v.id == lift(playerCharacterId.value)).update(a =>
-                            a.info -> jsonReplace(a.info, lift(path.value), lift(value))
-                          )
-                      )
-                  case Move(from, path) => ??? // Currently Not supported, but probably just read, then a delete followed by an insert
-                  case Copy(from, path) => ??? // Currently Not supported, but probably just a read followed by an insert
-                  case Test(path, value) => ??? // Currently Not supported
-                }.unit
-            }.provideLayer(dataSourceLayer)
-            .mapError(RepositoryError.apply)
-            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-
         override def deleteEntity[IDType](
           entityType: EntityType[IDType],
           id:         IDType,
@@ -794,16 +616,16 @@ object QuillRepository {
         ): IO[DMScreenError, Unit] = {
           if (softDelete) {
             entityType match {
-              case CampaignEntityType =>
-                val idVal = id.asInstanceOf[CampaignId].value
-                val total = for {
-                  a <- ctx.run(qCampaigns.filter(_.id == lift(idVal)).update(_.deleted -> true))
-                  b <- ctx.run(qScenes.filter(_.campaignId == lift(idVal)).update(_.deleted -> true))
-                  c <- ctx.run(qEncounters.filter(_.campaignId == lift(idVal)).update(_.deleted -> true))
-                  d <- ctx.run(qPlayerCharacters.filter(_.campaignId == lift(idVal)).update(_.deleted -> true))
-                  e <- ctx.run(qNonPlayerCharacters.filter(_.campaignId == lift(idVal)).update(_.deleted -> true))
-                } yield a + b + c + d + e
-                ctx.transaction(total)
+//              case CampaignEntityType =>
+//                val idVal = id.asInstanceOf[CampaignId].value
+//                val total = for {
+//                  a <- ctx.run(qCampaigns.filter(_.id == lift(idVal)).update(_.deleted -> true))
+//                  b <- ctx.run(qScenes.filter(_.campaignId == lift(idVal)).update(_.deleted -> true))
+//                  c <- ctx.run(qEncounters.filter(_.campaignId == lift(idVal)).update(_.deleted -> true))
+//                  d <- ctx.run(qPlayerCharacters.filter(_.campaignId == lift(idVal)).update(_.deleted -> true))
+//                  e <- ctx.run(qNonPlayerCharacters.filter(_.campaignId == lift(idVal)).update(_.deleted -> true))
+//                } yield a + b + c + d + e
+//                ctx.transaction(total)
               case DND5eEntityType.playerCharacter =>
                 val valId = id.asInstanceOf[PlayerCharacterId].value
                 val rawQuery = quote {
@@ -923,9 +745,9 @@ object QuillRepository {
           } else {
             // Hard delete's are a bit easier, because we have ON DELETE CASCADE, so we don't have to delete anything else except for the main class
             entityType match {
-              case CampaignEntityType =>
-                ctx
-                  .run(qCampaigns.filter(_.id == lift(id.asInstanceOf[CampaignId].value)).delete)
+//              case CampaignEntityType =>
+//                ctx
+//                  .run(qCampaigns.filter(_.id == lift(id.asInstanceOf[CampaignId].value)).delete)
               case DND5eEntityType.playerCharacter =>
                 val valId = id.asInstanceOf[PlayerCharacterId].value
                 val rawQuery = quote {
@@ -1030,44 +852,6 @@ object QuillRepository {
           .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def spells: IO[DMScreenError, Seq[Spell]] = ???
-
-        override def upsert(
-          header: CampaignHeader,
-          info:   Json
-        ): IO[DMScreenError, CampaignId] =
-          (if (header.id != CampaignId.empty) {
-             ctx
-               .run(
-                 qCampaigns
-                   .filter(v => !v.deleted && v.id == lift(header.id.value))
-                   .updateValue(lift(CampaignRow.fromModel(header, info)))
-               )
-               .as(header.id)
-           } else {
-             ctx
-               .run(
-                 qCampaigns
-                   .insertValue(
-                     lift(
-                       CampaignRow(
-                         id = CampaignId.empty.value,
-                         name = header.name,
-                         dmUserId = header.dmUserId.value,
-                         gameSystem = header.gameSystem.toString,
-                         campaignStatus = header.campaignStatus.toString,
-                         info = info,
-                         version = dmscreen.BuildInfo.version,
-                         deleted = false
-                       )
-                     )
-                   )
-                   .returningGenerated(_.id)
-               )
-               .map(CampaignId.apply)
-           })
-            .provideLayer(dataSourceLayer)
-            .mapError(RepositoryError.apply)
-            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def upsert(
           header: PlayerCharacterHeader,
@@ -1319,42 +1103,6 @@ object QuillRepository {
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
-        override def campaignLogs(
-          campaignId: CampaignId,
-          maxNum:     Int
-        ): DMScreenTask[Seq[CampaignLogEntry]] =
-          ctx
-            .run(
-              qCampaignLog
-                .filter(v => v.campaignId == lift(campaignId))
-                .sortBy(_.timestamp)(Ord.desc)
-                .take(lift(maxNum))
-            )
-            .provideLayer(dataSourceLayer)
-            .mapError(RepositoryError.apply)
-            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-
-        override def campaignLog(
-          campaignId: CampaignId,
-          message:    String
-        ): DMScreenTask[Unit] = {
-          val entry = CampaignLogEntry(
-            campaignId = campaignId,
-            message = message,
-            timestamp = LocalDateTime.now()
-          )
-          ctx
-            .run(
-              qCampaignLog
-                .insertValue(
-                  lift(entry)
-                )
-            )
-            .unit
-            .provideLayer(dataSourceLayer)
-            .mapError(RepositoryError.apply)
-            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-        }
       }
     }
 

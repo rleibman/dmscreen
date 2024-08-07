@@ -39,12 +39,6 @@ object GraphQLRepository {
 
     override def scene(sceneId: SceneId): AsyncCallback[Option[Scene]] = ???
 
-    override def applyOperations[IDType](
-      entityType: EntityType[IDType],
-      id:         IDType,
-      operations: DMScreenEvent*
-    ): AsyncCallback[Unit] = ???
-
     override def deleteEntity[IDType](
       entityType: EntityType[IDType],
       id:         IDType,

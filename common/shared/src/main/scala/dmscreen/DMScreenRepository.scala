@@ -19,54 +19,37 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.sta
+package dmscreen
 
-import dmscreen.*
 import zio.*
 import zio.json.ast.Json
 
-import scala.reflect.ClassTag
+trait DMScreenRepository[F[_]] extends GameRepository {
 
-trait STARepository[F[_]] extends GameRepository {
-
-  def scene(sceneId: SceneId): F[Option[Scene]]
-
+  // Generic stuff, this belongs in it's own repository
   def deleteEntity[IDType](
     entityType: EntityType[IDType],
     id:         IDType,
     softDelete: Boolean = true
   ): F[Unit]
 
-  def characters(campaignId: CampaignId): F[Seq[Character]]
-
-  def starships(campaignId: CampaignId): F[Seq[Starship]]
-
-  def scenes(campaignId: CampaignId): F[Seq[Scene]]
-
-  def character(characterId: CharacterId): F[Option[Character]]
-
-  def nonPlayerCharacters(campaignId: CampaignId): F[Seq[NonPlayerCharacter]]
-
-  def encounters(campaignId: CampaignId): F[Seq[Encounter]]
   def upsert(
-    header: CharacterHeader,
+    header: CampaignHeader,
     info:   Json
-  ): F[CharacterId]
-  def upsert(
-    header: StarshipHeader,
-    info:   Json
-  ): F[StarshipId]
-  def upsert(
-    header: NonPlayerCharacterHeader,
-    info:   Json
-  ): F[NonPlayerCharacterId]
-  def upsert(
-    header: SceneHeader,
-    info:   Json
-  ): F[SceneId]
-  def upsert(
-    header: EncounterHeader,
-    info:   Json
-  ): F[EncounterId]
+  ): F[CampaignId]
+
+  def campaigns: F[Seq[CampaignHeader]]
+
+  def campaign(campaignId: CampaignId): F[Option[Campaign]]
+
+  def campaignLogs(
+    campaignId: CampaignId,
+    maxNum:     Int
+  ): F[Seq[CampaignLogEntry]]
+
+  def campaignLog(
+    campaignId: CampaignId,
+    message:    String
+  ): F[Unit]
 
 }

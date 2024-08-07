@@ -129,9 +129,9 @@ object CombatRunner {
 
     def loadState(props: Props): Callback = {
       (for {
-        encounter <- GraphQLRepository.live.encounter(props.campaignId, props.encounterId)
-        pcs       <- GraphQLRepository.live.playerCharacters(props.campaignId)
-        npcs      <- GraphQLRepository.live.nonPlayerCharacters(props.campaignId)
+        encounter <- DND5eGraphQLRepository.live.encounter(props.campaignId, props.encounterId)
+        pcs       <- DND5eGraphQLRepository.live.playerCharacters(props.campaignId)
+        npcs      <- DND5eGraphQLRepository.live.nonPlayerCharacters(props.campaignId)
         initialized = encounter.map(e => initializeEncounter(e, pcs, npcs))
       } yield $.modState(
         _.copy(encounter = initialized, pcs = pcs, npcs = npcs),

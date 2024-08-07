@@ -41,7 +41,7 @@ object PCStatBlock {
   case class Backend($ : BackendScope[Props, State]) {
 
     def loadState(id: PlayerCharacterId): Callback = {
-      GraphQLRepository.live
+      DND5eGraphQLRepository.live
         .playerCharacter(id)
         .map(pc => $.modState(_.copy(pc = pc)))
         .completeWith(_.get)
