@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2024 Roberto Leibman
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package caliban.client.scalajs
 
 import caliban.client.CalibanClientError.DecodingError
@@ -6,6 +27,26 @@ import caliban.client._
 import caliban.client.__Value._
 
 object DMScreenClient {
+
+  sealed trait CampaignStatus extends scala.Product with scala.Serializable { def value: String }
+  object CampaignStatus {
+
+    case object active extends CampaignStatus { val value: String = "active" }
+    case object archived extends CampaignStatus { val value: String = "archived" }
+
+    implicit val decoder: ScalarDecoder[CampaignStatus] = {
+      case __StringValue("active")   => Right(CampaignStatus.active)
+      case __StringValue("archived") => Right(CampaignStatus.archived)
+      case other                     => Left(DecodingError(s"Can't build CampaignStatus from input $other"))
+    }
+    implicit val encoder: ArgEncoder[CampaignStatus] = {
+      case CampaignStatus.active   => __EnumValue("active")
+      case CampaignStatus.archived => __EnumValue("archived")
+    }
+
+    val values: scala.collection.immutable.Vector[CampaignStatus] = scala.collection.immutable.Vector(active, archived)
+
+  }
 
   sealed trait GameSystem extends scala.Product with scala.Serializable { def value: String }
   object GameSystem {
@@ -66,46 +107,23 @@ object DMScreenClient {
 
   }
 
-  sealed trait CampaignStatus extends scala.Product with scala.Serializable { def value: String }
-  object CampaignStatus {
+  type Add
+  object Add {
 
-    case object active extends CampaignStatus { val value: String = "active" }
-    case object archived extends CampaignStatus { val value: String = "archived" }
+    final case class AddView[PathSelection](
+      path:  PathSelection,
+      value: zio.json.ast.Json
+    )
 
-    implicit val decoder: ScalarDecoder[CampaignStatus] = {
-      case __StringValue("active")   => Right(CampaignStatus.active)
-      case __StringValue("archived") => Right(CampaignStatus.archived)
-      case other                     => Left(DecodingError(s"Can't build CampaignStatus from input $other"))
-    }
-    implicit val encoder: ArgEncoder[CampaignStatus] = {
-      case CampaignStatus.active   => __EnumValue("active")
-      case CampaignStatus.archived => __EnumValue("archived")
-    }
+    type ViewSelection[PathSelection] = SelectionBuilder[Add, AddView[PathSelection]]
 
-    val values: scala.collection.immutable.Vector[CampaignStatus] = scala.collection.immutable.Vector(active, archived)
+    def view[PathSelection](pathSelection: SelectionBuilder[JsonPath, PathSelection]): ViewSelection[PathSelection] =
+      (path(pathSelection) ~ value).map { case (path, value) => AddView(path, value) }
 
-  }
-  final case class CampaignHeaderInput(
-    id:             Long,
-    dmUserId:       Long,
-    name:           String,
-    gameSystem:     GameSystem,
-    campaignStatus: CampaignStatus
-  )
-  object CampaignHeaderInput {
-
-    implicit val encoder: ArgEncoder[CampaignHeaderInput] = new ArgEncoder[CampaignHeaderInput] {
-      override def encode(value: CampaignHeaderInput): __Value =
-        __ObjectValue(
-          List(
-            "id"             -> implicitly[ArgEncoder[Long]].encode(value.id),
-            "dmUserId"       -> implicitly[ArgEncoder[Long]].encode(value.dmUserId),
-            "name"           -> implicitly[ArgEncoder[String]].encode(value.name),
-            "gameSystem"     -> implicitly[ArgEncoder[GameSystem]].encode(value.gameSystem),
-            "campaignStatus" -> implicitly[ArgEncoder[CampaignStatus]].encode(value.campaignStatus)
-          )
-        )
-    }
+    def path[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Add, A] =
+      _root_.caliban.client.SelectionBuilder.Field("path", Obj(innerSelection))
+    def value: SelectionBuilder[Add, zio.json.ast.Json] =
+      _root_.caliban.client.SelectionBuilder.Field("value", Scalar())
 
   }
 
@@ -189,14 +207,149 @@ object DMScreenClient {
 
   }
 
-  type Queries = _root_.caliban.client.Operations.RootQuery
+  type Copy
+  object Copy {
 
+    final case class CopyView[FromSelection, ToSelection](
+      from: FromSelection,
+      to:   ToSelection
+    )
+
+    type ViewSelection[FromSelection, ToSelection] = SelectionBuilder[Copy, CopyView[FromSelection, ToSelection]]
+
+    def view[FromSelection, ToSelection](
+      fromSelection: SelectionBuilder[JsonPath, FromSelection],
+      toSelection:   SelectionBuilder[JsonPath, ToSelection]
+    ): ViewSelection[FromSelection, ToSelection] =
+      (from(fromSelection) ~ to(toSelection)).map { case (from, to) => CopyView(from, to) }
+
+    def from[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Copy, A] =
+      _root_.caliban.client.SelectionBuilder.Field("from", Obj(innerSelection))
+    def to[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Copy, A] =
+      _root_.caliban.client.SelectionBuilder.Field("to", Obj(innerSelection))
+
+  }
+
+  type JsonPath
+  object JsonPath {
+
+    final case class JsonPathView(value: String)
+
+    type ViewSelection = SelectionBuilder[JsonPath, JsonPathView]
+
+    def view: ViewSelection = value.map(value => JsonPathView(value))
+
+    def value: SelectionBuilder[JsonPath, String] = _root_.caliban.client.SelectionBuilder.Field("value", Scalar())
+
+  }
+
+  type Move
+  object Move {
+
+    final case class MoveView[FromSelection, ToSelection](
+      from: FromSelection,
+      to:   ToSelection
+    )
+
+    type ViewSelection[FromSelection, ToSelection] = SelectionBuilder[Move, MoveView[FromSelection, ToSelection]]
+
+    def view[FromSelection, ToSelection](
+      fromSelection: SelectionBuilder[JsonPath, FromSelection],
+      toSelection:   SelectionBuilder[JsonPath, ToSelection]
+    ): ViewSelection[FromSelection, ToSelection] =
+      (from(fromSelection) ~ to(toSelection)).map { case (from, to) => MoveView(from, to) }
+
+    def from[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Move, A] =
+      _root_.caliban.client.SelectionBuilder.Field("from", Obj(innerSelection))
+    def to[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Move, A] =
+      _root_.caliban.client.SelectionBuilder.Field("to", Obj(innerSelection))
+
+  }
+
+  type Remove
+  object Remove {
+
+    final case class RemoveView[PathSelection](path: PathSelection)
+
+    type ViewSelection[PathSelection] = SelectionBuilder[Remove, RemoveView[PathSelection]]
+
+    def view[PathSelection](pathSelection: SelectionBuilder[JsonPath, PathSelection]): ViewSelection[PathSelection] =
+      path(pathSelection).map(path => RemoveView(path))
+
+    def path[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Remove, A] =
+      _root_.caliban.client.SelectionBuilder.Field("path", Obj(innerSelection))
+
+  }
+
+  type Replace
+  object Replace {
+
+    final case class ReplaceView[PathSelection](
+      path:  PathSelection,
+      value: zio.json.ast.Json
+    )
+
+    type ViewSelection[PathSelection] = SelectionBuilder[Replace, ReplaceView[PathSelection]]
+
+    def view[PathSelection](pathSelection: SelectionBuilder[JsonPath, PathSelection]): ViewSelection[PathSelection] =
+      (path(pathSelection) ~ value).map { case (path, value) => ReplaceView(path, value) }
+
+    def path[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Replace, A] =
+      _root_.caliban.client.SelectionBuilder.Field("path", Obj(innerSelection))
+    def value: SelectionBuilder[Replace, zio.json.ast.Json] =
+      _root_.caliban.client.SelectionBuilder.Field("value", Scalar())
+
+  }
+
+  type Test
+  object Test {
+
+    final case class TestView[PathSelection](
+      path:  PathSelection,
+      value: zio.json.ast.Json
+    )
+
+    type ViewSelection[PathSelection] = SelectionBuilder[Test, TestView[PathSelection]]
+
+    def view[PathSelection](pathSelection: SelectionBuilder[JsonPath, PathSelection]): ViewSelection[PathSelection] =
+      (path(pathSelection) ~ value).map { case (path, value) => TestView(path, value) }
+
+    def path[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Test, A] =
+      _root_.caliban.client.SelectionBuilder.Field("path", Obj(innerSelection))
+    def value: SelectionBuilder[Test, zio.json.ast.Json] =
+      _root_.caliban.client.SelectionBuilder.Field("value", Scalar())
+
+  }
+
+  final case class CampaignHeaderInput(
+    id:             Long,
+    dmUserId:       Long,
+    name:           String,
+    gameSystem:     GameSystem,
+    campaignStatus: CampaignStatus
+  )
+  object CampaignHeaderInput {
+
+    implicit val encoder: ArgEncoder[CampaignHeaderInput] = new ArgEncoder[CampaignHeaderInput] {
+      override def encode(value: CampaignHeaderInput): __Value =
+        __ObjectValue(
+          List(
+            "id"             -> implicitly[ArgEncoder[Long]].encode(value.id),
+            "dmUserId"       -> implicitly[ArgEncoder[Long]].encode(value.dmUserId),
+            "name"           -> implicitly[ArgEncoder[String]].encode(value.name),
+            "gameSystem"     -> implicitly[ArgEncoder[GameSystem]].encode(value.gameSystem),
+            "campaignStatus" -> implicitly[ArgEncoder[CampaignStatus]].encode(value.campaignStatus)
+          )
+        )
+    }
+
+  }
+  type Queries = _root_.caliban.client.Operations.RootQuery
   object Queries {
 
     def campaigns[A](innerSelection: SelectionBuilder[CampaignHeader, A])
       : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
       _root_.caliban.client.SelectionBuilder.Field("campaigns", OptionOf(ListOf(Obj(innerSelection))))
-
     def campaign[A](value: Long)(innerSelection: SelectionBuilder[Campaign, A])(implicit encoder0: ArgEncoder[Long])
       : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
       _root_.caliban.client.SelectionBuilder
@@ -269,6 +422,48 @@ object DMScreenClient {
           Argument("entityType", entityType, "String!")(encoder0),
           Argument("id", id, "Long!")(encoder1),
           Argument("softDelete", softDelete, "Boolean!")(encoder2)
+        )
+      )
+
+  }
+
+  type Subscriptions = _root_.caliban.client.Operations.RootSubscription
+  object Subscriptions {
+
+    def campaignStream[A](
+      entityType: String,
+      id:         Long,
+      events:     List[zio.json.ast.Json] = Nil
+    )(
+      onAdd:     SelectionBuilder[Add, A],
+      onCopy:    SelectionBuilder[Copy, A],
+      onMove:    SelectionBuilder[Move, A],
+      onRemove:  SelectionBuilder[Remove, A],
+      onReplace: SelectionBuilder[Replace, A],
+      onTest:    SelectionBuilder[Test, A]
+    )(implicit
+      encoder0: ArgEncoder[String],
+      encoder1: ArgEncoder[Long],
+      encoder2: ArgEncoder[List[zio.json.ast.Json]]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootSubscription, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "campaignStream",
+        OptionOf(
+          ChoiceOf(
+            Map(
+              "Add"     -> Obj(onAdd),
+              "Copy"    -> Obj(onCopy),
+              "Move"    -> Obj(onMove),
+              "Remove"  -> Obj(onRemove),
+              "Replace" -> Obj(onReplace),
+              "Test"    -> Obj(onTest)
+            )
+          )
+        ),
+        arguments = List(
+          Argument("entityType", entityType, "String!")(encoder0),
+          Argument("id", id, "Long!")(encoder1),
+          Argument("events", events, "[Json!]!")(encoder2)
         )
       )
 

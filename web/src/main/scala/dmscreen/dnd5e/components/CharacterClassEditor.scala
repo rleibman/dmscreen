@@ -21,8 +21,6 @@
 
 package dmscreen.dnd5e.components
 
-import caliban.ScalaJSClientAdapter.asyncCalibanCall
-import caliban.client.scalajs.DND5eClient.{Queries, SubClass as CalibanSubclass}
 import dmscreen.DMScreenState
 import dmscreen.dnd5e.*
 import dmscreen.dnd5e.CharacterClassId.paladin
@@ -60,11 +58,11 @@ object CharacterClassEditor {
     ): Callback = {
       Callback.traverse(state.classes.map(_.characterClass)) { characterClass =>
         if (!state.subClasses.contains(characterClass)) {
-          val sb = Queries.subclasses(characterClass.name)(CalibanSubclass.name.map(SubClass.apply))
-          asyncCalibanCall(sb)
-            .map(_.toSeq.flatten)
+          DND5eGraphQLRepository.live
+            .subClasses(characterClass)
             .map(s => $.modState(state => state.copy(subClasses = state.subClasses + (characterClass -> s.toList))))
             .completeWith(_.get)
+
         } else {
           Callback.log(s"$characterClass is already there, not loading it again!")
         }

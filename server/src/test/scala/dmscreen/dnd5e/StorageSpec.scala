@@ -37,7 +37,6 @@ object StorageSpec extends ZIOSpecDefault {
     suite("Testing Storage")(
       test("Should be able to store and retrieve a campaign") {
         for {
-          dnd5eRepo    <- ZIO.service[DND5eZIORepository]
           dmScreenRepo <- ZIO.service[DMScreenZIORepository]
           listAtStart  <- dmScreenRepo.campaigns
           startObject  <- dmScreenRepo.campaign(listAtStart.head.id)
@@ -51,13 +50,8 @@ object StorageSpec extends ZIOSpecDefault {
             ),
             CampaignInfo(notes = "These are some notes").toJsonAST.getOrElse(Json.Null)
           )
-          listAfterInsert <- dmScreenRepo.campaigns
-          insertedObject  <- dmScreenRepo.campaign(newId)
-          //          _ <- service.applyOperations(
-          //            entityType = CampaignEntityType,
-          //            id = newId,
-          //            operations = Replace(JsonPath("$.notes"), Json.Str("These are some updated notes"))
-          //          )
+          listAfterInsert  <- dmScreenRepo.campaigns
+          insertedObject   <- dmScreenRepo.campaign(newId)
           listAfterUpdates <- dmScreenRepo.campaigns
           updatedCampaign  <- dmScreenRepo.campaign(newId)
           _                <- dmScreenRepo.deleteEntity(entityType = CampaignEntityType, id = newId)

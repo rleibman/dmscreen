@@ -82,9 +82,9 @@ given JsonEncoder[GraphQLResponseError] = JsonEncoder.derived[GraphQLResponseErr
 given JsonEncoder[GraphQLResponse] = JsonEncoder.derived[GraphQLResponse]
 given JsonEncoder[GraphQLRequest] = JsonEncoder.derived[GraphQLRequest]
 
-object ScalaJSClientAdapter extends TimerSupport {
+case class ScalaJSClientAdapter(endpoint: String) extends TimerSupport {
 
-  val serverUri = uri"http://${ClientConfiguration.live.host}/api/dnd5e"
+  val serverUri = uri"http://${ClientConfiguration.live.host}/api/$endpoint"
 
   given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
 

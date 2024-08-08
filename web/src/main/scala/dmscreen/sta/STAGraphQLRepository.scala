@@ -21,7 +21,6 @@
 
 package dmscreen.sta
 
-import caliban.ScalaJSClientAdapter.asyncCalibanCall
 import caliban.client.scalajs.{STAClient, given}
 import caliban.client.{ArgEncoder, SelectionBuilder}
 import dmscreen.*
@@ -33,9 +32,11 @@ import zio.json.ast.Json
 import java.util.ResourceBundle
 import scala.reflect.ClassTag
 
-object GraphQLRepository {
+object STAGraphQLRepository {
 
   val live: STARepository[AsyncCallback] = new STARepository[AsyncCallback] {
+
+    private val calibanClient = caliban.ScalaJSClientAdapter("sta")
 
     override def scene(sceneId: SceneId): AsyncCallback[Option[Scene]] = ???
 

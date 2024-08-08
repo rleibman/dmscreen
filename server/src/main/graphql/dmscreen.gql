@@ -1,0 +1,108 @@
+schema {
+    query: Queries
+    mutation: Mutations
+    subscription: Subscriptions
+}
+scalar Json
+"A date-time without a time-zone in the ISO-8601 calendar system in the format of 1970-01-01T00:00:00"
+scalar LocalDateTime
+scalar Long
+scalar Unit
+
+union DMScreenEvent = Add | Copy | Move | Remove | Replace | Test
+
+enum CampaignStatus {
+    active
+    archived
+}
+
+enum GameSystem {
+    callOfCthulhu
+    dnd3_5
+    dnd4e
+    dnd5e
+    fateAccelerated
+    fateCore
+    pathfinder1e
+    pathfinder2e
+    savageWorlds
+    starTrekAdventures
+    starfinder
+}
+
+input CampaignHeaderInput {
+    id: Long!
+    dmUserId: Long!
+    name: String!
+    gameSystem: GameSystem!
+    campaignStatus: CampaignStatus!
+}
+
+type Add {
+    path: JsonPath!
+    value: Json!
+}
+
+type Campaign {
+    header: CampaignHeader!
+    jsonInfo: Json!
+    version: String!
+}
+
+type CampaignHeader {
+    id: Long!
+    dmUserId: Long!
+    name: String!
+    gameSystem: GameSystem!
+    campaignStatus: CampaignStatus!
+}
+
+type CampaignLogEntry {
+    campaignId: Long!
+    message: String!
+    timestamp: LocalDateTime!
+}
+
+type Copy {
+    from: JsonPath!
+    to: JsonPath!
+}
+
+type JsonPath {
+    value: String!
+}
+
+type Move {
+    from: JsonPath!
+    to: JsonPath!
+}
+
+type Mutations {
+    upsertCampaign(header: CampaignHeaderInput!, jsonInfo: Json!, version: String!): Long
+    campaignLog(campaignId: Long!, message: String!): Unit
+    deleteEntity(entityType: String!, id: Long!, softDelete: Boolean!): Unit
+}
+
+type Queries {
+    campaigns: [CampaignHeader!]
+    campaign(value: Long!): Campaign
+    campaignLogs(campaignId: Long!, maxNum: Int!): [CampaignLogEntry!]
+}
+
+type Remove {
+    path: JsonPath!
+}
+
+type Replace {
+    path: JsonPath!
+    value: Json!
+}
+
+type Subscriptions {
+    campaignStream(entityType: String!, id: Long!, events: [Json!]!): DMScreenEvent
+}
+
+type Test {
+    path: JsonPath!
+    value: Json!
+}

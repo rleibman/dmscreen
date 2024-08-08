@@ -18,26 +18,22 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 package dmscreen
 
 import caliban.*
+import caliban.CalibanError.ExecutionError
 import caliban.interop.zio.*
 import caliban.interop.zio.json.*
 import caliban.introspection.adt.__Type
 import caliban.schema.*
 import caliban.schema.ArgBuilder.auto.*
 import caliban.schema.Schema.auto.*
-import dmscreen.dnd5e.DND5eEntityType
 import just.semver.SemVer
-import zio.{ZIO, *}
-import zio.http.{Client, Request}
+import zio.ZIO
 import zio.json.*
 import zio.json.ast.Json
-import zio.nio.file.Files
 import zio.stream.*
-
-import java.net.URI
-import java.nio.file.StandardOpenOption
 
 object DMScreenAPI {
 
@@ -57,6 +53,12 @@ object DMScreenAPI {
     message:    String
   )
 
+  case class EntityDeleteArgs(
+    entityType: EntityType[?],
+    id:         Long,
+    softDelete: Boolean
+  )
+
   case class Queries(
     campaigns:    ZIO[DMScreenZIORepository, DMScreenError, Seq[CampaignHeader]],
     campaign:     CampaignId => ZIO[DMScreenZIORepository, DMScreenError, Option[Campaign]],
@@ -66,7 +68,8 @@ object DMScreenAPI {
   case class Mutations(
     // All these mutations are temporary, eventually, only the headers will be saved, and the infos will be saved in the events
     upsertCampaign: Campaign => ZIO[DMScreenZIORepository, DMScreenError, CampaignId],
-    campaignLog:    CampaignLogInsertRequest => ZIO[DMScreenZIORepository, DMScreenError, Unit]
+    campaignLog:    CampaignLogInsertRequest => ZIO[DMScreenZIORepository, DMScreenError, Unit],
+    deleteEntity:   EntityDeleteArgs => ZIO[DMScreenZIORepository, DMScreenError, Unit]
   )
 
   case class Subscriptions(
@@ -83,7 +86,12 @@ object DMScreenAPI {
   private given ArgBuilder[SemVer] = ArgBuilder.string.map(SemVer.unsafeParse)
   private given ArgBuilder[UserId] = ArgBuilder.long.map(UserId.apply)
   private given ArgBuilder[CampaignId] = ArgBuilder.long.map(CampaignId.apply)
-  private given ArgBuilder[EntityType[?]] = ArgBuilder.string.map(DND5eEntityType.valueOf) // TODO this is not right, we need a more general constructor that knows all entity types, how about getting it from registered Game Systems
+  private given ArgBuilder[EntityType[?]] =
+    ArgBuilder.string.flatMap(s => {
+      if (s != CampaignEntityType.name)
+        Left(ExecutionError(s"Only CampaignEntityType in this api supported, got $s"))
+      else Right(CampaignEntityType)
+    })
   private given ArgBuilder[CampaignEventsArgs] = ArgBuilder.gen[CampaignEventsArgs]
   private given ArgBuilder[Campaign] = ArgBuilder.gen[Campaign]
   private given ArgBuilder[CampaignLogRequest] = ArgBuilder.gen[CampaignLogRequest]
@@ -108,6 +116,14 @@ object DMScreenAPI {
             campaign => ZIO.serviceWithZIO[DMScreenZIORepository](_.upsert(campaign.header, campaign.jsonInfo)),
           campaignLog =
             request => ZIO.serviceWithZIO[DMScreenZIORepository](_.campaignLog(request.campaignId, request.message)),
+          deleteEntity = deleteArgs =>
+            ZIO.serviceWithZIO[DMScreenZIORepository](
+              _.deleteEntity(
+                deleteArgs.entityType,
+                deleteArgs.entityType.createId(deleteArgs.id),
+                deleteArgs.softDelete
+              )
+            ),
         ),
         Subscriptions(campaignStream = operationArgs => ???)
       )

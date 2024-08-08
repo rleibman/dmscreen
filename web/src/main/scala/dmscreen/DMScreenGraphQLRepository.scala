@@ -18,9 +18,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 package dmscreen
 
-import caliban.ScalaJSClientAdapter.asyncCalibanCall
 import caliban.client.scalajs.DMScreenClient.{
   Campaign as CalibanCampaign,
   CampaignHeader as CalibanCampaignHeader,
@@ -44,6 +44,8 @@ object DMScreenGraphQLRepository {
   trait ExtendedRepository extends DMScreenRepository[AsyncCallback] {}
 
   val live: ExtendedRepository = new ExtendedRepository {
+    private val calibanClient = caliban.ScalaJSClientAdapter("dmscreen")
+
     override def campaigns: AsyncCallback[Seq[CampaignHeader]] = {
       val sb = (
         CalibanCampaignHeader.id ~
@@ -68,7 +70,7 @@ object DMScreenGraphQLRepository {
           )
       }
 
-      asyncCalibanCall(Queries.campaigns(sb)).map(_.toSeq.flatten)
+      calibanClient.asyncCalibanCall(Queries.campaigns(sb)).map(_.toSeq.flatten)
     }
 
     override def campaign(campaignId: CampaignId): AsyncCallback[Option[Campaign]] = {
@@ -95,7 +97,7 @@ object DMScreenGraphQLRepository {
           )
       }
 
-      asyncCalibanCall(Queries.campaign(campaignId.value)(sb))
+      calibanClient.asyncCalibanCall(Queries.campaign(campaignId.value)(sb))
     }
 
     private val campaignLogSB: SelectionBuilder[CalibanCampaignLogEntry, CampaignLogEntry] = (
@@ -128,14 +130,14 @@ object DMScreenGraphQLRepository {
       )
 
       val sb = Mutations.upsertCampaign(headerInput, info, dmscreen.BuildInfo.version)
-      asyncCalibanCall(sb).map(_.fold(CampaignId.empty)(CampaignId.apply))
+      calibanClient.asyncCalibanCall(sb).map(_.fold(CampaignId.empty)(CampaignId.apply))
     }
 
     override def campaignLogs(
       campaignId: CampaignId,
       maxNum:     Int
     ): AsyncCallback[Seq[CampaignLogEntry]] = {
-      asyncCalibanCall(Queries.campaignLogs(campaignId.value, maxNum)(campaignLogSB)).map(_.toSeq.flatten)
+      calibanClient.asyncCalibanCall(Queries.campaignLogs(campaignId.value, maxNum)(campaignLogSB)).map(_.toSeq.flatten)
     }
 
     override def campaignLog(
@@ -143,7 +145,7 @@ object DMScreenGraphQLRepository {
       message:    String
     ): AsyncCallback[Unit] = {
       val sb = Mutations.campaignLog(campaignId.value, message)
-      asyncCalibanCall(sb).map(_ => ())
+      calibanClient.asyncCalibanCall(sb).map(_ => ())
     }
 
     override def deleteEntity[IDType](
@@ -152,7 +154,7 @@ object DMScreenGraphQLRepository {
       softDelete: Boolean
     ): AsyncCallback[Unit] = {
       val sb = Mutations.deleteEntity(entityType.name, id.asInstanceOf[Long], softDelete)
-      asyncCalibanCall(sb).map(_.get)
+      calibanClient.asyncCalibanCall(sb).map(_.get)
     }
   }
 

@@ -21,7 +21,6 @@
 
 package dmscreen.dnd5e
 
-import caliban.ScalaJSClientAdapter.asyncCalibanCall
 import caliban.client.scalajs.DND5eClient.{
   Alignment as CalibanAlignment,
   Background as CalibanBackground,
@@ -51,7 +50,8 @@ import caliban.client.scalajs.DND5eClient.{
   Race as CalibanRace,
   Scene as CalibanScene,
   SceneHeader as CalibanSceneHeader,
-  SceneHeaderInput
+  SceneHeaderInput,
+  SubClass as CalibanSubclass
 }
 import caliban.client.scalajs.{DND5eClient, given}
 import caliban.client.{ArgEncoder, SelectionBuilder}
@@ -76,6 +76,8 @@ object DND5eGraphQLRepository {
 
   val live: ExtendedRepository = new ExtendedRepository {
 
+    private val calibanClient = caliban.ScalaJSClientAdapter("dnd5e")
+
     override def deleteEntity[IDType](
       entityType: EntityType[IDType],
       id:         IDType,
@@ -83,7 +85,7 @@ object DND5eGraphQLRepository {
     ): AsyncCallback[Unit] = {
 
       val sb = Mutations.deleteEntity(entityType.name, id.asInstanceOf[Long], softDelete)
-      asyncCalibanCall(sb).map(_.get)
+      calibanClient.asyncCalibanCall(sb).map(_.get)
     }
 
     private val pcSB: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
@@ -142,7 +144,8 @@ object DND5eGraphQLRepository {
     ): AsyncCallback[Seq[PlayerCharacter]] = {
 
       val calibanSearch = PlayerCharacterSearchInput(dndBeyondId = search.dndBeyondId.map(_.value))
-      asyncCalibanCall(Queries.playerCharacters(campaignId.value, calibanSearch)(pcSB))
+      calibanClient
+        .asyncCalibanCall(Queries.playerCharacters(campaignId.value, calibanSearch)(pcSB))
         .map(_.toSeq.flatten)
 
     }
@@ -170,12 +173,13 @@ object DND5eGraphQLRepository {
             info
           )
       }
-      asyncCalibanCall(Queries.scenes(campaignId.value)(sb)).map(_.toSeq.flatten)
+      calibanClient.asyncCalibanCall(Queries.scenes(campaignId.value)(sb)).map(_.toSeq.flatten)
 
     }
 
     override def nonPlayerCharacters(campaignId: CampaignId): AsyncCallback[Seq[NonPlayerCharacter]] = {
-      asyncCalibanCall(Queries.nonPlayerCharacters(campaignId.value)(npcSB))
+      calibanClient
+        .asyncCalibanCall(Queries.nonPlayerCharacters(campaignId.value)(npcSB))
         .map(_.toSeq.flatten)
     }
 
@@ -210,7 +214,7 @@ object DND5eGraphQLRepository {
     }
 
     override def encounters(campaignId: CampaignId): AsyncCallback[Seq[Encounter]] = {
-      asyncCalibanCall(Queries.encounters(campaignId.value)(encounterSB)).map(_.toSeq.flatten)
+      calibanClient.asyncCalibanCall(Queries.encounters(campaignId.value)(encounterSB)).map(_.toSeq.flatten)
     }
 
     override def bestiary(monsterSearch: MonsterSearch): AsyncCallback[MonsterSearchResults] = {
@@ -274,7 +278,8 @@ object DND5eGraphQLRepository {
         pageSize = monsterSearch.pageSize
       )(resultsSB)
 
-      asyncCalibanCall(sb).map(result => result.fold(MonsterSearchResults())(r => MonsterSearchResults(r._1, r._2)))
+      calibanClient
+        .asyncCalibanCall(sb).map(result => result.fold(MonsterSearchResults())(r => MonsterSearchResults(r._1, r._2)))
 
     }
 
@@ -293,21 +298,25 @@ object DND5eGraphQLRepository {
             )
         )
       )
-      asyncCalibanCall(sb).map(_.toList.flatten)
+      calibanClient.asyncCalibanCall(sb).map(_.toList.flatten)
     }
 
     override def races: AsyncCallback[Seq[Race]] = {
       val sb = Queries.races(CalibanRace.name.map(Race.apply))
-      asyncCalibanCall(sb).map(_.toList.flatten)
+      calibanClient.asyncCalibanCall(sb).map(_.toList.flatten)
 
     }
 
     override def backgrounds: AsyncCallback[Seq[Background]] = {
       val sb = Queries.backgrounds(CalibanBackground.name.map(Background.apply))
-      asyncCalibanCall(sb).map(_.toList.flatten)
+      calibanClient.asyncCalibanCall(sb).map(_.toList.flatten)
     }
 
-    override def subClasses(characterClass: CharacterClassId): AsyncCallback[Seq[SubClass]] = ???
+    override def subClasses(characterClass: CharacterClassId): AsyncCallback[Seq[SubClass]] = {
+      val sb = Queries.subclasses(characterClass.name)(CalibanSubclass.name.map(SubClass.apply))
+      calibanClient.asyncCalibanCall(sb).map(_.toSeq.flatten)
+
+    }
 
     override def spells: AsyncCallback[Seq[Spell]] = ???
 
@@ -324,7 +333,7 @@ object DND5eGraphQLRepository {
       )
 
       val sb = Mutations.upsertPlayerCharacter(headerInput, info, dmscreen.BuildInfo.version)
-      asyncCalibanCall(sb).map(_.fold(PlayerCharacterId.empty)(PlayerCharacterId.apply))
+      calibanClient.asyncCalibanCall(sb).map(_.fold(PlayerCharacterId.empty)(PlayerCharacterId.apply))
     }
 
     override def upsert(
@@ -338,7 +347,7 @@ object DND5eGraphQLRepository {
       )
 
       val sb = Mutations.upsertNonPlayerCharacter(headerInput, info, dmscreen.BuildInfo.version)
-      asyncCalibanCall(sb).map(_.fold(NonPlayerCharacterId.empty)(NonPlayerCharacterId.apply))
+      calibanClient.asyncCalibanCall(sb).map(_.fold(NonPlayerCharacterId.empty)(NonPlayerCharacterId.apply))
 
     }
 
@@ -362,7 +371,7 @@ object DND5eGraphQLRepository {
       )
 
       val sb = Mutations.upsertMonster(headerInput, info, dmscreen.BuildInfo.version)
-      asyncCalibanCall(sb).map(_.fold(MonsterId.empty)(MonsterId.apply))
+      calibanClient.asyncCalibanCall(sb).map(_.fold(MonsterId.empty)(MonsterId.apply))
     }
 
     override def upsert(
@@ -384,7 +393,7 @@ object DND5eGraphQLRepository {
       )
 
       val sb = Mutations.upsertEncounter(headerInput, info, dmscreen.BuildInfo.version)
-      asyncCalibanCall(sb).map(_.fold(EncounterId.empty)(EncounterId.apply))
+      calibanClient.asyncCalibanCall(sb).map(_.fold(EncounterId.empty)(EncounterId.apply))
 
     }
 
@@ -401,7 +410,7 @@ object DND5eGraphQLRepository {
       )
 
       val sb = Mutations.upsertScene(headerInput, info, dmscreen.BuildInfo.version)
-      asyncCalibanCall(sb).map(_.fold(SceneId.empty)(SceneId.apply))
+      calibanClient.asyncCalibanCall(sb).map(_.fold(SceneId.empty)(SceneId.apply))
 
     }
 
@@ -454,7 +463,7 @@ object DND5eGraphQLRepository {
           )
       }
 
-      asyncCalibanCall(Queries.monster(monsterId.value)(monsterSB))
+      calibanClient.asyncCalibanCall(Queries.monster(monsterId.value)(monsterSB))
     }
 
     def importDndBeyondCharacter(
@@ -462,7 +471,7 @@ object DND5eGraphQLRepository {
       dndBeyondId: DndBeyondId,
       fresh:       Boolean = false
     ): AsyncCallback[PlayerCharacter] = {
-      asyncCalibanCall(
+      calibanClient.asyncCalibanCall(
         Mutations.importCharacterDNDBeyond(campaignId.value, dndBeyondId.value, fresh)(pcSB).map(_.get)
       )
     }
@@ -471,14 +480,14 @@ object DND5eGraphQLRepository {
       campaignId:  CampaignId,
       encounterId: EncounterId
     ): AsyncCallback[Option[Encounter]] =
-      asyncCalibanCall(Queries.encounter(campaignId.value, encounterId.value)(encounterSB))
+      calibanClient.asyncCalibanCall(Queries.encounter(campaignId.value, encounterId.value)(encounterSB))
 
     override def playerCharacter(id: PlayerCharacterId): AsyncCallback[Option[PlayerCharacter]] = {
-      asyncCalibanCall(Queries.playerCharacter(id.value)(pcSB))
+      calibanClient.asyncCalibanCall(Queries.playerCharacter(id.value)(pcSB))
     }
 
     override def nonPlayerCharacter(id: NonPlayerCharacterId): AsyncCallback[Option[NonPlayerCharacter]] = {
-      asyncCalibanCall(Queries.nonPlayerCharacter(id.value)(npcSB))
+      calibanClient.asyncCalibanCall(Queries.nonPlayerCharacter(id.value)(npcSB))
     }
 
   }

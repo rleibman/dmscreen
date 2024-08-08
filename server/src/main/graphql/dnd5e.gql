@@ -1,15 +1,10 @@
 schema {
   query: Queries
   mutation: Mutations
-  subscription: Subscriptions
 }
 scalar Json
-"A date-time without a time-zone in the ISO-8601 calendar system in the format of 1970-01-01T00:00:00"
-scalar LocalDateTime
 scalar Long
 scalar Unit
-
-union DMScreenEvent = Add | CombatLog | Copy | GeneralLog | Move | Remove | Replace | Test
 
 enum Alignment {
   chaoticEvil
@@ -36,12 +31,8 @@ enum Biome {
   Swamp
   Underdark
   Underwater
+  Unknown
   Urban
-}
-
-enum CampaignStatus {
-  active
-  archived
 }
 
 enum CreatureSize {
@@ -52,20 +43,6 @@ enum CreatureSize {
   small
   tiny
   unknown
-}
-
-enum GameSystem {
-  callOfCthulhu
-  dnd3_5
-  dnd4e
-  dnd5e
-  fateAccelerated
-  fateCore
-  pathfinder1e
-  pathfinder2e
-  savageWorlds
-  starTrekAdventures
-  starfinder
 }
 
 enum MonsterSearchOrder {
@@ -100,14 +77,6 @@ enum MonsterType {
 enum OrderDirection {
   asc
   desc
-}
-
-input CampaignHeaderInput {
-  id: Long!
-  dmUserId: Long!
-  name: String!
-  gameSystem: GameSystem!
-  campaignStatus: CampaignStatus!
 }
 
 input EncounterHeaderInput {
@@ -166,48 +135,13 @@ input SourceInput {
   url: String
 }
 
-type Add {
-  path: JsonPath!
-  value: Json!
-}
-
 type Background {
   name: String!
-}
-
-type Campaign {
-  header: CampaignHeader!
-  jsonInfo: Json!
-  version: String!
-}
-
-type CampaignHeader {
-  id: Long!
-  dmUserId: Long!
-  name: String!
-  gameSystem: GameSystem!
-  campaignStatus: CampaignStatus!
-}
-
-type CampaignLogEntry {
-  campaignId: Long!
-  message: String!
-  timestamp: LocalDateTime!
 }
 
 type CharacterClass {
   id: String!
   hitDice: DiceRoll!
-}
-
-type CombatLog {
-  message: String!
-  json: Json!
-}
-
-type Copy {
-  from: JsonPath!
-  to: JsonPath!
 }
 
 type DiceRoll {
@@ -227,15 +161,6 @@ type EncounterHeader {
   status: String!
   sceneId: Long
   orderCol: Int!
-}
-
-type GeneralLog {
-  message: String!
-  json: Json!
-}
-
-type JsonPath {
-  value: String!
 }
 
 type Monster {
@@ -264,13 +189,7 @@ type MonsterSearchResults {
   total: Long!
 }
 
-type Move {
-  from: JsonPath!
-  to: JsonPath!
-}
-
 type Mutations {
-  upsertCampaign(header: CampaignHeaderInput!, jsonInfo: Json!, version: String!): Long
   upsertScene(header: SceneHeaderInput!, jsonInfo: Json!, version: String!): Long
   upsertPlayerCharacter(header: PlayerCharacterHeaderInput!, jsonInfo: Json!, version: String!): Long
   upsertNonPlayerCharacter(header: NonPlayerCharacterHeaderInput!, jsonInfo: Json!, version: String!): Long
@@ -278,7 +197,6 @@ type Mutations {
   upsertEncounter(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): Long
   deleteEntity(entityType: String!, id: Long!, softDelete: Boolean!): Unit
   importCharacterDNDBeyond(campaignId: Long!, dndBeyondId: String!, fresh: Boolean!): PlayerCharacter
-  campaignLog(campaignId: Long!, message: String!): Unit
 }
 
 type NonPlayerCharacter {
@@ -308,8 +226,6 @@ type PlayerCharacterHeader {
 }
 
 type Queries {
-  campaigns: [CampaignHeader!]
-  campaign(value: Long!): Campaign
   monster(value: Long!): Monster
   playerCharacters(campaignId: Long!, playerCharacterSearch: PlayerCharacterSearchInput!): [PlayerCharacter!]
   scenes(value: Long!): [Scene!]
@@ -324,20 +240,10 @@ type Queries {
   races: [Race!]
   backgrounds: [Background!]
   subclasses(value: String!): [SubClass!]
-  campaignLogs(campaignId: Long!, maxNum: Int!): [CampaignLogEntry!]
 }
 
 type Race {
   name: String!
-}
-
-type Remove {
-  path: JsonPath!
-}
-
-type Replace {
-  path: JsonPath!
-  value: Json!
 }
 
 type Scene {
@@ -362,13 +268,4 @@ type Source {
 
 type SubClass {
   name: String!
-}
-
-type Subscriptions {
-  campaignStream(entityType: String!, id: Long!, events: [Json!]!): DMScreenEvent
-}
-
-type Test {
-  path: JsonPath!
-  value: Json!
 }

@@ -30,7 +30,6 @@ given JsonCodec[NonPlayerCharacterId] = JsonCodec.long.transform(NonPlayerCharac
 given JsonCodec[SceneId] = JsonCodec.long.transform(SceneId.apply, _.value)
 
 given JsonCodec[Era] = JsonCodec.string.transform(Era.valueOf, _.toString)
-given JsonCodec[CharacterType] = JsonCodec.string.transform(CharacterType.valueOf, _.toString)
 given JsonCodec[Rank] = JsonCodec.string.transform(Rank.valueOf, _.toString)
 given JsonCodec[Role] = JsonCodec.string.transform(Role.valueOf, _.toString)
 given JsonCodec[MissionPod] = JsonCodec.string.transform(MissionPod.valueOf, _.toString)

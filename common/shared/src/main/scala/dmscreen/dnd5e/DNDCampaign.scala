@@ -49,7 +49,7 @@ object DND5eEntityType {
   }
 
   val values: Set[EntityType[?]] =
-    Set(CampaignEntityType, encounter, playerCharacter, nonPlayerCharacter, scene, monster, spell)
+    Set(encounter, playerCharacter, nonPlayerCharacter, scene, monster, spell)
 
   def valueOf(value:       String): EntityType[?] = values.find(v => value.equalsIgnoreCase(v.name)).get
   def valueOfOption(value: String): Option[EntityType[?]] = values.find(v => value.equalsIgnoreCase(v.name))

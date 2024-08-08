@@ -9,7 +9,6 @@ import org.apache.commons.io.FileUtils
 
 lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time of build").withRank(KeyRanks.Invisible)
 
-// TODO switch to Mariadb
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
 lazy val SCALA = "3.5.0-RC6"
@@ -284,7 +283,7 @@ lazy val commonWeb: Project => Project =
       "net.leibman" %%% "dmscreen-stlib"              % "0.5.0-SNAPSHOT" withSources (),
       "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
       "dev.zio" %%% "zio"                             % zioVersion withSources (),
-      "com.softwaremill.sttp.client3" %%% "core"      % "3.9.7" withSources (),
+      "com.softwaremill.sttp.client3" %%% "core"      % "3.9.8" withSources (),
       "io.github.cquiroz" %%% "scala-java-time"       % "2.6.0" withSources (),
       "io.github.cquiroz" %%% "scala-java-time-tzdb"  % "2.6.0" withSources (),
       "org.scala-js" %%% "scalajs-dom"                % "2.8.0" withSources (),

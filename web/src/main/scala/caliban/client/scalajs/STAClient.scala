@@ -21,10 +21,10 @@
 
 package caliban.client.scalajs
 
-import caliban.client.*
 import caliban.client.CalibanClientError.DecodingError
-import caliban.client.FieldBuilder.*
-import caliban.client.__Value.*
+import caliban.client.FieldBuilder._
+import caliban.client._
+import caliban.client.__Value._
 
 object STAClient {
 
@@ -52,18 +52,22 @@ object STAClient {
 
   }
 
-  type Add
-  object Add {
-
-    def path[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Add, A] =
-      _root_.caliban.client.SelectionBuilder.Field("path", Obj(innerSelection))
-    def value: SelectionBuilder[Add, zio.json.ast.Json] =
-      _root_.caliban.client.SelectionBuilder.Field("value", Scalar())
-
-  }
-
   type Character
   object Character {
+
+    final case class CharacterView[HeaderSelection](
+      header:   HeaderSelection,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )
+
+    type ViewSelection[HeaderSelection] = SelectionBuilder[Character, CharacterView[HeaderSelection]]
+
+    def view[HeaderSelection](headerSelection: SelectionBuilder[CharacterHeader, HeaderSelection])
+      : ViewSelection[HeaderSelection] =
+      (header(headerSelection) ~ jsonInfo ~ version).map { case (header, jsonInfo, version) =>
+        CharacterView(header, jsonInfo, version)
+      }
 
     def header[A](innerSelection: SelectionBuilder[CharacterHeader, A]): SelectionBuilder[Character, A] =
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
@@ -76,6 +80,20 @@ object STAClient {
   type CharacterHeader
   object CharacterHeader {
 
+    final case class CharacterHeaderView(
+      id:         Long,
+      campaignId: Long,
+      name:       scala.Option[String],
+      playerName: scala.Option[String]
+    )
+
+    type ViewSelection = SelectionBuilder[CharacterHeader, CharacterHeaderView]
+
+    def view: ViewSelection =
+      (id ~ campaignId ~ name ~ playerName).map { case (id, campaignId, name, playerName) =>
+        CharacterHeaderView(id, campaignId, name, playerName)
+      }
+
     def id: SelectionBuilder[CharacterHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def campaignId: SelectionBuilder[CharacterHeader, Long] =
       _root_.caliban.client.SelectionBuilder.Field("campaignId", Scalar())
@@ -86,18 +104,22 @@ object STAClient {
 
   }
 
-  type Copy
-  object Copy {
-
-    def from[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Copy, A] =
-      _root_.caliban.client.SelectionBuilder.Field("from", Obj(innerSelection))
-    def to[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Copy, A] =
-      _root_.caliban.client.SelectionBuilder.Field("to", Obj(innerSelection))
-
-  }
-
   type Encounter
   object Encounter {
+
+    final case class EncounterView[HeaderSelection](
+      header:   HeaderSelection,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )
+
+    type ViewSelection[HeaderSelection] = SelectionBuilder[Encounter, EncounterView[HeaderSelection]]
+
+    def view[HeaderSelection](headerSelection: SelectionBuilder[EncounterHeader, HeaderSelection])
+      : ViewSelection[HeaderSelection] =
+      (header(headerSelection) ~ jsonInfo ~ version).map { case (header, jsonInfo, version) =>
+        EncounterView(header, jsonInfo, version)
+      }
 
     def header[A](innerSelection: SelectionBuilder[EncounterHeader, A]): SelectionBuilder[Encounter, A] =
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
@@ -109,6 +131,23 @@ object STAClient {
 
   type EncounterHeader
   object EncounterHeader {
+
+    final case class EncounterHeaderView(
+      id:         Long,
+      campaignId: Long,
+      name:       String,
+      status:     EncounterStatus,
+      sceneId:    scala.Option[Long],
+      orderCol:   Int
+    )
+
+    type ViewSelection = SelectionBuilder[EncounterHeader, EncounterHeaderView]
+
+    def view: ViewSelection =
+      (id ~ campaignId ~ name ~ status ~ sceneId ~ orderCol).map {
+        case (id, campaignId, name, status, sceneId, orderCol) =>
+          EncounterHeaderView(id, campaignId, name, status, sceneId, orderCol)
+      }
 
     def id: SelectionBuilder[EncounterHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def campaignId: SelectionBuilder[EncounterHeader, Long] =
@@ -123,25 +162,22 @@ object STAClient {
 
   }
 
-  type JsonPath
-  object JsonPath {
-
-    def value: SelectionBuilder[JsonPath, String] = _root_.caliban.client.SelectionBuilder.Field("value", Scalar())
-
-  }
-
-  type Move
-  object Move {
-
-    def from[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Move, A] =
-      _root_.caliban.client.SelectionBuilder.Field("from", Obj(innerSelection))
-    def to[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Move, A] =
-      _root_.caliban.client.SelectionBuilder.Field("to", Obj(innerSelection))
-
-  }
-
   type NonPlayerCharacter
   object NonPlayerCharacter {
+
+    final case class NonPlayerCharacterView[HeaderSelection](
+      header:   HeaderSelection,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )
+
+    type ViewSelection[HeaderSelection] = SelectionBuilder[NonPlayerCharacter, NonPlayerCharacterView[HeaderSelection]]
+
+    def view[HeaderSelection](headerSelection: SelectionBuilder[NonPlayerCharacterHeader, HeaderSelection])
+      : ViewSelection[HeaderSelection] =
+      (header(headerSelection) ~ jsonInfo ~ version).map { case (header, jsonInfo, version) =>
+        NonPlayerCharacterView(header, jsonInfo, version)
+      }
 
     def header[A](innerSelection: SelectionBuilder[NonPlayerCharacterHeader, A])
       : SelectionBuilder[NonPlayerCharacter, A] =
@@ -156,6 +192,20 @@ object STAClient {
   type NonPlayerCharacterHeader
   object NonPlayerCharacterHeader {
 
+    final case class NonPlayerCharacterHeaderView(
+      id:         Long,
+      campaignId: Long,
+      name:       String,
+      isActive:   Boolean
+    )
+
+    type ViewSelection = SelectionBuilder[NonPlayerCharacterHeader, NonPlayerCharacterHeaderView]
+
+    def view: ViewSelection =
+      (id ~ campaignId ~ name ~ isActive).map { case (id, campaignId, name, isActive) =>
+        NonPlayerCharacterHeaderView(id, campaignId, name, isActive)
+      }
+
     def id: SelectionBuilder[NonPlayerCharacterHeader, Long] =
       _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def campaignId: SelectionBuilder[NonPlayerCharacterHeader, Long] =
@@ -167,26 +217,22 @@ object STAClient {
 
   }
 
-  type Remove
-  object Remove {
-
-    def path[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Remove, A] =
-      _root_.caliban.client.SelectionBuilder.Field("path", Obj(innerSelection))
-
-  }
-
-  type Replace
-  object Replace {
-
-    def path[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Replace, A] =
-      _root_.caliban.client.SelectionBuilder.Field("path", Obj(innerSelection))
-    def value: SelectionBuilder[Replace, zio.json.ast.Json] =
-      _root_.caliban.client.SelectionBuilder.Field("value", Scalar())
-
-  }
-
   type Scene
   object Scene {
+
+    final case class SceneView[HeaderSelection](
+      header:   HeaderSelection,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )
+
+    type ViewSelection[HeaderSelection] = SelectionBuilder[Scene, SceneView[HeaderSelection]]
+
+    def view[HeaderSelection](headerSelection: SelectionBuilder[SceneHeader, HeaderSelection])
+      : ViewSelection[HeaderSelection] =
+      (header(headerSelection) ~ jsonInfo ~ version).map { case (header, jsonInfo, version) =>
+        SceneView(header, jsonInfo, version)
+      }
 
     def header[A](innerSelection: SelectionBuilder[SceneHeader, A]): SelectionBuilder[Scene, A] =
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
@@ -198,6 +244,21 @@ object STAClient {
 
   type SceneHeader
   object SceneHeader {
+
+    final case class SceneHeaderView(
+      id:         Long,
+      campaignId: Long,
+      name:       String,
+      orderCol:   Int,
+      isActive:   Boolean
+    )
+
+    type ViewSelection = SelectionBuilder[SceneHeader, SceneHeaderView]
+
+    def view: ViewSelection =
+      (id ~ campaignId ~ name ~ orderCol ~ isActive).map { case (id, campaignId, name, orderCol, isActive) =>
+        SceneHeaderView(id, campaignId, name, orderCol, isActive)
+      }
 
     def id: SelectionBuilder[SceneHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def campaignId: SelectionBuilder[SceneHeader, Long] =
@@ -213,6 +274,20 @@ object STAClient {
   type Starship
   object Starship {
 
+    final case class StarshipView[HeaderSelection](
+      header:   HeaderSelection,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )
+
+    type ViewSelection[HeaderSelection] = SelectionBuilder[Starship, StarshipView[HeaderSelection]]
+
+    def view[HeaderSelection](headerSelection: SelectionBuilder[StarshipHeader, HeaderSelection])
+      : ViewSelection[HeaderSelection] =
+      (header(headerSelection) ~ jsonInfo ~ version).map { case (header, jsonInfo, version) =>
+        StarshipView(header, jsonInfo, version)
+      }
+
     def header[A](innerSelection: SelectionBuilder[StarshipHeader, A]): SelectionBuilder[Starship, A] =
       _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
     def jsonInfo: SelectionBuilder[Starship, zio.json.ast.Json] =
@@ -224,6 +299,20 @@ object STAClient {
   type StarshipHeader
   object StarshipHeader {
 
+    final case class StarshipHeaderView(
+      id:         Long,
+      campaignId: Long,
+      name:       scala.Option[String],
+      playerName: scala.Option[String]
+    )
+
+    type ViewSelection = SelectionBuilder[StarshipHeader, StarshipHeaderView]
+
+    def view: ViewSelection =
+      (id ~ campaignId ~ name ~ playerName).map { case (id, campaignId, name, playerName) =>
+        StarshipHeaderView(id, campaignId, name, playerName)
+      }
+
     def id: SelectionBuilder[StarshipHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def campaignId: SelectionBuilder[StarshipHeader, Long] =
       _root_.caliban.client.SelectionBuilder.Field("campaignId", Scalar())
@@ -231,16 +320,6 @@ object STAClient {
       _root_.caliban.client.SelectionBuilder.Field("name", OptionOf(Scalar()))
     def playerName: SelectionBuilder[StarshipHeader, scala.Option[String]] =
       _root_.caliban.client.SelectionBuilder.Field("playerName", OptionOf(Scalar()))
-
-  }
-
-  type Test
-  object Test {
-
-    def path[A](innerSelection: SelectionBuilder[JsonPath, A]): SelectionBuilder[Test, A] =
-      _root_.caliban.client.SelectionBuilder.Field("path", Obj(innerSelection))
-    def value: SelectionBuilder[Test, zio.json.ast.Json] =
-      _root_.caliban.client.SelectionBuilder.Field("value", Scalar())
 
   }
 
@@ -513,48 +592,6 @@ object STAClient {
           Argument("entityType", entityType, "String!")(encoder0),
           Argument("id", id, "Long!")(encoder1),
           Argument("softDelete", softDelete, "Boolean!")(encoder2)
-        )
-      )
-
-  }
-
-  type Subscriptions = _root_.caliban.client.Operations.RootSubscription
-  object Subscriptions {
-
-    def campaignStream[A](
-      entityType: String,
-      id:         Long,
-      events:     List[zio.json.ast.Json] = Nil
-    )(
-      onAdd:     SelectionBuilder[Add, A],
-      onCopy:    SelectionBuilder[Copy, A],
-      onMove:    SelectionBuilder[Move, A],
-      onRemove:  SelectionBuilder[Remove, A],
-      onReplace: SelectionBuilder[Replace, A],
-      onTest:    SelectionBuilder[Test, A]
-    )(implicit
-      encoder0: ArgEncoder[String],
-      encoder1: ArgEncoder[Long],
-      encoder2: ArgEncoder[List[zio.json.ast.Json]]
-    ): SelectionBuilder[_root_.caliban.client.Operations.RootSubscription, scala.Option[A]] =
-      _root_.caliban.client.SelectionBuilder.Field(
-        "campaignStream",
-        OptionOf(
-          ChoiceOf(
-            Map(
-              "Add"     -> Obj(onAdd),
-              "Copy"    -> Obj(onCopy),
-              "Move"    -> Obj(onMove),
-              "Remove"  -> Obj(onRemove),
-              "Replace" -> Obj(onReplace),
-              "Test"    -> Obj(onTest)
-            )
-          )
-        ),
-        arguments = List(
-          Argument("entityType", entityType, "String!")(encoder0),
-          Argument("id", id, "Long!")(encoder1),
-          Argument("events", events, "[Json!]!")(encoder2)
         )
       )
 

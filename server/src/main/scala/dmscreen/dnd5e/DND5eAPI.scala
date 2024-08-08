@@ -22,6 +22,7 @@
 package dmscreen.dnd5e
 
 import caliban.*
+import caliban.CalibanError.ExecutionError
 import caliban.interop.zio.*
 import caliban.interop.zio.json.*
 import caliban.introspection.adt.__Type
@@ -161,14 +162,17 @@ object DND5eAPI {
   private given ArgBuilder[CharacterClassId] =
     ArgBuilder.string.map(s => CharacterClassId.values.find(a => s.equalsIgnoreCase(a.toString)).get)
   private given ArgBuilder[URI] = ArgBuilder.string.map(URI.create)
-  private given ArgBuilder[DndBeyondId] = ArgBuilder.string.map(DndBeyondId(_).toOption.get)
+  private given ArgBuilder[DndBeyondId] = ArgBuilder.string.flatMap(DndBeyondId(_).left.map(ExecutionError(_)))
   private given ArgBuilder[SourceId] = ArgBuilder.string.map(SourceId.apply)
   private given ArgBuilder[SemVer] = ArgBuilder.string.map(SemVer.unsafeParse)
   private given ArgBuilder[MonsterId] = ArgBuilder.long.map(MonsterId.apply)
   private given ArgBuilder[CampaignId] = ArgBuilder.long.map(CampaignId.apply)
   private given ArgBuilder[EncounterId] = ArgBuilder.long.map(EncounterId.apply)
   private given ArgBuilder[ChallengeRating] = ArgBuilder.double.map(n => ChallengeRating.fromDouble(n).get)
-  private given ArgBuilder[EntityType[?]] = ArgBuilder.string.map(DND5eEntityType.valueOf)
+  private given ArgBuilder[EntityType[?]] =
+    ArgBuilder.string.flatMap(s =>
+      DND5eEntityType.values.find(_.name == s).toRight(ExecutionError(s"Invalid DND5eEntityType $s"))
+    )
 
   private given ArgBuilder[DMScreenEvent] = ArgBuilder.gen[DMScreenEvent]
   private given ArgBuilder[Add] = ArgBuilder.gen[Add]
@@ -217,15 +221,13 @@ object DND5eAPI {
       PlayerCharacter
     ]
   )
-  case class Subscriptions(
-  )
 
   lazy val api: GraphQL[DMScreenServerEnvironment] =
     graphQL[
       DMScreenServerEnvironment,
       Queries,
       Mutations,
-      Subscriptions
+      Unit
     ](
       RootResolver(
         Queries(
@@ -266,8 +268,7 @@ object DND5eAPI {
               )
             ),
           importCharacterDNDBeyond = request => doImportCharacterDNDBeyond(request)
-        ),
-        Subscriptions()
+        )
       )
     )
 

@@ -114,16 +114,13 @@ object STAAPI {
     upsertEncounter:          Encounter => ZIO[STAZIORepository, DMScreenError, EncounterId],
     deleteEntity:             EntityDeleteArgs => ZIO[STAZIORepository, DMScreenError, Unit]
   )
-  case class Subscriptions(
-    campaignStream: CampaignEventsArgs => ZStream[STAZIORepository, DMScreenError, DMScreenEvent]
-  )
 
   lazy val api: GraphQL[DMScreenServerEnvironment] =
     graphQL[
       DMScreenServerEnvironment,
       Queries,
       Mutations,
-      Subscriptions
+      Unit
     ](
       RootResolver(
         Queries(
@@ -151,8 +148,7 @@ object STAAPI {
                 deleteArgs.softDelete
               )
             ),
-        ),
-        Subscriptions(campaignStream = operationArgs => ???)
+        )
       )
     )
 

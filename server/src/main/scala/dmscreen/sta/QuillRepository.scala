@@ -21,14 +21,12 @@
 
 package dmscreen.sta
 
-import dmscreen.sta.STARepository
-import dmscreen.{CampaignId, ConfigurationService, DMScreenError, DMScreenEvent, DMScreenTask, EntityType}
+import dmscreen.*
 import io.getquill.jdbczio.Quill
 import io.getquill.{MappedEncoding, MysqlEscape, MysqlZioJdbcContext}
 import zio.*
 import zio.json.*
 import zio.json.ast.Json
-import zio.nio.file.*
 
 import javax.sql.DataSource
 
@@ -42,8 +40,6 @@ object QuillRepository {
         config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
       } yield new STAZIORepository {
         private object ctx extends MysqlZioJdbcContext(MysqlEscape)
-
-        import ctx.*
         private val dataSourceLayer: ZLayer[Any, Throwable, DataSource] =
           Quill.DataSource.fromDataSource(config.dataSource)
 

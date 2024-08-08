@@ -21,7 +21,6 @@
 
 package dmscreen.sta
 
-import caliban.ScalaJSClientAdapter.asyncCalibanCall
 import caliban.client.SelectionBuilder
 //import caliban.client.scalajs.STAClient.Queries
 //import caliban.client.scalajs.STAClient.{

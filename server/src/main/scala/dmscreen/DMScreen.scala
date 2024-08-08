@@ -79,10 +79,12 @@ object DMScreen extends ZIOApp {
   val zapp: ZIO[Environment, Throwable, Routes[Environment, Nothing]] = for {
     _             <- ZIO.log("Initializing Routes")
     defaultRoutes <- defaultRouteZio
+    dmScreenRoute <- DMScreenRoutes.route
     dnd5eRoute    <- DND5eRoutes.route
     staRoute      <- STARoutes.route
     start         <- Clock.currentTime(TimeUnit.MILLISECONDS)
-  } yield (dnd5eRoute ++
+  } yield (dmScreenRoute ++
+    dnd5eRoute ++
     staRoute ++
     StaticRoutes.unauthRoute /*Move this to after there's a user*/ ++
     StaticRoutes.authRoute ++
