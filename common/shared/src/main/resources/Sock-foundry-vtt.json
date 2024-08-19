@@ -1,0 +1,640 @@
+{
+    "name": "Sock",
+    "type": "character",
+    "img": "icons/svg/mystery-man.svg",
+    "system": {
+        "notes": "",
+        "assignment": "Executive Officer, USS Whatever",
+        "attributes": {
+            "control": {
+                "label": "sta.actor.character.attribute.control",
+                "value": "10",
+                "selected": false
+            },
+            "daring": {
+                "label": "sta.actor.character.attribute.daring",
+                "value": "9",
+                "selected": false
+            },
+            "fitness": {
+                "label": "sta.actor.character.attribute.fitness",
+                "value": "9",
+                "selected": false
+            },
+            "insight": {
+                "label": "sta.actor.character.attribute.insight",
+                "value": "9",
+                "selected": false
+            },
+            "presence": {
+                "label": "sta.actor.character.attribute.presence",
+                "value": "10",
+                "selected": false
+            },
+            "reason": {
+                "label": "sta.actor.character.attribute.reason",
+                "value": "9",
+                "selected": false
+            }
+        },
+        "determination": {
+            "value": 1,
+            "max": 3
+        },
+        "disciplines": {
+            "command": {
+                "label": "sta.actor.character.discipline.command",
+                "value": "5",
+                "selected": false
+            },
+            "conn": {
+                "label": "sta.actor.character.discipline.conn",
+                "value": "2",
+                "selected": false
+            },
+            "engineering": {
+                "label": "sta.actor.character.discipline.engineering",
+                "value": "1",
+                "selected": false
+            },
+            "security": {
+                "label": "sta.actor.character.discipline.security",
+                "value": "1",
+                "selected": false
+            },
+            "science": {
+                "label": "sta.actor.character.discipline.science",
+                "value": "4",
+                "selected": false
+            },
+            "medicine": {
+                "label": "sta.actor.character.discipline.medicine",
+                "value": "3",
+                "selected": false
+            }
+        },
+        "milestones": "",
+        "rank": "Commander",
+        "reputation": 10,
+        "stress": {
+            "value": 10,
+            "max": 10
+        },
+        "traits": "Vulcan",
+        "environment": "Busy Colony",
+        "species": "Vulcan",
+        "upbringing": "Diplomacy and Politics (A)"
+    },
+    "items": [
+        {
+            "name": "Seek truth in all its forms",
+            "type": "value",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": "",
+                "used": false
+            },
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Diplomacy, the first and last line of defense",
+            "type": "value",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": "",
+                "used": false
+            },
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Trust, but verify",
+            "type": "value",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": "",
+                "used": false
+            },
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Always expect the unexpected",
+            "type": "value",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": "",
+                "used": false
+            },
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Diplomacy",
+            "type": "focus",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": ""
+            },
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Evasive Action",
+            "type": "focus",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": ""
+            },
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Starfleet Protocols",
+            "type": "focus",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": ""
+            },
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Extra-Vehicular Activity",
+            "type": "focus",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": ""
+            },
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Cultural Grief Practices",
+            "type": "focus",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": ""
+            },
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Philosophy",
+            "type": "focus",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": ""
+            },
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Uniform",
+            "type": "item",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": "",
+                "quantity": 1,
+                "opportunity": 0,
+                "escalation": 0
+            },
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Communicator",
+            "type": "item",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": "",
+                "quantity": 1,
+                "opportunity": 0,
+                "escalation": 0
+            },
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Tricorder",
+            "type": "item",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": "",
+                "quantity": 1,
+                "opportunity": 0,
+                "escalation": 0
+            },
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Bold: Science",
+            "type": "talent",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": "<p>Whenever you attempt a Task with Science, and you buy one or more d20s by adding to Threat, you may re-roll a single d20.</p><p><strong>Conflicts with \"Cautious: Science\" Talent</strong></p>",
+                "talenttype": {
+                    "typeenum": "general",
+                    "description": "",
+                    "minimum": 0
+                }
+            },
+            "effects": [],
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            },
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            }
+        },
+        {
+            "name": "Advisor",
+            "type": "talent",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": "<p>Whenever you assist another character using your Command Discipline, the character being assisted may re-roll one d20.</p><p><strong>Requires Command 2+, Main Character only</strong></p>",
+                "talenttype": {
+                    "typeenum": "discipline",
+                    "description": "command",
+                    "minimum": 0
+                }
+            },
+            "effects": [],
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            },
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            }
+        },
+        {
+            "name": "Advanced Team Dynamics",
+            "type": "talent",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": "<p>The people working for you are the best, and you expect the best from them. The first time each adventure that you introduce a supporting character, that supporting character may take one additional option to improve the supporting character (from the list on page 134 of the core rulebook, or page 126 of The Klingon Empire core rulebook).</p><p><strong>Requires Command 4+, Main Character only, Commanding Officer or Executive Officer only</strong></p>",
+                "talenttype": {
+                    "typeenum": "discipline",
+                    "description": "command",
+                    "minimum": 0
+                }
+            },
+            "effects": [],
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            },
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            }
+        },
+        {
+            "name": "Baffling Briefing",
+            "type": "talent",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "system": {
+                "description": "<p>When the character engages in a Social Conflict using deception, the character may use Science in place of Command so long as their technical knowledge is used to mislead their opponent. </p><p><strong>Requires Science 3+, Requires Presence 9+</strong></p>",
+                "talenttype": {
+                    "typeenum": "discipline",
+                    "description": "science",
+                    "minimum": 0
+                }
+            },
+            "effects": [],
+            "flags": {},
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            },
+            "folder": null,
+            "sort": 0,
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            }
+        },
+        {
+            "name": "Unarmed Strike",
+            "type": "characterweapon",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "system": {
+                "description": "",
+                "damage": 1,
+                "range": "Melee",
+                "hands": 1,
+                "qualities": {
+                    "area": false,
+                    "intense": false,
+                    "knockdown": true,
+                    "accurate": false,
+                    "charge": false,
+                    "cumbersome": false,
+                    "deadly": false,
+                    "debilitating": false,
+                    "grenade": false,
+                    "inaccurate": false,
+                    "nonlethal": true,
+                    "hiddenx": 0,
+                    "piercingx": 0,
+                    "viciousx": 0,
+                    "opportunity": 0,
+                    "escalation": 0
+                },
+                "opportunity": null,
+                "escalation": null
+            },
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        },
+        {
+            "name": "Phaser type-2",
+            "type": "characterweapon",
+            "img": "systems/sta/assets/icons/voyagercombadgeicon.svg",
+            "effects": [],
+            "folder": null,
+            "sort": 0,
+            "system": {
+                "description": "",
+                "damage": 3,
+                "range": "Ranged",
+                "hands": 1,
+                "qualities": {
+                    "area": false,
+                    "intense": false,
+                    "knockdown": false,
+                    "accurate": false,
+                    "charge": true,
+                    "cumbersome": false,
+                    "deadly": false,
+                    "debilitating": false,
+                    "grenade": false,
+                    "inaccurate": false,
+                    "nonlethal": false,
+                    "hiddenx": 0,
+                    "piercingx": 0,
+                    "viciousx": 0,
+                    "opportunity": 0,
+                    "escalation": 0
+                },
+                "opportunity": null,
+                "escalation": null
+            },
+            "ownership": {
+                "default": 0,
+                "xuN9JpdcyRd60ZEJ": 3
+            },
+            "_stats": {
+                "systemId": "sta",
+                "systemVersion": "1.1.9",
+                "coreVersion": "10.291",
+                "createdTime": 1723573442083,
+                "modifiedTime": 1723573442083,
+                "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+            }
+        }
+    ],
+    "effects": [],
+    "flags": {
+        "exportSource": {
+            "world": "sta-bcholmes-org",
+            "system": "sta",
+            "coreVersion": "10.291",
+            "systemVersion": "1.1.9"
+        }
+    },
+    "_stats": {
+        "systemId": "sta",
+        "systemVersion": "1.1.9",
+        "coreVersion": "10.291",
+        "createdTime": 1723573442083,
+        "modifiedTime": 1723573442083,
+        "lastModifiedBy": "xuN9JpdcyRd60ZEJ"
+    }
+}

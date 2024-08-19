@@ -11,7 +11,7 @@ lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time o
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
-lazy val SCALA = "3.5.0-RC6"
+lazy val SCALA = "3.5.0"
 Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
 Global / scalaVersion         := SCALA
@@ -56,7 +56,7 @@ val zioVersion = "2.1.7"
 val quillVersion = "4.8.5"
 val zioHttpVersion = "3.0.0-RC9"
 val zioConfigVersion = "4.0.2"
-val zioJsonVersion = "0.7.1"
+val zioJsonVersion = "0.7.2"
 val testContainerVersion = "0.41.4"
 val tapirVersion = "1.10.8"
 
@@ -93,7 +93,7 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "dev.zio"     %% "zio"              % zioVersion withSources (),
       "dev.zio"     %% "zio-json"         % zioJsonVersion withSources (),
-      "dev.zio"     %% "zio-prelude"      % "1.0.0-RC28" withSources (),
+      "dev.zio"     %% "zio-prelude"      % "1.0.0-RC29" withSources (),
       "io.megl"     %% "zio-json-extra"   % "0.6.2" withSources (),
       "org.gnieh"   %% "diffson-core"     % "4.6.0" withSources (),
       "io.megl"     %% "zio-json-diffson" % "0.6.2" withSources (),
@@ -107,7 +107,7 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio"                                                 % zioVersion withSources (),
       "dev.zio" %%% "zio-json"                                            % zioJsonVersion withSources (),
-      "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC28" withSources (),
+      "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC29" withSources (),
       "org.gnieh" %%% "diffson-core"                                      % "4.6.0" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-diffson"                                    % "0.6.2" withSources (),
@@ -159,7 +159,7 @@ lazy val server = project
       // Other random utilities
       "com.github.pathikrit"  %% "better-files"                 % "3.9.2" withSources (),
       "com.github.daddykotex" %% "courier"                      % "3.2.0" withSources (),
-      "ch.qos.logback"         % "logback-classic"              % "1.5.6" withSources (),
+      "ch.qos.logback"         % "logback-classic"              % "1.5.7" withSources (),
       "commons-codec"          % "commons-codec"                % "1.17.1",
       "com.dimafeng"          %% "testcontainers-scala-mariadb" % testContainerVersion withSources (),
       // Testing

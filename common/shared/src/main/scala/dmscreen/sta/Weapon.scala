@@ -23,7 +23,7 @@ package dmscreen.sta
 
 enum WeaponRange {
 
-  case Close, Medium, Long
+  case Close, Medium, Long, Melee
 
 }
 
@@ -48,28 +48,31 @@ enum CaptureType {
 }
 
 case class WeaponQualities(
-  area:         Int,
-  calibration:  Int,
-  charge:       Int,
-  dampening:    Int,
-  deadly:       Int,
-  depleting:    Int,
-  devastating:  Int,
+  area:         Boolean,
+  intense:      Boolean,
+  knockdown:    Boolean,
+  accurate:     Boolean,
+  charge:       Boolean,
+  cumbersome:   Boolean,
+  deadly:       Boolean,
+  debilitating: Boolean,
+  grenade:      Boolean,
+  inaccurate:   Boolean,
+  nonlethal:    Boolean,
   hidden:       Int,
-  highYield:    Int,
-  intense:      Int,
-  jamming:      Int,
-  knockdown:    Int,
-  nonLethal:    Int,
-  persistentX:  Int,
   piercing:     Int,
-  slowing:      Int,
-  versatile:    Int,
   vicious:      Int,
-  debilitating: Int,
-  accurate:     Int,
-  areaOrSpread: Int,
-  spread:       Int
+  calibration:  Boolean = false,
+  dampening:    Boolean = false,
+  depleting:    Boolean = false,
+  devastating:  Boolean = false,
+  highYield:    Boolean = false,
+  jamming:      Boolean = false,
+  nonLethal:    Boolean = false,
+  persistentX:  Boolean = false,
+  slowing:      Boolean = false,
+  versatile:    Boolean = false,
+  spread:       Boolean = false
 )
 
 sealed trait Weapon {
@@ -108,5 +111,14 @@ case class CaptureWeapon(
   override val name:      String,
   range:                  WeaponRange,
   captureType:            CaptureType,
+  override val qualities: WeaponQualities
+) extends Weapon
+
+case class CharacterWeapon(
+  override val name:      String,
+  description:            String = "",
+  damage:                 Int = 1,
+  range:                  WeaponRange = WeaponRange.Melee,
+  hands:                  Int = 1,
   override val qualities: WeaponQualities
 ) extends Weapon

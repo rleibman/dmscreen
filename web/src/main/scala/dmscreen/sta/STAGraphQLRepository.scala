@@ -32,6 +32,7 @@ import zio.json.ast.Json
 import java.util.ResourceBundle
 import scala.reflect.ClassTag
 
+
 object STAGraphQLRepository {
 
   val live: STARepository[AsyncCallback] = new STARepository[AsyncCallback] {

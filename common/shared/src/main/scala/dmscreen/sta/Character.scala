@@ -495,16 +495,37 @@ object Organization {
 
 case class CareerEvent(name: String)
 
+case class Determination(
+  value: Int,
+  max:   Int
+)
+
+case class Stress(
+  value: Int,
+  max:   Int
+)
+
+case class Talent(
+  name:        String,
+  description: String
+)
+
+final case class InventoryItem(
+  name:        String,
+  quantity:    Int = 1,
+  description: String = ""
+)
+
 case class CharacterInfo(
-  determination:    Int,
-  stress:           Int, // maximum stress is typically your fitness attribute
+  determination:    Determination,
+  stress:           Stress, // maximum stress is typically your fitness attribute
   organization:     Organization = Organization.federation,
   pronouns:         Option[String] = None,
   rank:             Option[Rank] = None,
   jobAssignment:    Option[String] = None,
   roles:            Seq[Role] = Seq.empty,
   reputation:       Int = 10,
-  lineage:          Seq[Lineage] = Seq(Lineage(LineageType.human)),
+  lineage:          Seq[Lineage],
   environment:      Option[String] = None,
   upbringing:       Option[String] = None,
   careerPath:       Option[String] = None,
@@ -512,18 +533,20 @@ case class CharacterInfo(
   careerEvents:     Seq[CareerEvent] = Seq.empty,
   attributes:       Attributes = Attributes.default,
   departments:      Departments = Departments.default,
-  values:           Seq[EthicalValue],
+  values:           Seq[EthicalValue] = Seq.empty,
   focuses:          Seq[Focus], // Main characters have 6 focuses
-  pastTimes:        Seq[String],
-  attacks:          Seq[String],
-  speciesAbilities: Seq[String],
-  talents:          Seq[String],
-  specialRules:     Seq[String],
-  otherEquipment:   Seq[String],
+  pastimes:         Seq[String] = Seq.empty,
+  attacks:          Seq[String] = Seq.empty,
+  speciesAbilities: Seq[String] = Seq.empty,
+  talents:          Seq[Talent] = Seq.empty,
+  specialRules:     Seq[String] = Seq.empty,
+  inventoryItems:   Seq[InventoryItem] = Seq.empty,
+  weapons:          Seq[Weapon] = Seq.empty,
+  traits:           Seq[Trait] = Seq.empty,
   reprimands:       Int = 0,
-  age: Option[Int], // Might want to add more to age, like "adolescent", etc, things that would be different by species
-  assignedShip: Option[String],
-  notes:        String
+  assignedShip:     Option[String] = None,
+  age: Option[Int] = None, // Might want to add more to age, like "adolescent", etc, things that would be different by species
+  notes: String = ""
 )
 
 final case class CharacterHeader(

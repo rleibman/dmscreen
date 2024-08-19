@@ -21,6 +21,8 @@
 
 package dmscreen.dnd5e
 
+import caliban.ScalaJSClientAdapter
+import caliban.client.Operations.{RootMutation, RootQuery, RootSubscription}
 import caliban.client.scalajs.DND5eClient.{
   Alignment as CalibanAlignment,
   Background as CalibanBackground,
@@ -62,6 +64,101 @@ import zio.*
 import zio.json.*
 import zio.json.ast.Json
 
+type QueryOrMutationSelectionBuilder[A] = SelectionBuilder[RootQuery & RootMutation, A]
+
+object SelectionBuilderRepository {
+
+  private val calibanClient: ScalaJSClientAdapter = caliban.ScalaJSClientAdapter("dnd5e")
+
+  def query[A](sb: SelectionBuilder[RootQuery, A]): AsyncCallback[A] = {
+    calibanClient.asyncCalibanCall(sb)
+  }
+
+  def mutation[A](sb: SelectionBuilder[RootMutation, A]): AsyncCallback[A] = {
+    calibanClient.asyncCalibanCall(sb)
+  }
+
+  val live = new DND5eRepository[QueryOrMutationSelectionBuilder] {
+    override def monster(monsterId: MonsterId): SelectionBuilder[RootQuery, Option[Monster]] = ???
+
+    override def deleteEntity[IDType](
+      entityType: EntityType[IDType],
+      id:         IDType,
+      softDelete: Boolean
+    ): SelectionBuilder[RootMutation, Unit] = {
+      Mutations.deleteEntity(entityType.name, id.asInstanceOf[Long], softDelete).map(_.get)
+    }
+
+    override def playerCharacters(
+      campaignId: CampaignId,
+      search:     PlayerCharacterSearch
+    ): SelectionBuilder[RootQuery, Seq[PlayerCharacter]] = ???
+
+    override def playerCharacter(playerCharacterId: PlayerCharacterId)
+      : SelectionBuilder[RootQuery, Option[PlayerCharacter]] = ???
+
+    override def nonPlayerCharacter(nonPlayerCharacterId: NonPlayerCharacterId)
+      : SelectionBuilder[RootQuery, Option[NonPlayerCharacter]] = ???
+
+    override def scenes(campaignId: CampaignId): SelectionBuilder[RootQuery, Seq[Scene]] = ???
+
+    override def nonPlayerCharacters(campaignId: CampaignId): SelectionBuilder[RootQuery, Seq[NonPlayerCharacter]] = ???
+
+    override def encounters(campaignId: CampaignId): SelectionBuilder[RootQuery, Seq[Encounter]] = ???
+
+    override def encounter(
+      campaignId:  CampaignId,
+      encounterId: EncounterId
+    ): SelectionBuilder[RootQuery, Option[Encounter]] = ???
+
+    override def bestiary(search: MonsterSearch): SelectionBuilder[RootQuery, MonsterSearchResults] = ???
+
+    override def sources: SelectionBuilder[RootQuery, Seq[Source]] = ???
+
+    override def classes: SelectionBuilder[RootQuery, Seq[CharacterClass]] = ???
+
+    override def races: SelectionBuilder[RootQuery, Seq[Race]] = ???
+
+    override def backgrounds: SelectionBuilder[RootQuery, Seq[Background]] = ???
+
+    override def subClasses(characterClass: CharacterClassId): SelectionBuilder[RootQuery, Seq[SubClass]] = ???
+
+    override def spells: SelectionBuilder[RootQuery, Seq[Spell]] = ???
+
+    override def upsert(
+      header: PlayerCharacterHeader,
+      info:   Json
+    ): SelectionBuilder[RootMutation, PlayerCharacterId] = ???
+
+    override def upsert(
+      header: NonPlayerCharacterHeader,
+      info:   Json
+    ): SelectionBuilder[RootMutation, NonPlayerCharacterId] = ???
+
+    override def upsert(
+      header: MonsterHeader,
+      info:   Json
+    ): SelectionBuilder[RootMutation, MonsterId] = ???
+
+    override def upsert(
+      header: SpellHeader,
+      info:   Json
+    ): SelectionBuilder[RootMutation, SpellId] = ???
+
+    override def upsert(
+      header: EncounterHeader,
+      info:   Json
+    ): SelectionBuilder[RootMutation, EncounterId] = ???
+
+    override def upsert(
+      header: SceneHeader,
+      info:   Json
+    ): SelectionBuilder[RootMutation, SceneId] = ???
+
+  }
+
+}
+
 object DND5eGraphQLRepository {
 
   trait ExtendedRepository extends DND5eRepository[AsyncCallback] {
@@ -76,7 +173,7 @@ object DND5eGraphQLRepository {
 
   val live: ExtendedRepository = new ExtendedRepository {
 
-    private val calibanClient = caliban.ScalaJSClientAdapter("dnd5e")
+    private val calibanClient: ScalaJSClientAdapter = caliban.ScalaJSClientAdapter("dnd5e")
 
     override def deleteEntity[IDType](
       entityType: EntityType[IDType],
@@ -178,8 +275,10 @@ object DND5eGraphQLRepository {
     }
 
     override def nonPlayerCharacters(campaignId: CampaignId): AsyncCallback[Seq[NonPlayerCharacter]] = {
+      val query: SelectionBuilder[RootQuery, Option[List[NonPlayerCharacter]]] =
+        Queries.nonPlayerCharacters(campaignId.value)(npcSB)
       calibanClient
-        .asyncCalibanCall(Queries.nonPlayerCharacters(campaignId.value)(npcSB))
+        .asyncCalibanCall(query)
         .map(_.toSeq.flatten)
     }
 

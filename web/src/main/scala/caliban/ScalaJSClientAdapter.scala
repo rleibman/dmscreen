@@ -93,7 +93,7 @@ case class ScalaJSClientAdapter(endpoint: String) extends TimerSupport {
     selectionBuilder: SelectionBuilder[Origin, A]
   )(using ev:         IsOperation[Origin]
   ): AsyncCallback[A] = {
-    val request = selectionBuilder.toRequest(serverUri)
+    val request: Request[Either[CalibanClientError, A], Any] = selectionBuilder.toRequest(serverUri)
     // ENHANCEMENT add headers as necessary
     import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
     AsyncCallback
