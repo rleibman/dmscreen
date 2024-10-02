@@ -65,7 +65,7 @@ object DND5eAPI {
         for {
           // If we want a fresh import, or we don't have the character already
           // Get the text from the URL
-          response <- Client.request(Request.get(dndBeyondURI))
+          response <- Client.batched(Request.get(dndBeyondURI))
 
           dndBeyondResponse <- response.body.asString
           // Save the file we just got
@@ -95,7 +95,7 @@ object DND5eAPI {
       saveMe = pc.copy(header = pc.header.copy(id = pcId, campaignId = request.campaignId))
       id <- repo.upsert(pc.header, pc.jsonInfo) // Save the character
     } yield pc.copy(header = pc.header.copy(id = id)))
-      .provideSome[DND5eZIORepository & DNDBeyondImporter & ConfigurationService](Client.default, Scope.default)
+      .provideSome[DND5eZIORepository & DNDBeyondImporter & ConfigurationService](Client.default)
       .tapError { e =>
         ZIO.logErrorCause(Cause.fail(e))
       }

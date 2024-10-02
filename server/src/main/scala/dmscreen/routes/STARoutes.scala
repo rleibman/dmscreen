@@ -40,7 +40,7 @@ object STARoutes {
         Method.ANY / "api" / "sta" ->
           QuickAdapter(interpreter).handlers.api,
         Method.ANY / "api" / "sta" / "graphiql" ->
-          GraphiQLHandler.handler(apiPath = "/api/sta", graphiqlPath = "/api/sta/graphiql"),
+          GraphiQLHandler.handler(apiPath = "/api/sta"),
         Method.GET / "api" / "sta" / "schema" ->
           Handler.fromBody(Body.fromCharSequence(STAAPI.api.render)),
         Method.POST / "api" / "sta" / "upload" ->

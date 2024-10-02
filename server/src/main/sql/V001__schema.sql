@@ -28,6 +28,16 @@ create table campaign
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
+create table campaignLog
+(
+    campaignId int(11)    not null,
+    message    text       not null,
+    timestamp  timestamp  not null,
+    key campaign_log_campaign (campaignId),
+    constraint campaign_log_campaign foreign key (campaignId) references `campaign` (id) on delete cascade
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
+
 create table scene
 (
     `id`       int(11)    NOT NULL AUTO_INCREMENT,
@@ -39,8 +49,8 @@ create table scene
     `deleted`  tinyint(4) NOT NULL DEFAULT '0',
     `isActive` boolean    not null,
     PRIMARY KEY (`id`),
-    key scene_character_campaign (campaignId),
-    constraint scene_character_campaign foreign key (campaignId) references `campaign` (id) on delete cascade
+    key dnd5e_scene_character_campaign (campaignId),
+    constraint dnd5e_scene_character_campaign foreign key (campaignId) references `campaign` (id) on delete cascade
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -55,8 +65,8 @@ create table playerCharacter
     `version`    text       NOT NULL,
     `deleted`    tinyint(4) NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
-    key player_character_campaign (campaignId),
-    constraint player_character_campaign foreign key (campaignId) references `campaign` (id) on delete cascade
+    key dnd5e_player_character_campaign (campaignId),
+    constraint dnd5e_player_character_campaign foreign key (campaignId) references `campaign` (id) on delete cascade
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -72,10 +82,10 @@ create table encounter
     `version`  text       NOT NULL,
     `deleted`  tinyint(4) NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
-    key encounter_campaign (campaignId),
-    constraint encounter_campaign foreign key (campaignId) references `campaign` (id) on delete cascade,
-    key encounter_scene (sceneId),
-    constraint encounter_scene foreign key (sceneId) references `scene` (id) on delete cascade
+    key dnd5e_encounter_campaign (campaignId),
+    constraint dnd5e_encounter_campaign foreign key (campaignId) references `campaign` (id) on delete cascade,
+    key dnd5e_encounter_scene (sceneId),
+    constraint dnd5e_encounter_scene foreign key (sceneId) references `scene` (id) on delete cascade
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -89,8 +99,8 @@ create table nonPlayerCharacter
     `version`  text       NOT NULL,
     `deleted`  tinyint(4) NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`),
-    key non_player_character_campaign (campaignId),
-    constraint non_player_character_campaign foreign key (campaignId) references `campaign` (id) on delete cascade
+    key dnd5e_non_player_character_campaign (campaignId),
+    constraint dnd5e_non_player_character_campaign foreign key (campaignId) references `campaign` (id) on delete cascade
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
@@ -164,17 +174,8 @@ create table subclass
     info      json    not null,
     `version` text    NOT NULL,
     PRIMARY KEY (`id`),
-    key subclass_character_class (classId),
-    constraint subclass_character_class foreign key (classId) references `characterClass` (id) on delete cascade
+    key dnd5e_subclass_character_class (classId),
+    constraint dnd5e_subclass_character_class foreign key (classId) references `characterClass` (id) on delete cascade
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
-create table campaignLog
-(
-    campaignId int(11)    not null,
-    message    text       not null,
-    timestamp  timestamp  not null,
-    key campaign_log_campaign (campaignId),
-    constraint campaign_log_campaign foreign key (campaignId) references `campaign` (id) on delete cascade
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8;

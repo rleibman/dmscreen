@@ -24,6 +24,13 @@ package dmscreen.sta
 import caliban.client.scalajs.{STAClient, given}
 import caliban.client.{ArgEncoder, SelectionBuilder}
 import dmscreen.*
+import caliban.client.scalajs.STAClient.{
+  Character as CalibanCharacter,
+  CharacterHeader as CalibanCharacterHeader,
+  CharacterHeaderInput,
+  Mutations,
+  Queries
+}
 import japgolly.scalajs.react.callback.AsyncCallback
 import zio.*
 import zio.json.*
@@ -32,14 +39,36 @@ import zio.json.ast.Json
 import java.util.ResourceBundle
 import scala.reflect.ClassTag
 
-
 object STAGraphQLRepository {
 
   val live: STARepository[AsyncCallback] = new STARepository[AsyncCallback] {
 
     private val calibanClient = caliban.ScalaJSClientAdapter("sta")
 
-    override def scene(sceneId: SceneId): AsyncCallback[Option[Scene]] = ???
+    private val characterSB: SelectionBuilder[CalibanCharacter, Character] =
+      (CalibanCharacter.header(
+        CalibanCharacterHeader.campaignId ~
+          CalibanCharacterHeader.id ~
+          CalibanCharacterHeader.name ~
+          CalibanCharacterHeader.playerName
+      ) ~ CalibanCharacter.jsonInfo).map {
+        (
+          campaignId: Long,
+          pcId:       Long,
+          name:       Option[String],
+          playerName: Option[String],
+          info:       Json
+        ) =>
+          Character(
+            CharacterHeader(
+              id = CharacterId(pcId),
+              campaignId = CampaignId(campaignId),
+              name = name,
+              playerName = playerName
+            ),
+            info
+          )
+      }
 
     override def deleteEntity[IDType](
       entityType: EntityType[IDType],
@@ -47,7 +76,12 @@ object STAGraphQLRepository {
       softDelete: Boolean
     ): AsyncCallback[Unit] = ???
 
-    override def characters(campaignId: CampaignId): AsyncCallback[Seq[Character]] = ???
+    override def characters(campaignId: CampaignId): AsyncCallback[Seq[Character]] = {
+      calibanClient
+        .asyncCalibanCall(Queries.characters(campaignId.value)(characterSB))
+        .map(_.toSeq.flatten)
+
+    }
 
     override def starships(campaignId: CampaignId): AsyncCallback[Seq[Starship]] = ???
 
@@ -57,12 +91,20 @@ object STAGraphQLRepository {
 
     override def nonPlayerCharacters(campaignId: CampaignId): AsyncCallback[Seq[NonPlayerCharacter]] = ???
 
-    override def encounters(campaignId: CampaignId): AsyncCallback[Seq[Encounter]] = ???
-
     override def upsert(
       header: CharacterHeader,
       info:   Json
-    ): AsyncCallback[CharacterId] = ???
+    ): AsyncCallback[CharacterId] = {
+      val headerInput = CharacterHeaderInput(
+        id = header.id.value,
+        campaignId = header.campaignId.value,
+        name = header.name,
+        playerName = header.playerName
+      )
+
+      val sb = Mutations.upsertCharacter(headerInput, info, dmscreen.BuildInfo.version)
+      calibanClient.asyncCalibanCall(sb).map(_.fold(CharacterId.empty)(CharacterId.apply))
+    }
 
     override def upsert(
       header: StarshipHeader,
@@ -79,10 +121,7 @@ object STAGraphQLRepository {
       info:   Json
     ): AsyncCallback[SceneId] = ???
 
-    override def upsert(
-      header: EncounterHeader,
-      info:   Json
-    ): AsyncCallback[EncounterId] = ???
+    override def nonPlayerCharacter(nonPlayerCharacterId: NonPlayerCharacterId): AsyncCallback[Option[NonPlayerCharacter]] = ???
   }
 
 }

@@ -517,15 +517,15 @@ final case class InventoryItem(
 )
 
 case class CharacterInfo(
-  determination:    Determination,
-  stress:           Stress, // maximum stress is typically your fitness attribute
+  determination:    Determination = Determination(10, 10),
+  stress:           Stress = Stress(10, 10), // maximum stress is typically your fitness attribute
   organization:     Organization = Organization.federation,
   pronouns:         Option[String] = None,
   rank:             Option[Rank] = None,
   jobAssignment:    Option[String] = None,
   roles:            Seq[Role] = Seq.empty,
   reputation:       Int = 10,
-  lineage:          Seq[Lineage],
+  lineage:          Seq[Lineage] = Seq.empty,
   environment:      Option[String] = None,
   upbringing:       Option[String] = None,
   careerPath:       Option[String] = None,
@@ -534,7 +534,7 @@ case class CharacterInfo(
   attributes:       Attributes = Attributes.default,
   departments:      Departments = Departments.default,
   values:           Seq[EthicalValue] = Seq.empty,
-  focuses:          Seq[Focus], // Main characters have 6 focuses
+  focuses:          Seq[Focus] = Seq.empty, // Main characters have 6 focuses
   pastimes:         Seq[String] = Seq.empty,
   attacks:          Seq[String] = Seq.empty,
   speciesAbilities: Seq[String] = Seq.empty,

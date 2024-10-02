@@ -394,31 +394,31 @@ object QuillRepository {
 
         inline private def qScenes =
           quote {
-            querySchema[SceneRow]("scene")
+            querySchema[SceneRow]("DND5eScene")
           }
         inline private def qPlayerCharacters =
           quote {
-            querySchema[PlayerCharacterRow]("playerCharacter")
+            querySchema[PlayerCharacterRow]("DND5ePlayerCharacter")
           }
 
         inline private def qNonPlayerCharacters =
           quote {
-            querySchema[NonPlayerCharacterRow]("nonPlayerCharacter")
+            querySchema[NonPlayerCharacterRow]("DND5eNonPlayerCharacter")
           }
 
         inline private def qMonsters =
           quote {
-            querySchema[MonsterRow]("monster")
+            querySchema[MonsterRow]("DND5eMonster")
           }
 
         inline private def qMonsterHeaders =
           quote {
-            querySchema[MonsterHeaderRow]("monster")
+            querySchema[MonsterHeaderRow]("DND5eMonster")
           }
 
         inline private def qEncounters =
           quote {
-            querySchema[EncounterRow]("encounter")
+            querySchema[EncounterRow]("DND5eEncounter")
           }
 
         override def monster(monsterId: MonsterId): DMScreenTask[Option[Monster]] =

@@ -92,3 +92,160 @@ button.diceButton {
     left: 12.5%;
 }
 
+:root {
+    color-scheme: dark;
+    --lcars-width: 1540px;
+    --lfw: 240px;
+    --left-frame-top-color: #78f;
+    --left-frame-color: #d44; /* also panel 9 color */
+    --corner-color-top: #78f;
+    --corner-color-bottom: #d44;
+    --panel-1-color: #c8f;
+    --panel-4-color: #d44;
+    --panel-5-color: #f70;
+    --panel-6-color: #ffaa90;
+    --panel-7-color: #78f;
+    --panel-8-color: #ffaa90;
+    --panel-10-color: #f70;
+    --panel-top-button-color: #c8f;
+    --bar-height: 30px;
+    --bar-1-6-width: 40%;
+    --bar-2-7-width: 4%;
+    --bar-3-8-width: 17%;
+    --bar-5-10-width: 4%;
+    --bar-1-color: #78f;
+    --bar-2-color: #f70;
+    --bar-3-color: #c8f;
+    --bar-4-color: #c8f;
+    --bar-5-color: #d44;
+    --bar-6-color: #d44;
+    --bar-7-color: #ffaa90;
+    --bar-8-color: #d44;
+    --bar-9-color: #c8f;
+    --bar-10-color: #ffaa90;
+
+    /* Ultra layout elements */
+
+    --section-2-color: #fba;
+    --pill-1-color: #d44;
+    --pill-2-color: #f96;
+    --pill-3-color: #78f;
+    --pill-4-color: #fba;
+    --pill-5-color: #f70;
+    --pill-6-color: #94f;
+    --pill-a1-color: #94f;
+    --pill-a2-color: #94f;
+    --pill-a3-color: #000;
+    --pill-a4-color: #c8f;
+    --pill-a5-color: #f70;
+    --pill-a6-color: #fba;
+    --panel-11-color: #d44;
+    --panel-12-color: #78f;
+    --panel-13-color: #fba;
+    --panel-14-color: #f96;
+    --panel-15-color: #fba;
+
+    /* Standard layout elements */
+
+    --radius-top: 0 0 0 160px;
+    --radius-bottom: 160px 0 0 0;
+    --radius-content-top: 0 0 0 60px;
+    --radius-content-bottom: 60px 0 0 0;
+    --panel-border: .25rem solid #000;
+    --bar-border: .25rem solid #000;
+    --bar-cut-width: 34%;
+    --bar-cut-out-width: 34%;
+    --divider-height: .5rem;
+    /*
+        NOTE: --font-color also sets the following:
+            1. horizontal line <hr> color
+            2. lcars-list bullet color
+            3. blockquote border color
+            4. images with the *border* class border color
+            5. data-cascade text color
+    */
+    --font-color: #c8f;
+    --sub-fonts: .875rem;
+    --banner-color: #f70;
+    --h1-color: #c8f;
+    --h2-color: #c8f;
+    --h3-color: #c8f;
+    --light-color: #fec;
+    --link-color: #c16fff;
+    --code-color: #f70;
+    --nav-width: 230px;
+    --nav-height: 86px;
+    --nav-1-color: #78f;
+    --nav-2-color: #ffaa90;
+    --nav-3-color: #f70;
+    --nav-4-color: #d44;
+    --button-color: #c8f;
+    --lcars-bar-color: #c8f;
+    --lcars-bar-start-color: #94f;
+    --lcars-bar-end-color: #94f;
+    --lcars-bar-text-color: #f90;
+    --data-frame-top-color: #78f;
+    --data-frame-bottom-color: #d44;
+    --data-frame-panel-color: #ffaa90;
+
+    /* Image Frame */
+
+    --image-border-color: #fba;
+    --primary-color: #f70;
+    --secondary-color: #94f;
+    --accent-color: #fba;
+    --spacers: .65rem;
+    --frame-height: 40px;
+}
+
+
+h1.lcars-text-bar {
+    display: flex;
+    position: relative;
+    margin-top: 15px !important;
+    margin-bottom: 15px;
+    overflow: visible;
+    border-radius: 100vh;
+    background-color: var(--lcars-bar-color);
+    border-right: 4vh solid var(--lcars-bar-end-color);
+    border-left: 4vh solid var(--lcars-bar-start-color);
+}
+
+h1.lcars-text-bar>div {
+    background-color: black;
+    color: white;
+    display: inline-block;
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+h2.lcars-text-bar{
+    display: flex;
+    position: relative;
+    margin-top: 15px !important;
+    margin-bottom: 15px;
+    overflow: visible;
+    border-radius: 100vh;
+    background-color: var(--lcars-bar-color);
+    border-right: 4vh solid var(--lcars-bar-end-color);
+    border-left: 4vh solid var(--lcars-bar-start-color);
+}
+
+h2.lcars-text-bar>div {
+    background-color: black;
+    color: white;
+    display: inline-block;
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+.lcars-character-table th {
+    text-transform: uppercase;
+    text-align: left;
+    color: var(--h1-color);
+}
+
+.lcars-character-table td {
+    border-bottom: 1px solid var(--lcars-bar-color);
+    padding-bottom: .5rem;
+}

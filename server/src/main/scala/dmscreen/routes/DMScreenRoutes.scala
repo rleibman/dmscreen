@@ -40,7 +40,7 @@ object DMScreenRoutes {
         Method.ANY / "api" / "dmscreen" ->
           QuickAdapter(interpreter).handlers.api,
         Method.ANY / "api" / "dmscreen" / "graphiql" ->
-          GraphiQLHandler.handler(apiPath = "/api/dmscreen", graphiqlPath = "/api/dmscreen/graphiql"),
+          GraphiQLHandler.handler(apiPath = "/api/dmscreen"),
         Method.GET / "api" / "dmscreen" / "schema" ->
           Handler.fromBody(Body.fromCharSequence(DMScreenAPI.api.render)),
         Method.POST / "api" / "dmscreen" / "upload" ->

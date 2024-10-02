@@ -22,10 +22,22 @@
 package dmscreen.sta
 
 case class ChangeStack(
-  clear:    Boolean = true,
-  campaign: Boolean = false
+  pcs:       Map[CharacterId, Character] = Map.empty,
+  npcs:      Map[NonPlayerCharacterId, NonPlayerCharacter] = Map.empty,
+  starships: Map[StarshipId, Starship] = Map.empty,
+  clear:     Boolean = true,
+  campaign:  Boolean = false
 ) {
 
+  def logStarshipChanges(changed: Starship*): ChangeStack = {
+    copy(starships = starships ++ changed.map(item => item.id -> item), clear = false)
+  }
+  def logPCChanges(changed: Character*): ChangeStack = {
+    copy(pcs = pcs ++ changed.map(item => item.id -> item), clear = false)
+  }
+  def logNPCChanges(changed: NonPlayerCharacter*): ChangeStack = {
+    copy(npcs = npcs ++ changed.map(item => item.id -> item), clear = false)
+  }
   def logCampaignChange(): ChangeStack = {
     copy(campaign = true, clear = false)
   }

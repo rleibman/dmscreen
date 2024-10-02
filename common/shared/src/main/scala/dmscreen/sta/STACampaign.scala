@@ -32,9 +32,6 @@ case class STACampaignInfo(
 
 object STAEntityType {
 
-  val encounter: EntityType[EncounterId] = new STAEntityType[EncounterId](name = "encounter") {
-    override def createId(id: Long): EncounterId = EncounterId(id)
-  }
   val character: EntityType[CharacterId] = new STAEntityType[CharacterId](name = "character") {
     override def createId(id: Long): CharacterId = CharacterId(id)
   }
@@ -50,7 +47,7 @@ object STAEntityType {
   }
 
   val values: Set[EntityType[?]] =
-    Set(CampaignEntityType, encounter, character, starship, nonPlayerCharacter, scene)
+    Set(CampaignEntityType, character, starship, nonPlayerCharacter, scene)
 
   def valueOf(value:       String): EntityType[?] = values.find(v => value.equalsIgnoreCase(v.name)).get
   def valueOfOption(value: String): Option[EntityType[?]] = values.find(v => value.equalsIgnoreCase(v.name))

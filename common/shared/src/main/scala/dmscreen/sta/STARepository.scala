@@ -29,8 +29,6 @@ import scala.reflect.ClassTag
 
 trait STARepository[F[_]] extends GameRepository {
 
-  def scene(sceneId: SceneId): F[Option[Scene]]
-
   def deleteEntity[IDType](
     entityType: EntityType[IDType],
     id:         IDType,
@@ -45,9 +43,10 @@ trait STARepository[F[_]] extends GameRepository {
 
   def character(characterId: CharacterId): F[Option[Character]]
 
+  def nonPlayerCharacter(nonPlayerCharacterId: NonPlayerCharacterId): F[Option[NonPlayerCharacter]]
+
   def nonPlayerCharacters(campaignId: CampaignId): F[Seq[NonPlayerCharacter]]
 
-  def encounters(campaignId: CampaignId): F[Seq[Encounter]]
   def upsert(
     header: CharacterHeader,
     info:   Json
@@ -56,6 +55,7 @@ trait STARepository[F[_]] extends GameRepository {
     header: StarshipHeader,
     info:   Json
   ): F[StarshipId]
+  
   def upsert(
     header: NonPlayerCharacterHeader,
     info:   Json
@@ -64,9 +64,5 @@ trait STARepository[F[_]] extends GameRepository {
     header: SceneHeader,
     info:   Json
   ): F[SceneId]
-  def upsert(
-    header: EncounterHeader,
-    info:   Json
-  ): F[EncounterId]
 
 }

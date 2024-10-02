@@ -40,7 +40,7 @@ object DND5eRoutes {
         Method.ANY / "api" / "dnd5e" ->
           QuickAdapter(interpreter).handlers.api,
         Method.ANY / "api" / "dnd5e" / "graphiql" ->
-          GraphiQLHandler.handler(apiPath = "/api/dnd5e", graphiqlPath = "/api/dnd5e/graphiql"),
+          GraphiQLHandler.handler(apiPath = "/api/dnd5e"),
         Method.GET / "api" / "dnd5e" / "schema" ->
           Handler.fromBody(Body.fromCharSequence(DND5eAPI.api.render)),
         Method.POST / "api" / "dnd5e" / "upload" ->

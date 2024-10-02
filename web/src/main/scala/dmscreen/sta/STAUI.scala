@@ -40,10 +40,10 @@ enum STAUIPages {
 
 case object STAUI extends GameUI {
 
-  override def menuItems: Seq[PageAppMenuItem] =
+  override def menuItems: Seq[AppMenuItem] =
     Seq(
       PageAppMenuItem(STAUIPages.dashboard, "Dashboard", _ => DashboardPage()),
-      PageAppMenuItem(STAUIPages.characters, "Characters", _ => CharacterPage()),
+      PageAppMenuItem(STAUIPages.characters, "Characters", campaignId => PCPage(campaignId)),
       PageAppMenuItem(STAUIPages.ships, "Ships", _ => ShipPage()),
       PageAppMenuItem(STAUIPages.encounters, "Encounters", _ => EncounterPage()),
       PageAppMenuItem(STAUIPages.scenes, "Scenes", _ => ScenePage()),
