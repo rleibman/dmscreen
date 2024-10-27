@@ -19,50 +19,25 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.sta
+package dmscreen.util
 
-import dmscreen.*
-import zio.*
-import zio.json.ast.Json
+import scala.scalajs.js
 
-import scala.reflect.ClassTag
+extension (value: js.UndefOr[String | js.Array[String] | Double]) {
 
-trait STARepository[F[_]] extends GameRepository {
-
-  def deleteEntity[IDType](
-    entityType: EntityType[IDType],
-    id:         IDType,
-    softDelete: Boolean = true
-  ): F[Unit]
-
-  def characters(campaignId: CampaignId): F[Seq[Character]]
-
-  def starships(campaignId: CampaignId): F[Seq[Starship]]
-
-  def scenes(campaignId: CampaignId): F[Seq[Scene]]
-
-  def character(characterId: CharacterId): F[Option[Character]]
-
-  def nonPlayerCharacter(nonPlayerCharacterId: NonPlayerCharacterId): F[Option[NonPlayerCharacter]]
-
-  def nonPlayerCharacters(campaignId: CampaignId): F[Seq[NonPlayerCharacter]]
-
-  def upsert(
-    header: CharacterHeader,
-    info:   Json
-  ): F[CharacterId]
-  def upsert(
-    header: StarshipHeader,
-    info:   Json
-  ): F[StarshipId]
-
-  def upsert(
-    header: NonPlayerCharacterHeader,
-    info:   Json
-  ): F[NonPlayerCharacterId]
-  def upsert(
-    header: SceneHeader,
-    info:   Json
-  ): F[SceneId]
+  def asDouble(default: Double = 0.0): Double =
+    value match {
+      case s: String           => s.toDouble
+      case d: Double           => d
+      case a: js.Array[String] => a.headOption.fold(default)(_.toDouble)
+      case _: Unit             => default
+    }
+  def asInt(default: Int = 0): Int =
+    value match {
+      case s: String           => s.toInt
+      case d: Double           => d.toInt
+      case a: js.Array[String] => a.headOption.fold(default)(_.toInt)
+      case _: Unit             => default
+    }
 
 }

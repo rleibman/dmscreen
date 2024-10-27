@@ -1,11 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
-lazy val SCALA = "3.5.0"
+lazy val SCALA = "3.5.2"
 
 val scalajsReactVersion = "2.1.1"
 val reactVersion = "^18.3.0"
 
-version := "0.5.0-SNAPSHOT"
+version := "0.6.0-SNAPSHOT"
 
 enablePlugins(ScalablyTypedConverterGenSourcePlugin)
 

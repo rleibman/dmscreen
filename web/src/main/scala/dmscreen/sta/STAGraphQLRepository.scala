@@ -121,7 +121,8 @@ object STAGraphQLRepository {
       info:   Json
     ): AsyncCallback[SceneId] = ???
 
-    override def nonPlayerCharacter(nonPlayerCharacterId: NonPlayerCharacterId): AsyncCallback[Option[NonPlayerCharacter]] = ???
+    override def nonPlayerCharacter(nonPlayerCharacterId: NonPlayerCharacterId)
+      : AsyncCallback[Option[NonPlayerCharacter]] = ???
   }
 
 }

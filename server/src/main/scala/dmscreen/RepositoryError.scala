@@ -25,7 +25,10 @@ import dmscreen.DMScreenError
 
 object RepositoryError {
 
-  def apply(cause: Throwable): RepositoryError = new RepositoryError("", Some(cause))
+  def apply(cause: Throwable): RepositoryError = {
+    cause.printStackTrace()
+    new RepositoryError("", Some(cause))
+  }
 
 }
 

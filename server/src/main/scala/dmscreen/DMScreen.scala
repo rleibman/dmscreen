@@ -32,7 +32,7 @@ object DMScreen extends ZIOApp {
   override type Environment = DMScreenServerEnvironment & ConfigurationService
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
-  override def bootstrap: ULayer[DMScreenServerEnvironment & ConfigurationService] = 
+  override def bootstrap: ULayer[DMScreenServerEnvironment & ConfigurationService] =
 //    EnvironmentBuilder.live
     EnvironmentBuilder.withContainer
 

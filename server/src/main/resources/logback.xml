@@ -1,10 +1,8 @@
 <configuration>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-<!--
-            The X is a placeholder for the MDC value. The MDC value is set in the code. [%X{userId}, %X{transactionId}]
-            <pattern>%date [%level] %logger{30} - [%X] %replace(%message){'\n', ''}%n%xException</pattern>-->
-            <pattern>%date [%level] %logger{30} - %replace(%message){'\n', ''}%n%xException</pattern>
+            <pattern>%date [%level] %logger - [%X] %replace(%message){'\n', ''}%n%xException</pattern>
         </encoder>
     </appender>
 
@@ -14,12 +12,13 @@
     </appender>
 
     <root level="DEBUG">
-        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="CONSOLE"/>
     </root>
 
-    <logger name="dmscreen" level="DEBUG"/>
+    <!--    <logger name="dmscreen" level="DEBUG"/>-->
     <logger name="com.github.dockerjava" level="OFF"/>
     <logger name="org.testcontainers" level="OFF"/>
+    <!--    <logger name="org.mariadb.jdbc" level="DEBUG"/>-->
     <logger name="com.zaxxer.hikari" level="OFF"/>
-    <logger name="org.mariadb.jdbc" level="OFF"/>
+
 </configuration>

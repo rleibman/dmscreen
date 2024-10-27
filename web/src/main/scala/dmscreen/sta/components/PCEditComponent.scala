@@ -59,9 +59,9 @@ object PCEditComponent {
         Container(
           <.h1(^.className := "lcars-text-bar", <.div(s"${header.name.toString} (${header.playerName.toString})")), // TODO add rank
           <.table(
-            ^.width     := 100.pct,
+            ^.width         := 100.pct,
             ^.borderSpacing := 5.px,
-            ^.className := "lcars-character-table",
+            ^.className     := "lcars-character-table",
             <.tbody(
               <.tr(
                 <.th(^.width := 15.pct, "Pronouns"),

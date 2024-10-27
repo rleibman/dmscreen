@@ -24,6 +24,6 @@ addSbtPlugin("ch.epfl.scala"         % "sbt-scalajs-bundler"      % "0.21.1")
 ////////////////////////////////////////////////////////////////////////////////////
 // Testing
 addSbtPlugin("io.stryker-mutator" % "sbt-stryker4s" % "0.16.1")
-addSbtPlugin("org.scoverage"      % "sbt-scoverage" % "2.2.1")
+addSbtPlugin("org.scoverage"      % "sbt-scoverage" % "2.2.2")
 
 libraryDependencies ++= Seq("org.eclipse.jgit" % "org.eclipse.jgit" % "7.0.0.202409031743-r")

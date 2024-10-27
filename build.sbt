@@ -11,7 +11,7 @@ lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time o
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
-lazy val SCALA = "3.5.1"
+lazy val SCALA = "3.5.2"
 Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
 Global / scalaVersion         := SCALA
@@ -52,7 +52,7 @@ enablePlugins(
 )
 
 val calibanVersion = "2.9.0"
-val zioVersion = "2.1.9"
+val zioVersion = "2.1.11"
 val quillVersion = "4.8.5"
 val zioHttpVersion = "3.0.1"
 val zioConfigVersion = "4.0.2"
@@ -98,7 +98,7 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
       "org.gnieh"   %% "diffson-core"     % "4.6.0" withSources (),
       "io.megl"     %% "zio-json-diffson" % "0.6.2" withSources (),
       "io.megl"     %% "zio-json-extra"   % "0.6.2" withSources (),
-      "io.kevinlee" %% "just-semver-core" % "1.0.0" withSources ()
+      "io.kevinlee" %% "just-semver-core" % "1.1.0" withSources ()
     )
   )
   .jsEnablePlugins(GitVersioning, BuildInfoPlugin)
@@ -112,9 +112,9 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-diffson"                                    % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
-      "io.kevinlee" %%% "just-semver-core"                                % "1.0.0" withSources (),
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.30.14",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.30.14"
+      "io.kevinlee" %%% "just-semver-core"                                % "1.1.0" withSources (),
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.31.1",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.31.1"
     )
   )
 
@@ -137,7 +137,7 @@ lazy val server = project
     name := "dmscreen-server",
     libraryDependencies ++= Seq(
       // DB
-      "org.mariadb.jdbc" % "mariadb-java-client" % "3.4.1" withSources (),
+      "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.0" withSources (),
       "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
       // ZIO
       "dev.zio"                %% "zio"                   % zioVersion withSources (),
@@ -147,7 +147,7 @@ lazy val server = project
       "dev.zio"                %% "zio-config-derivation" % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-magnolia"   % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-typesafe"   % zioConfigVersion withSources (),
-      "dev.zio"                %% "zio-logging-slf4j2"    % "2.3.1" withSources (),
+      "dev.zio"                %% "zio-logging-slf4j2"    % "2.3.2" withSources (),
       "dev.zio"                %% "izumi-reflect"         % "2.3.10" withSources (),
       "com.github.ghostdogpr"  %% "caliban"               % calibanVersion withSources (),
       "com.github.ghostdogpr"  %% "caliban-zio-http"      % calibanVersion withSources (),
@@ -159,7 +159,7 @@ lazy val server = project
       // Other random utilities
       "com.github.pathikrit"  %% "better-files"                 % "3.9.2" withSources (),
       "com.github.daddykotex" %% "courier"                      % "3.2.0" withSources (),
-      "ch.qos.logback"         % "logback-classic"              % "1.5.8" withSources (),
+      "ch.qos.logback"         % "logback-classic"              % "1.5.12" withSources (),
       "commons-codec"          % "commons-codec"                % "1.17.1",
       "com.dimafeng"          %% "testcontainers-scala-mariadb" % testContainerVersion withSources (),
       // Testing
@@ -280,10 +280,10 @@ lazy val web: Project = project
 lazy val commonWeb: Project => Project =
   _.settings(
     libraryDependencies ++= Seq(
-      "net.leibman" %%% "dmscreen-stlib"              % "0.5.0-SNAPSHOT" withSources (),
+      "net.leibman" %%% "dmscreen-stlib"              % "0.6.0-SNAPSHOT" withSources (),
       "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
       "dev.zio" %%% "zio"                             % zioVersion withSources (),
-      "com.softwaremill.sttp.client3" %%% "core"      % "3.9.8" withSources (),
+      "com.softwaremill.sttp.client3" %%% "core"      % "3.10.1" withSources (),
       "io.github.cquiroz" %%% "scala-java-time"       % "2.6.0" withSources (),
       "io.github.cquiroz" %%% "scala-java-time-tzdb"  % "2.6.0" withSources (),
       "org.scala-js" %%% "scalajs-dom"                % "2.8.0" withSources (),

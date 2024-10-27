@@ -33,6 +33,7 @@ import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticSIZES, SemanticWIDTHS}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
+import dmscreen.util.*
 
 object AbilitiesEditor {
 
@@ -76,10 +77,7 @@ object AbilitiesEditor {
                   ) =>
                     $.modState(
                       s => {
-                        val newNum = changedData.value match {
-                          case s: String => s.toIntOption.getOrElse(abilities.strength.value)
-                          case x: Double => x.toInt
-                        }
+                        val newNum = changedData.value.asInt(abilities.strength.value)
                         s.copy(abilities = s.abilities.copy(strength = s.abilities.strength.copy(value = newNum)))
                       },
                       $.state.flatMap(s => props.onChange(s.abilities))
@@ -95,10 +93,7 @@ object AbilitiesEditor {
                   ) =>
                     $.modState(
                       s => {
-                        val newNum = changedData.value match {
-                          case s: String => s.toIntOption.getOrElse(abilities.dexterity.value)
-                          case x: Double => x.toInt
-                        }
+                        val newNum = changedData.value.asInt(abilities.dexterity.value)
                         s.copy(abilities = s.abilities.copy(dexterity = s.abilities.dexterity.copy(value = newNum)))
                       },
                       $.state.flatMap(s => props.onChange(s.abilities))
@@ -114,10 +109,7 @@ object AbilitiesEditor {
                   ) =>
                     $.modState(
                       s => {
-                        val newNum = changedData.value match {
-                          case s: String => s.toIntOption.getOrElse(abilities.constitution.value)
-                          case x: Double => x.toInt
-                        }
+                        val newNum = changedData.value.asInt(abilities.constitution.value)
                         s.copy(abilities =
                           s.abilities.copy(constitution = s.abilities.constitution.copy(value = newNum))
                         )
@@ -135,10 +127,7 @@ object AbilitiesEditor {
                   ) =>
                     $.modState(
                       s => {
-                        val newNum = changedData.value match {
-                          case s: String => s.toIntOption.getOrElse(abilities.intelligence.value)
-                          case x: Double => x.toInt
-                        }
+                        val newNum = changedData.value.asInt(abilities.intelligence.value)
                         s.copy(abilities =
                           s.abilities.copy(intelligence = s.abilities.intelligence.copy(value = newNum))
                         )
@@ -156,10 +145,7 @@ object AbilitiesEditor {
                   ) =>
                     $.modState(
                       s => {
-                        val newNum = changedData.value match {
-                          case s: String => s.toIntOption.getOrElse(abilities.wisdom.value)
-                          case x: Double => x.toInt
-                        }
+                        val newNum = changedData.value.asInt(abilities.wisdom.value)
                         s.copy(abilities = s.abilities.copy(wisdom = s.abilities.wisdom.copy(value = newNum)))
                       },
                       $.state.flatMap(s => props.onChange(s.abilities))
@@ -175,10 +161,7 @@ object AbilitiesEditor {
                   ) =>
                     $.modState(
                       s => {
-                        val newNum = changedData.value match {
-                          case s: String => s.toIntOption.getOrElse(abilities.charisma.value)
-                          case x: Double => x.toInt
-                        }
+                        val newNum = changedData.value.asInt(abilities.charisma.value)
                         s.copy(abilities = s.abilities.copy(charisma = s.abilities.charisma.copy(value = newNum)))
                       },
                       $.state.flatMap(s => props.onChange(s.abilities))
@@ -197,10 +180,7 @@ object AbilitiesEditor {
                   ) =>
                     $.modState(
                       s => {
-                        val newNum = changedData.value match {
-                          case s: String => s.toIntOption.orElse(abilities.strength.overrideValue).getOrElse(0)
-                          case x: Double => x.toInt
-                        }
+                        val newNum = changedData.value.asInt(abilities.strength.value)
 
                         s.copy(abilities =
                           s.abilities.copy(strength =
@@ -223,10 +203,7 @@ object AbilitiesEditor {
                   ) =>
                     $.modState(
                       s => {
-                        val newNum = changedData.value match {
-                          case s: String => s.toIntOption.orElse(abilities.dexterity.overrideValue).getOrElse(0)
-                          case x: Double => x.toInt
-                        }
+                        val newNum = changedData.value.asInt(abilities.dexterity.value)
 
                         s.copy(abilities =
                           s.abilities.copy(dexterity =
@@ -249,10 +226,7 @@ object AbilitiesEditor {
                   ) =>
                     $.modState(
                       s => {
-                        val newNum = changedData.value match {
-                          case s: String => s.toIntOption.orElse(abilities.constitution.overrideValue).getOrElse(0)
-                          case x: Double => x.toInt
-                        }
+                        val newNum = changedData.value.asInt(abilities.constitution.value)
 
                         s.copy(abilities =
                           s.abilities.copy(constitution =
@@ -275,10 +249,7 @@ object AbilitiesEditor {
                   ) =>
                     $.modState(
                       s => {
-                        val newNum = changedData.value match {
-                          case s: String => s.toIntOption.orElse(abilities.intelligence.overrideValue).getOrElse(0)
-                          case x: Double => x.toInt
-                        }
+                        val newNum = changedData.value.asInt(abilities.intelligence.value)
 
                         s.copy(abilities =
                           s.abilities.copy(intelligence =
@@ -301,10 +272,7 @@ object AbilitiesEditor {
                   ) =>
                     $.modState(
                       s => {
-                        val newNum = changedData.value match {
-                          case s: String => s.toIntOption.orElse(abilities.wisdom.overrideValue).getOrElse(0)
-                          case x: Double => x.toInt
-                        }
+                        val newNum = changedData.value.asInt(abilities.wisdom.value)
 
                         s.copy(abilities =
                           s.abilities.copy(wisdom =
@@ -327,10 +295,7 @@ object AbilitiesEditor {
                   ) =>
                     $.modState(
                       s => {
-                        val newNum = changedData.value match {
-                          case s: String => s.toIntOption.orElse(abilities.charisma.overrideValue).getOrElse(0)
-                          case x: Double => x.toInt
-                        }
+                        val newNum = changedData.value.asInt(abilities.charisma.value)
 
                         s.copy(abilities =
                           s.abilities.copy(charisma =

@@ -38,6 +38,7 @@ import dmscreen.components.EditableComponent.EditingMode
 import dmscreen.components.{DiceRoller, EditableComponent, EditableNumber, EditableText}
 import dmscreen.dnd5e.components.*
 import dmscreen.dnd5e.{*, given}
+import dmscreen.util.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -58,8 +59,6 @@ import zio.json.*
 import zio.json.ast.Json
 
 import scala.scalajs.js.JSConverters.*
-
-//TODO, BUG rerolling initiative is messing with things, the monsters don't reflect the new initiative.
 object CombatRunner {
 
   given Conversion[EditingMode, DialogMode] = {
@@ -68,14 +67,15 @@ object CombatRunner {
   }
 
   case class State(
-    encounter:     Option[Encounter] = None,
-    pcs:           Seq[PlayerCharacter] = Seq.empty,
-    npcs:          Seq[NonPlayerCharacter] = Seq.empty,
-    healOrDamage:  Map[CombatantId, Int] = Map.empty,
-    dialogMode:    DialogMode = DialogMode.closed,
-    viewMonsterId: Option[MonsterId] = None,
-    viewPCId:      Option[PlayerCharacterId] = None,
-    viewNPCId:     Option[NonPlayerCharacterId] = None
+    encounter:          Option[Encounter] = None,
+    pcs:                Seq[PlayerCharacter] = Seq.empty,
+    npcs:               Seq[NonPlayerCharacter] = Seq.empty,
+    healOrDamage:       Map[CombatantId, Int] = Map.empty,
+    dialogMode:         DialogMode = DialogMode.closed,
+    viewMonsterId:      Option[MonsterId] = None,
+    viewPCId:           Option[PlayerCharacterId] = None,
+    viewNPCId:          Option[NonPlayerCharacterId] = None,
+    filterDeadMonsters: Boolean = true
   )
   case class Props(
     campaignId:         CampaignId,
@@ -87,6 +87,32 @@ object CombatRunner {
   )
 
   case class Backend($ : BackendScope[Props, State]) {
+
+    def reSort1(
+      combatants: List[EncounterCombatant],
+      pcs:        Seq[PlayerCharacter],
+      npcs:       Seq[NonPlayerCharacter]
+    ): List[EncounterCombatant] =
+      combatants.sortBy(c =>
+        -c.initiative
+//        (
+//          c match {
+//            case pc: PlayerCharacterCombatant =>
+//              pcs
+//                .find(_.header.id == pc.playerCharacterId).fold((0, 0, 0, 0, 0, 0))(
+//                  _.info.initiativeTuple
+//                )
+//            case npc: NonPlayerCharacterCombatant =>
+//              npcs
+//                .find(_.header.id == npc.nonPlayerCharacterId).fold((0, 0, 0, 0, 0, 0))(
+//                  _.info.initiativeTuple
+//                )
+//
+//            case _: MonsterCombatant => (100, 100, 100, 100, 100, 100)
+//          },
+//          c.name
+//        )
+      )
 
     private def initializeEncounter(
       encounter: Encounter,
@@ -121,7 +147,7 @@ object CombatRunner {
           header = encounter.header.copy(status = EncounterStatus.active),
           jsonInfo = encounter.info
             .copy(
-              combatants = encounter.info.monsters ++ encounter.info.npcs ++ playerCombatants,
+              combatants = reSort1(encounter.info.monsters ++ encounter.info.npcs ++ playerCombatants, pcs, npcs),
               round = if (encounter.info.round == 0) 1 else encounter.info.round // This is the first time we're running this encounter
             ).toJsonAST.toOption.get
         )
@@ -144,6 +170,9 @@ object CombatRunner {
       state: State,
       props: Props
     ): VdomNode = {
+      def reSort(combatants: List[EncounterCombatant]): List[EncounterCombatant] =
+        reSort1(combatants, state.pcs, state.npcs)
+
       DMScreenState.ctx.consume { dmScreenState =>
         dmScreenState.campaignState.map(_.asInstanceOf[DND5eCampaignState]).zip(state.encounter).fold(EmptyVdom) {
           (
@@ -256,6 +285,23 @@ object CombatRunner {
                 .withKey("CombatRunnerTable")(
                   Table.Header(
                     Table.Row(
+                      Table.HeaderCell.colSpan(8)(
+                        Checkbox
+                          .toggle(true)
+                          .checked(state.filterDeadMonsters)
+                          .onChange {
+                            (
+                              _,
+                              changedData
+                            ) =>
+                              $.modState(
+                                _.copy(filterDeadMonsters = changedData.checked.getOrElse(false))
+                              )
+                          }
+                          .label("Filter out dead monsters")
+                      )
+                    ),
+                    Table.Row(
                       Table.HeaderCell.colSpan(2)(<.h2(s"${encounter.header.name}")),
                       Table.HeaderCell
                         .colSpan(2).textAlign(semanticUiReactStrings.center)(
@@ -292,19 +338,21 @@ object CombatRunner {
                                         val initiatives = results.map(_.value)
 
                                         val newCombatants =
-                                          npcs
-                                            .zip(initiatives)
-                                            .collect {
-                                              case (combatant: MonsterCombatant, initiative) =>
-                                                combatant.copy(initiative =
-                                                  scala.math.max(1, initiative + combatant.initiativeBonus)
-                                                )
-                                              case (combatant: NonPlayerCharacterCombatant, initiative) =>
-                                                combatant.copy(initiative =
-                                                  scala.math.max(1, initiative + combatant.initiativeBonus)
-                                                )
-                                            } ++
-                                            pcs
+                                          reSort(
+                                            npcs
+                                              .zip(initiatives)
+                                              .collect {
+                                                case (combatant: MonsterCombatant, initiative) =>
+                                                  combatant.copy(initiative =
+                                                    scala.math.max(1, initiative + combatant.initiativeBonus)
+                                                  )
+                                                case (combatant: NonPlayerCharacterCombatant, initiative) =>
+                                                  combatant.copy(initiative =
+                                                    scala.math.max(1, initiative + combatant.initiativeBonus)
+                                                  )
+                                              } ++
+                                              pcs
+                                          )
 
                                         e.copy(
                                           currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
@@ -336,26 +384,30 @@ object CombatRunner {
                                         val initiatives = results.map(_.value)
 
                                         val newCombatants =
-                                          npcs
-                                            .zip(initiatives)
-                                            .collect {
-                                              case (combatant: MonsterCombatant, initiative) =>
-                                                combatant.copy(
-                                                  initiative =
-                                                    scala.math.max(1, initiative + combatant.initiativeBonus),
-                                                  health = combatant.health
-                                                    .copy(currentHitPoints = combatant.health.maxHitPoints),
-                                                  conditions = Set.empty,
-                                                  otherMarkers = List.empty
-                                                )
-                                              case (combatant: NonPlayerCharacterCombatant, initiative) =>
-                                                combatant.copy(
-                                                  initiative =
-                                                    scala.math.max(1, initiative + combatant.initiativeBonus),
-                                                  otherMarkers = List.empty
-                                                )
-                                            } ++
-                                      pcs.map(_.asInstanceOf[PlayerCharacterCombatant].copy(otherMarkers = List.empty))
+                                          reSort(
+                                            npcs
+                                              .zip(initiatives)
+                                              .collect {
+                                                case (combatant: MonsterCombatant, initiative) =>
+                                                  combatant.copy(
+                                                    initiative =
+                                                      scala.math.max(1, initiative + combatant.initiativeBonus),
+                                                    health = combatant.health
+                                                      .copy(currentHitPoints = combatant.health.maxHitPoints),
+                                                    conditions = Set.empty,
+                                                    otherMarkers = List.empty
+                                                  )
+                                                case (combatant: NonPlayerCharacterCombatant, initiative) =>
+                                                  combatant.copy(
+                                                    initiative =
+                                                      scala.math.max(1, initiative + combatant.initiativeBonus),
+                                                    otherMarkers = List.empty
+                                                  )
+                                              } ++
+                                              pcs.map(
+                                                _.asInstanceOf[PlayerCharacterCombatant].copy(otherMarkers = List.empty)
+                                              )
+                                          )
 
                                       e.copy(currentTurn = 0, round = 0, combatants = newCombatants)
                                       },
@@ -443,7 +495,15 @@ object CombatRunner {
                   ),
                   Table.Body(
                     encounter.info.combatants
-                      .sortBy(-_.initiative)
+                      .filter(p =>
+                        if (state.filterDeadMonsters)
+                          p match {
+                            case pc:  PlayerCharacterCombatant    => true
+                            case npc: NonPlayerCharacterCombatant => true
+                            case m:   MonsterCombatant            => !m.health.isDead
+                          }
+                        else true
+                      )
                       .zipWithIndex
                       .map {
                         case (pcCombatant: PlayerCharacterCombatant, i: Int) =>
@@ -463,9 +523,10 @@ object CombatRunner {
                                       info =>
                                         info.copy(
                                           currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
-                                          combatants =
+                                          combatants = reSort(
                                             info.combatants.filter(_.id.value != pcCombatant.id.value) :+ pcCombatant
                                               .copy(initiative = v.toInt)
+                                          )
                                         ),
                                       s"Setting initiative for ${pcCombatant.name} to $v"
                                     )
@@ -488,7 +549,10 @@ object CombatRunner {
                                     ) =>
                                       val fromIncapacitated = pc.info.health.isDead
                                       val newHitPoints =
-                                        pcInfo.health.currentHitPoints + state.healOrDamage(pcCombatant.id)
+                                        if (fromIncapacitated)
+                                          state.healOrDamage(pcCombatant.id)
+                                        else
+                                          pcInfo.health.currentHitPoints + state.healOrDamage(pcCombatant.id)
                                       val toIncapacitated = newHitPoints <= 0
                                       modPC(
                                         pc.copy(jsonInfo =
@@ -523,12 +587,8 @@ object CombatRunner {
                                       _,
                                       data
                                     ) =>
-                                      val newVal = data.value match {
-                                        case s: String => s.toDouble
-                                        case d: Double => d
-                                      }
                                       $.modState(s =>
-                                        s.copy(healOrDamage = s.healOrDamage + (pcCombatant.id -> newVal.toInt))
+                                        s.copy(healOrDamage = s.healOrDamage + (pcCombatant.id -> data.value.asInt()))
                                       )
                                   },
                                 Button("Damage")
@@ -690,9 +750,10 @@ object CombatRunner {
                                       info =>
                                         info.copy(
                                           currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
-                                          combatants =
+                                          combatants = reSort(
                                             info.combatants.filter(_.id.value != npcCombatant.id.value) :+ npcCombatant
                                               .copy(initiative = v.toInt)
+                                          )
                                         ),
                                       s"Setting initiative for ${npcCombatant.name} to $v"
                                     )
@@ -715,7 +776,10 @@ object CombatRunner {
                                     ) =>
                                       val fromIncapacitated = npc.info.health.isDead
                                       val newHitPoints =
-                                        npcInfo.health.currentHitPoints + state.healOrDamage(npcCombatant.id)
+                                        if (fromIncapacitated)
+                                          state.healOrDamage(npcCombatant.id)
+                                        else
+                                          npcInfo.health.currentHitPoints + state.healOrDamage(npcCombatant.id)
                                       val toIncapacitated = newHitPoints <= 0
                                       modNPC(
                                         npc.copy(jsonInfo =
@@ -750,12 +814,8 @@ object CombatRunner {
                                       _,
                                       data
                                     ) =>
-                                      val newVal = data.value match {
-                                        case s: String => s.toDouble
-                                        case d: Double => d
-                                      }
                                       $.modState(s =>
-                                        s.copy(healOrDamage = s.healOrDamage + (npcCombatant.id -> newVal.toInt))
+                                        s.copy(healOrDamage = s.healOrDamage + (npcCombatant.id -> data.value.asInt()))
                                       )
                                   },
                                 Button("Damage")
@@ -917,9 +977,11 @@ object CombatRunner {
                                         info
                                           .copy(
                                             currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
-                                            combatants = info.combatants
-                                              .filter(_.id.value != monsterCombatant.id.value) :+ monsterCombatant
-                                              .copy(initiative = v.toInt)
+                                            combatants = reSort(
+                                              info.combatants
+                                                .filter(_.id.value != monsterCombatant.id.value) :+ monsterCombatant
+                                                .copy(initiative = v.toInt)
+                                            )
                                           ),
                                       s"Setting initiative for ${monsterCombatant.name} to $v"
                                     )
@@ -998,12 +1060,10 @@ object CombatRunner {
                                       _,
                                       data
                                     ) =>
-                                      val newVal = data.value match {
-                                        case s: String => s.toDouble
-                                        case d: Double => d
-                                      }
                                       $.modState(s =>
-                                        s.copy(healOrDamage = s.healOrDamage + (monsterCombatant.id -> newVal.toInt))
+                                        s.copy(healOrDamage =
+                                          s.healOrDamage + (monsterCombatant.id -> data.value.asInt())
+                                        )
                                       )
                                   },
                                 Button("Damage")

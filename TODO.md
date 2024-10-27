@@ -80,6 +80,12 @@ width: 90%;
 DONE - Hide "current button" if the campaign is already current
 Super ugly if there's no campaigns.
 # PlayerCharacterPage/Component
+- Hit point up/down isn't working
+# NPC
+DONE - Delete NPC is not working
+- Add NPC from Bestiary
+- Scenes present
+- Scenes filter
 ## CSS
 - Align pc to top
 - Conditions bgcolor should be white
@@ -91,8 +97,12 @@ DONE - Inspiration is not sticking
 - Languages dialog broken
 - Feats Dialog broken
 # Encounter Editor
-- Need to be able to edit encounter name 
+DONE - Add NPC doesn't work (note, turns out it was working, it was just not obvious.)
+NOT DONE - Need to be able to edit encounter name (Not necessary, just go to edit title on left) 
 # Combat Runner
+DONE - Initiative is totally broken
+DONE - Filter out dead NPCs/Monsters
+DONE - Healing of PCs needs to get add full healing, not just the difference
 ## CSS
 - Heal/Damage buttons look ugly, maybe switch the whole table to white background
 # StatBlock

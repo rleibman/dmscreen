@@ -83,6 +83,16 @@ case class NonPlayerCharacterInfo(
   monster:                 Option[MonsterId] = None
 ) extends CharacterInfo {
 
+  def initiativeTuple: (Int, Int, Int, Int, Int, Int) =
+    (
+      -initiativeBonus,
+      -abilities.dexterity.value,
+      -abilities.intelligence.value,
+      -abilities.charisma.value,
+      -abilities.strength.value,
+      -abilities.constitution.value
+    )
+
   /** This method will make a copy of this character info, but will auto calculate some of the fields based on the
     * options passed in.
     */

@@ -97,7 +97,7 @@ object STAAPI {
     characters:          CampaignId => ZIO[STAZIORepository, DMScreenError, Seq[Character]],
     ships:               CampaignId => ZIO[STAZIORepository, DMScreenError, Seq[Starship]],
     scenes:              CampaignId => ZIO[STAZIORepository, DMScreenError, Seq[Scene]],
-    nonPlayerCharacters: CampaignId => ZIO[STAZIORepository, DMScreenError, Seq[NonPlayerCharacter]],
+    nonPlayerCharacters: CampaignId => ZIO[STAZIORepository, DMScreenError, Seq[NonPlayerCharacter]]
   )
   case class Mutations(
     upsertCharacter:          Character => ZIO[STAZIORepository, DMScreenError, CharacterId],
@@ -119,7 +119,7 @@ object STAAPI {
           characters = campaignId => ZIO.serviceWithZIO[STAZIORepository](_.characters(campaignId)),
           ships = campaignId => ZIO.serviceWithZIO[STAZIORepository](_.starships(campaignId)),
           scenes = campaignId => ZIO.serviceWithZIO[STAZIORepository](_.scenes(campaignId)),
-          nonPlayerCharacters = campaignId => ZIO.serviceWithZIO[STAZIORepository](_.nonPlayerCharacters(campaignId)),
+          nonPlayerCharacters = campaignId => ZIO.serviceWithZIO[STAZIORepository](_.nonPlayerCharacters(campaignId))
         ),
         Mutations(
           upsertCharacter =

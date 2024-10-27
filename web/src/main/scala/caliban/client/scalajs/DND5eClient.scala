@@ -376,9 +376,8 @@ object DND5eClient {
 
     def header[A](innerSelection: SelectionBuilder[EncounterHeader, A]): SelectionBuilder[Encounter, A] =
       SelectionBuilder.Field("header", Obj(innerSelection))
-    def jsonInfo: SelectionBuilder[Encounter, Json] =
-      SelectionBuilder.Field("jsonInfo", Scalar())
-    def version: SelectionBuilder[Encounter, String] = SelectionBuilder.Field("version", Scalar())
+    def jsonInfo: SelectionBuilder[Encounter, Json] = SelectionBuilder.Field("jsonInfo", Scalar())
+    def version:  SelectionBuilder[Encounter, String] = SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -402,16 +401,13 @@ object DND5eClient {
           EncounterHeaderView(id, campaignId, name, status, sceneId, orderCol)
       }
 
-    def id: SelectionBuilder[EncounterHeader, Long] = SelectionBuilder.Field("id", Scalar())
-    def campaignId: SelectionBuilder[EncounterHeader, Long] =
-      SelectionBuilder.Field("campaignId", Scalar())
-    def name: SelectionBuilder[EncounterHeader, String] = SelectionBuilder.Field("name", Scalar())
-    def status: SelectionBuilder[EncounterHeader, String] =
-      SelectionBuilder.Field("status", Scalar())
+    def id:         SelectionBuilder[EncounterHeader, Long] = SelectionBuilder.Field("id", Scalar())
+    def campaignId: SelectionBuilder[EncounterHeader, Long] = SelectionBuilder.Field("campaignId", Scalar())
+    def name:       SelectionBuilder[EncounterHeader, String] = SelectionBuilder.Field("name", Scalar())
+    def status:     SelectionBuilder[EncounterHeader, String] = SelectionBuilder.Field("status", Scalar())
     def sceneId: SelectionBuilder[EncounterHeader, scala.Option[Long]] =
       SelectionBuilder.Field("sceneId", OptionOf(Scalar()))
-    def orderCol: SelectionBuilder[EncounterHeader, Int] =
-      SelectionBuilder.Field("orderCol", Scalar())
+    def orderCol: SelectionBuilder[EncounterHeader, Int] = SelectionBuilder.Field("orderCol", Scalar())
 
   }
 
@@ -434,9 +430,8 @@ object DND5eClient {
 
     def header[A](innerSelection: SelectionBuilder[MonsterHeader, A]): SelectionBuilder[Monster, A] =
       SelectionBuilder.Field("header", Obj(innerSelection))
-    def jsonInfo: SelectionBuilder[Monster, Json] =
-      SelectionBuilder.Field("jsonInfo", Scalar())
-    def version: SelectionBuilder[Monster, String] = SelectionBuilder.Field("version", Scalar())
+    def jsonInfo: SelectionBuilder[Monster, Json] = SelectionBuilder.Field("jsonInfo", Scalar())
+    def version:  SelectionBuilder[Monster, String] = SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -493,26 +488,20 @@ object DND5eClient {
             )
         }
 
-    def id: SelectionBuilder[MonsterHeader, Long] = SelectionBuilder.Field("id", Scalar())
-    def sourceId: SelectionBuilder[MonsterHeader, String] =
-      SelectionBuilder.Field("sourceId", Scalar())
-    def name: SelectionBuilder[MonsterHeader, String] = SelectionBuilder.Field("name", Scalar())
-    def monsterType: SelectionBuilder[MonsterHeader, MonsterType] =
-      SelectionBuilder.Field("monsterType", Scalar())
+    def id:          SelectionBuilder[MonsterHeader, Long] = SelectionBuilder.Field("id", Scalar())
+    def sourceId:    SelectionBuilder[MonsterHeader, String] = SelectionBuilder.Field("sourceId", Scalar())
+    def name:        SelectionBuilder[MonsterHeader, String] = SelectionBuilder.Field("name", Scalar())
+    def monsterType: SelectionBuilder[MonsterHeader, MonsterType] = SelectionBuilder.Field("monsterType", Scalar())
     def biome: SelectionBuilder[MonsterHeader, scala.Option[Biome]] =
       SelectionBuilder.Field("biome", OptionOf(Scalar()))
     def alignment: SelectionBuilder[MonsterHeader, scala.Option[Alignment]] =
       SelectionBuilder.Field("alignment", OptionOf(Scalar()))
-    def cr: SelectionBuilder[MonsterHeader, Double] = SelectionBuilder.Field("cr", Scalar())
-    def xp: SelectionBuilder[MonsterHeader, Long] = SelectionBuilder.Field("xp", Scalar())
-    def armorClass: SelectionBuilder[MonsterHeader, Int] =
-      SelectionBuilder.Field("armorClass", Scalar())
-    def maximumHitPoints: SelectionBuilder[MonsterHeader, Int] =
-      SelectionBuilder.Field("maximumHitPoints", Scalar())
-    def size: SelectionBuilder[MonsterHeader, CreatureSize] =
-      SelectionBuilder.Field("size", Scalar())
-    def initiativeBonus: SelectionBuilder[MonsterHeader, Int] =
-      SelectionBuilder.Field("initiativeBonus", Scalar())
+    def cr:               SelectionBuilder[MonsterHeader, Double] = SelectionBuilder.Field("cr", Scalar())
+    def xp:               SelectionBuilder[MonsterHeader, Long] = SelectionBuilder.Field("xp", Scalar())
+    def armorClass:       SelectionBuilder[MonsterHeader, Int] = SelectionBuilder.Field("armorClass", Scalar())
+    def maximumHitPoints: SelectionBuilder[MonsterHeader, Int] = SelectionBuilder.Field("maximumHitPoints", Scalar())
+    def size:             SelectionBuilder[MonsterHeader, CreatureSize] = SelectionBuilder.Field("size", Scalar())
+    def initiativeBonus:  SelectionBuilder[MonsterHeader, Int] = SelectionBuilder.Field("initiativeBonus", Scalar())
 
   }
 
@@ -532,10 +521,8 @@ object DND5eClient {
       (results(resultsSelection) ~ total).map { case (results, total) => MonsterSearchResultsView(results, total) }
 
     def results[A](innerSelection: SelectionBuilder[MonsterHeader, A])
-      : SelectionBuilder[MonsterSearchResults, List[A]] =
-      SelectionBuilder.Field("results", ListOf(Obj(innerSelection)))
-    def total: SelectionBuilder[MonsterSearchResults, Long] =
-      SelectionBuilder.Field("total", Scalar())
+      : SelectionBuilder[MonsterSearchResults, List[A]] = SelectionBuilder.Field("results", ListOf(Obj(innerSelection)))
+    def total: SelectionBuilder[MonsterSearchResults, Long] = SelectionBuilder.Field("total", Scalar())
 
   }
 
@@ -557,12 +544,9 @@ object DND5eClient {
       }
 
     def header[A](innerSelection: SelectionBuilder[NonPlayerCharacterHeader, A])
-      : SelectionBuilder[NonPlayerCharacter, A] =
-      SelectionBuilder.Field("header", Obj(innerSelection))
-    def jsonInfo: SelectionBuilder[NonPlayerCharacter, Json] =
-      SelectionBuilder.Field("jsonInfo", Scalar())
-    def version: SelectionBuilder[NonPlayerCharacter, String] =
-      SelectionBuilder.Field("version", Scalar())
+      : SelectionBuilder[NonPlayerCharacter, A] = SelectionBuilder.Field("header", Obj(innerSelection))
+    def jsonInfo: SelectionBuilder[NonPlayerCharacter, Json] = SelectionBuilder.Field("jsonInfo", Scalar())
+    def version:  SelectionBuilder[NonPlayerCharacter, String] = SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -580,12 +564,9 @@ object DND5eClient {
     def view: ViewSelection =
       (id ~ campaignId ~ name).map { case (id, campaignId, name) => NonPlayerCharacterHeaderView(id, campaignId, name) }
 
-    def id: SelectionBuilder[NonPlayerCharacterHeader, Long] =
-      SelectionBuilder.Field("id", Scalar())
-    def campaignId: SelectionBuilder[NonPlayerCharacterHeader, Long] =
-      SelectionBuilder.Field("campaignId", Scalar())
-    def name: SelectionBuilder[NonPlayerCharacterHeader, String] =
-      SelectionBuilder.Field("name", Scalar())
+    def id:         SelectionBuilder[NonPlayerCharacterHeader, Long] = SelectionBuilder.Field("id", Scalar())
+    def campaignId: SelectionBuilder[NonPlayerCharacterHeader, Long] = SelectionBuilder.Field("campaignId", Scalar())
+    def name:       SelectionBuilder[NonPlayerCharacterHeader, String] = SelectionBuilder.Field("name", Scalar())
 
   }
 
@@ -608,10 +589,8 @@ object DND5eClient {
 
     def header[A](innerSelection: SelectionBuilder[PlayerCharacterHeader, A]): SelectionBuilder[PlayerCharacter, A] =
       SelectionBuilder.Field("header", Obj(innerSelection))
-    def jsonInfo: SelectionBuilder[PlayerCharacter, Json] =
-      SelectionBuilder.Field("jsonInfo", Scalar())
-    def version: SelectionBuilder[PlayerCharacter, String] =
-      SelectionBuilder.Field("version", Scalar())
+    def jsonInfo: SelectionBuilder[PlayerCharacter, Json] = SelectionBuilder.Field("jsonInfo", Scalar())
+    def version:  SelectionBuilder[PlayerCharacter, String] = SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -633,13 +612,10 @@ object DND5eClient {
         PlayerCharacterHeaderView(id, campaignId, name, source, playerName)
       }
 
-    def id: SelectionBuilder[PlayerCharacterHeader, Long] = SelectionBuilder.Field("id", Scalar())
-    def campaignId: SelectionBuilder[PlayerCharacterHeader, Long] =
-      SelectionBuilder.Field("campaignId", Scalar())
-    def name: SelectionBuilder[PlayerCharacterHeader, String] =
-      SelectionBuilder.Field("name", Scalar())
-    def source: SelectionBuilder[PlayerCharacterHeader, String] =
-      SelectionBuilder.Field("source", Scalar())
+    def id:         SelectionBuilder[PlayerCharacterHeader, Long] = SelectionBuilder.Field("id", Scalar())
+    def campaignId: SelectionBuilder[PlayerCharacterHeader, Long] = SelectionBuilder.Field("campaignId", Scalar())
+    def name:       SelectionBuilder[PlayerCharacterHeader, String] = SelectionBuilder.Field("name", Scalar())
+    def source:     SelectionBuilder[PlayerCharacterHeader, String] = SelectionBuilder.Field("source", Scalar())
     def playerName: SelectionBuilder[PlayerCharacterHeader, scala.Option[String]] =
       SelectionBuilder.Field("playerName", OptionOf(Scalar()))
 
@@ -677,9 +653,8 @@ object DND5eClient {
 
     def header[A](innerSelection: SelectionBuilder[SceneHeader, A]): SelectionBuilder[Scene, A] =
       SelectionBuilder.Field("header", Obj(innerSelection))
-    def jsonInfo: SelectionBuilder[Scene, Json] =
-      SelectionBuilder.Field("jsonInfo", Scalar())
-    def version: SelectionBuilder[Scene, String] = SelectionBuilder.Field("version", Scalar())
+    def jsonInfo: SelectionBuilder[Scene, Json] = SelectionBuilder.Field("jsonInfo", Scalar())
+    def version:  SelectionBuilder[Scene, String] = SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -701,14 +676,11 @@ object DND5eClient {
         SceneHeaderView(id, campaignId, name, orderCol, isActive)
       }
 
-    def id: SelectionBuilder[SceneHeader, Long] = SelectionBuilder.Field("id", Scalar())
-    def campaignId: SelectionBuilder[SceneHeader, Long] =
-      SelectionBuilder.Field("campaignId", Scalar())
-    def name: SelectionBuilder[SceneHeader, String] = SelectionBuilder.Field("name", Scalar())
-    def orderCol: SelectionBuilder[SceneHeader, Int] =
-      SelectionBuilder.Field("orderCol", Scalar())
-    def isActive: SelectionBuilder[SceneHeader, Boolean] =
-      SelectionBuilder.Field("isActive", Scalar())
+    def id:         SelectionBuilder[SceneHeader, Long] = SelectionBuilder.Field("id", Scalar())
+    def campaignId: SelectionBuilder[SceneHeader, Long] = SelectionBuilder.Field("campaignId", Scalar())
+    def name:       SelectionBuilder[SceneHeader, String] = SelectionBuilder.Field("name", Scalar())
+    def orderCol:   SelectionBuilder[SceneHeader, Int] = SelectionBuilder.Field("orderCol", Scalar())
+    def isActive:   SelectionBuilder[SceneHeader, Boolean] = SelectionBuilder.Field("isActive", Scalar())
 
   }
 
@@ -727,8 +699,7 @@ object DND5eClient {
 
     def name: SelectionBuilder[Source, String] = SelectionBuilder.Field("name", Scalar())
     def id:   SelectionBuilder[Source, String] = SelectionBuilder.Field("id", Scalar())
-    def url: SelectionBuilder[Source, scala.Option[String]] =
-      SelectionBuilder.Field("url", OptionOf(Scalar()))
+    def url:  SelectionBuilder[Source, scala.Option[String]] = SelectionBuilder.Field("url", OptionOf(Scalar()))
 
   }
 
@@ -1042,14 +1013,12 @@ object DND5eClient {
           Argument("pageSize", pageSize, "Int!")(encoder10)
         )
       )
-    def sources[A](innerSelection: SelectionBuilder[Source, A])
-      : SelectionBuilder[RootQuery, scala.Option[List[A]]] =
+    def sources[A](innerSelection: SelectionBuilder[Source, A]): SelectionBuilder[RootQuery, scala.Option[List[A]]] =
       SelectionBuilder.Field("sources", OptionOf(ListOf(Obj(innerSelection))))
     def classes[A](innerSelection: SelectionBuilder[CharacterClass, A])
       : SelectionBuilder[RootQuery, scala.Option[List[A]]] =
       SelectionBuilder.Field("classes", OptionOf(ListOf(Obj(innerSelection))))
-    def races[A](innerSelection: SelectionBuilder[Race, A])
-      : SelectionBuilder[RootQuery, scala.Option[List[A]]] =
+    def races[A](innerSelection: SelectionBuilder[Race, A]): SelectionBuilder[RootQuery, scala.Option[List[A]]] =
       SelectionBuilder.Field("races", OptionOf(ListOf(Obj(innerSelection))))
     def backgrounds[A](innerSelection: SelectionBuilder[Background, A])
       : SelectionBuilder[RootQuery, scala.Option[List[A]]] =

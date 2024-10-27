@@ -113,16 +113,17 @@ object NPCPage extends DMScreenTab {
                         )
                       ),
                     onDelete = deleteMe =>
-                      DND5eGraphQLRepository.live
-                        .deleteEntity(entityType = DND5eEntityType.nonPlayerCharacter, id = npc.header.id)
-                        .map(_ =>
-                          $.modState(s =>
-                            s.copy(npcs = s.npcs.filter(_.header.id != deleteMe.header.id))
-                          ) >> dmScreenState.log(
-                            s"Deleted non player character ${npc.header.name}"
+                      Callback.log("About to delete NPC") >>
+                        DND5eGraphQLRepository.live
+                          .deleteEntity(entityType = DND5eEntityType.nonPlayerCharacter, id = npc.header.id)
+                          .map(_ =>
+                            $.modState(s =>
+                              s.copy(npcs = s.npcs.filter(_.header.id != deleteMe.header.id))
+                            ) >> dmScreenState.log(
+                              s"Deleted non player character ${npc.header.name}"
+                            )
                           )
-                        )
-                        .completeWith(_.get),
+                          .completeWith(_.get),
                     onComponentClose = _ => dmScreenState.onForceSave
                   )
                 ).toVdomArray

@@ -283,13 +283,14 @@ class FoundryImporter extends STAImporter[URI, URI] {
             )
           } yield CharacterWeapon(name, description, damage, range, hands, qualities)
         ).sequence
-      talents <- items.filter(a => a.getStr("type") == Right("talent")).map(talentObj =>
-        for {
-          name        <- talentObj.getStr("name")
-          systemObj   <- talentObj.getObj("system")
-          description <- systemObj.getStr("description")
-        } yield Talent(name, description)
-      ).sequence
+      talents <- items
+        .filter(a => a.getStr("type") == Right("talent")).map(talentObj =>
+          for {
+            name        <- talentObj.getStr("name")
+            systemObj   <- talentObj.getObj("system")
+            description <- systemObj.getStr("description")
+          } yield Talent(name, description)
+        ).sequence
     } yield {
       import dmscreen.sta.given
       Character(

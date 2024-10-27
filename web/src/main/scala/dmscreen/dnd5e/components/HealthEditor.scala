@@ -32,6 +32,7 @@ import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticWIDTHS
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
+import dmscreen.util.*
 
 object HealthEditor {
 
@@ -76,10 +77,7 @@ object HealthEditor {
                           s,
                           p
                         ) => {
-                          val newNum = changedData.value match {
-                            case s: String => s.toIntOption.getOrElse(0)
-                            case x: Double => x.toInt
-                          }
+                          val newNum = changedData.value.asInt()
                           s.copy(health =
                             s.health.copy(
                               deathSave =
@@ -111,10 +109,7 @@ object HealthEditor {
                           s,
                           p
                         ) => {
-                          val newNum = changedData.value match {
-                            case s: String => s.toIntOption.getOrElse(0)
-                            case x: Double => x.toInt
-                          }
+                          val newNum = changedData.value.asInt()
                           s.copy(health = s.health.copy(maxHitPoints = newNum))
                         },
                         $.state.flatMap(s => props.onChange(s.health))
@@ -161,10 +156,7 @@ object HealthEditor {
                           s,
                           p
                         ) => {
-                          val newNum = changedData.value match {
-                            case s: String => s.toIntOption.getOrElse(0)
-                            case x: Double => x.toInt
-                          }
+                          val newNum = changedData.value.asInt()
                           s.copy(health = s.health.copy(overrideMaxHitPoints = if (newNum <= 0) None else Some(newNum)))
                         },
                         $.state.flatMap(s => props.onChange(s.health))
@@ -189,10 +181,7 @@ object HealthEditor {
                           s,
                           p
                         ) => {
-                          val newNum = changedData.value match {
-                            case s: String => s.toIntOption.getOrElse(0)
-                            case x: Double => x.toInt
-                          }
+                          val newNum = changedData.value.asInt()
                           s.copy(health = s.health.copy(temporaryHitPoints = newNum))
                         },
                         $.state.flatMap(s => props.onChange(s.health))

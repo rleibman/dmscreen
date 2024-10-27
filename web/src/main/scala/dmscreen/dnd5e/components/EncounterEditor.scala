@@ -42,6 +42,7 @@ import zio.json.ast.Json
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
+import dmscreen.util.*
 
 def createMonsterCombatant(
   encounter: Encounter,
@@ -200,10 +201,10 @@ object EncounterEditor {
                 Modal.Header("Select NPC to add"),
                 Modal.Content(
                   Dropdown
-                    .compact(true)
+                    .compact(false)
                     .search(false)
                     .clearable(true)
-                    .placeholder("Npcs")
+                    .placeholder("Click to Select NPC")
                     .options(
                       state.npcs
                         .filter(npc =>
@@ -430,7 +431,7 @@ object EncounterEditor {
                                         case monsterCombatant2: MonsterCombatant
                                             if monsterCombatant2.id == combatant.id =>
                                           monsterCombatant2.copy(name = name)
-                                        case _ => combatant
+                                        case c => c
                                       }).toJsonAST.toOption.get
                                   )
                               )
@@ -456,7 +457,7 @@ object EncounterEditor {
                                         case monsterCombatant2: MonsterCombatant
                                             if monsterCombatant2.id == combatant.id =>
                                           monsterCombatant2.copy(armorClass = v.toInt)
-                                        case _ => combatant
+                                        case c => c
                                       }).toJsonAST.toOption.get
                                   )
                               }
@@ -478,7 +479,7 @@ object EncounterEditor {
                                             if monsterCombatant2.id == combatant.id =>
                                           monsterCombatant2
                                             .copy(health = monsterCombatant2.health.copy(maxHitPoints = v.toInt))
-                                        case _ => combatant
+                                        case c => c
                                       }).toJsonAST.toOption.get
                                   )
                               }
@@ -898,6 +899,7 @@ object EncounterEditor {
                             val newVal = data.activePage match {
                               case s: String => s.toInt
                               case d: Double => d.toInt
+                              case _: Unit   => 1
                             }
 
                             modMonsterSearch(_.copy(page = newVal - 1))

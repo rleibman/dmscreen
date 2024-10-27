@@ -22,19 +22,16 @@
 package dmscreen.components
 
 import japgolly.scalajs.react.*
-import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
+import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.VdomNode
-import japgolly.scalajs.react.vdom.all.verticalAlign
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
-import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticSIZES
-import org.scalajs.dom.html
-import org.scalajs.dom.html.Span
 
 import scala.scalajs.js
 import scala.scalajs.js.UndefOr
+import dmscreen.util.{*, given}
 
 object EditableNumber {
 
@@ -74,12 +71,7 @@ object EditableNumber {
               _,
               d
             ) =>
-              val newVal = d.value match {
-                case s: String => s.toDouble
-                case d: Double => d
-              }
-
-              $.modState(_.copy(value = newVal))
+              $.modState(_.copy(value = d.value.asDouble()))
           }
           .onKeyUp { e =>
             if (e.key == "Enter" || e.keyCode == 13) doBlur else Callback.empty

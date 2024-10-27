@@ -628,28 +628,29 @@ object QuillRepository {
 //                ctx.transaction(total)
               case DND5eEntityType.playerCharacter =>
                 val valId = id.asInstanceOf[PlayerCharacterId].value
-                val rawQuery = quote {
-                  // Enhancement this could be made more efficient by adding a where clause
-                  sql"""UPDATE encounter
-                       SET info = JSON_SET(
-                               info,
-                               '$$.combatants',
-                               JSON_ARRAY(
-                                       (
-                                           SELECT JSON_ARRAYAGG(c)
-                                           FROM JSON_TABLE(
-                                                        info,
-                                                        '$$.combatants[*]' COLUMNS (
-                                                            c JSON PATH '$$',
-                                                            id INT PATH '$$.PlayerCharacterCombatant.playerCharacterId'
-                                                            )
-                                                ) AS jt
-                                           WHERE jt.id != $valId OR jt.id IS NULL
-                                       )
+                val rawQuery =
+                  quote {
+                    sql"""
+                    UPDATE DND5eEncounter
+                    SET info = JSON_REMOVE(
+                            info,
+                            SUBSTRING_INDEX(
+                                    JSON_UNQUOTE(
+                                            JSON_SEARCH(
+                                                    info,
+                                                    'one',
+                                                    '#$valId',
+                                                    NULL,
+                                                    '$$.combatants[*].PlayerCharacterCombatant.playerCharacterId'
+                                            )
+                                    ),
+                                    '.',
+                                    2
+                            )
                                )
-                       )
-                       """.as[Action[Long]]
-                }
+                    WHERE JSON_SEARCH(info, 'one', '#$valId', NULL, '$$.combatants[*].PlayerCharacterCombatant.playerCharacterId') IS NOT NULL
+                  """.as[Action[Int]]
+                  }
                 val total = for {
                   a <- ctx
                     .run(
@@ -659,30 +660,31 @@ object QuillRepository {
 
                   b <- ctx.run(rawQuery)
                 } yield a + b
-                ctx.transaction(total)
+                ctx
+                  .transaction(total)
               case DND5eEntityType.nonPlayerCharacter =>
                 val valId = id.asInstanceOf[NonPlayerCharacterId].value
                 val rawQuery = quote {
-                  // Enhancement this could be made more efficient by adding a where clause
-                  sql"""UPDATE encounter
-                       SET info = JSON_SET(
-                               info,
-                               '$$.combatants',
-                               JSON_ARRAY(
-                                       (
-                                           SELECT JSON_ARRAYAGG(c)
-                                           FROM JSON_TABLE(
-                                                        info,
-                                                        '$$.combatants[*]' COLUMNS (
-                                                            c JSON PATH '$$',
-                                                            id INT PATH '$$.NonPlayerCharacterCombatant.nonPlayerCharacterId'
-                                                            )
-                                                ) AS jt
-                                           WHERE jt.id != $valId OR jt.id IS NULL
-                                       )
+                  sql"""
+                    UPDATE DND5eEncounter
+                    SET info = JSON_REMOVE(
+                            info,
+                            SUBSTRING_INDEX(
+                                    JSON_UNQUOTE(
+                                            JSON_SEARCH(
+                                                    info,
+                                                    'one',
+                                                    '#$valId',
+                                                    NULL,
+                                                    '$$.combatants[*].NonPlayerCharacterCombatant.nonPlayerCharacterId'
+                                            )
+                                    ),
+                                    '.',
+                                    2
+                            )
                                )
-                       )
-                       """.as[Action[Long]]
+                    WHERE JSON_SEARCH(info, 'one', '#$valId', NULL, '$$.combatants[*].NonPlayerCharacterCombatant.nonPlayerCharacterId') IS NOT NULL
+                  """.as[Action[Long]]
                 }
                 val total = for {
                   a <- ctx
@@ -696,26 +698,26 @@ object QuillRepository {
               case DND5eEntityType.monster =>
                 val valId = id.asInstanceOf[MonsterId].value
                 val rawQuery = quote {
-                  // Enhancement this could be made more efficient by adding a where clause
-                  sql"""UPDATE encounter
-                       SET info = JSON_SET(
-                               info,
-                               '$$.combatants',
-                               JSON_ARRAY(
-                                       (
-                                           SELECT JSON_ARRAYAGG(c)
-                                           FROM JSON_TABLE(
-                                                        info,
-                                                        '$$.combatants[*]' COLUMNS (
-                                                            c JSON PATH '$$',
-                                                            id INT PATH '$$.MonsterCombatant.monsterHeader.id'
-                                                            )
-                                                ) AS jt
-                                           WHERE jt.id != $valId OR jt.id IS NULL
-                                       )
+                  sql"""
+                    UPDATE DND5eEncounter
+                    SET info = JSON_REMOVE(
+                            info,
+                            SUBSTRING_INDEX(
+                                    JSON_UNQUOTE(
+                                            JSON_SEARCH(
+                                                    info,
+                                                    'one',
+                                                    '#$valId',
+                                                    NULL,
+                                                    '$$.combatants[*].MonsterCombatant.monsterHeader.id'
+                                            )
+                                    ),
+                                    '.',
+                                    2
+                            )
                                )
-                       )
-                       """.as[Action[Long]]
+                    WHERE JSON_SEARCH(info, 'one', '#$valId', NULL, '$$.combatants[*].MonsterCombatant.monsterHeader.id') IS NOT NULL
+                  """.as[Action[Long]]
                 }
                 val total = for {
                   a <- ctx.run(qMonsters.filter(_.id == lift(valId)).update(_.deleted -> true))
@@ -751,26 +753,26 @@ object QuillRepository {
               case DND5eEntityType.playerCharacter =>
                 val valId = id.asInstanceOf[PlayerCharacterId].value
                 val rawQuery = quote {
-                  // Enhancement this could be made more efficient by adding a where clause
-                  sql"""UPDATE encounter
-                       SET info = JSON_SET(
-                               info,
-                               '$$.combatants',
-                               JSON_ARRAY(
-                                       (
-                                           SELECT JSON_ARRAYAGG(c)
-                                           FROM JSON_TABLE(
-                                                        info,
-                                                        '$$.combatants[*]' COLUMNS (
-                                                            c JSON PATH '$$',
-                                                            id INT PATH '$$.PlayerCharacterCombatant.playerCharacterId'
-                                                            )
-                                                ) AS jt
-                                           WHERE jt.id != $valId OR jt.id IS NULL
-                                       )
+                  sql"""
+                    UPDATE DND5eEncounter
+                    SET info = JSON_REMOVE(
+                            info,
+                            SUBSTRING_INDEX(
+                                    JSON_UNQUOTE(
+                                            JSON_SEARCH(
+                                                    info,
+                                                    'one',
+                                                    '#$valId',
+                                                    NULL,
+                                                    '$$.combatants[*].PlayerCharacterCombatant.playerCharacterId'
+                                            )
+                                    ),
+                                    '.',
+                                    2
+                            )
                                )
-                       )
-                       """.as[Action[Long]]
+                    WHERE JSON_SEARCH(info, 'one', '#$valId', NULL, '$$.combatants[*].PlayerCharacterCombatant.playerCharacterId') IS NOT NULL
+                  """.as[Action[Long]]
                 }
                 val total = for {
                   a <- ctx.run(qPlayerCharacters.filter(_.id == lift(id.asInstanceOf[PlayerCharacterId].value)).delete)
@@ -780,26 +782,26 @@ object QuillRepository {
               case DND5eEntityType.nonPlayerCharacter =>
                 val valId = id.asInstanceOf[NonPlayerCharacterId].value
                 val rawQuery = quote {
-                  // Enhancement this could be made more efficient by adding a where clause
-                  sql"""UPDATE encounter
-                       SET info = JSON_SET(
-                               info,
-                               '$$.combatants',
-                               JSON_ARRAY(
-                                       (
-                                           SELECT JSON_ARRAYAGG(c)
-                                           FROM JSON_TABLE(
-                                                        info,
-                                                        '$$.combatants[*]' COLUMNS (
-                                                            c JSON PATH '$$',
-                                                            id INT PATH '$$.NonPlayerCharacterCombatant.nonPlayerCharacterId'
-                                                            )
-                                                ) AS jt
-                                           WHERE jt.id != $valId OR jt.id IS NULL
-                                       )
+                  sql"""
+                    UPDATE DND5eEncounter
+                    SET info = JSON_REMOVE(
+                            info,
+                            SUBSTRING_INDEX(
+                                    JSON_UNQUOTE(
+                                            JSON_SEARCH(
+                                                    info,
+                                                    'one',
+                                                    '#$valId',
+                                                    NULL,
+                                                    '$$.combatants[*].NonPlayerCharacterCombatant.nonPlayerCharacterId'
+                                            )
+                                    ),
+                                    '.',
+                                    2
+                            )
                                )
-                       )
-                       """.as[Action[Long]]
+                    WHERE JSON_SEARCH(info, 'one', '#$valId', NULL, '$$.combatants[*].NonPlayerCharacterCombatant.nonPlayerCharacterId') IS NOT NULL
+                  """.as[Action[Long]]
                 }
                 val total = for {
                   a <- ctx.run(
@@ -811,26 +813,26 @@ object QuillRepository {
               case DND5eEntityType.monster =>
                 val valId = id.asInstanceOf[MonsterId].value
                 val rawQuery = quote {
-                  // Enhancement this could be made more efficient by adding a where clause
-                  sql"""UPDATE encounter
-                       SET info = JSON_SET(
-                               info,
-                               '$$.combatants',
-                               JSON_ARRAY(
-                                       (
-                                           SELECT JSON_ARRAYAGG(c)
-                                           FROM JSON_TABLE(
-                                                        info,
-                                                        '$$.combatants[*]' COLUMNS (
-                                                            c JSON PATH '$$',
-                                                            id INT PATH '$$.MonsterCombatant.monsterHeader.id'
-                                                            )
-                                                ) AS jt
-                                           WHERE jt.id != $valId OR jt.id IS NULL
-                                       )
+                  sql"""
+                    UPDATE DND5eEncounter
+                    SET info = JSON_REMOVE(
+                            info,
+                            SUBSTRING_INDEX(
+                                    JSON_UNQUOTE(
+                                            JSON_SEARCH(
+                                                    info,
+                                                    'one',
+                                                    '#$valId',
+                                                    NULL,
+                                                    '$$.combatants[*].MonsterCombatant.monsterHeader.id'
+                                            )
+                                    ),
+                                    '.',
+                                    2
+                            )
                                )
-                       )
-                       """.as[Action[Long]]
+                    WHERE JSON_SEARCH(info, 'one', '#$valId', NULL, '$$.combatants[*].MonsterCombatant.monsterHeader.id') IS NOT NULL
+                  """.as[Action[Long]]
                 }
                 val total = for {
                   a <- ctx.run(qMonsters.filter(_.id == lift(id.asInstanceOf[MonsterId].value)).delete)

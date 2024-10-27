@@ -23,6 +23,7 @@ package dmscreen.dnd5e.components
 
 import dmscreen.DMScreenState
 import dmscreen.dnd5e.*
+import dmscreen.util.*
 import dmscreen.dnd5e.CharacterClassId.paladin
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
@@ -206,10 +207,7 @@ object CharacterClassEditor {
                         ) =>
                           $.modState(
                             s => {
-                              val newNum = changedData.value match {
-                                case s: String => s.toIntOption.getOrElse(0)
-                                case x: Double => x.toInt
-                              }
+                              val newNum = changedData.value.asInt(0)
                               s.copy(
                                 classes = s.classes.patch(
                                   i,

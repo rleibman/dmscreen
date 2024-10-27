@@ -33,6 +33,7 @@ import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticSIZES, SemanticWIDTHS}
 import org.scalajs.dom.html
 import org.scalajs.dom.html.Span
+import dmscreen.util.*
 
 object ArmorClassEditor {
 
@@ -60,10 +61,7 @@ object ArmorClassEditor {
             ) =>
               $.modState(
                 s => {
-                  val newNum = changedData.value match {
-                    case s: String => s.toIntOption.getOrElse(10)
-                    case x: Double => x.toInt
-                  }
+                  val newNum = changedData.value.asInt(10)
 
                   s.copy(armorClass = newNum)
                 },
