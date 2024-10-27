@@ -84,8 +84,7 @@ Super ugly if there's no campaigns.
 # NPC
 DONE - Delete NPC is not working
 - Add NPC from Bestiary
-- Scenes present
-- Scenes filter
+DONE - Scenes filter
 ## CSS
 - Align pc to top
 - Conditions bgcolor should be white
@@ -94,8 +93,8 @@ DONE - Delete NPC is not working
 DONE - Character name is not sticking
 DONE - Player name is not sticking
 DONE - Inspiration is not sticking
-- Languages dialog broken
-- Feats Dialog broken
+DONE - Languages dialog broken
+DONE - Feats Dialog broken
 # Encounter Editor
 DONE - Add NPC doesn't work (note, turns out it was working, it was just not obvious.)
 NOT DONE - Need to be able to edit encounter name (Not necessary, just go to edit title on left) 

@@ -25,28 +25,48 @@ import dmscreen.components.EditableComponent.EditingMode
 import dmscreen.dnd5e.components.NPCEditComponent
 import dmscreen.dnd5e.{*, given}
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
+import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.vdom.html_<^.*
-import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
+import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
 import zio.json.*
+
+import scala.scalajs.js
+import scala.scalajs.js.JSConverters.*
 
 object NPCPage extends DMScreenTab {
 
   case class State(
     npcs:              Seq[NonPlayerCharacter] = Seq.empty,
     editingMode:       EditingMode = EditingMode.view,
-    dndBeyondImportId: Option[String] = None
-  )
+    dndBeyondImportId: Option[String] = None,
+    scenes:            Seq[Scene] = Seq.empty,
+    encounters:        Seq[Encounter] = Seq.empty,
+    filterScene:       Option[Scene] = None
+  ) {
+
+    def ncpsInScene: Seq[NonPlayerCharacter] =
+      filterScene.fold(npcs) { scene =>
+        val npcsIds: Seq[NonPlayerCharacterId] = encounters
+          .filter(_.header.sceneId.fold(-1)(_.value) == scene.id.value)
+          .flatMap(encounter => encounter.info.npcs.map(_.nonPlayerCharacterId))
+          .distinct
+        npcs.filter(npc => npcsIds.contains(npc.header.id))
+      }
+
+  }
 
   class Backend($ : BackendScope[CampaignId, State]) {
 
     def loadState(campaignId: CampaignId): Callback = {
-      DND5eGraphQLRepository.live
-        .nonPlayerCharacters(campaignId).map { npcs =>
-          $.modState(_.copy(npcs = npcs))
-        }.completeWith(_.get)
+      (for {
+        npcs       <- DND5eGraphQLRepository.live.nonPlayerCharacters(campaignId)
+        scenes     <- DND5eGraphQLRepository.live.scenes(campaignId)
+        encounters <- DND5eGraphQLRepository.live.encounters(campaignId)
+      } yield $.modState(_.copy(npcs = npcs, scenes = scenes, encounters = encounters))).completeWith(_.get)
     }
 
     def render(state: State): VdomNode = {
@@ -88,12 +108,41 @@ object NPCPage extends DMScreenTab {
                       )
                       .completeWith(_.get)
                   }
-                )("Add NPC")
+                )("Add NPC"),
+              Dropdown
+                .placeholder("Class")
+                .clearable(true)
+                .compact(true)
+                .allowAdditions(false)
+                .selection(true)
+                .search(true)
+                .onChange {
+                  (
+                    _,
+                    data
+                  ) =>
+                    val newId: Long = data.value match {
+                      case s: String => s.toLong
+                      case d: Double => d.toLong
+                      case _ => -1
+                    }
+
+                    $.modState(_.copy(filterScene = state.scenes.find(_.id.value == newId)))
+                }
+                .options(
+                  (state.scenes
+                    .map(scene =>
+                      DropdownItemProps()
+                        .setValue(scene.id.value.toDouble)
+                        .setText(scene.header.name)
+                    ) :+ DropdownItemProps().setValue(-1).setText("All Scenes")).toJSArray
+                )
+                .value(state.filterScene.fold(-1.0)(_.id.value.toDouble))
             ),
             <.div(
               ^.className := "pageContainer",
               ^.key       := "pageContainer",
-              state.npcs
+              state.ncpsInScene
                 .map(npc =>
                   NPCEditComponent( // Internally, make sure each item has a key!
                     npc = npc,
