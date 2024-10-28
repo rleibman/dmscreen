@@ -69,7 +69,7 @@ content column
 ```
 width: 90%;
 ```
-- Modal headers are black on black, change color! 
+TEMPDONE - Modal headers are black on black, change color! 
 ## Functionality
 - Why is it changing pages on refresh and ignoring the # in the URL?
 # Dashboard
@@ -80,15 +80,16 @@ width: 90%;
 DONE - Hide "current button" if the campaign is already current
 Super ugly if there's no campaigns.
 # PlayerCharacterPage/Component
-- Hit point up/down isn't working
+DONE - Hit point up/down isn't working
+- When increasing HP past the max, increase the max?
 # NPC
 DONE - Delete NPC is not working
 - Add NPC from Bestiary
 DONE - Scenes filter
 ## CSS
 - Align pc to top
-- Conditions bgcolor should be white
-- Inspiration bgcolor should be white
+TEMPDONE - Conditions bgcolor should be white
+TEMPDONE - Inspiration bgcolor should be white
 ## Functionality
 DONE - Character name is not sticking
 DONE - Player name is not sticking
@@ -106,4 +107,4 @@ DONE - Healing of PCs needs to get add full healing, not just the difference
 - Heal/Damage buttons look ugly, maybe switch the whole table to white background
 # StatBlock
 ## CSS
-Notes should be black on white, furthermore, notes should be html
+TEMPDONE: Notes should be black on white
