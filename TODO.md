@@ -22,6 +22,11 @@ DONE - Encounter Page
 DONE - Home Page
 DONE - NPC Page
 DONE - Player Page
+ -   conditionImmunities:   Seq[Condition] = Seq.empty,
+     damageVulnerabilities: Seq[DamageType] = Seq.empty,
+     damageResistances:     Seq[DamageType] = Seq.empty,
+     damageImmunities:      Seq[DamageType] = Seq.empty,
+
 DONE - Feats Editor
 DONE - Hitpoints Editor
 DONE - Notes Editor

@@ -53,7 +53,7 @@ enablePlugins(
 
 val calibanVersion = "2.9.0"
 val zioVersion = "2.1.11"
-val quillVersion = "4.8.5"
+val quillVersion = "4.8.6"
 val zioHttpVersion = "3.0.1"
 val zioConfigVersion = "4.0.2"
 val zioJsonVersion = "0.7.3"

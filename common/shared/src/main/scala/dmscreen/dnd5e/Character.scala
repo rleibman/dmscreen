@@ -50,6 +50,10 @@ trait CharacterInfo {
   def notes:                   String
   def speeds:                  List[Speed]
   def senses:                  List[SenseRange]
+  def conditionImmunities:     Seq[Condition] = Seq.empty
+  def damageVulnerabilities:   Seq[DamageType] = Seq.empty
+  def damageResistances:       Seq[DamageType] = Seq.empty
+  def damageImmunities:        Seq[DamageType] = Seq.empty
 
   def totalLevel: Int = classes.map(_.level).sum
 

@@ -31,8 +31,10 @@ import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticSIZES
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
 import zio.json.*
+import org.scalablytyped.runtime.StringDictionary
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
@@ -45,7 +47,12 @@ object NPCPage extends DMScreenTab {
     dndBeyondImportId: Option[String] = None,
     scenes:            Seq[Scene] = Seq.empty,
     encounters:        Seq[Encounter] = Seq.empty,
-    filterScene:       Option[Scene] = None
+    filterScene:       Option[Scene] = None,
+    // Used to select a monster to create a new NPC
+    monsterSearch:   MonsterSearch = MonsterSearch(name = Some("")),
+    monsterSelected: Option[Monster] = None,
+    monsterList:     Seq[MonsterHeader] = Seq.empty,
+    selectMonster:   Boolean = false
   ) {
 
     def ncpsInScene: Seq[NonPlayerCharacter] =
@@ -77,6 +84,113 @@ object NPCPage extends DMScreenTab {
           val campaign = campaignState.campaign
 
           VdomArray(
+            Modal
+              .open(state.selectMonster)
+              .closeIcon(true)
+              .onClose(
+                (
+                  _,
+                  _
+                ) => $.modState(_.copy(selectMonster = false))
+              )(
+                Modal.Header(<.h2("Select Monster")),
+                Modal.Content(
+                  Form(
+                    Search()
+                      .onSearchChange(
+                        (
+                          _,
+                          data
+                        ) =>
+                          DND5eGraphQLRepository.live
+                            .bestiary(MonsterSearch(name = Some(data.value.getOrElse(""))))
+                            .map(monsters => $.modState(_.copy(monsterList = monsters.results)))
+                            .completeWith(_.get)
+                      )
+                      .onResultSelect {
+                        (
+                          _,
+                          data
+                        ) =>
+                          val monsterName = data.result.asInstanceOf[js.Dynamic].title.asInstanceOf[String]
+                          val header = state.monsterList.find(_.name == monsterName)
+                          DND5eGraphQLRepository.live
+                            .monster(header.get.id)
+                            .map(monster =>
+                              Callback.log(s"monster selected: ${monster.get.header.name}") >> $.modState(
+                                _.copy(monsterSelected = monster)
+                              )
+                            )
+                            .completeWith(_.get)
+                      }
+                      .results(
+                        state.monsterList
+                          .map(monster =>
+                            js.Dynamic.literal(
+                              "title"       -> monster.name,
+                              "description" -> ""
+                            )
+                          ).toJSArray
+                      )
+                  )
+                ),
+                Modal.Actions(
+                  Button
+                    .disabled(state.monsterSelected.isEmpty)
+                    .onClick {
+                      (
+                        _,
+                        _
+                      ) =>
+                        val monster = state.monsterSelected.get
+                        val monsterNPC = NonPlayerCharacter(
+                          header = NonPlayerCharacterHeader(
+                            id = NonPlayerCharacterId.empty,
+                            campaignId = campaign.header.id,
+                            name = s"New NPC (${monster.header.name})"
+                          ),
+                          jsonInfo = NonPlayerCharacterInfo(
+                            race = Race(monster.header.name),
+                            size = monster.header.size,
+                            health = Health(
+                              deathSave = DeathSave.empty,
+                              currentHitPoints = monster.header.maximumHitPoints,
+                              maxHitPoints = monster.header.maximumHitPoints
+                            ),
+                            armorClass = monster.header.armorClass,
+                            abilities = monster.info.abilities,
+                            senses = monster.info.senses,
+                            speeds = monster.info.speeds,
+                            languages = monster.info.languages,
+                            alignment = monster.header.alignment.getOrElse(Alignment.trueNeutral),
+                            actions = monster.info.actions ++ monster.info.reactions ++ monster.info.legendaryActions,
+                            conditionImmunities = monster.info.conditionImmunities,
+                            damageVulnerabilities = monster.info.damageVulnerabilities,
+                            damageResistances = monster.info.damageResistances,
+                            damageImmunities = monster.info.damageImmunities,
+                            monster = Some(monster.header.id),
+                            classes = List.empty
+                          ).toJsonAST.toOption.get
+                        )
+
+                        Callback.log(s"Saving NPC: $monsterNPC") >>
+                          DND5eGraphQLRepository.live
+                            .upsert(header = monsterNPC.header, info = monsterNPC.jsonInfo)
+                            .map { id =>
+                              Callback.log(s"Saved NPC with id: $id") >>
+                                $.modState(s =>
+                                  s.copy(
+                                    npcs = s.npcs :+ monsterNPC.copy(header = monsterNPC.header.copy(id = id)),
+                                    monsterSelected = None,
+                                    selectMonster = false
+                                  )
+                                ) >>
+                                dmScreenState.log("Added new NPC")
+                            }
+                            .completeWith(_.get)
+                    }("Go!")
+                )
+              ),
             <.div(
               ^.className := "pageActions",
               ^.key       := "pageActions",
@@ -109,6 +223,13 @@ object NPCPage extends DMScreenTab {
                       .completeWith(_.get)
                   }
                 )("Add NPC"),
+              Button
+                .title("Add new NPC From Monster").onClick(
+                  (
+                    _,
+                    _
+                  ) => $.modState(_.copy(selectMonster = true))
+                )("Add NPC From Monster"),
               Dropdown
                 .placeholder("Class")
                 .clearable(true)

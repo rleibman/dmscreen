@@ -410,13 +410,14 @@ object MonsterEditor {
                         Table(
                           Table.Header(
                             Table.Row(
-                              info.speeds
+                              info.speeds.toSeq
                                 .map(sp => Table.HeaderCell(^.key := sp.speedType.toString, sp.speedType.toString))*
                             )
                           ),
                           Table.Body(
                             Table.Row(
-                              info.speeds.map(sp => Table.Cell(^.key := sp.speedType.toString, sp.value.toString))*
+                              info.speeds.toSeq
+                                .map(sp => Table.Cell(^.key := sp.speedType.toString, sp.value.toString))*
                             )
                           )
                         )

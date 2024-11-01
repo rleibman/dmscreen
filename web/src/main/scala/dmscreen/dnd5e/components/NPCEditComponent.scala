@@ -277,7 +277,7 @@ object NPCEditComponent {
               ),
               <.div(
                 ^.className       := "characterDetails",
-                ^.backgroundColor := info.health.lifeColor,
+                ^.backgroundColor := info.health.lifeColor(),
                 EditableComponent(
                   view = <.table(
                     <.thead(

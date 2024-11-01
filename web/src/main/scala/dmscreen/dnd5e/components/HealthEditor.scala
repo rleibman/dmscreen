@@ -52,7 +52,7 @@ object HealthEditor {
       state: State
     ): VdomNode = {
       <.div(
-        ^.backgroundColor := state.health.lifeColor,
+        ^.backgroundColor := state.health.lifeColor(),
         <.table(
           <.tbody(
             <.tr(

@@ -176,7 +176,7 @@ class SRDImporter extends DND5eImporter[File, File, File, File] {
 
                 walk.toSeq ++ fly.toSeq ++ burrow.toSeq ++ climb.toSeq ++ swim.toSeq
 
-              }.toSeq.flatten
+              }.toList.flatten
             }
           abilities <- {
             for {
@@ -197,15 +197,15 @@ class SRDImporter extends DND5eImporter[File, File, File, File] {
           }
           cr                    <- json.getValue[Double]("challenge_rating")
           xp                    <- json.getValue[Long]("xp")
-          languages             <- json.getValue[String]("languages").map(_.split(",").map(Language(_)).toSeq)
+          languages             <- json.getValue[String]("languages").map(_.split(",").map(Language(_)).toSet)
           damageVulnerabilities <- json.getEitherOption[Seq[DamageType]]("damage_vulnerabilities").map(_.toSeq.flatten)
           damageResistances     <- json.getEitherOption[Seq[DamageType]]("damage_resistances").map(_.toSeq.flatten)
           damageImmunities      <- json.getEitherOption[Seq[DamageType]]("damage_immunities").map(_.toSeq.flatten)
           conditionImmunities   <- json.getEitherOption[Seq[Condition]]("condition_immunities").map(_.toSeq.flatten)
           specialAbilities      <- json.getEitherOption[Seq[SpecialAbility]]("special_abilities").map(_.toSeq.flatten)
           proficiencyBonus      <- json.getValue[Int]("proficiency_bonus")
-          actions               <- json.getEitherOption[Seq[Action]]("actions").map(_.toSeq.flatten)
-          reactions             <- json.getEitherOption[Seq[Action]]("reactions").map(_.toSeq.flatten)
+          actions               <- json.getEitherOption[Seq[Action]]("actions").map(_.toList.flatten)
+          reactions             <- json.getEitherOption[Seq[Action]]("reactions").map(_.toList.flatten)
           senses <- json.getEitherOption[Json.Obj]("senses").map {
             _.map { s =>
               val sight = s
@@ -231,7 +231,7 @@ class SRDImporter extends DND5eImporter[File, File, File, File] {
               val scent =
                 s.getOption[String]("scent").map(str => SenseRange(Sense.scent, str.replaceAll("ft.", "").trim.toInt))
             sight.toSeq ++ blindsight.toSeq ++ darkvision.toSeq ++ tremorsense.toSeq ++ truesight.toSeq ++ scent.toSeq
-            }.toSeq.flatten
+            }.toList.flatten
           }
 
         } yield {

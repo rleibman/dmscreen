@@ -27,16 +27,16 @@ extension (value: js.UndefOr[String | js.Array[String] | Double]) {
 
   def asDouble(default: Double = 0.0): Double =
     value match {
-      case s: String           => s.toDouble
+      case s: String           => s.toDoubleOption.getOrElse(default)
       case d: Double           => d
-      case a: js.Array[String] => a.headOption.fold(default)(_.toDouble)
+      case a: js.Array[String] => a.headOption.fold(default)(_.toDoubleOption.getOrElse(default))
       case _: Unit             => default
     }
   def asInt(default: Int = 0): Int =
     value match {
-      case s: String           => s.toInt
+      case s: String           => s.toIntOption.getOrElse(default)
       case d: Double           => d.toInt
-      case a: js.Array[String] => a.headOption.fold(default)(_.toInt)
+      case a: js.Array[String] => a.headOption.fold(default)(_.toIntOption.getOrElse(default))
       case _: Unit             => default
     }
 

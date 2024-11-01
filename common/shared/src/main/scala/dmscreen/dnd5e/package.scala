@@ -486,8 +486,8 @@ case class Skills(
 
 case class Language(name: String)
 
-final private val deadColor = "hsl(0, 100%, 25%, 0.8)"
-final private val deadButStabilizedColor = "hsl(300, 100%, 25%, 0.8)"
+final private def deadColor(transparency:              Double) = s"hsl(0, 100%, 25%, $transparency)"
+final private def deadButStabilizedColor(transparency: Double) = s"hsl(300, 100%, 25%, $transparency)"
 
 case class Health(
   deathSave:            DeathSave,
@@ -498,9 +498,10 @@ case class Health(
 ) {
 
   def currentMax: Int = overrideMaxHitPoints.getOrElse(maxHitPoints)
-  def lifeColor: String =
-    if (currentHitPoints <= 0) if (deathSave.isStabilized) deadButStabilizedColor else deadColor
-    else s"hsl(${Math.min((currentHitPoints * 120.0) / currentMax, 120)}, 85%, 50%, 0.8)"
+  def lifeColor(transparency: Double = 0.8): String =
+    if (currentHitPoints <= 0)
+      if (deathSave.isStabilized) deadButStabilizedColor(transparency) else deadColor(transparency)
+    else s"hsl(${Math.min((currentHitPoints * 120.0) / currentMax, 120)}, 85%, 50%, $transparency)"
 
   def isDead: Boolean = currentHitPoints <= 0
 

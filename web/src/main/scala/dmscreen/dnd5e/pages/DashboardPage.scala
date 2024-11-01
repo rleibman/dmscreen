@@ -294,7 +294,7 @@ object DashboardPage extends DMScreenTab {
                           pc.header.name.take(10),
                           ratio,
                           s"${pc.info.health.currentHitPoints.toDouble}/${pc.info.health.currentMax}",
-                          pc.info.health.lifeColor
+                          pc.info.health.lifeColor()
                         )
                       }
                     }.unzip4
