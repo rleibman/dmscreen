@@ -21,8 +21,6 @@
 
 package dmscreen.dnd5e.components
 
-import caliban.ScalaJSClientAdapter.*
-import caliban.client.SelectionBuilder
 import caliban.client.scalajs.DND5eClient.{
   Monster as CalibanMonster,
   MonsterHeader as CalibanMonsterHeader,
@@ -32,9 +30,10 @@ import caliban.client.scalajs.DND5eClient.{
   OrderDirection as CalibanOrderDirection,
   Queries
 }
-import caliban.client.scalajs.{*, given}
+import caliban.client.scalajs.given
 import dmscreen.*
 import dmscreen.components.EditableComponent.EditingMode
+import dmscreen.components.EditableComponent.EditingMode.view
 import dmscreen.components.{DiceRoller, EditableComponent, EditableNumber, EditableText}
 import dmscreen.dnd5e.components.*
 import dmscreen.dnd5e.{*, given}
@@ -45,19 +44,18 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}
-import net.leibman.dmscreen.semanticUiReact.distCommonjsAddonsPaginationPaginationMod.PaginationProps
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{
   SemanticCOLORS,
   SemanticICONS,
   SemanticSIZES,
   SemanticWIDTHS
 }
-import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesAccordionAccordionTitleMod.*
-import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
 import org.scalajs.dom.*
 import zio.json.*
 import zio.json.ast.Json
 
+import scala.annotation.tailrec
+import scala.concurrent.duration.{Duration, *}
 import scala.scalajs.js.JSConverters.*
 object CombatRunner {
 
@@ -243,19 +241,24 @@ object CombatRunner {
           VdomArray(
             PCInitativeEditor(
               pcs = pcs,
-              onChange = initatives =>
-                modEncounterInfo(
-                  info =>
-                    info.copy(
-                      currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
-                      combatants = reSort(info.combatants.map {
-                        case c: PlayerCharacterCombatant =>
-                          c.copy(initiative = initatives.find(_._1.id == c.playerCharacterId).fold(10)(_._2))
-                        case o => o
-                      })
-                    ),
-                  "Set initiative for PCs"
-                ) >> $.modState(_.copy(dialogType = DialogType.none)),
+              onChange = { initatives =>
+                val callback =
+                  modEncounterInfo(
+                    info =>
+                      info.copy(
+                        currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
+                        combatants = reSort(info.combatants.map {
+                          case c: PlayerCharacterCombatant =>
+                            c.copy(initiative = initatives.find(_._1.id == c.playerCharacterId).fold(10)(_._2))
+                          case o => o
+                        })
+                      ),
+                    "Set initiative for PCs"
+                  ) >> $.modState(_.copy(dialogType = DialogType.none))
+
+                // TODO something about this is still wrong, as the table gets properly resorted, but the initiatives don't reflect those values
+                callback
+              },
               onCancel = $.modState(_.copy(dialogType = DialogType.none)),
               open = state.dialogType == DialogType.initiative
             ),
@@ -499,21 +502,34 @@ object CombatRunner {
                           .when(encounter.header.status != EncounterStatus.archived),
                         Button
                           .compact(true)
-                          .onClick(
+                          .onClick {
                             (
                               _,
                               _
                             ) =>
+
+                              @tailrec def nextLiveCombatant(i: Int): Int = {
+                                val next = if (i == encounter.info.combatants.length - 1) 0 else i + 1
+                                if (
+                                  next == encounter.info.combatants.length || encounter.info
+                                    .combatants(next).canTakeTurn
+                                )
+                                  next
+                                else
+                                  nextLiveCombatant(next)
+                              }
+
+                              val nextTurn = nextLiveCombatant(encounter.info.currentTurn)
+
+                              val nextRound =
+                                if (nextTurn <= encounter.info.currentTurn) encounter.info.round + 1
+                                else encounter.info.round
+
                               modEncounterInfo(
-                                info =>
-                                  if (info.currentTurn == info.combatants.length - 1) {
-                                    info.copy(round = info.round + 1, currentTurn = 0)
-                                  } else {
-                                    info.copy(currentTurn = info.currentTurn + 1)
-                                  },
+                                _.copy(round = nextRound, currentTurn = nextTurn),
                                 ""
                               )
-                          )
+                          }
                           .title("Next turn")
                           .icon(true)(Icon.name(SemanticICONS.`step forward`))
                       )

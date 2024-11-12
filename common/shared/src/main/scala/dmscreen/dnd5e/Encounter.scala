@@ -61,6 +61,8 @@ sealed abstract class EncounterCombatant(
 
   def isNPC: Boolean
 
+  def canTakeTurn: Boolean
+
 }
 
 final case class MonsterCombatant(
@@ -77,6 +79,8 @@ final case class MonsterCombatant(
 ) extends EncounterCombatant() {
 
   val isNPC = true
+
+  override def canTakeTurn: Boolean = !health.isDead
 
 }
 
@@ -96,6 +100,8 @@ final case class NonPlayerCharacterCombatant(
 
   val isNPC = true
 
+  override def canTakeTurn: Boolean = true
+
 }
 
 final case class PlayerCharacterCombatant(
@@ -109,6 +115,7 @@ final case class PlayerCharacterCombatant(
 ) extends EncounterCombatant() {
 
   val isNPC = false
+  override def canTakeTurn: Boolean = true
 
 }
 

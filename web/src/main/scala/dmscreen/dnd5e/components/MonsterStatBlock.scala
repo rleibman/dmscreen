@@ -27,19 +27,20 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.vdom.all.verticalAlign
+import japgolly.scalajs.react.vdom.html_<^.^
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES, SemanticWIDTHS}
 
 def taperedLine = {
-  import japgolly.scalajs.react.vdom.svg_<^.*
+  import japgolly.scalajs.react.vdom.svg_<^.{< => svgTag, ^ => svgAttr}
 
-  <.svg(
-    ^.height  := "5",
-    ^.width   := "100%",
-    ^.`class` := "tapered-rule",
-    <.polyline(
-      ^.points := "0,0 600,2.5 0,5"
+  svgTag.svg(
+    svgAttr.height := "5",
+    svgAttr.width  := "100%",
+    ^.className    := "tapered-rule",
+    svgTag.polyline(
+      svgAttr.points := "0,0 600,2.5 0,5"
     )
   )
 }

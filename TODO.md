@@ -113,3 +113,12 @@ DONE - Healing of PCs needs to get add full healing, not just the difference
 # StatBlock
 ## CSS
 TEMPDONE: Notes should be black on white
+
+
+Don't pass initiative to dead creatures
+Import from DND Beyond text
+Allow other subclasses
+HP color is messed up
+Same characters same initiative
+Hunter's mark is not working
+

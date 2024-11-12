@@ -54,7 +54,7 @@ object EditableNumber {
       p: Props,
       s: State
     ): VdomNode = {
-      def doBlur = $.modState(_.copy(isEditing = false)) >> $.props.flatMap(_.onChange(s.value))
+      val doBlur = $.modState(_.copy(isEditing = false)) >> $.props.flatMap(_.onChange(s.value))
 
       if (s.isEditing) {
         Input
@@ -91,14 +91,11 @@ object EditableNumber {
   }
 
   import scala.language.unsafeNulls
-  given Reusability[State] = Reusability.by(s => (s.value.toString, s.isEditing))
-  given Reusability[Props] = Reusability.by((_: Props).value.toString)
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
     .builder[Props]("EditableNumber")
     .initialStateFromProps(p => State(p.value))
     .renderBackend[Backend]
-    .configure(Reusability.shouldComponentUpdate)
     .build
 
   def apply(
@@ -107,6 +104,8 @@ object EditableNumber {
     min:          UndefOr[Double] = js.undefined,
     max:          UndefOr[Double] = js.undefined,
     onChange:     Double => Callback = _ => Callback.empty
-  ): VdomElement = component(Props(value, allowEditing, min, max, onChange))
+  ): VdomElement = {
+    component(Props(value, allowEditing, min, max, onChange))
+  }
 
 }

@@ -44,7 +44,7 @@ object CharacterClassEditor {
 
   case class State(
     classes:    List[PlayerCharacterClass],
-    subClasses: Map[CharacterClassId, List[SubClass]] = Map.empty
+    subClasses: Map[CharacterClassId, Set[SubClass]] = Map.empty
   )
 
   case class Props(
@@ -61,7 +61,7 @@ object CharacterClassEditor {
         if (!state.subClasses.contains(characterClass)) {
           DND5eGraphQLRepository.live
             .subClasses(characterClass)
-            .map(s => $.modState(state => state.copy(subClasses = state.subClasses + (characterClass -> s.toList))))
+            .map(s => $.modState(state => state.copy(subClasses = state.subClasses + (characterClass -> s.toSet))))
             .completeWith(_.get)
 
         } else {
@@ -106,7 +106,7 @@ object CharacterClassEditor {
                       .placeholder("Class")
                       .clearable(true)
                       .compact(true)
-                      .allowAdditions(false)
+                      .allowAdditions(true)
                       .selection(true)
                       .search(true)
                       .onChange(
@@ -160,27 +160,28 @@ object CharacterClassEditor {
                       .allowAdditions(true)
                       .selection(true)
                       .search(true)
-                      .onChange(
+                      .onChange {
                         (
                           _,
                           changedData
                         ) =>
+                          val subclass: Option[SubClass] = changedData.value match {
+                            case s: String if s.isEmpty => None
+                            case s: String              => Some(SubClass(s.toLowerCase))
+                            case _ => throw RuntimeException("Unexpected value")
+                          }
+
                           $.modState(
                             s =>
                               s.copy(
-                                classes = s.classes.patch(
-                                  i,
-                                  Seq(playerCharacterClass.copy(subclass = changedData.value match {
-                                    case s: String if s.isEmpty => None
-                                    case s: String              => Some(SubClass(s))
-                                    case _ => throw RuntimeException("Unexpected value")
-                                  })),
-                                  1
-                                )
+                                classes = s.classes.patch(i, Seq(playerCharacterClass.copy(subclass = subclass)), 1),
+                                subClasses = s.subClasses + (playerCharacterClass.characterClass -> (s
+                                  .subClasses(playerCharacterClass.characterClass) ++ subclass.toSet))
                               ),
                             $.state.flatMap(s => props.onChange(s.classes))
                           )
-                      )
+
+                      }
                       .options(
                         state.subClasses
                           .get(playerCharacterClass.characterClass)
@@ -188,11 +189,11 @@ object CharacterClassEditor {
                           .flatten
                           .map(subclass =>
                             DropdownItemProps()
-                              .setValue(subclass.name)
+                              .setValue(subclass.name.toLowerCase)
                               .setText(subclass.name),
                           ).toJSArray
                       )
-                      .value(playerCharacterClass.subclass.map(_.name).getOrElse(""))
+                      .value(playerCharacterClass.subclass.map(_.name.toLowerCase).getOrElse(""))
                   ),
                   Table.Cell(
                     Input

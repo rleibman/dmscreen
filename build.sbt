@@ -186,6 +186,31 @@ lazy val debianSettings =
   )
 
 ////////////////////////////////////////////////////////////////////////////////////
+// AI
+lazy val ai = project
+  .enablePlugins(
+    AutomateHeaderPlugin,
+    GitVersioning
+  )
+  .settings(commonSettings)
+  .dependsOn(commonJVM)
+  .settings(
+    name := "dmscreen-server",
+    libraryDependencies ++= Seq(
+      // ZIO
+      "dev.zio"                %% "zio"                   % zioVersion withSources (),
+      "dev.zio"                %% "zio-nio"               % "2.0.2" withSources (),
+      // Other random utilities
+      "com.github.pathikrit"  %% "better-files"                 % "3.9.2" withSources (),
+      "com.github.daddykotex" %% "courier"                      % "3.2.0" withSources (),
+      "ch.qos.logback"         % "logback-classic"              % "1.5.12" withSources (),
+      // Testing
+      "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
+      "dev.zio" %% "zio-test-sbt" % zioVersion % "test" withSources ()
+    )
+  )
+
+////////////////////////////////////////////////////////////////////////////////////
 // Web
 val scalajsReactVersion = "2.1.2"
 
@@ -320,7 +345,7 @@ lazy val withCssLoading: Project => Project =
 // Root project
 lazy val root = project
   .in(file("."))
-  .aggregate(commonJVM, commonJS, server, web)
+  .aggregate(commonJVM, commonJS, server, web, ai)
   .settings(
     name           := "dmscreen",
     publish / skip := true,
