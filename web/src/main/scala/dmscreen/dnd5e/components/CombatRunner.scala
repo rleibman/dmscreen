@@ -701,9 +701,9 @@ object CombatRunner {
                               ),
                             Table.Cell
                               .singleLine(true)
-                              .style(
-                                CSSProperties().set("backgroundColor", pcInfo.health.lifeColor)
-                              )(
+                              .style {
+                                CSSProperties().set("backgroundColor", pcInfo.health.lifeColor())
+                              }(
                                 EditableComponent(
                                   view = s"${pcInfo.health.currentHitPoints} / ${pcInfo.health.maxHitPoints}",
                                   edit = HealthEditor(
@@ -939,7 +939,7 @@ object CombatRunner {
                             ),
                             Table.Cell
                               .singleLine(true).style(
-                                CSSProperties().set("backgroundColor", npcInfo.health.lifeColor)
+                                CSSProperties().set("backgroundColor", npcInfo.health.lifeColor())
                               )(
                                 EditableComponent(
                                   view = s"${npcInfo.health.currentHitPoints} / ${npcInfo.health.maxHitPoints}",
