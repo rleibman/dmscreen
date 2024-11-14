@@ -21,19 +21,8 @@
 
 package dmscreen.dnd5e.components
 
-import caliban.client.scalajs.DND5eClient.{
-  Monster as CalibanMonster,
-  MonsterHeader as CalibanMonsterHeader,
-  MonsterSearchOrder as CalibanMonsterSearchOrder,
-  MonsterSearchResults as CalibanMonsterSearchResults,
-  MonsterType as CalibanMonsterType,
-  OrderDirection as CalibanOrderDirection,
-  Queries
-}
-import caliban.client.scalajs.given
 import dmscreen.*
 import dmscreen.components.EditableComponent.EditingMode
-import dmscreen.components.EditableComponent.EditingMode.view
 import dmscreen.components.{DiceRoller, EditableComponent, EditableNumber, EditableText}
 import dmscreen.dnd5e.components.*
 import dmscreen.dnd5e.{*, given}
@@ -44,18 +33,13 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}
-import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{
-  SemanticCOLORS,
-  SemanticICONS,
-  SemanticSIZES,
-  SemanticWIDTHS
-}
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticCOLORS, SemanticICONS, SemanticSIZES}
 import org.scalajs.dom.*
 import zio.json.*
 import zio.json.ast.Json
 
 import scala.annotation.tailrec
-import scala.concurrent.duration.{Duration, *}
+import scala.concurrent.duration.Duration
 import scala.scalajs.js.JSConverters.*
 object CombatRunner {
 
@@ -367,31 +351,50 @@ object CombatRunner {
                               _
                             ) =>
 
-                              val npcCount = encounter.info.combatants.count(_.isNPC)
+                              val monsterCount = encounter.info.combatants
+                                .collect { case m: MonsterCombatant => m }.groupBy(_.monsterHeader.id).size
+                              val npcCount =
+                                encounter.info.combatants.count(_.isInstanceOf[NonPlayerCharacterCombatant])
+
                               DiceRoller
-                                .roll(s"${npcCount}d20")
+                                .roll(s"${monsterCount + npcCount}d20")
                                 .map { results =>
                                   modEncounterInfo(
                                     { e =>
-                                      val (npcs, pcs) = encounter.info.combatants.partition(_.isNPC)
-                                      val initiatives = results.map(_.value)
-
-                                      val newCombatants =
-                                        reSort(
-                                          npcs
-                                            .zip(initiatives)
-                                            .collect {
-                                              case (combatant: MonsterCombatant, initiative) =>
-                                                combatant.copy(initiative =
-                                                  scala.math.max(1, initiative + combatant.initiativeBonus)
-                                                )
-                                              case (combatant: NonPlayerCharacterCombatant, initiative) =>
-                                                combatant.copy(initiative =
-                                                  scala.math.max(1, initiative + combatant.initiativeBonus)
-                                                )
-                                            } ++
-                                            pcs
+                                      val monsters = encounter.info.combatants
+                                        .collect { case m: MonsterCombatant => m }.groupBy(_.monsterHeader.id)
+                                      val pcs = encounter.info.combatants.collect { case pc: PlayerCharacterCombatant =>
+                                        pc
+                                      }
+                                      val npcs =
+                                        encounter.info.combatants.collect { case npc: NonPlayerCharacterCombatant =>
+                                          npc
+                                        }
+                                      val npcInitatives = results.take(npcs.size).map(_.value)
+                                      val monsterInitiatives = results.takeRight(monsters.size).map(_.value)
+                                      val newNpcs = npcs
+                                        .zip(npcInitatives).map(
+                                          (
+                                            combatant,
+                                            initiative
+                                          ) =>
+                                            combatant.copy(initiative =
+                                              scala.math.max(1, initiative + combatant.initiativeBonus)
+                                            )
                                         )
+                                      val newMonsters = monsters.zip(monsterInitiatives).flatMap {
+                                        (
+                                          monsters,
+                                          initiative
+                                        ) =>
+                                          monsters._2.map(combatant =>
+                                            combatant.copy(initiative =
+                                              scala.math.max(1, initiative + combatant.initiativeBonus)
+                                            )
+                                          )
+                                      }
+
+                                      val newCombatants = reSort(newNpcs ++ newMonsters ++ pcs)
 
                                       e.copy(
                                         currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
@@ -999,7 +1002,7 @@ object CombatRunner {
                                       info =>
                                         info.copy(
                                           combatants = info.combatants.map {
-                                            case npcCombatant2: PlayerCharacterCombatant
+                                            case npcCombatant2: NonPlayerCharacterCombatant
                                                 if npcCombatant2.id == npcCombatant.id =>
                                               npcCombatant2.copy(otherMarkers = otherMarkers)
                                             case c => c

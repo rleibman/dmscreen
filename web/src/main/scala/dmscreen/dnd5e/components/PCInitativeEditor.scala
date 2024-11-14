@@ -47,7 +47,7 @@ object PCInitativeEditor {
   }
 
   case class State(
-    initiatives: Map[PlayerCharacter, Int],
+    initiatives: Seq[(PlayerCharacter, Int)],
     editingMode: EditingMode = EditingMode.closed
   )
 
@@ -95,7 +95,12 @@ object PCInitativeEditor {
                             ) =>
                               $.modState(s => {
                                 val newNum = changedData.value.asInt(entry._2)
-                                s.copy(initiatives = s.initiatives.updated(entry._1, newNum))
+
+                                s.copy(initiatives = s.initiatives.map {
+                                  case (pc, _) if pc.header.id == entry._1.header.id => pc -> newNum
+                                  case other                                         => other
+                                })
+
                               })
                           )
                           .value(entry._2)
@@ -119,7 +124,7 @@ object PCInitativeEditor {
               ) =>
                 $.modState(
                   _.copy(editingMode = EditingMode.closed),
-                  $.state.flatMap(s => props.onChange(s.initiatives))
+                  $.state.flatMap(s => props.onChange(s.initiatives.toMap))
                 )
             }
           )
@@ -132,12 +137,12 @@ object PCInitativeEditor {
     ScalaComponent
       .builder[Props]("PCInitativeEditor")
       .initialStateFromProps { p =>
+        val initiatives = p.pcs
+          .map(_ -> 10)
+
         State(
           editingMode = if (p.open) EditingMode.open else EditingMode.closed,
-          initiatives = p.pcs
-            .sortBy(e => (e.header.playerName, e.header.name))
-            .map(_ -> 10)
-            .toMap
+          initiatives = initiatives
         )
       }
       .renderBackend[Backend]
@@ -148,6 +153,8 @@ object PCInitativeEditor {
     open:     Boolean,
     onChange: Map[PlayerCharacter, Int] => Callback,
     onCancel: Callback
-  ) = component(Props(pcs, open, onChange, onCancel))
+  ) = {
+    component(Props(pcs.sortBy(e => (e.header.playerName.getOrElse("zzz"), e.header.name)), open, onChange, onCancel))
+  }
 
 }

@@ -115,6 +115,7 @@ given JsonCodec[MonsterInfo] = JsonCodec.derived[MonsterInfo]
 
 given JsonCodec[SpellInfo] = JsonCodec.derived[SpellInfo]
 
+given JsonCodec[NonPlayerCharacterHeader] = JsonCodec.derived[NonPlayerCharacterHeader]
 given JsonCodec[PlayerCharacterHeader] = JsonCodec.derived[PlayerCharacterHeader]
 given JsonCodec[MonsterHeader] = JsonCodec.derived[MonsterHeader]
 given JsonCodec[SceneHeader] = JsonCodec.derived[SceneHeader]
@@ -122,6 +123,7 @@ given JsonCodec[SceneInfo] = JsonCodec.derived[SceneInfo]
 given JsonCodec[EncounterCombatant] = JsonCodec.derived[EncounterCombatant]
 given JsonCodec[MonsterCombatant] = JsonCodec.derived[MonsterCombatant]
 given JsonCodec[PlayerCharacterCombatant] = JsonCodec.derived[PlayerCharacterCombatant]
+given JsonCodec[NonPlayerCharacterCombatant] = JsonCodec.derived[NonPlayerCharacterCombatant]
 given JsonCodec[EncounterDifficulty] = JsonCodec.derived[EncounterDifficulty]
 given JsonCodec[EncounterInfo] = JsonCodec.derived[EncounterInfo]
 

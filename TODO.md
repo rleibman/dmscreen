@@ -85,11 +85,13 @@ TEMPDONE - Modal headers are black on black, change color!
 DONE - Hide "current button" if the campaign is already current
 Super ugly if there's no campaigns.
 # PlayerCharacterPage/Component
+DONE: Allow other subclasses
 DONE - Hit point up/down isn't working
 - When increasing HP past the max, increase the max?
+- Import from DND Beyond text
 # NPC
 DONE - Delete NPC is not working
-- Add NPC from Bestiary
+DONE - Add NPC from Bestiary
 DONE - Scenes filter
 ## CSS
 - Align pc to top
@@ -103,20 +105,25 @@ DONE - Languages dialog broken
 DONE - Feats Dialog broken
 # Encounter Editor
 DONE - Add NPC doesn't work (note, turns out it was working, it was just not obvious.)
-NOT DONE - Need to be able to edit encounter name (Not necessary, just go to edit title on left) 
+WON'T DO - Need to be able to edit encounter name (Not necessary, just go to edit title on left) 
 # Combat Runner
 DONE - Initiative is totally broken
 DONE - Filter out dead NPCs/Monsters
 DONE - Healing of PCs needs to get add full healing, not just the difference
+DONE: Don't pass initiative to dead creatures
+DONE: HP color is messed up
+DONE: Same characters same initiative
+DONE:  Hunter's mark is not working for NPCs
 ## CSS
 - Heal/Damage buttons look ugly, maybe switch the whole table to white background
 # StatBlock
 ## CSS
 TEMPDONE: Notes should be black on white
-DONE: Don't pass initiative to dead creatures
-DONE: Allow other subclasses
-Import from DND Beyond text
-DONE: HP color is messed up
-Same characters same initiative
-Hunter's mark is not working
+
+
+------------------
+Edit monster, alignment is broken
+DONE Initiatives for pcs not sorted
+DONE Edit player name in pc is not working
+Next in encounter is broken
 

@@ -134,7 +134,7 @@ object PCEditComponent {
                 ),
                 <.span(
                   EditableText(
-                    state.playerCharacter.header.playerName.getOrElse(""),
+                    state.playerCharacter.header.playerName.getOrElse("[Player Name]"),
                     onChange = str =>
                       modPlayerCharacter(
                         state.playerCharacter.copy(header = state.playerCharacter.header.copy(playerName = Some(str)))
