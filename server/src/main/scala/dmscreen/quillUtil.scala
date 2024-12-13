@@ -57,7 +57,7 @@ given MappedEncoding[SemVer, String] = MappedEncoding[SemVer, String](_.toString
 given MappedEncoding[String, SemVer] =
   MappedEncoding[String, SemVer](SemVer.parse(_).getOrElse(SemVer.unsafeParse("0.0.0")))
 
-val jsonInsert: Quoted[(Json, String, Json) => Json] = quote {
+val jsonInsert = quote {
   (
     doc:   Json,
     path:  String,
@@ -65,7 +65,7 @@ val jsonInsert: Quoted[(Json, String, Json) => Json] = quote {
   ) =>
     sql"JSON_INSERT($doc, $path, $value)".as[Json]
 }
-val jsonReplace: Quoted[(Json, String, Json) => Json] = quote {
+val jsonReplace = quote {
   (
     doc:   Json,
     path:  String,
@@ -73,7 +73,7 @@ val jsonReplace: Quoted[(Json, String, Json) => Json] = quote {
   ) =>
     sql"JSON_REPLACE($doc, $path, $value)".as[Json]
 }
-val jsonRemove: Quoted[(Json, String) => Json] = quote {
+val jsonRemove = quote {
   (
     doc:  Json,
     path: String

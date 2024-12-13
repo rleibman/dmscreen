@@ -305,7 +305,7 @@ lazy val web: Project = project
 lazy val commonWeb: Project => Project =
   _.settings(
     libraryDependencies ++= Seq(
-      "net.leibman" %%% "dmscreen-stlib"              % "0.6.0-SNAPSHOT" withSources (),
+      "net.leibman" %%% "dmscreen-stlib"              % "0.7.0-SNAPSHOT" withSources (),
       "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
       "dev.zio" %%% "zio"                             % zioVersion withSources (),
       "com.softwaremill.sttp.client3" %%% "core"      % "3.10.1" withSources (),

@@ -588,21 +588,21 @@ object QuillRepository {
           ZIO.succeed(cachedSubclasses.get(characterClass).toSeq.flatten)
         }
 
-        val jsonInsert: Quoted[(Json, String, Json) => Json] = quote {
+        val jsonInsert = quote {
           (
             doc:   Json,
             path:  String,
             value: Json
           ) => sql"JSON_INSERT($doc, $path, $value)".as[Json]
         }
-        val jsonReplace: Quoted[(Json, String, Json) => Json] = quote {
+        val jsonReplace = quote {
           (
             doc:   Json,
             path:  String,
             value: Json
           ) => sql"JSON_REPLACE($doc, $path, $value)".as[Json]
         }
-        val jsonRemove: Quoted[(Json, String) => Json] = quote {
+        val jsonRemove = quote {
           (
             doc:  Json,
             path: String

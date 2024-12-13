@@ -45,7 +45,7 @@ object DMScreenSchema {
 
   given MappedEncoding[CampaignStatus, String] = MappedEncoding[CampaignStatus, String](_.toString)
 
-  inline def qCampaigns: Quoted[EntityQuery[DBObject[Campaign]]] =
+  inline def qCampaigns =
     quote {
       querySchema[DBObject[Campaign]](
         "campaign",
@@ -60,7 +60,7 @@ object DMScreenSchema {
       )
     }
 
-  inline def qCampaignLog: Quoted[EntityQuery[CampaignLogEntry]] =
+  inline def qCampaignLog =
     quote {
       querySchema[CampaignLogEntry]("campaignLog")
     }
