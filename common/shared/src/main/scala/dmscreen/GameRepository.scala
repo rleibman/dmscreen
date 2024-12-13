@@ -21,4 +21,4 @@
 
 package dmscreen
 
-trait GameRepository {}
+trait GameRepository

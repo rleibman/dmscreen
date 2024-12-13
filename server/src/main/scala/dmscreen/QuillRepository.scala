@@ -21,71 +21,53 @@
 
 package dmscreen
 
-import dmscreen.dnd5e.{DND5eEntityType, PlayerCharacterId}
 import io.getquill.*
-import io.getquill.extras.*
 import io.getquill.jdbczio.Quill
 import just.semver.SemVer
 import zio.*
 import zio.json.*
 import zio.json.ast.Json
-import zio.nio.file.*
 
 import java.sql.SQLException
 import java.time.LocalDateTime
 import javax.sql.DataSource
-import scala.annotation.nowarn
 import scala.reflect.ClassTag
 
 trait DMScreenZIORepository extends DMScreenRepository[DMScreenTask]
 
-object QuillRepository {
+object DMScreenSchema {
 
-  private object CampaignRow {
+  given MappedEncoding[String, GameSystem] = MappedEncoding[String, GameSystem](GameSystem.valueOf)
 
-    def fromModel(
-      header:   CampaignHeader,
-      jsonInfo: Json
-    ): CampaignRow = {
-      CampaignRow(
-        id = header.id.value,
-        name = header.name,
-        dmUserId = header.dmUserId.value,
-        gameSystem = header.gameSystem.toString,
-        campaignStatus = header.campaignStatus.toString,
-        info = jsonInfo,
-        version = dmscreen.BuildInfo.version,
-        deleted = false
+  given MappedEncoding[String, CampaignStatus] = MappedEncoding[String, CampaignStatus](CampaignStatus.valueOf)
+
+  given MappedEncoding[GameSystem, String] = MappedEncoding[GameSystem, String](_.toString)
+
+  given MappedEncoding[CampaignStatus, String] = MappedEncoding[CampaignStatus, String](_.toString)
+
+  inline def qCampaigns: Quoted[EntityQuery[DBObject[Campaign]]] =
+    quote {
+      querySchema[DBObject[Campaign]](
+        "campaign",
+        _.value.header.id             -> "id",
+        _.value.header.name           -> "name",
+        _.value.header.dmUserId       -> "dmUserId",
+        _.value.header.gameSystem     -> "gameSystem",
+        _.value.header.campaignStatus -> "campaignStatus",
+        _.value.jsonInfo              -> "info",
+        _.version                     -> "version",
+        _.deleted                     -> "deleted"
       )
     }
 
-  }
+  inline def qCampaignLog: Quoted[EntityQuery[CampaignLogEntry]] =
+    quote {
+      querySchema[CampaignLogEntry]("campaignLog")
+    }
 
-  private case class CampaignRow(
-    id:             Long,
-    name:           String,
-    dmUserId:       Long,
-    gameSystem:     String,
-    campaignStatus: String,
-    info:           Json,
-    version:        String,
-    deleted:        Boolean
-  ) {
+}
 
-    def toModel: Campaign =
-      Campaign(
-        header = CampaignHeader(
-          id = CampaignId(id),
-          dmUserId = UserId(dmUserId),
-          name = name,
-          gameSystem = GameSystem.valueOf(gameSystem),
-          campaignStatus = CampaignStatus.valueOf(campaignStatus)
-        ),
-        jsonInfo = info,
-        version = SemVer.parse(dmscreen.BuildInfo.version).getOrElse(SemVer.unsafeParse("0.0.0"))
-      )
-
-  }
+object QuillRepository {
 
   def db: ZLayer[ConfigurationService, DMScreenError, DMScreenZIORepository] =
     ZLayer.fromZIO {
@@ -93,79 +75,37 @@ object QuillRepository {
         config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
 
       } yield new DMScreenZIORepository() {
+        import DMScreenSchema.{*, given}
+
         private object ctx extends MysqlZioJdbcContext(MysqlEscape)
 
         import ctx.*
         private val dataSourceLayer: ZLayer[Any, Throwable, DataSource] =
           Quill.DataSource.fromDataSource(config.dataSource)
 
-        given MappedEncoding[Json, String] = MappedEncoding[Json, String](_.toJson)
-
-        given MappedEncoding[String, Json] =
-          MappedEncoding[String, Json](s =>
-            Json.decoder
-              .decodeJson(s).fold(
-                msg => throw new RuntimeException(msg),
-                identity
-              )
-          )
-        given MappedEncoding[Long, CampaignId] = MappedEncoding[Long, CampaignId](CampaignId.apply)
-        given MappedEncoding[CampaignId, Long] = MappedEncoding[CampaignId, Long](_.value)
-
-        inline private def qCampaigns =
-          quote {
-            querySchema[CampaignRow]("campaign")
-          }
-        inline private def qCampaignLog =
-          quote {
-            querySchema[CampaignLogEntry]("campaignLog")
-          }
-
-        val jsonInsert: Quoted[(Json, String, Json) => Json] = quote {
-          (
-            doc:   Json,
-            path:  String,
-            value: Json
-          ) =>
-            sql"JSON_INSERT($doc, $path, $value)".as[Json]
-        }
-        val jsonReplace: Quoted[(Json, String, Json) => Json] = quote {
-          (
-            doc:   Json,
-            path:  String,
-            value: Json
-          ) =>
-            sql"JSON_REPLACE($doc, $path, $value)".as[Json]
-        }
-        val jsonRemove: Quoted[(Json, String) => Json] = quote {
-          (
-            doc:  Json,
-            path: String
-          ) =>
-            sql"JSON_REMOVE($doc, $path)".as[Json]
-        }
-
         override def campaign(campaignId: CampaignId): IO[DMScreenError, Option[Campaign]] =
           ctx
-            .run(qCampaigns.filter(v => !v.deleted && v.id == lift(campaignId.value)))
-            .map(_.headOption.map(_.toModel))
+            .run(qCampaigns.filter(v => !v.deleted && v.value.header.id == lift(campaignId)))
+            .map(_.headOption.map(_.value))
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def campaigns: IO[DMScreenError, Seq[CampaignHeader]] =
           ctx
-            .run(qCampaigns.map(a => (a.id, a.dmUserId, a.name, a.gameSystem, a.campaignStatus)))
-            .map(
-              _.map(t =>
-                CampaignHeader(
-                  id = CampaignId(t._1),
-                  dmUserId = UserId(t._2),
-                  name = t._3,
-                  gameSystem = GameSystem.valueOf(t._4),
-                  campaignStatus = CampaignStatus.valueOf(t._5)
+            .run(
+              qCampaigns.map(a =>
+                (
+                  a.value.header.id,
+                  a.value.header.dmUserId,
+                  a.value.header.name,
+                  a.value.header.gameSystem,
+                  a.value.header.campaignStatus
                 )
               )
+            )
+            .map(
+              _.map(t => CampaignHeader.apply.tupled(t))
             )
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
@@ -179,31 +119,17 @@ object QuillRepository {
              ctx
                .run(
                  qCampaigns
-                   .filter(v => !v.deleted && v.id == lift(header.id.value))
-                   .updateValue(lift(CampaignRow.fromModel(header, info)))
+                   .filter(v => !v.deleted && v.value.id == lift(header.id))
+                   .updateValue(lift(DBObject(Campaign(header, info))))
                )
                .as(header.id)
            } else {
              ctx
                .run(
                  qCampaigns
-                   .insertValue(
-                     lift(
-                       CampaignRow(
-                         id = CampaignId.empty.value,
-                         name = header.name,
-                         dmUserId = header.dmUserId.value,
-                         gameSystem = header.gameSystem.toString,
-                         campaignStatus = header.campaignStatus.toString,
-                         info = info,
-                         version = dmscreen.BuildInfo.version,
-                         deleted = false
-                       )
-                     )
-                   )
-                   .returningGenerated(_.id)
+                   .insertValue(lift(DBObject(Campaign(header, info))))
+                   .returningGenerated(_.value.header.id)
                )
-               .map(CampaignId.apply)
            })
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)

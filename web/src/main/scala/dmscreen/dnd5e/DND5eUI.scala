@@ -49,7 +49,7 @@ case object DND5eUI extends GameUI {
       PageAppMenuItem(DND5eUIPages.scenes, "Scenes", campaignId => ScenePage(campaignId)),
       ButtonAppMenuItem(
         DND5eUIPages.campaignLog,
-        VdomArray("Campaign Log", CampaignLog.render()),
+        VdomArray(<.h1(^.key := "kl001", "Campaign Log"), CampaignLog.render()),
         onClick = campaignId => CampaignLog.showLog(campaignId)
       )
     )

@@ -375,8 +375,8 @@ object QuillRepository {
         private object ctx extends MysqlZioJdbcContext(MysqlEscape)
 
         import ctx.*
-        private val dataSourceLayer: ZLayer[Any, Throwable, DataSource] =
-          Quill.DataSource.fromDataSource(config.dataSource)
+
+        private val dataSourceLayer: TaskLayer[DataSource] = Quill.DataSource.fromDataSource(config.dataSource)
 
         given MappedEncoding[Json, String] = MappedEncoding[Json, String](_.toJson)
 

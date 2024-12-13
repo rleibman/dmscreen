@@ -200,6 +200,7 @@ object EncounterPage extends DMScreenTab {
                               val encounters = allEncounters.get(sceneOpt.map(_.header.id)).toList.flatten
                               VdomArray(
                                 Accordion.Title
+                                  .withKey(s"sceneTitle${sceneIndex}AccordionTitle")
                                   .active(state.accordionState._1 == sceneIndex).onClick(
                                     onAccordionChange((sceneIndex, 0))
                                   )(
@@ -258,6 +259,7 @@ object EncounterPage extends DMScreenTab {
                                     )
                                   ),
                                 Accordion.Content
+                                  .withKey(s"sceneTitle${sceneIndex}AccordionContent")
                                   .active(state.accordionState._1 == sceneIndex)(
                                     Accordion.Accordion
                                       .fluid(true)
@@ -271,6 +273,7 @@ object EncounterPage extends DMScreenTab {
                                             val encounterInfo = encounter.info
                                             VdomArray(
                                               Accordion.Title
+                                                .withKey(s"encounterTitle${sceneIndex}_${encounterIndex}AccordionTitle")
                                                 .active(state.accordionState == (sceneIndex, encounterIndex))
                                                 .onClick(
                                                   onAccordionChange((sceneIndex, encounterIndex))
@@ -377,6 +380,9 @@ object EncounterPage extends DMScreenTab {
                                                   )
                                                 ),
                                               Accordion.Content
+                                                .withKey(
+                                                  s"encounterTitle${sceneIndex}_${encounterIndex}AccordionContent"
+                                                )
                                                 .active(state.accordionState == ((sceneIndex, encounterIndex)))(
                                                   encounterInfo.monsters.map(_.name).mkString(", "),
                                                   <.div(s"Notes: ${encounterInfo.notes}")

@@ -24,13 +24,14 @@ package dmscreen.dnd5e.components
 import dmscreen.components.{EditableNumber, EditableText}
 import dmscreen.dnd5e.components.*
 import dmscreen.dnd5e.{*, given}
+import dmscreen.util.*
 import dmscreen.{CampaignId, DMScreenState}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{CtorType, *}
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
-import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}
+import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsAddonsPaginationPaginationMod.PaginationProps
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
@@ -42,7 +43,6 @@ import zio.json.ast.Json
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
-import dmscreen.util.*
 
 def createMonsterCombatant(
   encounter: Encounter,

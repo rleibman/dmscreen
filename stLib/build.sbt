@@ -1,11 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
-lazy val SCALA = "3.5.2"
+lazy val SCALA = "3.6.2"
 
 val scalajsReactVersion = "2.1.1"
 val reactVersion = "^18.3.0"
 
-version := "0.6.0-SNAPSHOT"
+version := "0.7.0-SNAPSHOT"
 
 enablePlugins(ScalablyTypedConverterGenSourcePlugin)
 
@@ -36,7 +36,8 @@ Compile / npmDependencies ++= Seq(
   "react-quill"                    -> "^2.0.0",
   "@3d-dice/dice-ui"               -> "^0.5.0",
   "@3d-dice/dice-parser-interface" -> "^0.2.0",
-  "@3d-dice/dice-box"              -> "^1.1.0"
+  "@3d-dice/dice-box"              -> "^1.1.0",
+  "babylonjs-gltf2interface"       -> "^5.22.0"
 )
 
 Test / npmDependencies ++= Seq(

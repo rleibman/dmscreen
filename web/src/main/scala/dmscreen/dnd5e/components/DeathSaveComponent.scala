@@ -60,73 +60,75 @@ def DeathSaveComponent(
     .render { props =>
       <.table(
         ^.className := "deathSave",
-        <.tr(<.th("Fails"), <.th("Successes")),
-        <.tr(
-          <.td(
-            ^.className := "deathSaveFail",
-            <.input(
-              ^.`type`   := "checkbox",
-              ^.checked  := props.deathSave.fails > 0,
-              ^.readOnly := props.deathSave.fails != 0,
-              ^.onChange ==> ((e: ReactEventFromInput) =>
-                props.onChange(
-                  props.deathSave.copy(fails = props.deathSave.fails + (if (e.currentTarget.checked) 1 else -1))
+        <.tbody(
+          <.tr(<.th("Fails"), <.th("Successes")),
+          <.tr(
+            <.td(
+              ^.className := "deathSaveFail",
+              <.input(
+                ^.`type`   := "checkbox",
+                ^.checked  := props.deathSave.fails > 0,
+                ^.readOnly := props.deathSave.fails != 0,
+                ^.onChange ==> ((e: ReactEventFromInput) =>
+                  props.onChange(
+                    props.deathSave.copy(fails = props.deathSave.fails + (if (e.currentTarget.checked) 1 else -1))
+                  )
+                )
+              ),
+              <.input(
+                ^.`type`   := "checkbox",
+                ^.checked  := props.deathSave.fails > 1,
+                ^.readOnly := props.deathSave.fails != 1,
+                ^.onChange ==> ((e: ReactEventFromInput) =>
+                  props.onChange(
+                    props.deathSave.copy(fails = props.deathSave.fails + (if (e.currentTarget.checked) 1 else -1))
+                  )
+                )
+              ),
+              <.input(
+                ^.`type`   := "checkbox",
+                ^.checked  := props.deathSave.fails > 2,
+                ^.readOnly := props.deathSave.fails != 2,
+                ^.onChange ==> ((e: ReactEventFromInput) =>
+                  props.onChange(
+                    props.deathSave.copy(fails = props.deathSave.fails + (if (e.currentTarget.checked) 1 else -1))
+                  )
                 )
               )
             ),
-            <.input(
-              ^.`type`   := "checkbox",
-              ^.checked  := props.deathSave.fails > 1,
-              ^.readOnly := props.deathSave.fails != 1,
-              ^.onChange ==> ((e: ReactEventFromInput) =>
-                props.onChange(
-                  props.deathSave.copy(fails = props.deathSave.fails + (if (e.currentTarget.checked) 1 else -1))
+            <.td(
+              ^.className := "deathSaveSucceed",
+              <.input(
+                ^.`type`   := "checkbox",
+                ^.checked  := props.deathSave.successes > 0,
+                ^.readOnly := props.deathSave.successes != 0,
+                ^.onChange ==> ((e: ReactEventFromInput) =>
+                  props.onChange(
+                    props.deathSave
+                      .copy(successes = props.deathSave.successes + (if (e.currentTarget.checked) 1 else -1))
+                  )
                 )
-              )
-            ),
-            <.input(
-              ^.`type`   := "checkbox",
-              ^.checked  := props.deathSave.fails > 2,
-              ^.readOnly := props.deathSave.fails != 2,
-              ^.onChange ==> ((e: ReactEventFromInput) =>
-                props.onChange(
-                  props.deathSave.copy(fails = props.deathSave.fails + (if (e.currentTarget.checked) 1 else -1))
+              ),
+              <.input(
+                ^.`type`   := "checkbox",
+                ^.checked  := props.deathSave.successes > 1,
+                ^.readOnly := props.deathSave.successes != 1,
+                ^.onChange ==> ((e: ReactEventFromInput) =>
+                  props.onChange(
+                    props.deathSave
+                      .copy(successes = props.deathSave.successes + (if (e.currentTarget.checked) 1 else -1))
+                  )
                 )
-              )
-            )
-          ),
-          <.td(
-            ^.className := "deathSaveSucceed",
-            <.input(
-              ^.`type`   := "checkbox",
-              ^.checked  := props.deathSave.successes > 0,
-              ^.readOnly := props.deathSave.successes != 0,
-              ^.onChange ==> ((e: ReactEventFromInput) =>
-                props.onChange(
-                  props.deathSave
-                    .copy(successes = props.deathSave.successes + (if (e.currentTarget.checked) 1 else -1))
-                )
-              )
-            ),
-            <.input(
-              ^.`type`   := "checkbox",
-              ^.checked  := props.deathSave.successes > 1,
-              ^.readOnly := props.deathSave.successes != 1,
-              ^.onChange ==> ((e: ReactEventFromInput) =>
-                props.onChange(
-                  props.deathSave
-                    .copy(successes = props.deathSave.successes + (if (e.currentTarget.checked) 1 else -1))
-                )
-              )
-            ),
-            <.input(
-              ^.`type`   := "checkbox",
-              ^.checked  := props.deathSave.successes > 2,
-              ^.readOnly := props.deathSave.successes != 2,
-              ^.onChange ==> ((e: ReactEventFromInput) =>
-                props.onChange(
-                  props.deathSave
-                    .copy(successes = props.deathSave.successes + (if (e.currentTarget.checked) 1 else -1))
+              ),
+              <.input(
+                ^.`type`   := "checkbox",
+                ^.checked  := props.deathSave.successes > 2,
+                ^.readOnly := props.deathSave.successes != 2,
+                ^.onChange ==> ((e: ReactEventFromInput) =>
+                  props.onChange(
+                    props.deathSave
+                      .copy(successes = props.deathSave.successes + (if (e.currentTarget.checked) 1 else -1))
+                  )
                 )
               )
             )

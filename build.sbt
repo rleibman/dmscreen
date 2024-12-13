@@ -11,7 +11,7 @@ lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time o
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
-lazy val SCALA = "3.5.2"
+lazy val SCALA = "3.6.2"
 Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
 Global / scalaVersion         := SCALA
@@ -52,7 +52,7 @@ enablePlugins(
 )
 
 val calibanVersion = "2.9.0"
-val zioVersion = "2.1.11"
+val zioVersion = "2.1.13"
 val quillVersion = "4.8.6"
 val zioHttpVersion = "3.0.1"
 val zioConfigVersion = "4.0.2"
@@ -93,7 +93,7 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "dev.zio"     %% "zio"              % zioVersion withSources (),
       "dev.zio"     %% "zio-json"         % zioJsonVersion withSources (),
-      "dev.zio"     %% "zio-prelude"      % "1.0.0-RC31" withSources (),
+      "dev.zio"     %% "zio-prelude"      % "1.0.0-RC35" withSources (),
       "io.megl"     %% "zio-json-extra"   % "0.6.2" withSources (),
       "org.gnieh"   %% "diffson-core"     % "4.6.0" withSources (),
       "io.megl"     %% "zio-json-diffson" % "0.6.2" withSources (),
@@ -107,14 +107,14 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio"                                                 % zioVersion withSources (),
       "dev.zio" %%% "zio-json"                                            % zioJsonVersion withSources (),
-      "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC31" withSources (),
+      "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC35" withSources (),
       "org.gnieh" %%% "diffson-core"                                      % "4.6.0" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-diffson"                                    % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.kevinlee" %%% "just-semver-core"                                % "1.1.0" withSources (),
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.31.1",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.31.1"
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.32.0",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.32.0"
     )
   )
 
@@ -137,7 +137,7 @@ lazy val server = project
     name := "dmscreen-server",
     libraryDependencies ++= Seq(
       // DB
-      "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.0" withSources (),
+      "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.1" withSources (),
       "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
       // ZIO
       "dev.zio"                %% "zio"                   % zioVersion withSources (),
@@ -147,7 +147,7 @@ lazy val server = project
       "dev.zio"                %% "zio-config-derivation" % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-magnolia"   % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-typesafe"   % zioConfigVersion withSources (),
-      "dev.zio"                %% "zio-logging-slf4j2"    % "2.3.2" withSources (),
+      "dev.zio"                %% "zio-logging-slf4j2"    % "2.4.0" withSources (),
       "dev.zio"                %% "izumi-reflect"         % "2.3.10" withSources (),
       "com.github.ghostdogpr"  %% "caliban"               % calibanVersion withSources (),
       "com.github.ghostdogpr"  %% "caliban-zio-http"      % calibanVersion withSources (),
@@ -224,7 +224,7 @@ lazy val bundlerSettings: Project => Project =
         "@3d-dice/theme-rust"            -> "^0.2.0",
         "babylonjs-gltf2interface"       -> "^5.22.0"
       ),
-      webpack / version := "5.91.0",
+      webpack / version := "5.96.1",
       Compile / fastOptJS / artifactPath := ((Compile / fastOptJS / crossTarget).value /
         ((fastOptJS / moduleName).value + "-opt.js")),
       Compile / fullOptJS / artifactPath := ((Compile / fullOptJS / crossTarget).value /
@@ -333,11 +333,11 @@ lazy val withCssLoading: Project => Project =
     /* custom webpack file to include css */
     webpackConfigFile := Some((ThisBuild / baseDirectory).value / "custom.webpack.config.js"),
     Compile / npmDevDependencies ++= Seq(
-      "webpack-merge" -> "4.2.2",
-      "css-loader"    -> "3.4.2",
-      "style-loader"  -> "1.1.3",
-      "file-loader"   -> "5.1.0",
-      "url-loader"    -> "4.1.0"
+      "webpack-merge" -> "6.0.1",
+      "css-loader"    -> "7.1.2",
+      "style-loader"  -> "4.0.0",
+      "file-loader"   -> "6.2.0",
+      "url-loader"    -> "4.1.1"
     )
   )
 

@@ -22,10 +22,8 @@
 package dmscreen.routes
 
 import dmscreen.ConfigurationService
-import dmscreen.routes.StaticRoutes.file
 import zio.*
 import zio.http.*
-import zio.http.codec.HttpCodec.NotFound
 
 import java.nio.file.{Files, Paths as JPaths}
 
@@ -80,8 +78,8 @@ object StaticRoutes {
     }.flatten,
     Method.ANY / "unauth" / trailing -> handler {
       (
-        path:    Path,
-        request: Request
+        path: Path,
+        _:    Request
       ) =>
         val somethingElse = path.toString
 

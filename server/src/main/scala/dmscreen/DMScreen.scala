@@ -37,7 +37,7 @@ object DMScreen extends ZIOApp {
 
   private val defaultRouteZio: ZIO[ConfigurationService, ConfigurationError, Routes[ConfigurationService, Throwable]] =
     for {
-      config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
+      _ <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
 
     } yield Routes(Method.ANY / trailing -> handler {
       (
@@ -58,8 +58,8 @@ object DMScreen extends ZIOApp {
             "stackTrace": [${e.getStackTrace.nn.map(s => s"\"${s.toString}\"").mkString(",")}]
           }"""
 
-        ZIO.logError(body) *>
-          ZIO.succeed(
+        ZIO
+          .logError(body).as(
             Response.apply(body = Body.fromString(body), status = Status.BadGateway, headers = contentTypeJson)
           )
       case e =>
@@ -68,8 +68,8 @@ object DMScreen extends ZIOApp {
             "exceptionMessage": ${e.getMessage},
             "stackTrace": [${e.getStackTrace.nn.map(s => s"\"${s.toString}\"").mkString(",")}]
           }"""
-        ZIO.logError(body) *>
-          ZIO.succeed(
+        ZIO
+          .logError(body).as(
             Response.apply(body = Body.fromString(body), status = Status.InternalServerError, headers = contentTypeJson)
           )
 
@@ -82,7 +82,6 @@ object DMScreen extends ZIOApp {
     dmScreenRoute <- DMScreenRoutes.route
     dnd5eRoute    <- DND5eRoutes.route
     staRoute      <- STARoutes.route
-    start         <- Clock.currentTime(TimeUnit.MILLISECONDS)
   } yield (dmScreenRoute ++
     dnd5eRoute ++
     staRoute ++

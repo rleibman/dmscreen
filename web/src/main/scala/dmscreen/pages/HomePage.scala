@@ -21,7 +21,6 @@
 
 package dmscreen.pages
 
-import dmscreen.dnd5e.DND5eGraphQLRepository
 import dmscreen.{*, given}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Generic.UnmountedRaw
@@ -130,7 +129,7 @@ object HomePage extends DMScreenTab {
             // after setting it locally, persist it.
             (for {
               campaign <- DMScreenGraphQLRepository.live.campaign(campaignHeader.id)
-              upserted <- DMScreenGraphQLRepository.live
+              _ <- DMScreenGraphQLRepository.live
                 .upsert(campaignHeader, campaign.get.jsonInfo).when(campaign.isDefined)
             } yield Callback.empty).completeWith(_.get)
           )
@@ -191,7 +190,7 @@ object HomePage extends DMScreenTab {
                           data
                         ) =>
                           val newVal: GameSystem = data.value match {
-                            case i: Int => GameSystem.fromOrdinal(i)
+                            case i: Double => GameSystem.fromOrdinal(i.toInt)
                             case _ => newCampaign.gameSystem
                           }
                           $.modState(s => s.copy(newCampaign = s.newCampaign.map(_.copy(gameSystem = newVal))))

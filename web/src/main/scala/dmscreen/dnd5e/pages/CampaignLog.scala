@@ -50,6 +50,7 @@ object CampaignLog {
 
     def render(state: State): VdomNode = {
       Modal
+        .withKey("CampaignLog")
         .open(state.logOpen)
         .closeIcon(true)
         .onClose(
