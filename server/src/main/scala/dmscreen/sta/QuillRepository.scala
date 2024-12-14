@@ -290,14 +290,14 @@ object QuillRepository {
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
-        val jsonInsert =quote {
+        val jsonInsert = quote {
           (
             doc:   Json,
             path:  String,
             value: Json
           ) => sql"JSON_INSERT($doc, $path, $value)".as[Json]
         }
-        val jsonReplace= quote {
+        val jsonReplace = quote {
           (
             doc:   Json,
             path:  String,
