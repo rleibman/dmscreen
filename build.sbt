@@ -49,12 +49,12 @@ enablePlugins(
 )
 
 val calibanVersion = "2.9.0"
-val zioVersion = "2.1.13"
+val zioVersion = "2.1.14"
 val quillVersion = "4.8.6"
 val zioHttpVersion = "3.0.1"
 val zioConfigVersion = "4.0.2"
-val zioJsonVersion = "0.7.3"
-val testContainerVersion = "0.41.4"
+val zioJsonVersion = "0.7.4"
+val testContainerVersion = "0.41.5"
 val tapirVersion = "1.10.8"
 
 lazy val commonSettings = Seq(
@@ -88,7 +88,7 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "dev.zio"     %% "zio"              % zioVersion withSources (),
       "dev.zio"     %% "zio-json"         % zioJsonVersion withSources (),
-      "dev.zio"     %% "zio-prelude"      % "1.0.0-RC35" withSources (),
+      "dev.zio"     %% "zio-prelude"      % "1.0.0-RC36" withSources (),
       "io.megl"     %% "zio-json-extra"   % "0.6.2" withSources (),
       "org.gnieh"   %% "diffson-core"     % "4.6.0" withSources (),
       "io.megl"     %% "zio-json-diffson" % "0.6.2" withSources (),
@@ -102,14 +102,14 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio"                                                 % zioVersion withSources (),
       "dev.zio" %%% "zio-json"                                            % zioJsonVersion withSources (),
-      "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC35" withSources (),
+      "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC36" withSources (),
       "org.gnieh" %%% "diffson-core"                                      % "4.6.0" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-diffson"                                    % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.kevinlee" %%% "just-semver-core"                                % "1.1.0" withSources (),
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.32.0",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.32.0"
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.33.0",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.33.0"
     )
   )
 
@@ -135,7 +135,7 @@ lazy val server = project
       "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.1" withSources (),
       "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
       // Log
-      "ch.qos.logback"         % "logback-classic"              % "1.5.12" withSources (),
+      "ch.qos.logback"         % "logback-classic"              % "1.5.16" withSources (),
       // ZIO
       "dev.zio"                %% "zio"                   % zioVersion withSources (),
       "dev.zio"                %% "zio-nio"               % "2.0.2" withSources (),
