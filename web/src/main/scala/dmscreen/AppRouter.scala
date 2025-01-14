@@ -35,7 +35,7 @@ import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsCollectionsMenuMenuItemMod.MenuItemProps
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticWIDTHS
 import net.leibman.dmscreen.std.*
-import org.scalajs.dom.HTMLAnchorElement
+import org.scalajs.dom.{HTMLAnchorElement, window}
 import org.scalajs.dom.html.Paragraph
 
 object AppRouter {
@@ -145,11 +145,31 @@ object AppRouter {
         | staticRoute(s"#${aboutPage.pageType.toString}", aboutPage.pageType) ~> renderR(_ =>
           aboutPage.createComponentFn(campaignId.getOrElse(CampaignId.empty))
         ))
-        .notFound(redirectToPage(homePage.pageType)(SetRouteVia.HistoryReplace))
+        .notFound { path =>
+          println(s"${path.value}")
+          // We're possibly getting here because we haven't loaded the campaign yet, so we need to redirect to the home page
+          if (gameUI.isEmpty) {
+            println("the gameUI is empty, redirecting to home, but saving the path")
+            // Let's save the current path so we can redirect to it after the campaign is loaded
+            window.sessionStorage.setItem("redirectPath", path.value)
+            redirectToPage(homePage.pageType)(SetRouteVia.HistoryReplace)
+          } else {
+            val savedPath: String = window.sessionStorage.getItem("redirectPath")
+            println("the gameUI is not empty, get the path from session storage is $savedPath")
+            // remove the item from storage to make sure we clear it so we don't end up in an infinite loop
+            window.sessionStorage.removeItem("redirectPath")
+            if (savedPath.trim.nonEmpty) {
+              redirectToPath(savedPath)(SetRouteVia.HistoryReplace)
+            } else {
+              redirectToPage(homePage.pageType)(SetRouteVia.HistoryReplace)
+            }
+          }
+        }
         .renderWith(layout(campaignId, gameUI))
     }
 
   private val baseUrl: BaseUrl = BaseUrl.fromWindowOrigin_/
+  println(s"baseUrl: $baseUrl")
 
   def router(
     campaignId: Option[CampaignId],

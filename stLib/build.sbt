@@ -24,20 +24,20 @@ stFlavour        := Flavour.ScalajsReact
 
 /* javascript / typescript deps */
 Compile / npmDependencies ++= Seq(
-  "react-dom"                      -> reactVersion,
+  "@types/react"                   -> reactVersion,
   "@types/react-dom"               -> reactVersion,
   "react"                          -> reactVersion,
-  "@types/react"                   -> reactVersion,
-  "csstype"                        -> "^3.1.0",
-  "@types/prop-types"              -> "^15.7.0",
-  "semantic-ui-react"              -> "^2.1.5",
-  "react-apexcharts"               -> "^1.4.0",
-  "apexcharts"                     -> "^3.51.0",
-  "react-quill"                    -> "^2.0.0",
-  "@3d-dice/dice-ui"               -> "^0.5.0",
-  "@3d-dice/dice-parser-interface" -> "^0.2.0",
+  "react-dom"                      -> reactVersion,
   "@3d-dice/dice-box"              -> "^1.1.0",
-  "babylonjs-gltf2interface"       -> "^5.22.0"
+  "@3d-dice/dice-parser-interface" -> "^0.2.0",
+  "@3d-dice/dice-ui"               -> "^0.5.0",
+  "@types/prop-types"              -> "^15.7.0",
+  "apexcharts"                     -> "^3.51.0",
+  "babylonjs-gltf2interface"       -> "^5.22.0",
+  "csstype"                        -> "^3.1.0",
+  "react-apexcharts"               -> "^1.4.0",
+  "react-quill"                    -> "^2.0.0",
+  "semantic-ui-react"              -> "^2.1.5",
 )
 
 Test / npmDependencies ++= Seq(

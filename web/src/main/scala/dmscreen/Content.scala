@@ -133,7 +133,7 @@ object Content {
         .getOrElse(CampaignId(1)) // Change this, we'll need to load campaigns from the server and select the first one)
 
       val ajax = for {
-        oldState <- $.state.asAsyncCallback
+        _ <- $.state.asAsyncCallback
         _ <- AsyncCallback.pure(window.sessionStorage.setItem("currentCampaignId", id.value.toString)) // Store the current campaign Id in the session storage for next time
         _ <- Callback.log(s"Loading campaign data (campaign = $id) from server...").asAsyncCallback
         campaignOpt <- DMScreenGraphQLRepository.live.campaign(id) // First load the campaign, this will allow us to ask for the GameSystem-specific data
