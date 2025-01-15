@@ -5,7 +5,7 @@ lazy val SCALA = "3.6.2"
 val scalajsReactVersion = "2.1.1"
 val reactVersion = "^18.3.0"
 
-version := "0.7.0-SNAPSHOT"
+version := "0.8.0-SNAPSHOT"
 
 enablePlugins(ScalablyTypedConverterGenSourcePlugin)
 

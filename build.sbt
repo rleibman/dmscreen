@@ -48,11 +48,11 @@ enablePlugins(
   GitVersioning
 )
 
-val calibanVersion = "2.9.0"
+val calibanVersion = "2.9.1"
 val zioVersion = "2.1.14"
 val quillVersion = "4.8.6"
 val zioHttpVersion = "3.0.1"
-val zioConfigVersion = "4.0.2"
+val zioConfigVersion = "4.0.3"
 val zioJsonVersion = "0.7.4"
 val testContainerVersion = "0.41.5"
 val tapirVersion = "1.10.8"
@@ -156,7 +156,7 @@ lazy val server = project
       // Other random utilities
       "com.github.pathikrit"  %% "better-files"                 % "3.9.2" withSources (),
       "com.github.daddykotex" %% "courier"                      % "3.2.0" withSources (),
-      "commons-codec"          % "commons-codec"                % "1.17.1",
+      "commons-codec"          % "commons-codec"                % "1.17.2",
       "com.dimafeng"          %% "testcontainers-scala-mariadb" % testContainerVersion withSources (),
       // Testing
       "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
@@ -199,7 +199,7 @@ lazy val ai = project
       // Other random utilities
       "com.github.pathikrit"  %% "better-files"                 % "3.9.2" withSources (),
       "com.github.daddykotex" %% "courier"                      % "3.2.0" withSources (),
-      "ch.qos.logback"         % "logback-classic"              % "1.5.12" withSources (),
+      "ch.qos.logback"         % "logback-classic"              % "1.5.16" withSources (),
       // Testing
       "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
       "dev.zio" %% "zio-test-sbt" % zioVersion % "test" withSources ()
@@ -253,10 +253,10 @@ lazy val withCssLoading: Project => Project =
 lazy val commonWeb: Project => Project =
   _.settings(
     libraryDependencies ++= Seq(
-      "net.leibman" %%% "dmscreen-stlib"              % "0.6.0-SNAPSHOT" withSources (),
+      "net.leibman" %%% "dmscreen-stlib"              % "0.8.0-SNAPSHOT" withSources (),
       "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
       "dev.zio" %%% "zio"                             % zioVersion withSources (),
-      "com.softwaremill.sttp.client3" %%% "core"      % "3.10.1" withSources (),
+      "com.softwaremill.sttp.client3" %%% "core"      % "3.10.2" withSources (),
       "io.github.cquiroz" %%% "scala-java-time"       % "2.6.0" withSources (),
       "io.github.cquiroz" %%% "scala-java-time-tzdb"  % "2.6.0" withSources (),
       "org.scala-js" %%% "scalajs-dom"                % "2.8.0" withSources (),
