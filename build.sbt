@@ -9,8 +9,6 @@ import org.apache.commons.io.FileUtils
 
 lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time of build").withRank(KeyRanks.Invisible)
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-// Global stuff
 lazy val SCALA = "3.6.2"
 Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
@@ -35,7 +33,6 @@ lazy val scala3Opts = Seq(
   "-language:existentials", // Existential types (besides wildcard types) can be written and inferred
   "-language:implicitConversions",
   "-language:higherKinds", // Allow higher-kinded types
-//  "-language:strictEquality",
   "-unchecked", // Enable additional warnings where generated code depends on assumptions.
   "-Xfatal-warnings", // Fail the compilation if there are any warnings.
   "-deprecation", // Emit warning and location for usages of deprecated APIs.
@@ -51,13 +48,13 @@ enablePlugins(
   GitVersioning
 )
 
-val calibanVersion = "2.9.0"
-val zioVersion = "2.1.13"
+val calibanVersion = "2.9.1"
+val zioVersion = "2.1.14"
 val quillVersion = "4.8.6"
 val zioHttpVersion = "3.0.1"
-val zioConfigVersion = "4.0.2"
-val zioJsonVersion = "0.7.3"
-val testContainerVersion = "0.41.4"
+val zioConfigVersion = "4.0.3"
+val zioJsonVersion = "0.7.4"
+val testContainerVersion = "0.41.5"
 val tapirVersion = "1.10.8"
 
 lazy val commonSettings = Seq(
@@ -83,9 +80,7 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
   .settings(
     name             := "dmscreen-common",
     buildInfoPackage := "dmscreen",
-    commonSettings,
-    libraryDependencies ++= Seq(
-    )
+    commonSettings
   )
   .jvmEnablePlugins(GitVersioning, BuildInfoPlugin)
   .jvmSettings(
@@ -93,7 +88,7 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "dev.zio"     %% "zio"              % zioVersion withSources (),
       "dev.zio"     %% "zio-json"         % zioJsonVersion withSources (),
-      "dev.zio"     %% "zio-prelude"      % "1.0.0-RC35" withSources (),
+      "dev.zio"     %% "zio-prelude"      % "1.0.0-RC36" withSources (),
       "io.megl"     %% "zio-json-extra"   % "0.6.2" withSources (),
       "org.gnieh"   %% "diffson-core"     % "4.6.0" withSources (),
       "io.megl"     %% "zio-json-diffson" % "0.6.2" withSources (),
@@ -107,14 +102,14 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "dev.zio" %%% "zio"                                                 % zioVersion withSources (),
       "dev.zio" %%% "zio-json"                                            % zioJsonVersion withSources (),
-      "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC35" withSources (),
+      "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC36" withSources (),
       "org.gnieh" %%% "diffson-core"                                      % "4.6.0" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-diffson"                                    % "0.6.2" withSources (),
       "io.megl" %%% "zio-json-extra"                                      % "0.6.2" withSources (),
       "io.kevinlee" %%% "just-semver-core"                                % "1.1.0" withSources (),
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.32.0",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.32.0"
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.33.0",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.33.0"
     )
   )
 
@@ -139,6 +134,8 @@ lazy val server = project
       // DB
       "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.1" withSources (),
       "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
+      // Log
+      "ch.qos.logback"         % "logback-classic"              % "1.5.16" withSources (),
       // ZIO
       "dev.zio"                %% "zio"                   % zioVersion withSources (),
       "dev.zio"                %% "zio-nio"               % "2.0.2" withSources (),
@@ -159,8 +156,7 @@ lazy val server = project
       // Other random utilities
       "com.github.pathikrit"  %% "better-files"                 % "3.9.2" withSources (),
       "com.github.daddykotex" %% "courier"                      % "3.2.0" withSources (),
-      "ch.qos.logback"         % "logback-classic"              % "1.5.12" withSources (),
-      "commons-codec"          % "commons-codec"                % "1.17.1",
+      "commons-codec"          % "commons-codec"                % "1.17.2",
       "com.dimafeng"          %% "testcontainers-scala-mariadb" % testContainerVersion withSources (),
       // Testing
       "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
@@ -203,7 +199,7 @@ lazy val ai = project
       // Other random utilities
       "com.github.pathikrit"  %% "better-files"                 % "3.9.2" withSources (),
       "com.github.daddykotex" %% "courier"                      % "3.2.0" withSources (),
-      "ch.qos.logback"         % "logback-classic"              % "1.5.12" withSources (),
+      "ch.qos.logback"         % "logback-classic"              % "1.5.16" withSources (),
       // Testing
       "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
       "dev.zio" %% "zio-test-sbt" % zioVersion % "test" withSources ()
@@ -217,13 +213,6 @@ val scalajsReactVersion = "2.1.2"
 lazy val bundlerSettings: Project => Project =
   _.enablePlugins(ScalaJSBundlerPlugin)
     .settings(
-      Compile / npmDependencies ++= Seq(
-        "@3d-dice/dice-ui"               -> "^0.5.0",
-        "@3d-dice/dice-parser-interface" -> "^0.2.0",
-        "@3d-dice/dice-box"              -> "^1.1.0",
-        "@3d-dice/theme-rust"            -> "^0.2.0",
-        "babylonjs-gltf2interface"       -> "^5.22.0"
-      ),
       webpack / version := "5.96.1",
       Compile / fastOptJS / artifactPath := ((Compile / fastOptJS / crossTarget).value /
         ((fastOptJS / moduleName).value + "-opt.js")),
@@ -237,8 +226,55 @@ lazy val bundlerSettings: Project => Project =
       webpackEmitSourceMaps                     := false,
       scalaJSLinkerConfig ~= { a =>
         a.withSourceMap(true) // .withRelativizeSourceMapBase(None)
-      }
+      },
+      Compile / npmDependencies ++= Seq(
+        "@3d-dice/dice-ui"               -> "^0.5.0",
+        "@3d-dice/dice-parser-interface" -> "^0.2.0",
+        "@3d-dice/dice-box"              -> "^1.1.0",
+        "@3d-dice/theme-rust"            -> "^0.2.0",
+        "babylonjs-gltf2interface"       -> "^5.22.0"
+      ),
     )
+
+lazy val withCssLoading: Project => Project =
+  _.settings(
+    /* custom webpack file to include css */
+    webpackConfigFile := Some((ThisBuild / baseDirectory).value / "custom.webpack.config.js"),
+    Compile / npmDevDependencies ++= Seq(
+      "webpack-merge" -> "6.0.1",
+      "css-loader"    -> "7.1.2",
+      "style-loader"  -> "4.0.0",
+      "file-loader"   -> "6.2.0",
+      "url-loader"    -> "4.1.1"
+    )
+  )
+
+
+lazy val commonWeb: Project => Project =
+  _.settings(
+    libraryDependencies ++= Seq(
+      "net.leibman" %%% "dmscreen-stlib"              % "0.8.0-SNAPSHOT" withSources (),
+      "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
+      "dev.zio" %%% "zio"                             % zioVersion withSources (),
+      "com.softwaremill.sttp.client3" %%% "core"      % "3.10.2" withSources (),
+      "io.github.cquiroz" %%% "scala-java-time"       % "2.6.0" withSources (),
+      "io.github.cquiroz" %%% "scala-java-time-tzdb"  % "2.6.0" withSources (),
+      "org.scala-js" %%% "scalajs-dom"                % "2.8.0" withSources (),
+      "com.olvind" %%% "scalablytyped-runtime"        % "2.4.2",
+      "com.github.japgolly.scalajs-react" %%% "core"  % scalajsReactVersion withSources (),
+      "com.github.japgolly.scalajs-react" %%% "extra" % scalajsReactVersion withSources (),
+      "com.lihaoyi" %%% "scalatags"                   % "0.13.1" withSources (),
+      "com.github.japgolly.scalacss" %%% "core"       % "1.0.0" withSources (),
+      "com.github.japgolly.scalacss" %%% "ext-react"  % "1.0.0" withSources ()
+      //      ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13)
+    ),
+    organizationName := "Roberto Leibman",
+    startYear        := Some(2024),
+    licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
+    Compile / unmanagedSourceDirectories := Seq((Compile / scalaSource).value),
+    Test / unmanagedSourceDirectories    := Seq((Test / scalaSource).value)
+    //    webpackDevServerPort                 := 8009
+  )
 
 lazy val web: Project = project
   .dependsOn(commonJS)
@@ -302,44 +338,6 @@ lazy val web: Project = project
     }
   )
 
-lazy val commonWeb: Project => Project =
-  _.settings(
-    libraryDependencies ++= Seq(
-      "net.leibman" %%% "dmscreen-stlib"              % "0.6.0-SNAPSHOT" withSources (),
-      "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
-      "dev.zio" %%% "zio"                             % zioVersion withSources (),
-      "com.softwaremill.sttp.client3" %%% "core"      % "3.10.1" withSources (),
-      "io.github.cquiroz" %%% "scala-java-time"       % "2.6.0" withSources (),
-      "io.github.cquiroz" %%% "scala-java-time-tzdb"  % "2.6.0" withSources (),
-      "org.scala-js" %%% "scalajs-dom"                % "2.8.0" withSources (),
-      "com.olvind" %%% "scalablytyped-runtime"        % "2.4.2",
-      "com.github.japgolly.scalajs-react" %%% "core"  % scalajsReactVersion withSources (),
-      "com.github.japgolly.scalajs-react" %%% "extra" % scalajsReactVersion withSources (),
-      "com.lihaoyi" %%% "scalatags"                   % "0.13.1" withSources (),
-      "com.github.japgolly.scalacss" %%% "core"       % "1.0.0" withSources (),
-      "com.github.japgolly.scalacss" %%% "ext-react"  % "1.0.0" withSources ()
-      //      ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13)
-    ),
-    organizationName := "Roberto Leibman",
-    startYear        := Some(2024),
-    licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
-    Compile / unmanagedSourceDirectories := Seq((Compile / scalaSource).value),
-    Test / unmanagedSourceDirectories    := Seq((Test / scalaSource).value)
-//    webpackDevServerPort                 := 8009
-  )
-
-lazy val withCssLoading: Project => Project =
-  _.settings(
-    /* custom webpack file to include css */
-    webpackConfigFile := Some((ThisBuild / baseDirectory).value / "custom.webpack.config.js"),
-    Compile / npmDevDependencies ++= Seq(
-      "webpack-merge" -> "6.0.1",
-      "css-loader"    -> "7.1.2",
-      "style-loader"  -> "4.0.0",
-      "file-loader"   -> "6.2.0",
-      "url-loader"    -> "4.1.1"
-    )
-  )
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Root project

@@ -36,7 +36,7 @@ type DMScreenServerEnvironment = DMScreenZIORepository & STAZIORepository & DND5
 
 object EnvironmentBuilder {
 
-  def live =
+  def live: ULayer[DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter] =
     ZLayer
       .make[DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter](
         ConfigurationService.live,
