@@ -62,6 +62,15 @@ object MonsterId {
 
 object ChallengeRating {
 
+  def fromString(value: String): ChallengeRating = {
+    value match {
+      case "0.125" => `1/8`
+      case "0.25"  => `1/4`
+      case "0.5"   => `1/2`
+      case "0"     => `0`
+      case s => valueOf(s)
+    }
+  }
   def fromDouble(value: Double): Option[ChallengeRating] = ChallengeRating.values.find(_.value == value)
 
 }

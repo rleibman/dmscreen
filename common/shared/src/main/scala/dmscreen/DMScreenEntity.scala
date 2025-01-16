@@ -39,7 +39,7 @@ trait EntityType[EntityId] {
 
 }
 
-trait DMScreenEntity[Id, Header <: HasId[Id], Info: JsonEncoder: JsonDecoder] {
+trait DMScreenEntity[Id, Header <: HasId[Id], Info: {JsonEncoder, JsonDecoder}] {
 
   def entityType: EntityType[Id]
   def version:    SemVer

@@ -29,6 +29,7 @@ import caliban.introspection.adt.__Type
 import caliban.schema.*
 import caliban.schema.ArgBuilder.auto.*
 import caliban.schema.Schema.auto.*
+import caliban.wrappers.Wrappers.printErrors
 import dmscreen.*
 import dmscreen.dnd5e.DND5eZIORepository
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
@@ -270,6 +271,7 @@ object DND5eAPI {
           importCharacterDNDBeyond = request => doImportCharacterDNDBeyond(request)
         )
       )
-    )
+    ) @@ printErrors
+
 
 }

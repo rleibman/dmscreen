@@ -55,7 +55,7 @@ object DMScreenSchema {
         _.value.header.gameSystem     -> "gameSystem",
         _.value.header.campaignStatus -> "campaignStatus",
         _.value.jsonInfo              -> "info",
-        _.version                     -> "version",
+        _.value.version           -> "version",
         _.deleted                     -> "deleted"
       )
     }

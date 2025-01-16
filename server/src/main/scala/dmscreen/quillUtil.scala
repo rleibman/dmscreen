@@ -26,10 +26,9 @@ import just.semver.SemVer
 import zio.json.*
 import zio.json.ast.Json
 
-// a object that wraps a business concept with extra stuff that's needed in the database (such as version, deleted, createdDate, etc)
-case class DBObject[T](
+// a object that wraps a business concept with extra stuff that's needed in the database (such as deleted, createdDate, etc)
+case class DBObject[T <: DMScreenEntity[?, ?, ?]](
   value:   T,
-  version: String = dmscreen.BuildInfo.version,
   deleted: Boolean = false
 )
 

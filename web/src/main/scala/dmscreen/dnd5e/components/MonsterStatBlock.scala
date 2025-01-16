@@ -207,6 +207,14 @@ object MonsterStatBlock {
                     ): TagMod
                   }*
               )
+            ),
+            info.notes.headOption.fold(EmptyVdom)(_ =>
+              Container.className("actions")(
+                Header.size(SemanticSIZES.medium).as("h3")("Notes"),
+                Container.className("property-block")(
+                  <.p(^.dangerouslySetInnerHtml := info.notes)
+                )
+              )
             )
           ),
           <.hr(^.className := "orange-border bottom")

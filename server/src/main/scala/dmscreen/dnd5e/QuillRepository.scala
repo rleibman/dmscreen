@@ -56,7 +56,7 @@ object DND5eSchema {
   given MappedEncoding[String, SourceId] = MappedEncoding[String, SourceId](SourceId.apply)
   given MappedEncoding[SourceId, String] = MappedEncoding[SourceId, String](_.value)
   given MappedEncoding[ChallengeRating, String] = MappedEncoding[ChallengeRating, String](_.toString)
-  given MappedEncoding[String, ChallengeRating] = MappedEncoding[String, ChallengeRating](ChallengeRating.valueOf)
+  given MappedEncoding[String, ChallengeRating] = MappedEncoding[String, ChallengeRating](ChallengeRating.fromString)
   given MappedEncoding[Alignment, String] = MappedEncoding[Alignment, String](_.toString)
   given MappedEncoding[String, Alignment] = MappedEncoding[String, Alignment](Alignment.valueOf)
   given MappedEncoding[MonsterType, String] = MappedEncoding[MonsterType, String](_.toString)
@@ -78,7 +78,7 @@ object DND5eSchema {
         _.value.header.orderCol   -> "orderCol",
         _.value.header.isActive   -> "isActive",
         _.value.jsonInfo          -> "info",
-        _.version                 -> "version",
+        _.value.version           -> "version",
         _.deleted                 -> "deleted"
       )
     }
@@ -93,7 +93,7 @@ object DND5eSchema {
         _.value.header.playerName -> "playerName",
         _.value.header.source     -> "source",
         _.value.jsonInfo          -> "info",
-        _.version                 -> "version",
+        _.value.version           -> "version",
         _.deleted                 -> "deleted"
       )
     }
@@ -106,7 +106,7 @@ object DND5eSchema {
         _.value.header.campaignId -> "campaignId",
         _.value.header.name       -> "name",
         _.value.jsonInfo          -> "info",
-        _.version                 -> "version",
+        _.value.version           -> "version",
         _.deleted                 -> "deleted"
       )
     }
@@ -128,7 +128,7 @@ object DND5eSchema {
         _.value.header.size             -> "size",
         _.value.header.initiativeBonus  -> "initiativeBonus",
         _.value.jsonInfo                -> "info",
-        _.version                       -> "version",
+        _.value.version                 -> "version",
         _.deleted                       -> "deleted"
       )
     }
@@ -144,7 +144,7 @@ object DND5eSchema {
         _.value.header.status     -> "status",
         _.value.header.orderCol   -> "orderCol",
         _.value.jsonInfo          -> "info",
-        _.version                 -> "version",
+        _.value.version           -> "version",
         _.deleted                 -> "deleted"
       )
     }
@@ -283,43 +283,43 @@ object QuillRepository {
           // https://jan.kneschke.de/projects/mysql/order-by-rand/
           // ^^ use the stored procedure
 
-          val q7 = quote(
+          val limited = quote(
             q6
               .drop(lift(search.page * search.pageSize))
               .take(lift(search.pageSize))
           )
 
-          val q8: Quoted[Query[DBObject[Monster]]] = (search.orderCol, search.orderDir) match {
+          val sorted: Quoted[Query[DBObject[Monster]]] = (search.orderCol, search.orderDir) match {
             case (MonsterSearchOrder.challengeRating, OrderDirection.asc) =>
-              quote(q7.sortBy(r => r.value.header.cr)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.cr)(Ord.asc))
             case (MonsterSearchOrder.challengeRating, OrderDirection.desc) =>
-              quote(q7.sortBy(r => r.value.header.cr)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.cr)(Ord.desc))
             case (MonsterSearchOrder.size, OrderDirection.asc) =>
-              quote(q7.sortBy(r => r.value.header.size)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.size)(Ord.asc))
             case (MonsterSearchOrder.size, OrderDirection.desc) =>
-              quote(q7.sortBy(r => r.value.header.size)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.size)(Ord.desc))
             case (MonsterSearchOrder.alignment, OrderDirection.asc) =>
-              quote(q7.sortBy(r => r.value.header.alignment)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.alignment)(Ord.asc))
             case (MonsterSearchOrder.alignment, OrderDirection.desc) =>
-              quote(q7.sortBy(r => r.value.header.alignment)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.alignment)(Ord.desc))
             case (MonsterSearchOrder.biome, OrderDirection.asc) =>
-              quote(q7.sortBy(r => r.value.header.biome)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.biome)(Ord.asc))
             case (MonsterSearchOrder.biome, OrderDirection.desc) =>
-              quote(q7.sortBy(r => r.value.header.biome)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.biome)(Ord.desc))
             case (MonsterSearchOrder.monsterType, OrderDirection.asc) =>
-              quote(q7.sortBy(r => r.value.header.monsterType)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.monsterType)(Ord.asc))
             case (MonsterSearchOrder.monsterType, OrderDirection.desc) =>
-              quote(q7.sortBy(r => r.value.header.monsterType)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.monsterType)(Ord.desc))
             case (MonsterSearchOrder.random, OrderDirection.asc) =>
-              quote(q7.sortBy(_ => infix"RAND()"))
+              quote(limited.sortBy(_ => infix"RAND()"))
             case (_, OrderDirection.asc) =>
-              quote(q7.sortBy(r => r.value.header.name)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.name)(Ord.asc))
             case (_, OrderDirection.desc) =>
-              quote(q7.sortBy(r => r.value.header.name)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.name)(Ord.desc))
           }
 
           (for {
-            monsters <- ctx.run(q8)
+            monsters <- ctx.run(sorted)
             total    <- ctx.run(q6.size)
           } yield MonsterSearchResults(
             results = monsters.map(_.value.header),
