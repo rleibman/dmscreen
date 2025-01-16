@@ -29,6 +29,7 @@ import caliban.introspection.adt.__Type
 import caliban.schema.*
 import caliban.schema.ArgBuilder.auto.*
 import caliban.schema.Schema.auto.*
+import dmscreen.db.DMScreenZIORepository
 import just.semver.SemVer
 import zio.ZIO
 import zio.json.*

@@ -21,15 +21,15 @@
 
 package dmscreen
 
-import dmscreen.dnd5e.DND5eZIORepository
+import dmscreen.db.DMScreenZIORepository
+import dmscreen.db.dnd5e.DND5eZIORepository
+import dmscreen.db.sta.STAZIORepository
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
 import dmscreen.dnd5e.fifthEditionCharacterSheet.FifthEditionCharacterSheetImporter
 import dmscreen.dnd5e.srd.SRDImporter
-import dmscreen.sta.STAZIORepository
 import dmscreen.util.TestCreator
 import zio.*
 
-type DMScreenTask[+A] = ZIO[Any, DMScreenError, A] // Succeed with an `A`, may fail with `Throwable`, no requirements.
 
 type DMScreenServerEnvironment = DMScreenZIORepository & STAZIORepository & DND5eZIORepository & DNDBeyondImporter &
   ConfigurationService
@@ -39,10 +39,10 @@ object EnvironmentBuilder {
   def live: ULayer[DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter] =
     ZLayer
       .make[DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter](
-        ConfigurationService.live,
-        dmscreen.QuillRepository.db,
-        dmscreen.dnd5e.QuillRepository.db,
-        dmscreen.sta.QuillRepository.db,
+        ConfigurationServiceImpl.live,
+        dmscreen.db.QuillRepository.db,
+        dmscreen.db.dnd5e.QuillRepository.db,
+        dmscreen.db.sta.QuillRepository.db,
         DNDBeyondImporter.live
       ).orDie
 
@@ -89,10 +89,10 @@ object EnvironmentBuilder {
           InitializingLayer
       ](
         DMScreenContainer.containerLayer,
-        ConfigurationService.live >>> DMScreenContainer.configLayer,
-        dmscreen.QuillRepository.db,
-        dmscreen.dnd5e.QuillRepository.db,
-        dmscreen.sta.QuillRepository.db,
+        ConfigurationServiceImpl.live >>> DMScreenContainer.configLayer,
+        dmscreen.db.QuillRepository.db,
+        dmscreen.db.dnd5e.QuillRepository.db,
+        dmscreen.db.sta.QuillRepository.db,
         DNDBeyondImporter.live,
         FifthEditionCharacterSheetImporter.live,
         SRDImporter.live,

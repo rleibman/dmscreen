@@ -24,7 +24,7 @@ package dmscreen
 import com.dimafeng.testcontainers.*
 import com.typesafe.config
 import com.typesafe.config.ConfigFactory
-import dmscreen.RepositoryError
+import dmscreen.db.RepositoryError
 import io.getquill.jdbczio.Quill
 import org.mariadb.jdbc.MariaDbDataSource
 import org.testcontainers.utility.DockerImageName
