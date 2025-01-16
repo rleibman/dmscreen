@@ -19,8 +19,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen
+package dmscreen.db
 
+import dmscreen.*
 import io.getquill.*
 import just.semver.SemVer
 import zio.json.*

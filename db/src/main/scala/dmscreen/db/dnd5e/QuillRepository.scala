@@ -19,11 +19,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.dnd5e
+package dmscreen.db.dnd5e
 
-import dmscreen.DMScreenSchema.{*, given}
+import dmscreen.db.{*, given}
+import dmscreen.dnd5e.{*, given}
 import dmscreen.{*, given}
-import io.getquill.*
+import io.getquill.{Action as QuillAction, *}
 import io.getquill.extras.*
 import io.getquill.jdbczio.Quill
 import just.semver.SemVer
@@ -382,7 +383,7 @@ object QuillRepository {
                             )
                                )
                     WHERE JSON_SEARCH(info, 'one', '#$valId', NULL, '$$.combatants[*].PlayerCharacterCombatant.playerCharacterId') IS NOT NULL
-                  """.as[Action[Int]]
+                  """.as[QuillAction[Int]]
                   }
                 val total = for {
                   a <- ctx
@@ -417,7 +418,7 @@ object QuillRepository {
                             )
                                )
                     WHERE JSON_SEARCH(info, 'one', '#$valId', NULL, '$$.combatants[*].NonPlayerCharacterCombatant.nonPlayerCharacterId') IS NOT NULL
-                  """.as[Action[Long]]
+                  """.as[QuillAction[Long]]
                 }
                 val total = for {
                   a <- ctx
@@ -452,7 +453,7 @@ object QuillRepository {
                             )
                                )
                     WHERE JSON_SEARCH(info, 'one', '#$valId', NULL, '$$.combatants[*].MonsterCombatant.monsterHeader.id') IS NOT NULL
-                  """.as[Action[Long]]
+                  """.as[QuillAction[Long]]
                 }
                 val total = for {
                   a <- ctx.run(
@@ -512,7 +513,7 @@ object QuillRepository {
                             )
                                )
                     WHERE JSON_SEARCH(info, 'one', '#$valId', NULL, '$$.combatants[*].PlayerCharacterCombatant.playerCharacterId') IS NOT NULL
-                  """.as[Action[Long]]
+                  """.as[QuillAction[Long]]
                 }
                 val total = for {
                   a <- ctx.run(
@@ -543,7 +544,7 @@ object QuillRepository {
                             )
                                )
                     WHERE JSON_SEARCH(info, 'one', '#$valId', NULL, '$$.combatants[*].NonPlayerCharacterCombatant.nonPlayerCharacterId') IS NOT NULL
-                  """.as[Action[Long]]
+                  """.as[QuillAction[Long]]
                 }
                 val total = for {
                   a <- ctx.run(
@@ -574,7 +575,7 @@ object QuillRepository {
                             )
                                )
                     WHERE JSON_SEARCH(info, 'one', '#$valId', NULL, '$$.combatants[*].MonsterCombatant.monsterHeader.id') IS NOT NULL
-                  """.as[Action[Long]]
+                  """.as[QuillAction[Long]]
                 }
                 val total = for {
                   a <- ctx.run(qMonsters.filter(_.value.header.id == lift(id.asInstanceOf[MonsterId])).delete)

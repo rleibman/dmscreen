@@ -29,7 +29,7 @@ import caliban.schema.*
 import caliban.schema.ArgBuilder.auto.*
 import caliban.schema.Schema.auto.*
 import dmscreen.*
-import dmscreen.sta.STAZIORepository
+import dmscreen.db.sta.STAZIORepository
 import just.semver.SemVer
 import zio.*
 import zio.json.*

@@ -30,74 +30,9 @@ import zio.nio.file.Path
 
 import java.io.File
 
-case class ConfigurationError(
-  override val msg:   String = "",
-  override val cause: Option[Throwable] = None
-) extends DMScreenError(msg, cause)
-
-case class DataSourceConfig(
-  driver:                String,
-  url:                   String,
-  user:                  String,
-  password:              String,
-  maximumPoolSize:       Int = 20,
-  minimumIdle:           Int = 1000,
-  connectionTimeoutMins: Long = 5
-)
-
-case class DatabaseConfig(
-  dataSource: DataSourceConfig
-) {}
-
-case class DMScreenConfiguration(
-  db:                 DatabaseConfig,
-  host:               String,
-  port:               Int,
-  staticContentDir:   String,
-  dndBeyondFileStore: Path = zio.nio.file.Path("/home/rleibman/projects/dmscreen/fileStore/dndBeyondCharacters")
-)
-
-object AppConfig {
-
-  def read(typesafeConfig: TypesafeConfig): UIO[AppConfig] = {
-    given DeriveConfig[zio.nio.file.Path] = DeriveConfig[String].map(string => zio.nio.file.Path(string))
-
-    TypesafeConfigProvider
-      .fromTypesafeConfig(typesafeConfig)
-      .load(DeriveConfig.derived[AppConfig].desc)
-      .orDie
-  }
-
-}
-
-case class AppConfig(
-  dmscreen: DMScreenConfiguration
-) {
-
-  lazy val dataSource: HikariDataSource = {
-    val dsConfig = HikariConfig()
-    dsConfig.setDriverClassName(dmscreen.db.dataSource.driver)
-    dsConfig.setJdbcUrl(dmscreen.db.dataSource.url)
-    dsConfig.setUsername(dmscreen.db.dataSource.user)
-    dsConfig.setPassword(dmscreen.db.dataSource.password)
-    dsConfig.setMaximumPoolSize(dmscreen.db.dataSource.maximumPoolSize)
-    dsConfig.setMinimumIdle(dmscreen.db.dataSource.minimumIdle)
-    dsConfig.setAutoCommit(true)
-    dsConfig.setConnectionTimeout(dmscreen.db.dataSource.connectionTimeoutMins * 60 * 1000)
-
-    HikariDataSource(dsConfig)
-  }
-
-}
-
-trait ConfigurationService {
-
-  def appConfig: IO[ConfigurationError, AppConfig]
-
-}
 
 // utility to read config
-object ConfigurationService {
+object ConfigurationServiceImpl {
 
   def withConfig(typesafeConfig: TypesafeConfig): ConfigurationService =
     new ConfigurationService {

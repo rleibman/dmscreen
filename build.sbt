@@ -2,10 +2,10 @@
 // Common Stuff
 
 import com.typesafe.sbt.SbtGit.GitKeys.gitDescribedVersion
+import org.apache.commons.io.FileUtils
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
-import org.apache.commons.io.FileUtils
 
 lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time of build").withRank(KeyRanks.Invisible)
 
@@ -14,7 +14,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
 Global / scalaVersion         := SCALA
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 Global / watchAntiEntropy := 1.second
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,14 +86,20 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
   .jvmSettings(
     version := gitDescribedVersion.value.getOrElse("0.0.1-SNAPSHOT"),
     libraryDependencies ++= Seq(
-      "dev.zio"     %% "zio"              % zioVersion withSources (),
-      "dev.zio"     %% "zio-json"         % zioJsonVersion withSources (),
-      "dev.zio"     %% "zio-prelude"      % "1.0.0-RC36" withSources (),
-      "io.megl"     %% "zio-json-extra"   % "0.6.2" withSources (),
-      "org.gnieh"   %% "diffson-core"     % "4.6.0" withSources (),
-      "io.megl"     %% "zio-json-diffson" % "0.6.2" withSources (),
-      "io.megl"     %% "zio-json-extra"   % "0.6.2" withSources (),
-      "io.kevinlee" %% "just-semver-core" % "1.1.0" withSources ()
+      "dev.zio"     %% "zio"                   % zioVersion withSources (),
+      "dev.zio"     %% "zio-nio"               % "2.0.2" withSources (),
+      "dev.zio"     %% "zio-config"            % zioConfigVersion withSources (),
+      "dev.zio"     %% "zio-config-derivation" % zioConfigVersion withSources (),
+      "dev.zio"     %% "zio-config-magnolia"   % zioConfigVersion withSources (),
+      "dev.zio"     %% "zio-config-typesafe"   % zioConfigVersion withSources (),
+      "dev.zio"     %% "zio-json"              % zioJsonVersion withSources (),
+      "dev.zio"     %% "zio-prelude"           % "1.0.0-RC36" withSources (),
+      "io.getquill" %% "quill-jdbc-zio"        % quillVersion withSources (),
+      "io.megl"     %% "zio-json-extra"        % "0.6.2" withSources (),
+      "org.gnieh"   %% "diffson-core"          % "4.6.0" withSources (),
+      "io.megl"     %% "zio-json-diffson"      % "0.6.2" withSources (),
+      "io.megl"     %% "zio-json-extra"        % "0.6.2" withSources (),
+      "io.kevinlee" %% "just-semver-core"      % "1.1.0" withSources ()
     )
   )
   .jsEnablePlugins(GitVersioning, BuildInfoPlugin)
@@ -113,6 +119,41 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     )
   )
 
+lazy val db = project
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(commonSettings)
+  .dependsOn(commonJVM)
+  .settings(
+    name := "dmscreen-db",
+    libraryDependencies ++= Seq(
+      // DB
+      "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.1" withSources (),
+      "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
+      // Log
+      "ch.qos.logback" % "logback-classic" % "1.5.16" withSources (),
+      // ZIO
+      "dev.zio"                %% "zio"                   % zioVersion withSources (),
+      "dev.zio"                %% "zio-nio"               % "2.0.2" withSources (),
+      "dev.zio"                %% "zio-cache"             % "0.2.3" withSources (),
+      "dev.zio"                %% "zio-config"            % zioConfigVersion withSources (),
+      "dev.zio"                %% "zio-config-derivation" % zioConfigVersion withSources (),
+      "dev.zio"                %% "zio-config-magnolia"   % zioConfigVersion withSources (),
+      "dev.zio"                %% "zio-config-typesafe"   % zioConfigVersion withSources (),
+      "dev.zio"                %% "zio-logging-slf4j2"    % "2.4.0" withSources (),
+      "dev.zio"                %% "izumi-reflect"         % "2.3.10" withSources (),
+      "dev.zio"                %% "zio-json"              % zioJsonVersion withSources (),
+      "org.scala-lang.modules" %% "scala-xml"             % "2.3.0" withSources (),
+      // Other random utilities
+      "com.github.pathikrit"  %% "better-files"                 % "3.9.2" withSources (),
+      "com.github.daddykotex" %% "courier"                      % "3.2.0" withSources (),
+      "commons-codec"          % "commons-codec"                % "1.17.2",
+      "com.dimafeng"          %% "testcontainers-scala-mariadb" % testContainerVersion withSources (),
+      // Testing
+      "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
+      "dev.zio" %% "zio-test-sbt" % zioVersion % "test" withSources ()
+    )
+  )
+
 lazy val server = project
   .enablePlugins(
     AutomateHeaderPlugin,
@@ -127,7 +168,7 @@ lazy val server = project
     CalibanPlugin
   )
   .settings(debianSettings, commonSettings)
-  .dependsOn(commonJVM)
+  .dependsOn(commonJVM, db)
   .settings(
     name := "dmscreen-server",
     libraryDependencies ++= Seq(
@@ -135,7 +176,7 @@ lazy val server = project
       "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.1" withSources (),
       "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
       // Log
-      "ch.qos.logback"         % "logback-classic"              % "1.5.16" withSources (),
+      "ch.qos.logback" % "logback-classic" % "1.5.16" withSources (),
       // ZIO
       "dev.zio"                %% "zio"                   % zioVersion withSources (),
       "dev.zio"                %% "zio-nio"               % "2.0.2" withSources (),
@@ -189,17 +230,17 @@ lazy val ai = project
     GitVersioning
   )
   .settings(commonSettings)
-  .dependsOn(commonJVM)
+  .dependsOn(commonJVM, db)
   .settings(
     name := "dmscreen-server",
     libraryDependencies ++= Seq(
       // ZIO
-      "dev.zio"                %% "zio"                   % zioVersion withSources (),
-      "dev.zio"                %% "zio-nio"               % "2.0.2" withSources (),
+      "dev.zio" %% "zio"     % zioVersion withSources (),
+      "dev.zio" %% "zio-nio" % "2.0.2" withSources (),
       // Other random utilities
-      "com.github.pathikrit"  %% "better-files"                 % "3.9.2" withSources (),
-      "com.github.daddykotex" %% "courier"                      % "3.2.0" withSources (),
-      "ch.qos.logback"         % "logback-classic"              % "1.5.16" withSources (),
+      "com.github.pathikrit"  %% "better-files"    % "3.9.2" withSources (),
+      "com.github.daddykotex" %% "courier"         % "3.2.0" withSources (),
+      "ch.qos.logback"         % "logback-classic" % "1.5.16" withSources (),
       // Testing
       "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
       "dev.zio" %% "zio-test-sbt" % zioVersion % "test" withSources ()
@@ -233,7 +274,7 @@ lazy val bundlerSettings: Project => Project =
         "@3d-dice/dice-box"              -> "^1.1.0",
         "@3d-dice/theme-rust"            -> "^0.2.0",
         "babylonjs-gltf2interface"       -> "^5.22.0"
-      ),
+      )
     )
 
 lazy val withCssLoading: Project => Project =
@@ -248,7 +289,6 @@ lazy val withCssLoading: Project => Project =
       "url-loader"    -> "4.1.1"
     )
   )
-
 
 lazy val commonWeb: Project => Project =
   _.settings(
@@ -337,7 +377,6 @@ lazy val web: Project = project
       distFolder
     }
   )
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Root project
