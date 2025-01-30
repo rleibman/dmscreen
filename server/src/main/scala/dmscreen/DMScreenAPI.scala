@@ -124,7 +124,7 @@ object DMScreenAPI {
                 deleteArgs.entityType.createId(deleteArgs.id),
                 deleteArgs.softDelete
               )
-            ),
+            )
         ),
         Subscriptions(campaignStream = operationArgs => ???)
       )

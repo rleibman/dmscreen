@@ -422,37 +422,38 @@ object CombatRunner {
                                 .roll(s"${npcCount}d20")
                                 .map { results =>
                                   modEncounterInfo(
-                                    { e =>
-                                      val (npcs, pcs) = encounter.info.combatants.partition(_.isNPC)
-                                      val initiatives = results.map(_.value)
+                                    {
+                                      e =>
+                                        val (npcs, pcs) = encounter.info.combatants.partition(_.isNPC)
+                                        val initiatives = results.map(_.value)
 
-                                      val newCombatants =
-                                        reSort(
-                                          npcs
-                                            .zip(initiatives)
-                                            .collect {
-                                              case (combatant: MonsterCombatant, initiative) =>
-                                                combatant.copy(
-                                                  initiative =
-                                                    scala.math.max(1, initiative + combatant.initiativeBonus),
-                                                  health = combatant.health
-                                                    .copy(currentHitPoints = combatant.health.maxHitPoints),
-                                                  conditions = Set.empty,
-                                                  otherMarkers = List.empty
-                                                )
-                                              case (combatant: NonPlayerCharacterCombatant, initiative) =>
-                                                combatant.copy(
-                                                  initiative =
-                                                    scala.math.max(1, initiative + combatant.initiativeBonus),
-                                                  otherMarkers = List.empty
-                                                )
-                                            } ++
-                                            pcs.map(
-                                              _.asInstanceOf[PlayerCharacterCombatant].copy(otherMarkers = List.empty)
-                                            )
-                                        )
+                                        val newCombatants =
+                                          reSort(
+                                            npcs
+                                              .zip(initiatives)
+                                              .collect {
+                                                case (combatant: MonsterCombatant, initiative) =>
+                                                  combatant.copy(
+                                                    initiative =
+                                                      scala.math.max(1, initiative + combatant.initiativeBonus),
+                                                    health = combatant.health
+                                                      .copy(currentHitPoints = combatant.health.maxHitPoints),
+                                                    conditions = Set.empty,
+                                                    otherMarkers = List.empty
+                                                  )
+                                                case (combatant: NonPlayerCharacterCombatant, initiative) =>
+                                                  combatant.copy(
+                                                    initiative =
+                                                      scala.math.max(1, initiative + combatant.initiativeBonus),
+                                                    otherMarkers = List.empty
+                                                  )
+                                              } ++
+                                              pcs.map(
+                                                _.asInstanceOf[PlayerCharacterCombatant].copy(otherMarkers = List.empty)
+                                              )
+                                          )
 
-                                    e.copy(currentTurn = 0, round = 0, combatants = newCombatants)
+                                      e.copy(currentTurn = 0, round = 0, combatants = newCombatants)
                                     },
                                     "Cleared all NPC stats to beginning of combat"
                                   ) >> Callback.traverse(encounter.info.combatants.collect {

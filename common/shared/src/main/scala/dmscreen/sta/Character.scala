@@ -470,14 +470,14 @@ case class Organization(name: String)
 
 object Organization {
 
-  val none:       Organization = Organization("none")
-  val cardassian: Organization = Organization("cardassian")
-  val federation: Organization = Organization("federation")
-  val ferengi:    Organization = Organization("ferengi")
-  val klingon:    Organization = Organization("klingon")
-  val orion:      Organization = Organization("orion")
-  val romulan:    Organization = Organization("romulan")
-  val borg:       Organization = Organization("borg")
+  val none:                Organization = Organization("none")
+  val cardassian:          Organization = Organization("cardassian")
+  val federation:          Organization = Organization("federation")
+  val ferengi:             Organization = Organization("ferengi")
+  val klingon:             Organization = Organization("klingon")
+  val orion:               Organization = Organization("orion")
+  val romulan:             Organization = Organization("romulan")
+  val borg:                Organization = Organization("borg")
   def other(name: String): Organization = Organization(name)
 
   def knownOrganizations: Seq[Organization] =

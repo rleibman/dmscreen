@@ -127,3 +127,5 @@ DONE Initiatives for pcs not sorted
 DONE Edit player name in pc is not working
 Next in encounter is broken
 No edit for monsters, need to fix that
+
+-- Change segment's padding to 0.25em

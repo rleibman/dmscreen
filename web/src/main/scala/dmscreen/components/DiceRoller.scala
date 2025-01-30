@@ -61,7 +61,7 @@ enum DieType {
 @JSImport("@3d-dice/dice-ui/src/displayResults", JSImport.Default)
 class DisplayResults(selector: String) extends js.Object {
 
-  def clear(): Unit = js.native
+  def clear():                                    Unit = js.native
   def showResults(results: js.Array[RollResult]): Unit = js.native
 
 }
@@ -82,12 +82,12 @@ class DiceBox(
   options: DiceBoxOptions
 ) extends js.Object {
 
-  def init(): js.Promise[Unit] = js.native
-  def show(): DiceBox = js.native
-  def roll(dice: js.Any): js.Promise[js.Array[DieResult]] = js.native
-  def hide():         DiceBox = js.native
-  def clear():        Unit = js.native
-  def onRollComplete: js.Function1[js.Any, Unit] = js.native
+  def init():                                                 js.Promise[Unit] = js.native
+  def show():                                                 DiceBox = js.native
+  def roll(dice:                 js.Any):                     js.Promise[js.Array[DieResult]] = js.native
+  def hide():                                                 DiceBox = js.native
+  def clear():                                                Unit = js.native
+  def onRollComplete:                                         js.Function1[js.Any, Unit] = js.native
   def onRollComplete_=(callback: js.Function1[js.Any, Unit]): Unit = js.native
 
 }

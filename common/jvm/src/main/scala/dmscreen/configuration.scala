@@ -28,7 +28,6 @@ import zio.config.magnolia.DeriveConfig
 import zio.config.typesafe.*
 import zio.nio.file.Path
 
-
 case class ConfigurationError(
   override val msg:   String = "",
   override val cause: Option[Throwable] = None
@@ -94,4 +93,3 @@ trait ConfigurationService {
   def appConfig: IO[ConfigurationError, AppConfig]
 
 }
-

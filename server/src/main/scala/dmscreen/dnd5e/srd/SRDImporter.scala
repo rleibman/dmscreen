@@ -207,30 +207,31 @@ class SRDImporter extends DND5eImporter[File, File, File, File] {
           actions               <- json.getEitherOption[Seq[Action]]("actions").map(_.toList.flatten)
           reactions             <- json.getEitherOption[Seq[Action]]("reactions").map(_.toList.flatten)
           senses <- json.getEitherOption[Json.Obj]("senses").map {
-            _.map { s =>
-              val sight = s
-                .getOption[String]("sight").map(str =>
-                  SenseRange(Sense.sight, str.replaceAll("ft.*", "").trim.toInt)
-                ).orElse(Option(SenseRange(Sense.sight, 10560)))
-              val blindsight = s
-                .getOption[String]("blindsight").map(str =>
-                  SenseRange(Sense.blindsight, str.replaceAll("ft.*", "").trim.toInt)
-                )
-              val darkvision = s
-                .getOption[String]("darkvision").map(str =>
-                  SenseRange(Sense.darkvision, str.replaceAll("ft.*", "").trim.toInt)
-                )
-              val tremorsense = s
-                .getOption[String]("tremorsense").map(str =>
-                  SenseRange(Sense.tremorsense, str.replaceAll("ft.*", "").trim.toInt)
-                )
-              val truesight = s
-                .getOption[String]("truesight").map(str =>
-                  SenseRange(Sense.truesight, str.replaceAll("ft.*", "").trim.toInt)
-                )
-              val scent =
-                s.getOption[String]("scent").map(str => SenseRange(Sense.scent, str.replaceAll("ft.", "").trim.toInt))
-            sight.toSeq ++ blindsight.toSeq ++ darkvision.toSeq ++ tremorsense.toSeq ++ truesight.toSeq ++ scent.toSeq
+            _.map {
+              s =>
+                val sight = s
+                  .getOption[String]("sight").map(str =>
+                    SenseRange(Sense.sight, str.replaceAll("ft.*", "").trim.toInt)
+                  ).orElse(Option(SenseRange(Sense.sight, 10560)))
+                val blindsight = s
+                  .getOption[String]("blindsight").map(str =>
+                    SenseRange(Sense.blindsight, str.replaceAll("ft.*", "").trim.toInt)
+                  )
+                val darkvision = s
+                  .getOption[String]("darkvision").map(str =>
+                    SenseRange(Sense.darkvision, str.replaceAll("ft.*", "").trim.toInt)
+                  )
+                val tremorsense = s
+                  .getOption[String]("tremorsense").map(str =>
+                    SenseRange(Sense.tremorsense, str.replaceAll("ft.*", "").trim.toInt)
+                  )
+                val truesight = s
+                  .getOption[String]("truesight").map(str =>
+                    SenseRange(Sense.truesight, str.replaceAll("ft.*", "").trim.toInt)
+                  )
+                val scent =
+                  s.getOption[String]("scent").map(str => SenseRange(Sense.scent, str.replaceAll("ft.", "").trim.toInt))
+              sight.toSeq ++ blindsight.toSeq ++ darkvision.toSeq ++ tremorsense.toSeq ++ truesight.toSeq ++ scent.toSeq
             }.toList.flatten
           }
 

@@ -353,7 +353,11 @@ object DMScreenClient {
     def campaign[A](value: Long)(innerSelection: SelectionBuilder[Campaign, A])(implicit encoder0: ArgEncoder[Long])
       : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
       _root_.caliban.client.SelectionBuilder
-        .Field("campaign", OptionOf(Obj(innerSelection)), arguments = List(Argument("value", value, "Long!")(encoder0)))
+        .Field(
+          "campaign",
+          OptionOf(Obj(innerSelection)),
+          arguments = List(Argument("value", value, "Long!")(encoder0))
+        )
     def campaignLogs[A](
       campaignId: Long,
       maxNum:     Int
@@ -403,8 +407,10 @@ object DMScreenClient {
       _root_.caliban.client.SelectionBuilder.Field(
         "campaignLog",
         OptionOf(Scalar()),
-        arguments =
-          List(Argument("campaignId", campaignId, "Long!")(encoder0), Argument("message", message, "String!")(encoder1))
+        arguments = List(
+          Argument("campaignId", campaignId, "Long!")(encoder0),
+          Argument("message", message, "String!")(encoder1)
+        )
       )
     def deleteEntity(
       entityType: String,

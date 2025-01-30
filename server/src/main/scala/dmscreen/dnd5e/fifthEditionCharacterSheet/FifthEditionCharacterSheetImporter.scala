@@ -177,7 +177,8 @@ class FifthEditionCharacterSheetImporter extends DND5eImporter[URI, URI, URI, UR
             .collectFirst { case elem2: Elem if elem2.label == "shieldBonus" => elem2.text }.map(_.toInt).getOrElse(0) +
           child
             .collectFirst { case elem2: Elem if elem2.label == "miscArmorBonus" => elem2.text }.map(_.toInt).getOrElse(
-              0) +
+              0
+            ) +
           abilities.dexterity.modifier
       }
 

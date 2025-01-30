@@ -239,7 +239,8 @@ enum ShipClass {
     Eisenberg,
     Friendship,
     Janeway,
-    Kirk,
+    Kirk
+
 }
 
 object ShipStats {

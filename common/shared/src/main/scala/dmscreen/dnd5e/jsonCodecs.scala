@@ -68,6 +68,7 @@ given JsonCodec[Condition] = JsonCodec.string.transform(Condition.valueOf, _.toS
 given JsonCodec[Sense] = JsonCodec.string.transform(Sense.valueOf, _.toString)
 given JsonCodec[SpeedType] = JsonCodec.string.transform(SpeedType.valueOf, _.toString)
 given JsonCodec[DamageType] = JsonCodec.string.transform(DamageType.valueOf, _.toString)
+given JsonCodec[EncounterTimeOfDay] = JsonCodec.string.transform(EncounterTimeOfDay.valueOf, _.toString)
 given JsonCodec[ActionType] =
   JsonCodec.string.transformOrFail(
     s => ActionType.values.find(_.toString.equalsIgnoreCase(s)).toRight(s"Could not find an ActionType of $s"),
@@ -125,6 +126,7 @@ given JsonCodec[MonsterCombatant] = JsonCodec.derived[MonsterCombatant]
 given JsonCodec[PlayerCharacterCombatant] = JsonCodec.derived[PlayerCharacterCombatant]
 given JsonCodec[NonPlayerCharacterCombatant] = JsonCodec.derived[NonPlayerCharacterCombatant]
 given JsonCodec[EncounterDifficulty] = JsonCodec.derived[EncounterDifficulty]
+given JsonCodec[Treasure] = JsonCodec.derived[Treasure]
 given JsonCodec[EncounterInfo] = JsonCodec.derived[EncounterInfo]
 
 given JsonDecoder[DeathSave | Int] = JsonDecoder[Json].mapOrFail(json => json.as[Int].orElse(json.as[DeathSave]))

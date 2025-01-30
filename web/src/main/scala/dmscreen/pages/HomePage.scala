@@ -166,7 +166,7 @@ object HomePage extends DMScreenTab {
                 Modal.Header("Add Campaign"),
                 Modal.Content(
                   Form(
-                    Form.Input.label("name").value(newCampaign.name).onChange {
+                    Form.Input.label("Name").value(newCampaign.name).onChange {
                       (
                         _,
                         data
@@ -238,7 +238,9 @@ object HomePage extends DMScreenTab {
                       else "Not Current"
                     ),
                     Table.Cell(
-                      s"${campaign.name}${if (campaign.campaignStatus == CampaignStatus.archived) " (Archived)" else ""}"
+                      s"${campaign.name}${
+                          if (campaign.campaignStatus == CampaignStatus.archived) " (Archived)" else ""
+                        }"
                     ),
                     Table.Cell(campaign.gameSystem.name),
                     Table.Cell(

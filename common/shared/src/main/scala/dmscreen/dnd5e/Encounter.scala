@@ -161,11 +161,24 @@ case class EncounterHeader(
   orderCol:   Int
 ) extends HasId[EncounterId]
 
+enum EncounterTimeOfDay {
+
+  case dawn, morning, noon, afternoon, dusk, evening, night, unimportant
+
+}
+
 case class EncounterInfo(
-  combatants:  List[EncounterCombatant] = List.empty,
-  currentTurn: Int = 0,
-  round:       Int = 0,
-  notes:       String = ""
+  combatants:           List[EncounterCombatant] = List.empty,
+  currentTurn:          Int = 0,
+  round:                Int = 0,
+  notes:                String = "",
+  timeOfDay:            EncounterTimeOfDay = EncounterTimeOfDay.unimportant,
+  biome:                Biome = Biome.Unimportant,
+  locationNotes:        String = "",
+  initialDescription:   String = "",
+  desiredDifficulty:    EncounterDifficulty = EncounterDifficulty.Medium,
+  treasure:             Treasure = Treasure(),
+  generatedDescription: String = ""
 ) {
 
   lazy val xp: Long = combatants

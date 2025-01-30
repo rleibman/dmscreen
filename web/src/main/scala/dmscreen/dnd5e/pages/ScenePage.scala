@@ -51,7 +51,7 @@ object ScenePage extends DMScreenTab {
     def loadState(campaignId: CampaignId): Callback = {
       DND5eGraphQLRepository.live
         .scenes(campaignId)
-        .map(scenes => Callback.log(s"Yo, got ${scenes.size} scenes") >> $.modState(_.copy(scenes = scenes)))
+        .map(scenes => $.modState(_.copy(scenes = scenes)))
         .completeWith(_.get)
     }
 

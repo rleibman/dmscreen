@@ -27,8 +27,6 @@ import just.semver.SemVer
 import zio.json.*
 import zio.json.ast.*
 
-opaque type MonsterId = Long
-
 enum Sense(val name: String) {
 
   case sight extends Sense("Sight")
@@ -45,6 +43,8 @@ case class SenseRange(
   sense: Sense,
   range: Int
 )
+
+opaque type MonsterId = Long
 
 object MonsterId {
 
@@ -68,7 +68,7 @@ object ChallengeRating {
       case "0.25"  => `1/4`
       case "0.5"   => `1/2`
       case "0"     => `0`
-      case s => valueOf(s)
+      case s       => valueOf(s)
     }
   }
   def fromDouble(value: Double): Option[ChallengeRating] = ChallengeRating.values.find(_.value == value)
@@ -149,6 +149,7 @@ enum Biome {
   case Underwater
   case Urban
   case Unknown
+  case Unimportant
 
 }
 

@@ -62,6 +62,11 @@ case class MonsterSearchResults(
   total:   Long = 0
 )
 
+case class FullMonsterSearchResults(
+  results: List[Monster] = List.empty,
+  total:   Long = 0
+)
+
 trait DND5eRepository[F[_]] extends GameRepository {
 
   // DND5e specific stuff
@@ -99,7 +104,13 @@ trait DND5eRepository[F[_]] extends GameRepository {
   ): F[Option[Encounter]]
   // Stuff that's generic to all campaigns
 
+  def randomTables(tableTypeOpt: Option[RandomTableType]): F[Seq[RandomTable]]
+
+  def randomTable(id: RandomTableId): F[Option[RandomTable]]
+
   def bestiary(search: MonsterSearch): F[MonsterSearchResults]
+
+  def fullBestiary(search: MonsterSearch): F[FullMonsterSearchResults]
 
   def sources: F[Seq[Source]]
 

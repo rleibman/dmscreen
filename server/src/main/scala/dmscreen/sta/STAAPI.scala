@@ -136,7 +136,7 @@ object STAAPI {
                 deleteArgs.entityType.createId(deleteArgs.id),
                 deleteArgs.softDelete
               )
-            ),
+            )
         )
       )
     )

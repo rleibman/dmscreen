@@ -23,8 +23,8 @@ package dmscreen.dnd5e.components
 
 import dmscreen.DMScreenState
 import dmscreen.dnd5e.*
-import dmscreen.util.*
 import dmscreen.dnd5e.CharacterClassId.paladin
+import dmscreen.util.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.VdomNode
@@ -147,7 +147,7 @@ object CharacterClassEditor {
                           .map(clazz =>
                             DropdownItemProps()
                               .setValue(clazz.id.name)
-                              .setText(clazz.id.name),
+                              .setText(clazz.id.name)
                           ).toJSArray
                       )
                       .value(playerCharacterClass.characterClass.name)
@@ -190,7 +190,7 @@ object CharacterClassEditor {
                           .map(subclass =>
                             DropdownItemProps()
                               .setValue(subclass.name.toLowerCase)
-                              .setText(subclass.name),
+                              .setText(subclass.name)
                           ).toJSArray
                       )
                       .value(playerCharacterClass.subclass.map(_.name.toLowerCase).getOrElse(""))

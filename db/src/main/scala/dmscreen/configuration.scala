@@ -21,12 +21,8 @@
 
 package dmscreen
 
-import com.typesafe.config.{Config as TypesafeConfig, ConfigFactory}
-import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+import com.typesafe.config.{ConfigFactory, Config as TypesafeConfig}
 import zio.*
-import zio.config.magnolia.DeriveConfig
-import zio.config.typesafe.TypesafeConfigProvider
-import zio.nio.file.Path
 
 import java.io.File
 

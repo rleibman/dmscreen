@@ -71,7 +71,7 @@ object EncounterEditor {
 
   extension (orderCol: MonsterSearchOrder) {
 
-    def toReactSoreDirection(
+    def toReactSortDirection(
       compareMe: MonsterSearchOrder,
       direction: OrderDirection
     ): ascending | descending = {
@@ -116,7 +116,7 @@ object EncounterEditor {
 
   case class Backend($ : BackendScope[Props, State]) {
 
-    def initializeState: Callback =
+    def loadState: Callback =
       (
         for {
           oldState <- $.state.asAsyncCallback
@@ -647,7 +647,8 @@ object EncounterEditor {
                           ),
                           Form.Field(
                             Label("Biome"),
-                            Dropdown()
+                            Form
+                              .Dropdown()
                               .compact(true)
                               .search(false)
                               .clearable(true)
@@ -675,7 +676,8 @@ object EncounterEditor {
                           ),
                           Form.Field(
                             Label("Aligment"),
-                            Dropdown()
+                            Form
+                              .Dropdown()
                               .compact(true)
                               .search(false)
                               .clearable(true)
@@ -701,7 +703,8 @@ object EncounterEditor {
                           ),
                           Form.Field(
                             Label("CR"),
-                            Dropdown()
+                            Form
+                              .Dropdown()
                               .compact(true)
                               .search(false)
                               .clearable(true)
@@ -727,7 +730,8 @@ object EncounterEditor {
                           ),
                           Form.Field(
                             Label("Size"),
-                            Dropdown()
+                            Form
+                              .Dropdown()
                               .compact(true)
                               .search(false)
                               .clearable(true)
@@ -761,27 +765,27 @@ object EncounterEditor {
                     Table.HeaderCell
                       .sorted(
                         state.monsterSearch.orderCol
-                          .toReactSoreDirection(MonsterSearchOrder.name, state.monsterSearch.orderDir)
+                          .toReactSortDirection(MonsterSearchOrder.name, state.monsterSearch.orderDir)
                       ).onClick(_ => changeSort(MonsterSearchOrder.name))("Name"),
                     Table.HeaderCell
                       .sorted(
                         state.monsterSearch.orderCol
-                          .toReactSoreDirection(MonsterSearchOrder.monsterType, state.monsterSearch.orderDir)
+                          .toReactSortDirection(MonsterSearchOrder.monsterType, state.monsterSearch.orderDir)
                       ).onClick(_ => changeSort(MonsterSearchOrder.monsterType))("Type"),
                     Table.HeaderCell
                       .sorted(
                         state.monsterSearch.orderCol
-                          .toReactSoreDirection(MonsterSearchOrder.biome, state.monsterSearch.orderDir)
+                          .toReactSortDirection(MonsterSearchOrder.biome, state.monsterSearch.orderDir)
                       ).onClick(_ => changeSort(MonsterSearchOrder.biome))("Biome"),
                     Table.HeaderCell
                       .sorted(
                         state.monsterSearch.orderCol
-                          .toReactSoreDirection(MonsterSearchOrder.alignment, state.monsterSearch.orderDir)
+                          .toReactSortDirection(MonsterSearchOrder.alignment, state.monsterSearch.orderDir)
                       ).onClick(_ => changeSort(MonsterSearchOrder.alignment))("Alignment"),
                     Table.HeaderCell
                       .sorted(
                         state.monsterSearch.orderCol
-                          .toReactSoreDirection(MonsterSearchOrder.challengeRating, state.monsterSearch.orderDir)
+                          .toReactSortDirection(MonsterSearchOrder.challengeRating, state.monsterSearch.orderDir)
                       ).onClick(_ => changeSort(MonsterSearchOrder.challengeRating))("CR"),
                     Table.HeaderCell("XP"),
                     Table.HeaderCell("AC"),
@@ -789,7 +793,7 @@ object EncounterEditor {
                     Table.HeaderCell
                       .sorted(
                         state.monsterSearch.orderCol
-                          .toReactSoreDirection(MonsterSearchOrder.size, state.monsterSearch.orderDir)
+                          .toReactSortDirection(MonsterSearchOrder.size, state.monsterSearch.orderDir)
                       ).onClick(_ => changeSort(MonsterSearchOrder.size))("Size"),
                     Table.HeaderCell( /*For actions*/ )
                   )
@@ -920,7 +924,7 @@ object EncounterEditor {
     .builder[Props]("EncounterEditor")
     .initialState(State())
     .renderBackend[Backend]
-    .componentDidMount($ => $.backend.initializeState)
+    .componentDidMount($ => $.backend.loadState)
     .build
 
   def apply(

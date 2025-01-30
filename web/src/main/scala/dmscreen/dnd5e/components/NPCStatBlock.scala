@@ -191,23 +191,24 @@ object NPCStatBlock {
                     .filter(sk =>
                       sk.modifier(info.abilities) != 0 || sk.proficiencyLevel != ProficiencyLevel.none
                     ).grouped(2).toList
-                  groupedSkills.map { group =>
-                    val sk1 = group.head
-                    val sk2 = group.last
-                  <.tr(
-                    <.th(
-                      ^.width := 25.pct,
-                      Header
-                        .size(SemanticSIZES.small).as("h4")(s"${profStr(sk1.proficiencyLevel)}${sk1.skillType.name}")
-                    ),
-                    <.td(^.width := 25.pct, sk1.modifierString(info.abilities)),
-                    <.th(
-                      ^.width := 25.pct,
-                      Header
-                        .size(SemanticSIZES.small).as("h4")(s"${profStr(sk2.proficiencyLevel)}${sk2.skillType.name}")
-                    ),
-                    <.td(^.width := 25.pct, sk2.modifierString(info.abilities))
-                  )
+                  groupedSkills.map {
+                    group =>
+                      val sk1 = group.head
+                      val sk2 = group.last
+                    <.tr(
+                      <.th(
+                        ^.width := 25.pct,
+                        Header
+                          .size(SemanticSIZES.small).as("h4")(s"${profStr(sk1.proficiencyLevel)}${sk1.skillType.name}")
+                      ),
+                      <.td(^.width := 25.pct, sk1.modifierString(info.abilities)),
+                      <.th(
+                        ^.width := 25.pct,
+                        Header
+                          .size(SemanticSIZES.small).as("h4")(s"${profStr(sk2.proficiencyLevel)}${sk2.skillType.name}")
+                      ),
+                      <.td(^.width := 25.pct, sk2.modifierString(info.abilities))
+                    )
                   }
                 }*)
               )

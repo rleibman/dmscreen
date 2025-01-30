@@ -30,13 +30,13 @@ import dmscreen.dnd5e.srd.SRDImporter
 import dmscreen.util.TestCreator
 import zio.*
 
-
 type DMScreenServerEnvironment = DMScreenZIORepository & STAZIORepository & DND5eZIORepository & DNDBeyondImporter &
   ConfigurationService
 
 object EnvironmentBuilder {
 
-  def live: ULayer[DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter] =
+  def live
+    : ULayer[DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter] =
     ZLayer
       .make[DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter](
         ConfigurationServiceImpl.live,

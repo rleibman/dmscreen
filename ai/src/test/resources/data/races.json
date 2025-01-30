@@ -1,0 +1,210 @@
+[
+  {
+    "name": "Aarakocra",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Aasimar",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Bugbear",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Centaur",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Changeling",
+    "source": "Eberron: Rising from the Last War"
+  },
+  {
+    "name": "Dragonborn",
+    "source": "Player's Handbook"
+  },
+  {
+    "name": "Dwarf",
+    "source": "Player's Handbook"
+  },
+  {
+    "name": "Elf",
+    "source": "Player's Handbook"
+  },
+  {
+    "name": "Firbolg",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Genasi",
+    "source": "Elemental Evil Player's Companion"
+  },
+  {
+    "name": "Gith",
+    "source": "Mordenkainen's Tome of Foes"
+  },
+  {
+    "name": "Gnome",
+    "source": "Player's Handbook"
+  },
+  {
+    "name": "Goblin",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Goliath",
+    "source": "Elemental Evil Player's Companion"
+  },
+  {
+    "name": "Half-Elf",
+    "source": "Player's Handbook"
+  },
+  {
+    "name": "Half-Orc",
+    "source": "Player's Handbook"
+  },
+  {
+    "name": "Halfling",
+    "source": "Player's Handbook"
+  },
+  {
+    "name": "Hobgoblin",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Human",
+    "source": "Player's Handbook"
+  },
+  {
+    "name": "Kalashtar",
+    "source": "Eberron: Rising from the Last War"
+  },
+  {
+    "name": "Kenku",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Kobold",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Lizardfolk",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Loxodon",
+    "source": "Guildmasters' Guide to Ravnica"
+  },
+  {
+    "name": "Minotaur",
+    "source": "Guildmasters' Guide to Ravnica"
+  },
+  {
+    "name": "Orc",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Satyr",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Shifter",
+    "source": "Eberron: Rising from the Last War"
+  },
+  {
+    "name": "Simic Hybrid",
+    "source": "Guildmasters' Guide to Ravnica"
+  },
+  {
+    "name": "Tabaxi",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Tiefling",
+    "source": "Player's Handbook"
+  },
+  {
+    "name": "Tortle",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Triton",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Vedalken",
+    "source": "Guildmasters' Guide to Ravnica"
+  },
+  {
+    "name": "Verdan",
+    "source": "Acquisitions Incorporated"
+  },
+  {
+    "name": "Warforged",
+    "source": "Eberron: Rising from the Last War"
+  },
+  {
+    "name": "Yuan-ti Pureblood",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Fairy",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Harengon",
+    "source": "The Wild Beyond the Witchlight"
+  },
+  {
+    "name": "Owlin",
+    "source": "Strixhaven: A Curriculum of Chaos"
+  },
+  {
+    "name": "Autognome",
+    "source": "Spelljammer: Adventures in Space"
+  },
+  {
+    "name": "Giff",
+    "source": "Spelljammer: Adventures in Space"
+  },
+  {
+    "name": "Hadozee",
+    "source": "Spelljammer: Adventures in Space"
+  },
+  {
+    "name": "Plasmoid",
+    "source": "Spelljammer: Adventures in Space"
+  },
+  {
+    "name": "Thri-Kreen",
+    "source": "Spelljammer: Adventures in Space"
+  },
+  {
+    "name": "Deep Gnome",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Duergar",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Eladrin",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Githyanki",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Githzerai",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Sea Elf",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  },
+  {
+    "name": "Shadar-Kai",
+    "source": "Mordenkainen Presents: Monsters of the Multiverse"
+  }
+]

@@ -1,0 +1,54 @@
+[
+  {
+    "id": "Barbarian",
+    "hitDice": "d12"
+  },
+  {
+    "id": "Bard",
+    "hitDice": "d8"
+  },
+  {
+    "id": "Cleric",
+    "hitDice": "d8"
+  },
+  {
+    "id": "Druid",
+    "hitDice": "d8"
+  },
+  {
+    "id": "Fighter",
+    "hitDice": "d10"
+  },
+  {
+    "id": "Monk",
+    "hitDice": "d8"
+  },
+  {
+    "id": "Paladin",
+    "hitDice": "d10"
+  },
+  {
+    "id": "Ranger",
+    "hitDice": "d10"
+  },
+  {
+    "id": "Rogue",
+    "hitDice": "d8"
+  },
+  {
+    "id": "Sorcerer",
+    "hitDice": "d6"
+  },
+  {
+    "id": "Warlock",
+    "hitDice": "d8"
+  },
+  {
+    "id": "Wizard",
+    "hitDice": "d6"
+  },
+  {
+    "id": "Blood Hunter",
+    "hitDice": "d10"
+  }
+]
