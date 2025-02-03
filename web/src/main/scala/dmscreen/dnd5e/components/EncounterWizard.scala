@@ -21,8 +21,9 @@
 
 package dmscreen.dnd5e.components
 
+import dmscreen.components.DiceRoller
 import dmscreen.util.*
-import dmscreen.dnd5e.components.*
+import components.{Toast, *}
 import dmscreen.dnd5e.{*, given}
 import dmscreen.{Campaign, CampaignId, DMScreenState}
 import japgolly.scalajs.react.*
@@ -40,7 +41,9 @@ import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesAccordionAccordio
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
 import net.leibman.dmscreen.semanticUiReact.semanticUiReactStrings
 import net.leibman.dmscreen.semanticUiReact.semanticUiReactStrings.*
+import scalacss.internal.Attrs.display.inlineBlock
 
+import scala.collection.immutable.AbstractSeq
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
 
@@ -106,6 +109,8 @@ object EncounterWizard {
     encounterInfo: EncounterInfo = EncounterInfo(),
     //
     scenes: List[Scene] = List.empty,
+    pcs:    List[PlayerCharacter] = List.empty,
+
     // NPC Step
     npcs:        List[NonPlayerCharacter] = List.empty,
     npcSearch:   NPCSearch = NPCSearch(),
@@ -119,12 +124,10 @@ object EncounterWizard {
     viewMonsterId:  Option[MonsterId] = None,
     editingMonster: Option[(MonsterId, CloneMonster)] = None,
     // Treasure Step
-    treasureTables:  List[RandomTable] = List.empty,
-    treasureTable:   Option[RandomTable] = None,
-    treasureTheme:   Option[TreasureTheme] = None,
-    treasureRarity:  Option[TreasureRarity] = None,
-    treasureIsHoard: Boolean = false,
-    treasureWallet:  Wallet = Wallet.empty
+    treasureTables: List[RandomTable] = List.empty,
+    treasureTable:  Option[RandomTable] = None,
+    treasureTheme:  Option[TreasureTheme] = None,
+    treasureRarity: Option[TreasureRarity] = None
   )
 
   enum WizardStepType(val name: String) {
@@ -146,13 +149,6 @@ object EncounterWizard {
           oldState      <- $.state.asAsyncCallback
           searchResults <- DND5eGraphQLRepository.live.bestiary(oldState.monsterSearch)
         } yield $.modState(_.copy(monsters = searchResults.results, monsterCount = searchResults.total))
-      ).completeWith(_.get)
-
-    def treasureTableSelect(id: RandomTableId): Callback =
-      (
-        for {
-          table <- DND5eGraphQLRepository.live.randomTable(id)
-        } yield $.modState(_.copy(treasureTable = table))
       ).completeWith(_.get)
 
     extension ($ : BackendScope[Props, State]) {
@@ -185,6 +181,7 @@ object EncounterWizard {
           monsters       <- DND5eGraphQLRepository.live.bestiary(oldState.monsterSearch)
           scenes         <- DND5eGraphQLRepository.live.scenes(campaignId)
           npcs           <- DND5eGraphQLRepository.live.nonPlayerCharacters(props.campaign.id)
+          pcs            <- DND5eGraphQLRepository.live.playerCharacters(props.campaign.id)
           treasureTables <- DND5eGraphQLRepository.live.randomTables(Some(RandomTableType.treasure))
         } yield {
           $.modState(
@@ -192,6 +189,7 @@ object EncounterWizard {
               monsters = monsters.results,
               monsterCount = monsters.total,
               npcs = npcs.toList,
+              pcs = pcs.toList,
               scenes = scenes.toList,
               treasureTables = treasureTables.toList
             )
@@ -331,10 +329,21 @@ object EncounterWizard {
             .fluid(true)
             .value(state.encounterInfo.desiredDifficulty.toString)
             .options(
-              EncounterDifficulty.values.map { difficulty =>
+              EncounterDifficultyLevel.values.map { difficulty =>
                 DropdownItemProps().setValue(difficulty.toString).setText(difficulty.toString)
               }.toJSArray
-            ),
+            )
+            .onChange {
+              (
+                _,
+                changedData
+              ) =>
+                val newVal = changedData.value match {
+                  case s: String => EncounterDifficultyLevel.valueOf(s)
+                  case _ => EncounterDifficultyLevel.Moderate
+                }
+                $.modInfo(_.copy(desiredDifficulty = newVal))
+            },
           Form.Input
             .label("Initial Description (may be enhanced by AI later)").value(
               state.encounterInfo.initialDescription
@@ -714,33 +723,33 @@ object EncounterWizard {
                     )
                   )
                 }*),
-                Segment.Group(
-                  Segment(
-                    Pagination(state.monsterCount / state.monsterSearch.pageSize.toDouble)
-                      .set("size", tiny)
-                      .onPageChange {
-                        (
-                          _,
-                          data
-                        ) =>
-                          val newVal = data.activePage match {
-                            case s: String => s.toInt
-                            case d: Double => d.toInt
-                            case _: Unit   => 1
-                          }
+                Segment
+                  .Group(
+                    Segment(
+                      Pagination(state.monsterCount / state.monsterSearch.pageSize.toDouble)
+                        .set("size", tiny)
+                        .onPageChange {
+                          (
+                            _,
+                            data
+                          ) =>
+                            val newVal = data.activePage match {
+                              case s: String => s.toInt
+                              case d: Double => d.toInt
+                              case _: Unit   => 1
+                            }
 
-                          $.modMonsterSearch(_.copy(page = newVal - 1))
-                      }
-                      .activePage(state.monsterSearch.page + 1)
-                  )
-                )
+                            $.modMonsterSearch(_.copy(page = newVal - 1))
+                        }
+                        .activePage(state.monsterSearch.page + 1)
+                    )
+                  ).when(state.monsters.nonEmpty)
               ),
             Grid.Column
               .width(SemanticWIDTHS.`8`)(
                 Segment.Group(
                   state.encounterInfo.monsters.map { monsterCombatant =>
-                    val monster = state.monsters.find(_.id == monsterCombatant.monsterHeader.id).get
-                    Segment.withKey(monster.id.value.toString)(
+                    Segment.withKey(monsterCombatant.id.value.toString)(
                       <.div(
                         ^.display        := "flex",
                         ^.justifyContent := "space-between",
@@ -771,9 +780,148 @@ object EncounterWizard {
           )
         )
 
+    def rollTreasure(state: State): Callback = {
+      val cr: Option[ChallengeRating] = ChallengeRating.fromXP(state.encounterInfo.enemyXP(state.npcs))
+      val crNum = cr.fold(0)(_.value.toInt)
+      val gp: AsyncCallback[Int] = crNum match {
+        case i if i <= 4 && !state.encounterInfo.treasure.isHoard  => DiceRoller.roll("3d6").map(_.head.value)
+        case i if i <= 10 && !state.encounterInfo.treasure.isHoard => DiceRoller.roll("2d8").map(_.head.value * 10)
+        case i if i <= 16 && !state.encounterInfo.treasure.isHoard => DiceRoller.roll("2d10").map(_.head.value * 10)
+        case i if i >= 17 && !state.encounterInfo.treasure.isHoard => AsyncCallback.pure(0) // It's all PPs!
+
+        case i if i <= 4 && state.encounterInfo.treasure.isHoard  => DiceRoller.roll("2d4").map(_.head.value * 100)
+        case i if i <= 10 && state.encounterInfo.treasure.isHoard => DiceRoller.roll("8d10").map(_.head.value * 100)
+        case i if i <= 16 && state.encounterInfo.treasure.isHoard => DiceRoller.roll("8d8").map(_.head.value * 10000)
+        case i if i >= 17 && state.encounterInfo.treasure.isHoard => DiceRoller.roll("6d10").map(_.head.value * 10000)
+
+        case _ => AsyncCallback.pure(0)
+      }
+      val pp: AsyncCallback[Int] = crNum match {
+        case i if i >= 17 && !state.encounterInfo.treasure.isHoard => DiceRoller.roll("2d8").map(_.head.value * 100)
+        case _                                                     => AsyncCallback.pure(0)
+      }
+
+      val magic = crNum match {
+        case i if i <= 4 && state.encounterInfo.treasure.isHoard  => DiceRoller.roll("1d4-1").map(_.head.value)
+        case i if i <= 10 && state.encounterInfo.treasure.isHoard => DiceRoller.roll("1d4-1").map(_.head.value)
+        case i if i <= 16 && state.encounterInfo.treasure.isHoard => DiceRoller.roll("1d4").map(_.head.value)
+        case i if i >= 17 && state.encounterInfo.treasure.isHoard => DiceRoller.roll("1d6").map(_.head.value)
+        case _                                                    => AsyncCallback.pure(0)
+      }
+
+      val averageLevel = state.pcs.map(_.info.totalLevel).sum / state.pcs.size
+
+      def rarities(magic: Int) = {
+        (1 to magic).map { i =>
+          Toast.toast(s"Rolling to see what rarity we'll get for item # $i").asAsyncCallback >>
+            DiceRoller.roll("1d100").map { rollResult =>
+              (rollResult.head.value, averageLevel) match {
+                case (r, averageLevel) if averageLevel <= 4 && r <= 54  => TreasureRarity.common
+                case (r, averageLevel) if averageLevel <= 4 && r <= 91  => TreasureRarity.uncommon
+                case (r, averageLevel) if averageLevel <= 4 && r <= 100 => TreasureRarity.rare
+
+                case (r, averageLevel) if averageLevel <= 10 && r <= 30 => TreasureRarity.common
+                case (r, averageLevel) if averageLevel <= 10 && r <= 81 => TreasureRarity.uncommon
+                case (r, averageLevel) if averageLevel <= 10 && r <= 98 => TreasureRarity.rare
+                case (r, averageLevel) if averageLevel <= 10 && r <= 30 => TreasureRarity.veryRare
+
+                case (r, averageLevel) if averageLevel <= 16 && r <= 11  => TreasureRarity.common
+                case (r, averageLevel) if averageLevel <= 16 && r <= 34  => TreasureRarity.uncommon
+                case (r, averageLevel) if averageLevel <= 16 && r <= 70  => TreasureRarity.rare
+                case (r, averageLevel) if averageLevel <= 16 && r <= 93  => TreasureRarity.veryRare
+                case (r, averageLevel) if averageLevel <= 16 && r <= 100 => TreasureRarity.legendary
+
+                case (r, _) if r <= 20  => TreasureRarity.rare
+                case (r, _) if r <= 64  => TreasureRarity.veryRare
+                case (r, _) if r <= 100 => TreasureRarity.legendary
+              }
+            }
+        }
+      }.foldLeft(AsyncCallback.pure(List.empty[TreasureRarity])) {
+        (
+          acc,
+          cb
+        ) =>
+          acc.flatMap(results => cb.map(result => results :+ result))
+      }
+
+      // Based on Theme and Rarity we get a bunch of treasure tables
+      def magicTreasureTables(rarities: Seq[TreasureRarity])
+        : AsyncCallback[Map[TreasureRarity, Option[RandomTable]]] = {
+        val tables: Seq[(TreasureRarity, RandomTable)] = rarities.distinct.flatMap { rarity =>
+          state.treasureTables
+            .filter(table =>
+              state.treasureTheme
+                .fold(true)(theme => table.subType.toLowerCase.startsWith(theme.toString.toLowerCase)) &&
+                table.subType.toLowerCase.endsWith(rarity.toString.toLowerCase)
+            )
+            .map(rarity -> _)
+        }
+
+        AsyncCallback
+          .traverse(tables) { case (rarity, table) =>
+            DND5eGraphQLRepository.live.randomTable(table.id).map(rarity -> _)
+          }.map(_.toMap)
+      }
+
+      def magicTreasureTableRolls(
+        rarities: Seq[TreasureRarity],
+        tables:   Map[TreasureRarity, Option[RandomTable]]
+      ): AsyncCallback[Seq[String]] = {
+        rarities
+          .flatMap(tables.apply)
+          .map(table =>
+            Toast.toast(s"Rolling on the treasure table ${table.name} (${table.diceRoll.roll})").asAsyncCallback >>
+              DiceRoller
+                .roll(table.diceRoll)
+                .map(r => table.findEntry(r.head.value))
+          )
+          .foldLeft(AsyncCallback.pure(List.empty[String])) {
+            (
+              acc,
+              cb
+            ) =>
+              acc.flatMap(results => cb.map(result => results ++ result.map(_.name)))
+          }
+      }
+
+      (for {
+        gp    <- gp
+        _     <- Toast.toast(s"Rolled for gp=$gp").asAsyncCallback.when(gp > 0)
+        pp    <- pp
+        _     <- Toast.toast(s"Rolled for pp=$pp").asAsyncCallback.when(pp > 0)
+        magic <- magic
+        _ <- Toast.toast(s"Rolled for magic, will roll $magic times for magic items").asAsyncCallback.when(magic > 0)
+        rarities   <- rarities(magic)
+        tables     <- magicTreasureTables(rarities)
+        _          <- Toast.toast(s"Loaded the tables=${tables.size}").asAsyncCallback.when(tables.nonEmpty)
+        magicItems <- magicTreasureTableRolls(rarities, tables)
+      } yield {
+        $.modState(s =>
+          s.copy(
+            encounterInfo = s.encounterInfo.copy(treasure =
+              s.encounterInfo.treasure + Treasure(
+                pp = pp,
+                gp = gp,
+                items = magicItems.toList
+              )
+            )
+          )
+        )
+      }).completeWith(_.get)
+    }
+
     private def LootGenerator(
       state: State
-    ): VdomNode =
+    ): VdomNode = {
+
+      def treasureTableSelect(id: RandomTableId): Callback =
+        (
+          for {
+            table <- DND5eGraphQLRepository.live.randomTable(id)
+          } yield $.modState(_.copy(treasureTable = table))
+        ).completeWith(_.get)
+
       Form(
         Grid
           .container(true)(
@@ -874,19 +1022,34 @@ object EncounterWizard {
               Checkbox
                 .toggle(true)
                 .label("Is Hoard")
-                .checked(state.treasureIsHoard)
+                .checked(state.encounterInfo.treasure.isHoard)
                 .onChange(
                   (
                     _,
                     changedData
-                  ) => $.modState(_.copy(treasureIsHoard = changedData.checked.getOrElse(false)))
-                )
+                  ) =>
+                    $.modState(s =>
+                      s.copy(encounterInfo =
+                        s.encounterInfo.copy(treasure =
+                          s.encounterInfo.treasure.copy(isHoard = changedData.checked.getOrElse(false))
+                        )
+                      )
+                    )
+                ),
+              Button.disabled(state.treasureTable.isEmpty)("Roll current treasure table"),
+              Button
+                .disabled(state.treasureTheme.isEmpty).onClick(
+                  (
+                    _,
+                    _
+                  ) => rollTreasure(state)
+                )("Roll recommended treasure")
             ),
             Grid.Row(
               Grid.Column
                 .width(SemanticWIDTHS.`8`)(
                   Table(
-                    Table.Header(Table.Row(Table.HeaderCell.colSpan(2)("Available Treasure"))),
+                    Table.Header(Table.Row(Table.HeaderCell.colSpan(3)("Available Treasure"))),
                     Table.Body(
                       state.treasureTable.toList.flatMap(_.entries).map { entry =>
                         Table.Row
@@ -897,7 +1060,27 @@ object EncounterWizard {
                               else
                                 s"${entry.rangeLow}-${entry.rangeHigh}"
                             ),
-                            Table.Cell(entry.name)
+                            Table.Cell(entry.name),
+                            Table.Cell(
+                              Button
+                                .icon(true)
+                                .color(SemanticCOLORS.violet)
+                                .onClick(
+                                  (
+                                    _,
+                                    _
+                                  ) =>
+                                    $.modState(state =>
+                                      state.copy(encounterInfo =
+                                        state.encounterInfo
+                                          .copy(treasure =
+                                            state.encounterInfo.treasure
+                                              .copy(items = state.encounterInfo.treasure.items :+ entry.name)
+                                          )
+                                      )
+                                    )
+                                )(Icon.name(SemanticICONS.`plus`))
+                            )
                           )
                       }*
                     )
@@ -923,7 +1106,7 @@ object EncounterWizard {
                         Table.Cell(
                           Input
                             .`type`("number")
-                            .min(1)
+                            .min(0)
                             .size(SemanticSIZES.mini)
                             .onChange(
                               (
@@ -931,15 +1114,19 @@ object EncounterWizard {
                                 changedData
                               ) =>
                                 $.modState(s =>
-                                  s.copy(treasureWallet = s.treasureWallet.copy(cp = changedData.value.asLong(0)))
+                                  s.copy(encounterInfo =
+                                    s.encounterInfo.copy(
+                                      treasure = s.encounterInfo.treasure.copy(cp = changedData.value.asLong(0))
+                                    )
+                                  )
                                 )
                             )
-                            .value(state.treasureWallet.cp.toDouble)
+                            .value(state.encounterInfo.treasure.cp.toDouble)
                         ),
                         Table.Cell(
                           Input
                             .`type`("number")
-                            .min(1)
+                            .min(0)
                             .size(SemanticSIZES.mini)
                             .onChange(
                               (
@@ -947,15 +1134,19 @@ object EncounterWizard {
                                 changedData
                               ) =>
                                 $.modState(s =>
-                                  s.copy(treasureWallet = s.treasureWallet.copy(sp = changedData.value.asLong(0)))
+                                  s.copy(encounterInfo =
+                                    s.encounterInfo.copy(
+                                      treasure = s.encounterInfo.treasure.copy(sp = changedData.value.asLong(0))
+                                    )
+                                  )
                                 )
                             )
-                            .value(state.treasureWallet.sp.toDouble)
+                            .value(state.encounterInfo.treasure.sp.toDouble)
                         ),
                         Table.Cell(
                           Input
                             .`type`("number")
-                            .min(1)
+                            .min(0)
                             .size(SemanticSIZES.mini)
                             .onChange(
                               (
@@ -963,15 +1154,19 @@ object EncounterWizard {
                                 changedData
                               ) =>
                                 $.modState(s =>
-                                  s.copy(treasureWallet = s.treasureWallet.copy(ep = changedData.value.asLong(0)))
+                                  s.copy(encounterInfo =
+                                    s.encounterInfo.copy(
+                                      treasure = s.encounterInfo.treasure.copy(ep = changedData.value.asLong(0))
+                                    )
+                                  )
                                 )
                             )
-                            .value(state.treasureWallet.ep.toDouble)
+                            .value(state.encounterInfo.treasure.ep.toDouble)
                         ),
                         Table.Cell(
                           Input
                             .`type`("number")
-                            .min(1)
+                            .min(0)
                             .size(SemanticSIZES.mini)
                             .onChange(
                               (
@@ -979,15 +1174,19 @@ object EncounterWizard {
                                 changedData
                               ) =>
                                 $.modState(s =>
-                                  s.copy(treasureWallet = s.treasureWallet.copy(gp = changedData.value.asLong(0)))
+                                  s.copy(encounterInfo =
+                                    s.encounterInfo.copy(
+                                      treasure = s.encounterInfo.treasure.copy(gp = changedData.value.asLong(0))
+                                    )
+                                  )
                                 )
                             )
-                            .value(state.treasureWallet.gp.toDouble)
+                            .value(state.encounterInfo.treasure.gp.toDouble)
                         ),
                         Table.Cell(
                           Input
                             .`type`("number")
-                            .min(1)
+                            .min(0)
                             .size(SemanticSIZES.mini)
                             .onChange(
                               (
@@ -995,18 +1194,53 @@ object EncounterWizard {
                                 changedData
                               ) =>
                                 $.modState(s =>
-                                  s.copy(treasureWallet = s.treasureWallet.copy(pp = changedData.value.asLong(0)))
+                                  s.copy(encounterInfo =
+                                    s.encounterInfo.copy(
+                                      treasure = s.encounterInfo.treasure.copy(pp = changedData.value.asLong(0))
+                                    )
+                                  )
                                 )
                             )
-                            .value(state.treasureWallet.pp.toDouble)
+                            .value(state.encounterInfo.treasure.pp.toDouble)
                         )
                       )
+                    )
+                  ),
+                  Table(
+                    Table.Body(
+                      state.encounterInfo.treasure.items.map { t =>
+                        Table.Row.withKey(t)(
+                          Table.Cell(t),
+                          Table.Cell(
+                            Button
+                              .icon(true)
+                              .color(SemanticCOLORS.violet)
+                              .onClick(
+                                (
+                                  _,
+                                  _
+                                ) =>
+                                  $.modState(s =>
+                                    s.copy(encounterInfo =
+                                      s.encounterInfo.copy(treasure =
+                                        s.encounterInfo.treasure.copy(items =
+                                          s.encounterInfo.treasure.items
+                                            .patch(s.encounterInfo.treasure.items.indexWhere(_ == t), Nil, 1)
+                                        )
+                                      )
+                                    )
+                                  )
+                              )(Icon.name(SemanticICONS.`minus`))
+                          )
+                        )
+                      }*
                     )
                   )
                 )
             )
           )
       )
+    }
 
     private def ConfirmWizard(
       state: State
@@ -1018,15 +1252,15 @@ object EncounterWizard {
         "Run Encounter Button"
       )
 
-    def render(s: State): VdomNode = {
+    def render(state: State): VdomNode = {
       def renderStep(step: WizardStepType): VdomNode = {
         step match {
-          case WizardStepType.setTheScene      => SetTheScene(s)
-          case WizardStepType.encounterDetails => EncounterDetails(s)
-          case WizardStepType.selectNPCs       => SelectNPCs(s)
-          case WizardStepType.selectCreatures  => SelectCreatures(s)
-          case WizardStepType.lootGenerator    => LootGenerator(s)
-          case WizardStepType.confirmWizard    => ConfirmWizard(s)
+          case WizardStepType.setTheScene      => SetTheScene(state)
+          case WizardStepType.encounterDetails => EncounterDetails(state)
+          case WizardStepType.selectNPCs       => SelectNPCs(state)
+          case WizardStepType.selectCreatures  => SelectCreatures(state)
+          case WizardStepType.lootGenerator    => LootGenerator(state)
+          case WizardStepType.confirmWizard    => ConfirmWizard(state)
         }
       }
 
@@ -1040,28 +1274,30 @@ object EncounterWizard {
             Step.Group
               .size(mini)
               .ordered(true)(
-                WizardStepType.values.zipWithIndex.map {
-                  (
-                    step,
-                    index
-                  ) =>
-                    Step
-                      .withKey(step.name)
-                      .active(s.currentStep == step)
-                      .onClick(
-                        (
-                          _,
-                          _
-                        ) => $.modState(_.copy(currentStep = step))
-                      )(
-                        Step.Content(
-                          Step.Title(step.name),
-                          Step.Description(step.name)
-                        )
+                WizardStepType.values.map { step =>
+                  Step
+                    .withKey(step.name)
+                    .active(state.currentStep == step)
+                    .onClick(
+                      (
+                        _,
+                        _
+                      ) => $.modState(_.copy(currentStep = step))
+                    )(
+                      Step.Content(
+                        Step.Title(step.name),
+                        Step.Description(step.name)
                       )
+                    )
                 }*
               ),
-            WizardStepType.values.find(_ == s.currentStep).fold(EmptyVdom)(renderStep),
+            <.div(
+              ^.display := "inline-block",
+              <.div(s"XP Budget: ${state.encounterInfo.xpBudget(state.pcs).xp(state.encounterInfo.desiredDifficulty)}"),
+              <.div(s"XP Used: ${state.encounterInfo.enemyXP(state.npcs)}"),
+              <.div(s"Difficulty: ${state.encounterInfo.calculateDifficulty(state.pcs, state.npcs)}")
+            ),
+            WizardStepType.values.find(_ == state.currentStep).fold(EmptyVdom)(renderStep),
             Button("Cancel")
           )
         }

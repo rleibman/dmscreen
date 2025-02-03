@@ -33,17 +33,27 @@ enum TreasureTheme(description: String) {
 }
 
 case class Treasure(
-  cp:         Long = 0,
-  sp:         Long = 0,
-  ep:         Long = 0,
-  gp:         Long = 0,
-  pp:         Long = 0,
-  gems:       List[String] = List.empty,
-  artObjects: List[String] = List.empty,
-  magicItems: List[String] = List.empty,
-  other:      List[String] = List.empty,
-  isHorde:    Boolean = false
-)
+  cp:      Long = 0,
+  sp:      Long = 0,
+  ep:      Long = 0,
+  gp:      Long = 0,
+  pp:      Long = 0,
+  items:   List[String] = List.empty,
+  isHoard: Boolean = false
+) {
+
+  def +(other: Treasure): Treasure =
+    Treasure(
+      cp + other.cp,
+      sp + other.sp,
+      ep + other.ep,
+      gp + other.gp,
+      pp + other.pp,
+      items ++ other.items,
+      isHoard || other.isHoard
+    )
+
+}
 
 enum TreasureRarity {
 

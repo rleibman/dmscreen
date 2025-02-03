@@ -125,7 +125,11 @@ given JsonCodec[EncounterCombatant] = JsonCodec.derived[EncounterCombatant]
 given JsonCodec[MonsterCombatant] = JsonCodec.derived[MonsterCombatant]
 given JsonCodec[PlayerCharacterCombatant] = JsonCodec.derived[PlayerCharacterCombatant]
 given JsonCodec[NonPlayerCharacterCombatant] = JsonCodec.derived[NonPlayerCharacterCombatant]
-given JsonCodec[EncounterDifficulty] = JsonCodec.derived[EncounterDifficulty]
+given JsonCodec[EncounterDifficultyLevel] =
+  JsonCodec.string.transform(
+    s => EncounterDifficultyLevel.values.find(_.toString == s).getOrElse(EncounterDifficultyLevel.Moderate),
+    _.toString
+  )
 given JsonCodec[Treasure] = JsonCodec.derived[Treasure]
 given JsonCodec[EncounterInfo] = JsonCodec.derived[EncounterInfo]
 

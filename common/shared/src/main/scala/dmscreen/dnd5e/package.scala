@@ -299,7 +299,11 @@ case class Wallet(
   ep: Long,
   sp: Long,
   cp: Long
-)
+) {
+
+  def +(other: Wallet): Wallet = Wallet(pp + other.pp, gp + other.gp, ep + other.ep, sp + other.sp, cp + other.cp)
+
+}
 
 enum CreatureSize {
 

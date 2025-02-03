@@ -54,6 +54,7 @@ object EncounterPage extends DMScreenTab {
     encounters:             Seq[Encounter] = List.empty,
     scenes:                 Seq[Scene] = List.empty,
     pcs:                    Seq[PlayerCharacter] = List.empty,
+    npcs:                   Seq[NonPlayerCharacter] = List.empty,
     accordionState:         (Int, Int) = (0, 0),
     encounterMode:          EncounterMode = EncounterMode.edit,
     currentEncounterId:     Option[EncounterId] = None,
@@ -67,7 +68,8 @@ object EncounterPage extends DMScreenTab {
         encounters <- DND5eGraphQLRepository.live.encounters(campaignId)
         scenes     <- DND5eGraphQLRepository.live.scenes(campaignId)
         pcs        <- DND5eGraphQLRepository.live.playerCharacters(campaignId)
-      } yield $.modState(_.copy(encounters = encounters, scenes = scenes, pcs = pcs))).completeWith(_.get)
+        npcs       <- DND5eGraphQLRepository.live.nonPlayerCharacters(campaignId)
+      } yield $.modState(_.copy(encounters = encounters, scenes = scenes, pcs = pcs, npcs = npcs))).completeWith(_.get)
     }
 
     private def onAccordionChange(
@@ -425,7 +427,7 @@ object EncounterPage extends DMScreenTab {
                         Container.fluid(true)(
                           EncounterEditor(
                             encounter,
-                            encounter.calculateDifficulty(state.pcs),
+                            encounter.info.calculateDifficulty(state.pcs, state.npcs),
                             onDelete = deleteMe => doDelete(deleteMe),
                             onChange = encounter => modEncounter(encounter, "")
                           )

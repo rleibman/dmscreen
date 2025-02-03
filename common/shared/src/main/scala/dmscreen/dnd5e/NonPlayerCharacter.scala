@@ -84,7 +84,8 @@ case class NonPlayerCharacterInfo(
   override val damageImmunities:      Seq[DamageType] = Seq.empty,
   notes:                              String = "",
   rollplayInfo:                       RollplayInfo = RollplayInfo(),
-  monster:                            Option[MonsterId] = None
+  monster:                            Option[MonsterId] = None,
+  challengeRating:                    Option[ChallengeRating] = None
 ) extends CharacterInfo {
 
   def initiativeTuple: (Int, Int, Int, Int, Int, Int) =

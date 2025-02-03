@@ -55,7 +55,7 @@ val tapirVersion = "1.10.8"
 val testContainerVersion = "0.41.8"
 val zioConfigVersion = "4.0.3"
 val zioHttpVersion = "3.0.1"
-val zioJsonVersion = "0.7.10"
+val zioJsonVersion = "0.7.13"
 val zioVersion = "2.1.14"
 
 lazy val commonSettings = Seq(
@@ -196,7 +196,7 @@ lazy val server = project
       // Other random utilities
       "com.github.pathikrit"  %% "better-files"                 % "3.9.2" withSources (),
       "com.github.daddykotex" %% "courier"                      % "3.2.0" withSources (),
-      "commons-codec"          % "commons-codec"                % "1.17.2",
+      "commons-codec"          % "commons-codec"                % "1.18.0",
       "com.dimafeng"          %% "testcontainers-scala-mariadb" % testContainerVersion withSources (),
       // Testing
       "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),

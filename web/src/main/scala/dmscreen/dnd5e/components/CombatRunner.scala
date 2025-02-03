@@ -319,9 +319,9 @@ object CombatRunner {
                     Table.HeaderCell.colSpan(2)(<.h2(s"${encounter.header.name}")),
                     Table.HeaderCell
                       .colSpan(2).textAlign(semanticUiReactStrings.center)(
-                        s"Difficulty: ${encounter.calculateDifficulty(pcs)}",
+                        s"Difficulty: ${encounter.info.calculateDifficulty(pcs, npcs)}",
                         <.br(),
-                        s"XP: ${encounter.info.xp}"
+                        s"XP: ${encounter.info.enemyXP(npcs)}"
                       ),
                     Table.HeaderCell
                       .colSpan(2).textAlign(semanticUiReactStrings.center)(

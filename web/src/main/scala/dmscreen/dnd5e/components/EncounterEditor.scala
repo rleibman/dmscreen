@@ -109,7 +109,7 @@ object EncounterEditor {
 
   case class Props(
     encounter:  Encounter,
-    difficulty: EncounterDifficulty,
+    difficulty: EncounterDifficultyLevel,
     onDelete:   Encounter => Callback,
     onChange:   Encounter => Callback
   )
@@ -289,7 +289,7 @@ object EncounterEditor {
                   Table.HeaderCell.colSpan(3)(<.h2(s"${encounter.header.name}")),
                   Table.HeaderCell
                     .colSpan(3).textAlign(semanticUiReactStrings.center)(
-                      s"Difficulty: ${props.difficulty}, XP: ${encounter.info.xp}"
+                      s"Difficulty: ${props.difficulty}, XP: ${encounter.info.enemyXP(state.npcs)}"
                     ),
                   Table.HeaderCell
                     .colSpan(4)
@@ -929,7 +929,7 @@ object EncounterEditor {
 
   def apply(
     encounter:  Encounter,
-    difficulty: EncounterDifficulty,
+    difficulty: EncounterDifficultyLevel,
     onDelete:   Encounter => Callback = _ => Callback.empty,
     onChange:   Encounter => Callback = _ => Callback.empty
   ): Unmounted[Props, State, Backend] =

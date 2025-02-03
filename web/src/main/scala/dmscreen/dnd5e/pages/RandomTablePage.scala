@@ -141,7 +141,7 @@ object RandomTablePage extends DMScreenTab {
               ) =>
                 state.selectedTable.fold(Callback.empty)(table =>
                   DiceRoller
-                    .roll(table.diceRoll.roll)
+                    .roll(table.diceRoll)
                     .map { result =>
                       state.selectedTable.flatMap(_.findEntry(result.head.value)) match {
                         case Some(entry) =>

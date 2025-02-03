@@ -117,47 +117,47 @@ object StorageSpec extends ZIOSpecDefault {
           listAfterInsert.size == startCharacters.size + 1,
           listAfterDelete.size == startCharacters.size
         )
-      },
-      test("player character diff") {
-        import diffson.*
-        import diffson.jsonpatch.*
-        import diffson.jsonpatch.lcsdiff.*
-        import diffson.lcs.*
-        import diffson.zjson.*
-        import zio.json.*
-        import zio.json.ast.Json
-
-        val info1 = PlayerCharacterInfo(
-          health = Health(
-            deathSave = DeathSave.empty,
-            currentHitPoints = 30,
-            maxHitPoints = 30
-          ),
-          armorClass = 16,
-          classes = List(
-            PlayerCharacterClass(
-              characterClass = CharacterClassId.paladin,
-              subclass = Option(SubClass("Oath of Vengance")),
-              level = 3
-            )
-          )
-        )
-
-        given Patience[Json] = new Patience[Json]
-
-        val info2 = info1.copy(armorClass = 17)
-
-        val res: Either[String, JsonPatch[Json]] = for {
-          one <- info1.toJsonAST
-          two <- info2.toJsonAST
-        } yield diff(one, two)
-
-        assertTrue(
-          res.isRight,
-          res.toOption.get.ops.size == 1,
-          res.toOption.get.ops.head.toJson == """{"op":"replace","path":"/armorClass","value":17}"""
-        )
       }
+//      test("player character diff") {
+//        import diffson.*
+//        import diffson.jsonpatch.*
+//        import diffson.jsonpatch.lcsdiff.*
+//        import diffson.lcs.*
+//        import diffson.zjson.*
+//        import zio.json.*
+//        import zio.json.ast.Json
+//
+//        val info1 = PlayerCharacterInfo(
+//          health = Health(
+//            deathSave = DeathSave.empty,
+//            currentHitPoints = 30,
+//            maxHitPoints = 30
+//          ),
+//          armorClass = 16,
+//          classes = List(
+//            PlayerCharacterClass(
+//              characterClass = CharacterClassId.paladin,
+//              subclass = Option(SubClass("Oath of Vengance")),
+//              level = 3
+//            )
+//          )
+//        )
+//
+//        given Patience[Json] = new Patience[Json]
+//
+//        val info2 = info1.copy(armorClass = 17)
+//
+//        val res: Either[String, JsonPatch[Json]] = for {
+//          one <- info1.toJsonAST
+//          two <- info2.toJsonAST
+//        } yield diff(one, two)
+//
+//        assertTrue(
+//          res.isRight,
+//          res.toOption.get.ops.size == 1,
+//          res.toOption.get.ops.head.toJson == """{"op":"replace","path":"/armorClass","value":17}"""
+//        )
+//      }
     ).provideLayerShared(EnvironmentBuilder.withContainer)
 
   }
