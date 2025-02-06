@@ -568,7 +568,6 @@ object PCEditComponent {
               ),
               <.div(
                 ^.className := "notesSection",
-                ^.height    := 700.px,
                 <.div(^.className := "sectionTitle", "Notes"),
                 EditableComponent(
                   view = <.div(

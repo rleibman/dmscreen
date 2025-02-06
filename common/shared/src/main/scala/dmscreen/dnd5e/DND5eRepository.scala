@@ -94,6 +94,8 @@ trait DND5eRepository[F[_]] extends GameRepository {
 
   def scenes(campaignId: CampaignId): F[Seq[Scene]]
 
+  def scene(id: SceneId): F[Option[Scene]]
+
   def nonPlayerCharacters(campaignId: CampaignId): F[Seq[NonPlayerCharacter]]
 
   def encounters(campaignId: CampaignId): F[Seq[Encounter]]

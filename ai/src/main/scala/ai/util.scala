@@ -24,7 +24,7 @@ package ai
 import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.segment.TextSegment
 import dev.langchain4j.memory.chat.MessageWindowChatMemory
-import dev.langchain4j.model.ollama.OllamaStreamingChatModel
+import dev.langchain4j.model.ollama.{OllamaChatModel, OllamaStreamingChatModel}
 import dev.langchain4j.model.output.Response
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever
 import dev.langchain4j.service.{AiServices, TokenStream}
@@ -33,21 +33,30 @@ import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore
 import zio.*
 import zio.stream.ZStream
 
+import java.util
+
 //val MODEL = "llama3.2:3b"
 val MODEL = "gemma2:2b"
+//val MODEL = "llama3.2:1b"
 //val MODEL = "gemma2" //Decent, but too big (and slow)"
 //val MODEL = "llama3.1" //Not bad
 //val MODEL = "llama3.3" //Too big
 val BASE_URL = "http://localhost:11434"
 val timeout = 120.seconds
 
-trait Assistant {
+trait StreamAssistant {
 
   def chat(message: String): TokenStream
 
 }
 
-type LangChainEnvironment = ChatMemory & StreamingChatLanguageModel & Assistant & LangChainConfiguration
+trait ChatAssistant {
+
+  def chat(message: String): String
+
+}
+type StreamingLangChainEnvironment = ChatMemory & StreamingChatLanguageModel & StreamAssistant & LangChainConfiguration
+type LangChainEnvironment = ChatMemory & ChatLanguageModel & ChatAssistant & LangChainConfiguration
 
 case class LangChainConfiguration(
 )
@@ -74,6 +83,19 @@ object LangChainServiceBuilder {
     )
 
   // Use configuration
+  def ollamaChatModelLayer: URLayer[LangChainConfiguration, ChatLanguageModel] =
+    ZLayer.succeed(
+      ChatLanguageModel.fromJava(
+        OllamaChatModel.builder
+          .baseUrl(BASE_URL)
+          .modelName(MODEL)
+          .timeout(timeout)
+          .temperature(0.0)
+          .build
+      )
+    )
+
+  // Use configuration
   def ollamaStreamingChatModelLayer: URLayer[LangChainConfiguration, StreamingChatLanguageModel] =
     ZLayer.succeed(
       StreamingChatLanguageModel.fromJava(
@@ -86,37 +108,75 @@ object LangChainServiceBuilder {
       )
     )
 
-  def assistantLayerWithStore
-    : URLayer[StreamingChatLanguageModel & ChatMemory & EmbeddingStoreWrapper & LangChainConfiguration, Assistant] =
+  def streamingAssistantLayerWithStore: URLayer[
+    StreamingChatLanguageModel & ChatMemory & EmbeddingStoreWrapper & LangChainConfiguration,
+    StreamAssistant
+  ] =
     ZLayer.fromZIO(
       for {
         store       <- ZIO.serviceWith[EmbeddingStoreWrapper](_.store)
         chatMemory  <- ZIO.service[ChatMemory]
         streamModel <- ZIO.service[StreamingChatLanguageModel]
       } yield {
-        val base: AiServices[Assistant] = AiServices
-          .builder(classOf[Assistant])
+        val base: AiServices[StreamAssistant] = AiServices
+          .builder(classOf[StreamAssistant])
           .streamingChatLanguageModel(streamModel)
           .chatMemory(chatMemory)
 
-        val ret: Assistant = base.contentRetriever(EmbeddingStoreContentRetriever.from(store)).build()
+        val ret: StreamAssistant = base.contentRetriever(EmbeddingStoreContentRetriever.from(store)).build()
         ret
       }
     )
 
-  def assistantLayer(storeOpt: Option[EmbeddingStore[TextSegment]] = None)
-    : ZLayer[StreamingChatLanguageModel & ChatMemory & LangChainConfiguration, Nothing, Assistant] =
+  private def chatAssistant(storeOpt: Option[EmbeddingStore[TextSegment]] = None)
+    : ZIO[ChatLanguageModel & ChatMemory, Nothing, ChatAssistant] =
+    for {
+      chatMemory <- ZIO.service[ChatMemory] // Do we really want memory? Should it be "by user"?
+      model      <- ZIO.service[ChatLanguageModel]
+    } yield {
+      val base: AiServices[ChatAssistant] = AiServices
+        .builder(classOf[ChatAssistant])
+        .chatLanguageModel(model)
+        .chatMemory(chatMemory)
+
+      storeOpt.fold(base)(store => base.contentRetriever(EmbeddingStoreContentRetriever.from(store))).build
+    }
+
+  val chatAssistantLayerWithStore
+    : URLayer[EmbeddingStoreWrapper & ChatLanguageModel & ChatMemory & LangChainConfiguration, ChatAssistant] =
+    ZLayer.fromZIO(
+      for {
+        store      <- ZIO.serviceWith[EmbeddingStoreWrapper](_.store)
+        chatMemory <- ZIO.service[ChatMemory]
+        model      <- ZIO.service[ChatLanguageModel]
+      } yield {
+        val base: AiServices[ChatAssistant] = AiServices
+          .builder(classOf[ChatAssistant])
+          .chatLanguageModel(model)
+          .chatMemory(chatMemory)
+
+        val ret: ChatAssistant = base.contentRetriever(EmbeddingStoreContentRetriever.from(store)).build()
+        ret
+      }
+    )
+
+  def chatAssistantLayer(storeOpt: Option[EmbeddingStore[TextSegment]] = None)
+    : URLayer[ChatLanguageModel & ChatMemory & LangChainConfiguration, ChatAssistant] =
+    ZLayer.fromZIO(chatAssistant(storeOpt))
+
+  def streamingAssistantLayer(storeOpt: Option[EmbeddingStore[TextSegment]] = None)
+    : URLayer[StreamingChatLanguageModel & ChatMemory & LangChainConfiguration, StreamAssistant] =
     ZLayer.fromZIO(
       for {
         chatMemory  <- ZIO.service[ChatMemory]
         streamModel <- ZIO.service[StreamingChatLanguageModel]
       } yield {
-        val base: AiServices[Assistant] = AiServices
-          .builder(classOf[Assistant])
+        val base: AiServices[StreamAssistant] = AiServices
+          .builder(classOf[StreamAssistant])
           .streamingChatLanguageModel(streamModel)
           .chatMemory(chatMemory)
 
-        val ret: Assistant =
+        val ret: StreamAssistant =
           storeOpt.fold(base)(store => base.contentRetriever(EmbeddingStoreContentRetriever.from(store))).build
         ret
       }
@@ -124,9 +184,9 @@ object LangChainServiceBuilder {
 
 }
 
-def chat(message: String): ZStream[Assistant, Throwable, String] =
+def streamedChat(message: String): ZStream[StreamAssistant, Throwable, String] =
   ZStream.unwrap(for {
-    aiServices <- ZIO.service[Assistant]
+    aiServices <- ZIO.service[StreamAssistant]
   } yield ZStream.async[Any, Throwable, String] { callback =>
     aiServices
       .chat(message)
@@ -135,3 +195,9 @@ def chat(message: String): ZStream[Assistant, Throwable, String] =
       .onError(error => callback(ZIO.fail(Some(error))))
       .start()
   })
+
+def chat(question: String): URIO[ChatAssistant, String] = {
+  for {
+    assistant <- ZIO.service[ChatAssistant]
+  } yield assistant.chat(question)
+}

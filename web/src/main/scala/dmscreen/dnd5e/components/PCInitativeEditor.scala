@@ -54,7 +54,7 @@ object PCInitativeEditor {
   case class Props(
     pcs:      Seq[PlayerCharacter],
     open:     Boolean,
-    onChange: Map[PlayerCharacter, Int] => Callback,
+    onChange: Map[PlayerCharacterId, Int] => Callback,
     onCancel: Callback
   )
 
@@ -70,45 +70,48 @@ object PCInitativeEditor {
         .closeIcon(false)(
           ModalHeader("Edit PC Initative"),
           ModalContent(
-            Table(
-              Table.Header(
-                Table.Row(
-                  Table.HeaderCell("Character"),
-                  Table.HeaderCell("Initiative")
-                )
-              ),
-              Table.Body(
-                state.initiatives.toSeq
-                  .map { entry =>
-                    Table.Row.withKey(entry._1.id.value.toString)(
-                      Table.Cell(s"${entry._1.header.name}${entry._1.header.playerName.fold("")(name => s" ($name)")}"),
-                      Table.Cell(
-                        Input
-                          .`type`("number")
-                          .size(SemanticSIZES.mini)
-                          .min(1)
-                          .max(40)
-                          .onChange(
-                            (
-                              _,
-                              changedData
-                            ) =>
-                              $.modState(s => {
-                                val newNum = changedData.value.asInt(entry._2)
+            Table
+              .inverted(DND5eUI.tableInverted)
+              .color(DND5eUI.tableColor)(
+                Table.Header(
+                  Table.Row(
+                    Table.HeaderCell("Character"),
+                    Table.HeaderCell("Initiative")
+                  )
+                ),
+                Table.Body(
+                  state.initiatives.toSeq
+                    .map { entry =>
+                      Table.Row.withKey(entry._1.id.value.toString)(
+                        Table
+                          .Cell(s"${entry._1.header.name}${entry._1.header.playerName.fold("")(name => s" ($name)")}"),
+                        Table.Cell(
+                          Input
+                            .`type`("number")
+                            .size(SemanticSIZES.mini)
+                            .min(1)
+                            .max(40)
+                            .onChange(
+                              (
+                                _,
+                                changedData
+                              ) =>
+                                $.modState(s => {
+                                  val newNum = changedData.value.asInt(entry._2)
 
-                                s.copy(initiatives = s.initiatives.map {
-                                  case (pc, _) if pc.header.id == entry._1.header.id => pc -> newNum
-                                  case other                                         => other
+                                  s.copy(initiatives = s.initiatives.map {
+                                    case (pc, _) if pc.header.id == entry._1.header.id => pc -> newNum
+                                    case other                                         => other
+                                  })
+
                                 })
-
-                              })
-                          )
-                          .value(entry._2)
+                            )
+                            .value(entry._2)
+                        )
                       )
-                    )
-                  }*
+                    }*
+                )
               )
-            )
           ),
           ModalActions(
             Button("Cancel").onClick {
@@ -124,7 +127,7 @@ object PCInitativeEditor {
               ) =>
                 $.modState(
                   _.copy(editingMode = EditingMode.closed),
-                  $.state.flatMap(s => props.onChange(s.initiatives.toMap))
+                  $.state.flatMap(s => props.onChange(s.initiatives.map(t => t._1.id -> t._2).toMap))
                 )
             }
           )
@@ -151,7 +154,7 @@ object PCInitativeEditor {
   def apply(
     pcs:      Seq[PlayerCharacter],
     open:     Boolean,
-    onChange: Map[PlayerCharacter, Int] => Callback,
+    onChange: Map[PlayerCharacterId, Int] => Callback,
     onCancel: Callback
   ) = {
     component(Props(pcs.sortBy(e => (e.header.playerName.getOrElse("zzz"), e.header.name)), open, onChange, onCancel))

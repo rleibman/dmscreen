@@ -16,6 +16,8 @@
     </root>
 
     <!--    <logger name="dmscreen" level="DEBUG"/>-->
+    <logger name="io.grpc.netty.shaded.io.grpc.netty" level="ERROR"/>
+    <logger name="dev.langchain4j.store.embedding" level="ERROR"/>
     <logger name="com.github.dockerjava" level="OFF"/>
     <logger name="org.testcontainers" level="OFF"/>
     <logger name="org.mariadb.jdbc.message.server.OkPacket" level="OFF"/>

@@ -252,6 +252,7 @@ type Queries {
   subclasses(value: String!): [SubClass!]
   randomTables(randomTableType: RandomTableType): [RandomTable!]
   randomTable(value: Long!): RandomTable
+  generateEncounterDescription(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): String
 }
 
 type Race {

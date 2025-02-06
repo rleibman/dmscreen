@@ -30,7 +30,7 @@ import dmscreen.dnd5e.{*, given}
 import dmscreen.{CampaignId, DMScreenState, DMScreenTab, DialogMode}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
-import japgolly.scalajs.react.vdom.html_<^.*
+import japgolly.scalajs.react.vdom.html_<^.{<, *}
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{Button, List as SList, Table, *}
@@ -407,7 +407,10 @@ object EncounterPage extends DMScreenTab {
                                                   )
                                                   .active(state.accordionState == ((sceneIndex, encounterIndex)))(
                                                     encounterInfo.monsters.map(_.name).mkString(", "),
-                                                    <.div(s"Notes: ${encounterInfo.notes}")
+                                                    <.div(s"Notes: ${encounterInfo.notes}"),
+                                                    <.div(
+                                                      ^.dangerouslySetInnerHtml := s"<div>Description</div>${encounterInfo.generatedDescription}"
+                                                    )
                                                   )
                                               )
 
@@ -436,7 +439,12 @@ object EncounterPage extends DMScreenTab {
                     )
                 )
               case EncounterMode.wizard =>
-                EncounterWizard(campaignState.campaign)
+                EncounterWizard(
+                  campaignState.campaign,
+                  onCancel = $.modState(_.copy(encounterMode = EncounterMode.edit)),
+                  onSaved = encounter =>
+                    $.modState(_.copy(encounterMode = EncounterMode.edit, encounters = state.encounters :+ encounter))
+                )
             }
           )
 

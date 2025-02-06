@@ -34,16 +34,18 @@ object EncounterTemplate {
     val sceneInfo = sceneOpt.map(_.info)
     val info = encounter.info
 
-    s"""I am running a dungeons and dragons encounter.
-       |The Encounter is part of the campaign called ${campaign.header.name}
-       |${sceneOpt.fold("")(scene => s"It is part of the scene called ${scene.header.name}")}
-       |${sceneInfo.fold("")(si => s"Notes about the scene: ${si.notes}")}
-       |Encounter Information:
-       |  ${info.timeOfDay match {
+    s"""
+       | Please forget the details about any previous encounters you may have had.
+       | I am running a dungeons and dragons encounter.
+       | The Encounter is part of the campaign called ${campaign.header.name}
+       | ${sceneOpt.fold("")(scene => s"It is part of the scene called ${scene.header.name}")}
+       | ${sceneInfo.fold("")(si => s"Notes about the scene: ${si.notes}")}
+       | Encounter Information:
+       | ${info.timeOfDay match {
         case EncounterTimeOfDay.unimportant => ""
         case other                          => s"Encounter Time of Day: $other.toString"
       }}
-       |  ${info.biome match {
+       | ${info.biome match {
         case Biome.Unimportant => ""
         case other             => s"Biome: $other.toString"
       }}

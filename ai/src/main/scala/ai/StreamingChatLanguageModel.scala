@@ -27,7 +27,6 @@ import dev.langchain4j.model.StreamingResponseHandler
 
 import java.util
 import java.util.Collections.singletonList
-import java.util.List
 
 object StreamingChatLanguageModel {
 

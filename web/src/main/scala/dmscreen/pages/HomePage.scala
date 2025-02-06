@@ -21,6 +21,7 @@
 
 package dmscreen.pages
 
+import dmscreen.dnd5e.DND5eUI
 import dmscreen.{*, given}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Generic.UnmountedRaw
@@ -218,85 +219,88 @@ object HomePage extends DMScreenTab {
                 )
               )
           },
-          Table.withKey("campaignTable")(
-            Table.Header(
-              Table
-                .Row(
-                  Table.HeaderCell("Status"),
-                  Table.HeaderCell("Campaign Name"),
-                  Table.HeaderCell("Game System"),
-                  Table.HeaderCell( /*Actions*/ )
-                )
-            ),
-            Table.Body(
-              state.campaigns.collect {
-                case campaign if !(state.hideArchived && campaign.campaignStatus == CampaignStatus.archived) =>
-                  Table.Row.withKey(s"Campaign${campaign.id.value}")(
-                    Table.Cell(
-                      // Enhancement, might want to color the table differently if it's the active campaign
-                      if (dmScreenState.campaignState.exists(_.campaignHeader.id == campaign.id)) "Current"
-                      else "Not Current"
-                    ),
-                    Table.Cell(
-                      s"${campaign.name}${
-                          if (campaign.campaignStatus == CampaignStatus.archived) " (Archived)" else ""
-                        }"
-                    ),
-                    Table.Cell(campaign.gameSystem.name),
-                    Table.Cell(
-                      Button
-                        .title("Delete Campaign").icon(true)(Icon.name(SemanticICONS.`trash`)).onClick(
-                          (
-                            _,
-                            _
-                          ) => $.modState(_.copy(confirmDeleteOpen = true, deleteMe = Some(campaign.id)))
-                        ),
-                      Button
-                        .title("Make this the current campaign").icon(true)(
-                          Icon.name(SemanticICONS.`check circle outline`)
-                        ).onClick(
-                          (
-                            _,
-                            _
-                          ) => dmScreenState.onSelectCampaign(Some(campaign))
-                        ).when(dmScreenState.campaignState.fold(true)(_.campaignHeader.id != campaign.id)),
-                      Button
-                        .title("Take a snapshot of this campaign").icon(true)(
-                          Icon.name(SemanticICONS.`camera`)
-                        ).onClick(
-                          (
-                            _,
-                            _
-                          ) => Callback.empty // ENHANCEMENT snapshot
-                        ),
-                      Button
-                        .title("Archive this campaign")
-                        .icon(true)(Icon.name(SemanticICONS.archive))
-                        .onClick {
-                          (
-                            _,
-                            _
-                          ) => modCampaignHeader(campaign.copy(campaignStatus = CampaignStatus.archived))
-                        }.when(
-                          campaign.campaignStatus != CampaignStatus.archived
-                        )
-                    )
+          Table
+            .inverted(DND5eUI.tableInverted)
+            .color(DND5eUI.tableColor)
+            .withKey("campaignTable")(
+              Table.Header(
+                Table
+                  .Row(
+                    Table.HeaderCell("Status"),
+                    Table.HeaderCell("Campaign Name"),
+                    Table.HeaderCell("Game System"),
+                    Table.HeaderCell( /*Actions*/ )
                   )
-              }*
-            ),
-            Table.Footer(
-              Table.Row(
-                Table.HeaderCell.colSpan(4)(
-                  Button("Add Campaign").onClick(
-                    (
-                      _,
-                      _
-                    ) => $.modState(_.copy(newCampaign = Some(CampaignHeader.empty(UserId(1)))))
+              ),
+              Table.Body(
+                state.campaigns.collect {
+                  case campaign if !(state.hideArchived && campaign.campaignStatus == CampaignStatus.archived) =>
+                    Table.Row.withKey(s"Campaign${campaign.id.value}")(
+                      Table.Cell(
+                        // Enhancement, might want to color the table differently if it's the active campaign
+                        if (dmScreenState.campaignState.exists(_.campaignHeader.id == campaign.id)) "Current"
+                        else "Not Current"
+                      ),
+                      Table.Cell(
+                        s"${campaign.name}${
+                            if (campaign.campaignStatus == CampaignStatus.archived) " (Archived)" else ""
+                          }"
+                      ),
+                      Table.Cell(campaign.gameSystem.name),
+                      Table.Cell(
+                        Button
+                          .title("Delete Campaign").icon(true)(Icon.name(SemanticICONS.`trash`)).onClick(
+                            (
+                              _,
+                              _
+                            ) => $.modState(_.copy(confirmDeleteOpen = true, deleteMe = Some(campaign.id)))
+                          ),
+                        Button
+                          .title("Make this the current campaign").icon(true)(
+                            Icon.name(SemanticICONS.`check circle outline`)
+                          ).onClick(
+                            (
+                              _,
+                              _
+                            ) => dmScreenState.onSelectCampaign(Some(campaign))
+                          ).when(dmScreenState.campaignState.fold(true)(_.campaignHeader.id != campaign.id)),
+                        Button
+                          .title("Take a snapshot of this campaign").icon(true)(
+                            Icon.name(SemanticICONS.`camera`)
+                          ).onClick(
+                            (
+                              _,
+                              _
+                            ) => Callback.empty // ENHANCEMENT snapshot
+                          ),
+                        Button
+                          .title("Archive this campaign")
+                          .icon(true)(Icon.name(SemanticICONS.archive))
+                          .onClick {
+                            (
+                              _,
+                              _
+                            ) => modCampaignHeader(campaign.copy(campaignStatus = CampaignStatus.archived))
+                          }.when(
+                            campaign.campaignStatus != CampaignStatus.archived
+                          )
+                      )
+                    )
+                }*
+              ),
+              Table.Footer(
+                Table.Row(
+                  Table.HeaderCell.colSpan(4)(
+                    Button("Add Campaign").onClick(
+                      (
+                        _,
+                        _
+                      ) => $.modState(_.copy(newCampaign = Some(CampaignHeader.empty(UserId(1)))))
+                    )
                   )
                 )
               )
             )
-          )
         )
       }
     }

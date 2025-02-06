@@ -21,29 +21,29 @@
 
 package dmscreen.dnd5e.components
 
+import components.Toast
+import components.Confirm
 import dmscreen.components.DiceRoller
+import dmscreen.dnd5e.{components, *, given}
 import dmscreen.util.*
-import components.{Toast, *}
-import dmscreen.dnd5e.{*, given}
 import dmscreen.{Campaign, CampaignId, DMScreenState}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.{<, *}
 import net.leibman.dmscreen.react.mod.CSSProperties
-import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
+import net.leibman.dmscreen.semanticUiReact.components.{Confirm as SConfirm, List as SList, *}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{
   SemanticCOLORS,
   SemanticICONS,
   SemanticSIZES,
   SemanticWIDTHS
 }
-import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesAccordionAccordionTitleMod.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
 import net.leibman.dmscreen.semanticUiReact.semanticUiReactStrings
 import net.leibman.dmscreen.semanticUiReact.semanticUiReactStrings.*
-import scalacss.internal.Attrs.display.inlineBlock
+import zio.json.*
+import zio.json.ast.Json
 
-import scala.collection.immutable.AbstractSeq
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
 
@@ -93,7 +93,11 @@ object EncounterWizard {
     removeDead: Boolean = true
   )
 
-  case class Props(campaign: Campaign)
+  case class Props(
+    campaign: Campaign,
+    onCancel: Callback,
+    onSaved:  Encounter => Callback
+  )
 
   case class State(
     currentStep: WizardStepType = WizardStepType.setTheScene,
@@ -127,7 +131,10 @@ object EncounterWizard {
     treasureTables: List[RandomTable] = List.empty,
     treasureTable:  Option[RandomTable] = None,
     treasureTheme:  Option[TreasureTheme] = None,
-    treasureRarity: Option[TreasureRarity] = None
+    treasureRarity: Option[TreasureRarity] = None,
+
+    // Confirm step
+    generating: Boolean = false
   )
 
   enum WizardStepType(val name: String) {
@@ -173,19 +180,19 @@ object EncounterWizard {
       }
     }
 
-    def loadState(campaignId: CampaignId): Callback =
+    def loadState(): Callback =
       (
         for {
           oldState       <- $.state.asAsyncCallback
           props          <- $.props.asAsyncCallback
           monsters       <- DND5eGraphQLRepository.live.bestiary(oldState.monsterSearch)
-          scenes         <- DND5eGraphQLRepository.live.scenes(campaignId)
+          scenes         <- DND5eGraphQLRepository.live.scenes(props.campaign.id)
           npcs           <- DND5eGraphQLRepository.live.nonPlayerCharacters(props.campaign.id)
           pcs            <- DND5eGraphQLRepository.live.playerCharacters(props.campaign.id)
           treasureTables <- DND5eGraphQLRepository.live.randomTables(Some(RandomTableType.treasure))
         } yield {
-          $.modState(
-            _.copy(
+          $.modState(s =>
+            s.copy(
               monsters = monsters.results,
               monsterCount = monsters.total,
               npcs = npcs.toList,
@@ -367,65 +374,94 @@ object EncounterWizard {
       Grid
         .container(true)(
           Grid.Row(
-            Form.Group(
-              Checkbox
-                .toggle(true)
-                .checked(state.npcSearch.removeDead)
-                .label("Filter out dead NPCs")
-                .onChange {
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    val newVal = changedData.checked match {
-                      case b: Boolean => b
-                      case _ => false
-                    }
-                    $.modState(_.copy(npcSearch = state.npcSearch.copy(removeDead = newVal)))
-                },
-              Form.Input
-                .label("Name")
-                .value(state.npcSearch.name)
-                .onChange {
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    val newVal = changedData.value match {
-                      case s: String if s.trim.isEmpty => ""
-                      case s: String                   => s
-                      case _ => ""
-                    }
+            Form.Group
+              .widths(equal)(
+                Checkbox
+                  .toggle(true)
+                  .checked(state.npcSearch.removeDead)
+                  .label("Filter out dead NPCs")
+                  .onChange {
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      val newVal = changedData.checked match {
+                        case b: Boolean => b
+                        case _ => false
+                      }
+                      $.modState(_.copy(npcSearch = state.npcSearch.copy(removeDead = newVal)))
+                  },
+                Form.Input
+                  .label("Name")
+                  .value(state.npcSearch.name)
+                  .onChange {
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      val newVal = changedData.value match {
+                        case s: String if s.trim.isEmpty => ""
+                        case s: String                   => s
+                        case _ => ""
+                      }
 
-                    $.modState(_.copy(npcSearch = state.npcSearch.copy(name = newVal)))
-                }
-            )
+                      $.modState(_.copy(npcSearch = state.npcSearch.copy(name = newVal)))
+                  }
+              )
           ),
           Grid.Row(
             Grid.Column
               .width(SemanticWIDTHS.`8`)(
-                Header.size(small).as("h3")("Available NPCs"),
-                Segment.Group(
-                  state.npcs
-                    .filter(npc =>
-                      !state.encounterInfo.npcs.exists(_.nonPlayerCharacterId == npc.id) // Filter out already selected NPCs
-                        && (state.npcSearch.name.isEmpty || npc.header.name.toLowerCase
-                          .contains(state.npcSearch.name.toLowerCase))
-                        && (!state.npcSearch.removeDead || !npc.info.health.isDead)
-                    )
-                    .map { npc =>
-                      Segment.withKey(npc.id.value.toString)(
-                        <.div(
-                          ^.display        := "flex",
-                          ^.justifyContent := "space-between",
-                          ^.alignItems     := "center",
-                          <.div(
-                            <.div(
-                              ^.color := "#000000",
-                              s"${npc.header.name} (${(npc.info.race.name +: npc.info.classes
-                                  .map(_.characterClass.name)).distinct.mkString(", ")})"
+                Table
+                  .inverted(DND5eUI.tableInverted)
+                  .color(DND5eUI.tableColor)(
+                    Table.Header(
+                      Table.Row(
+                        Table.HeaderCell.colSpan(2)("Available NPCs")
+                      )
+                    ),
+                    Table.Body(
+                      state.npcs
+                        .filter(npc =>
+                          !state.encounterInfo.npcs.exists(_.nonPlayerCharacterId == npc.id) // Filter out already selected NPCs
+                            && (state.npcSearch.name.isEmpty || npc.header.name.toLowerCase
+                              .contains(state.npcSearch.name.toLowerCase))
+                            && (!state.npcSearch.removeDead || !npc.info.health.isDead)
+                        )
+                        .map { npc =>
+                          Table.Row.withKey(npc.id.value.toString)(
+                            Table.Cell(s"${npc.header.name} (${(npc.info.race.name +: npc.info.classes
+                                .map(_.characterClass.name)).distinct.mkString(", ")})"),
+                            Table.Cell(
+                              Button
+                                .icon(true)
+                                .color(SemanticCOLORS.violet)
+                                .onClick(
+                                  (
+                                    _,
+                                    _
+                                  ) => $.modInfo(info => info.copy(combatants = info.combatants :+ toCombatant(npc)))
+                                )(Icon.name(SemanticICONS.`plus`))
                             )
-                          ),
+                          )
+                        }*
+                    )
+                  )
+              ),
+            Grid.Column
+              .width(SemanticWIDTHS.`8`)(
+                Table
+                  .inverted(DND5eUI.tableInverted)
+                  .color(DND5eUI.tableColor)(
+                    Table.Header(Table.Row(Table.HeaderCell.colSpan(2)("Selected NPCs"))),
+                    Table.Body(state.encounterInfo.npcs.map { npcCombatant =>
+                      val npc = state.npcs.find(_.id == npcCombatant.nonPlayerCharacterId).get
+                      Table.Row.withKey(npc.id.value.toString)(
+                        Table.Cell(
+                          s"${npc.header.name} (${(npc.info.race.name +: npc.info.classes
+                              .map(_.characterClass.name)).distinct.mkString(", ")})"
+                        ),
+                        Table.Cell(
                           Button
                             .icon(true)
                             .color(SemanticCOLORS.violet)
@@ -433,49 +469,17 @@ object EncounterWizard {
                               (
                                 _,
                                 _
-                              ) => $.modInfo(info => info.copy(combatants = info.combatants :+ toCombatant(npc)))
-                            )(Icon.name(SemanticICONS.`plus`))
+                              ) =>
+                                $.modInfo(info =>
+                                  info.copy(combatants = info.combatants.collect {
+                                    case c: NonPlayerCharacterCombatant if c.id != npcCombatant.id => c
+                                  })
+                                )
+                            )(Icon.name(SemanticICONS.`minus`))
                         )
                       )
-                    }*
-                )
-              ),
-            Grid.Column
-              .width(SemanticWIDTHS.`8`)(
-                Header.size(small).as("h3")("Selected NPCs"),
-                Segment.Group(
-                  state.encounterInfo.npcs.map { npcCombatant =>
-                    val npc = state.npcs.find(_.id == npcCombatant.nonPlayerCharacterId).get
-                    Segment.withKey(npc.id.value.toString)(
-                      <.div(
-                        ^.display        := "flex",
-                        ^.justifyContent := "space-between",
-                        ^.alignItems     := "center",
-                        <.div(
-                          <.div(
-                            ^.color := "#000000",
-                            s"${npc.header.name} (${(npc.info.race.name +: npc.info.classes
-                                .map(_.characterClass.name)).distinct.mkString(", ")})"
-                          )
-                        ),
-                        Button
-                          .icon(true)
-                          .color(SemanticCOLORS.violet)
-                          .onClick(
-                            (
-                              _,
-                              _
-                            ) =>
-                              $.modInfo(info =>
-                                info.copy(combatants = info.combatants.collect {
-                                  case c: NonPlayerCharacterCombatant if c.id != npcCombatant.id => c
-                                })
-                              )
-                          )(Icon.name(SemanticICONS.`minus`))
-                      )
-                    )
-                  }*
-                )
+                    }*)
+                  )
               )
           )
         )
@@ -696,86 +700,88 @@ object EncounterWizard {
           Grid.Row(
             Grid.Column
               .width(SemanticWIDTHS.`8`)(
-                Segment.Group(state.monsters.map { header =>
-                  Segment.withKey(header.id.value.toString)(
-                    <.div(
-                      ^.display        := "flex",
-                      ^.justifyContent := "space-between",
-                      ^.alignItems     := "center",
-                      <.div(
-                        <.div(
-                          ^.color := "#000000",
-                          s"${header.name} (${header.monsterType.toString.capitalize}, CR: ${header.cr.toString})"
+                Table
+                  .inverted(DND5eUI.tableInverted)
+                  .color(DND5eUI.tableColor)(
+                    Table.Body(
+                      state.monsters.map { header =>
+                        Table.Row.withKey(header.id.value.toString)(
+                          Table.Cell(
+                            s"${header.name} (${header.monsterType.toString.capitalize}, CR: ${header.cr.toString})"
+                          ),
+                          Table.Cell(
+                            Button
+                              .icon(true)
+                              .color(SemanticCOLORS.violet)
+                              .onClick(
+                                (
+                                  _,
+                                  _
+                                ) =>
+                                  $.modInfo(info =>
+                                    info
+                                      .copy(combatants = info.combatants :+ toCombatant(state.encounterInfo, header))
+                                  )
+                              )(Icon.name(SemanticICONS.`plus`))
+                          )
                         )
-                      ),
-                      Button
-                        .icon(true)
-                        .color(SemanticCOLORS.violet)
-                        .onClick(
-                          (
-                            _,
-                            _
-                          ) =>
-                            $.modInfo(info =>
-                              info.copy(combatants = info.combatants :+ toCombatant(state.encounterInfo, header))
-                            )
-                        )(Icon.name(SemanticICONS.`plus`))
+                      }*
+                    ),
+                    Table.Body(
+                      Table
+                        .Row(
+                          Table.Cell.colSpan(2)(
+                            Pagination(state.monsterCount / state.monsterSearch.pageSize.toDouble)
+                              .set("size", tiny)
+                              .onPageChange {
+                                (
+                                  _,
+                                  data
+                                ) =>
+                                  val newVal = data.activePage match {
+                                    case s: String => s.toInt
+                                    case d: Double => d.toInt
+                                    case _: Unit   => 1
+                                  }
+
+                                  $.modMonsterSearch(_.copy(page = newVal - 1))
+                              }
+                              .activePage(state.monsterSearch.page + 1)
+                          )
+                        ).when(state.monsters.nonEmpty)
                     )
                   )
-                }*),
-                Segment
-                  .Group(
-                    Segment(
-                      Pagination(state.monsterCount / state.monsterSearch.pageSize.toDouble)
-                        .set("size", tiny)
-                        .onPageChange {
-                          (
-                            _,
-                            data
-                          ) =>
-                            val newVal = data.activePage match {
-                              case s: String => s.toInt
-                              case d: Double => d.toInt
-                              case _: Unit   => 1
-                            }
-
-                            $.modMonsterSearch(_.copy(page = newVal - 1))
-                        }
-                        .activePage(state.monsterSearch.page + 1)
-                    )
-                  ).when(state.monsters.nonEmpty)
               ),
             Grid.Column
               .width(SemanticWIDTHS.`8`)(
-                Segment.Group(
-                  state.encounterInfo.monsters.map { monsterCombatant =>
-                    Segment.withKey(monsterCombatant.id.value.toString)(
-                      <.div(
-                        ^.display        := "flex",
-                        ^.justifyContent := "space-between",
-                        ^.alignItems     := "center",
-                        <.div(
-                          <.div(
-                            ^.color := "#000000",
-                            s"${monsterCombatant.name}"
+                Table
+                  .inverted(DND5eUI.tableInverted)
+                  .color(DND5eUI.tableColor)(
+                    Table.Body(
+                      state.encounterInfo.monsters.map { monsterCombatant =>
+                        Table.Row
+                          .withKey(monsterCombatant.id.value.toString)(
+                            Table.Cell(
+                              s"${monsterCombatant.name}"
+                            ),
+                            Table.Cell(
+                              Button
+                                .icon(true)
+                                .color(SemanticCOLORS.violet)
+                                .onClick(
+                                  (
+                                    _,
+                                    _
+                                  ) =>
+                                    $.modInfo(info =>
+                                      info.copy(combatants = info.combatants.filter(_.id != monsterCombatant.id))
+                                    )
+                                )(Icon.name(SemanticICONS.`minus`))
+                            )
                           )
-                        ),
-                        Button
-                          .icon(true)
-                          .color(SemanticCOLORS.violet)
-                          .onClick(
-                            (
-                              _,
-                              _
-                            ) =>
-                              $.modInfo(info =>
-                                info.copy(combatants = info.combatants.filter(_.id != monsterCombatant.id))
-                              )
-                          )(Icon.name(SemanticICONS.`minus`))
-                      )
+                      }*
                     )
-                  }*
-                )
+                  )
               )
           )
         )
@@ -926,141 +932,321 @@ object EncounterWizard {
         Grid
           .container(true)(
             Grid.Row(
-              Label("Treasure Theme"),
-              Form.Dropdown
-                .labeled(true)
-                .search(false)
-                .clearable(true)
-                .fluid(true)
-                .placeholder("Select a Theme")
-                .value(state.treasureTheme.fold("All")(_.toString))
-                .options(
-                  js.Array(
-                    DropdownItemProps().setValue("All").setText("All") +:
-                      TreasureTheme.values.map { theme =>
-                        DropdownItemProps().setValue(theme.toString).setText(theme.toString)
-                      }*
+              Form.Group(
+                Label("Treasure Theme"),
+                Form.Dropdown
+                  .labeled(true)
+                  .search(false)
+                  .clearable(true)
+                  .fluid(true)
+                  .placeholder("Select a Theme")
+                  .value(state.treasureTheme.fold("All")(_.toString))
+                  .options(
+                    js.Array(
+                      DropdownItemProps().setValue("All").setText("All") +:
+                        TreasureTheme.values.map { theme =>
+                          DropdownItemProps().setValue(theme.toString).setText(theme.toString)
+                        }*
+                    )
                   )
-                )
-                .onChange {
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    val newVal = changedData.value match {
-                      case s: String if s == "All" => None
-                      case s: String               => Some(TreasureTheme.valueOf(s))
-                      case _ => None
-                    }
-                    $.modState(s => s.copy(treasureTheme = newVal, treasureTable = None))
-                },
-              Label("Treasure Rarity"),
-              Form.Dropdown
-                .labeled(true)
-                .search(false)
-                .clearable(true)
-                .fluid(true)
-                .placeholder("Select a Rarity")
-                .value(state.treasureRarity.fold("All")(_.toString))
-                .options(
-                  js.Array(
-                    DropdownItemProps().setValue("All").setText("All") +:
-                      TreasureRarity.values.map { theme =>
-                        DropdownItemProps().setValue(theme.toString).setText(theme.toString)
-                      }*
+                  .onChange {
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      val newVal = changedData.value match {
+                        case s: String if s == "All" => None
+                        case s: String               => Some(TreasureTheme.valueOf(s))
+                        case _ => None
+                      }
+                      $.modState(s => s.copy(treasureTheme = newVal, treasureTable = None))
+                  },
+                Label("Treasure Rarity"),
+                Form.Dropdown
+                  .labeled(true)
+                  .search(false)
+                  .clearable(true)
+                  .fluid(true)
+                  .placeholder("Select a Rarity")
+                  .value(state.treasureRarity.fold("All")(_.toString))
+                  .options(
+                    js.Array(
+                      DropdownItemProps().setValue("All").setText("All") +:
+                        TreasureRarity.values.map { theme =>
+                          DropdownItemProps().setValue(theme.toString).setText(theme.toString)
+                        }*
+                    )
                   )
-                )
-                .onChange {
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    val newVal = changedData.value match {
-                      case s: String if s == "All" => None
-                      case s: String               => Some(TreasureRarity.valueOf(s))
-                      case _ => None
-                    }
-                    $.modState(s => s.copy(treasureRarity = newVal, treasureTable = None))
-                },
-              Label("Treasure Table"),
-              Form.Dropdown
-                .labeled(true)
-                .search(false)
-                .clearable(true)
-                .fluid(true)
-                .placeholder("Select a Treasure Table")
-                .value(state.treasureTable.map(_.id.value.toDouble).getOrElse(RandomTableId.empty.value.toDouble))
-                .options(
-                  js.Array(
-                    DropdownItemProps().setValue(RandomTableId.empty.value.toDouble).setText("") +:
-                      state.treasureTables
-                        .filter(table =>
-                          state.treasureTheme
-                            .fold(true)(theme => table.subType.toLowerCase.startsWith(theme.toString.toLowerCase)) &&
-                            state.treasureRarity
-                              .fold(true)(rarity => table.subType.toLowerCase.endsWith(rarity.toString.toLowerCase))
-                        )
-                        .map(treasureTable =>
-                          DropdownItemProps()
-                            .setValue(treasureTable.id.value.toDouble)
-                            .setText(treasureTable.name)
-                        )*
+                  .onChange {
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      val newVal = changedData.value match {
+                        case s: String if s == "All" => None
+                        case s: String               => Some(TreasureRarity.valueOf(s))
+                        case _ => None
+                      }
+                      $.modState(s => s.copy(treasureRarity = newVal, treasureTable = None))
+                  },
+                Label("Treasure Table"),
+                Form.Dropdown
+                  .labeled(true)
+                  .search(false)
+                  .clearable(true)
+                  .fluid(true)
+                  .placeholder("Select a Treasure Table")
+                  .value(state.treasureTable.map(_.id.value.toDouble).getOrElse(RandomTableId.empty.value.toDouble))
+                  .options(
+                    js.Array(
+                      DropdownItemProps().setValue(RandomTableId.empty.value.toDouble).setText("") +:
+                        state.treasureTables
+                          .filter(table =>
+                            state.treasureTheme
+                              .fold(true)(theme => table.subType.toLowerCase.startsWith(theme.toString.toLowerCase)) &&
+                              state.treasureRarity
+                                .fold(true)(rarity => table.subType.toLowerCase.endsWith(rarity.toString.toLowerCase))
+                          )
+                          .map(treasureTable =>
+                            DropdownItemProps()
+                              .setValue(treasureTable.id.value.toDouble)
+                              .setText(treasureTable.name)
+                          )*
+                    )
                   )
-                )
-                .onChange {
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    val newVal: RandomTableId = changedData.value match {
-                      case s: String => RandomTableId(s.toLong)
-                      case d: Double => RandomTableId(d.toLong)
-                      case _ => RandomTableId.empty
-                    }
-                    treasureTableSelect(newVal)
-                },
-              Checkbox
-                .toggle(true)
-                .label("Is Hoard")
-                .checked(state.encounterInfo.treasure.isHoard)
-                .onChange(
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    $.modState(s =>
-                      s.copy(encounterInfo =
-                        s.encounterInfo.copy(treasure =
-                          s.encounterInfo.treasure.copy(isHoard = changedData.checked.getOrElse(false))
+                  .onChange {
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      val newVal: RandomTableId = changedData.value match {
+                        case s: String => RandomTableId(s.toLong)
+                        case d: Double => RandomTableId(d.toLong)
+                        case _ => RandomTableId.empty
+                      }
+                      treasureTableSelect(newVal)
+                  },
+                Checkbox
+                  .toggle(true)
+                  .label("Is Hoard")
+                  .checked(state.encounterInfo.treasure.isHoard)
+                  .onChange(
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      $.modState(s =>
+                        s.copy(encounterInfo =
+                          s.encounterInfo.copy(treasure =
+                            s.encounterInfo.treasure.copy(isHoard = changedData.checked.getOrElse(false))
+                          )
                         )
                       )
-                    )
-                ),
-              Button.disabled(state.treasureTable.isEmpty)("Roll current treasure table"),
-              Button
-                .disabled(state.treasureTheme.isEmpty).onClick(
-                  (
-                    _,
-                    _
-                  ) => rollTreasure(state)
-                )("Roll recommended treasure")
+                  ),
+                Button
+                  .disabled(state.treasureTable.isEmpty).onClick(
+                    (
+                      _,
+                      _
+                    ) =>
+                      state.treasureTable.fold(Callback.empty) { treasureTable =>
+                        DiceRoller
+                          .roll(treasureTable.diceRoll).map { roll =>
+                            val treasure = treasureTable.findEntry(roll.head.value)
+
+                            $.modState(s =>
+                              s.copy(encounterInfo =
+                                s.encounterInfo.copy(treasure =
+                                  s.encounterInfo.treasure
+                                    .copy(items = s.encounterInfo.treasure.items ++ treasure.map(_.name))
+                                )
+                              )
+                            )
+
+                          }.completeWith(_.get)
+                      }
+                  )("Roll current treasure table"),
+                Button
+                  .disabled(state.treasureTheme.isEmpty).onClick(
+                    (
+                      _,
+                      _
+                    ) => rollTreasure(state)
+                  )("Roll recommended treasure")
+              )
             ),
             Grid.Row(
               Grid.Column
                 .width(SemanticWIDTHS.`8`)(
-                  Table(
-                    Table.Header(Table.Row(Table.HeaderCell.colSpan(3)("Available Treasure"))),
-                    Table.Body(
-                      state.treasureTable.toList.flatMap(_.entries).map { entry =>
-                        Table.Row
-                          .withKey(s"${entry.rangeLow}-${entry.rangeHigh}")(
-                            Table.Cell(
-                              if (entry.rangeLow == entry.rangeHigh)
-                                s"${entry.rangeLow}"
-                              else
-                                s"${entry.rangeLow}-${entry.rangeHigh}"
-                            ),
-                            Table.Cell(entry.name),
+                  Table
+                    .inverted(DND5eUI.tableInverted)
+                    .color(DND5eUI.tableColor)(
+                      Table.Header(Table.Row(Table.HeaderCell.colSpan(3)("Available Treasure"))),
+                      Table.Body(
+                        state.treasureTable.toList.flatMap(_.entries).map { entry =>
+                          Table.Row
+                            .withKey(s"${entry.rangeLow}-${entry.rangeHigh}")(
+                              Table.Cell(
+                                if (entry.rangeLow == entry.rangeHigh)
+                                  s"${entry.rangeLow}"
+                                else
+                                  s"${entry.rangeLow}-${entry.rangeHigh}"
+                              ),
+                              Table.Cell(entry.name),
+                              Table.Cell(
+                                Button
+                                  .icon(true)
+                                  .color(SemanticCOLORS.violet)
+                                  .onClick(
+                                    (
+                                      _,
+                                      _
+                                    ) =>
+                                      $.modState(state =>
+                                        state.copy(encounterInfo =
+                                          state.encounterInfo
+                                            .copy(treasure =
+                                              state.encounterInfo.treasure
+                                                .copy(items = state.encounterInfo.treasure.items :+ entry.name)
+                                            )
+                                        )
+                                      )
+                                  )(Icon.name(SemanticICONS.`plus`))
+                              )
+                            )
+                        }*
+                      )
+                    ).when(state.treasureTable.nonEmpty)
+                ),
+              Grid.Column
+                .width(SemanticWIDTHS.`8`)(
+                  Table
+                    .inverted(DND5eUI.tableInverted)
+                    .color(DND5eUI.tableColor)(
+                      Table.Header(
+                        Table.Row(
+                          Table.HeaderCell.colSpan(5)("Selected Treasure")
+                        ),
+                        Table.Row(
+                          Table.HeaderCell("CP"),
+                          Table.HeaderCell("SP"),
+                          Table.HeaderCell("EP"),
+                          Table.HeaderCell("GP"),
+                          Table.HeaderCell("PP")
+                        )
+                      ),
+                      Table.Body(
+                        Table.Row(
+                          Table.Cell(
+                            Input
+                              .`type`("number")
+                              .min(0)
+                              .size(SemanticSIZES.mini)
+                              .onChange(
+                                (
+                                  _,
+                                  changedData
+                                ) =>
+                                  $.modState(s =>
+                                    s.copy(encounterInfo =
+                                      s.encounterInfo.copy(
+                                        treasure = s.encounterInfo.treasure.copy(cp = changedData.value.asLong(0))
+                                      )
+                                    )
+                                  )
+                              )
+                              .value(state.encounterInfo.treasure.cp.toDouble)
+                          ),
+                          Table.Cell(
+                            Input
+                              .`type`("number")
+                              .min(0)
+                              .size(SemanticSIZES.mini)
+                              .onChange(
+                                (
+                                  _,
+                                  changedData
+                                ) =>
+                                  $.modState(s =>
+                                    s.copy(encounterInfo =
+                                      s.encounterInfo.copy(
+                                        treasure = s.encounterInfo.treasure.copy(sp = changedData.value.asLong(0))
+                                      )
+                                    )
+                                  )
+                              )
+                              .value(state.encounterInfo.treasure.sp.toDouble)
+                          ),
+                          Table.Cell(
+                            Input
+                              .`type`("number")
+                              .min(0)
+                              .size(SemanticSIZES.mini)
+                              .onChange(
+                                (
+                                  _,
+                                  changedData
+                                ) =>
+                                  $.modState(s =>
+                                    s.copy(encounterInfo =
+                                      s.encounterInfo.copy(
+                                        treasure = s.encounterInfo.treasure.copy(ep = changedData.value.asLong(0))
+                                      )
+                                    )
+                                  )
+                              )
+                              .value(state.encounterInfo.treasure.ep.toDouble)
+                          ),
+                          Table.Cell(
+                            Input
+                              .`type`("number")
+                              .min(0)
+                              .size(SemanticSIZES.mini)
+                              .onChange(
+                                (
+                                  _,
+                                  changedData
+                                ) =>
+                                  $.modState(s =>
+                                    s.copy(encounterInfo =
+                                      s.encounterInfo.copy(
+                                        treasure = s.encounterInfo.treasure.copy(gp = changedData.value.asLong(0))
+                                      )
+                                    )
+                                  )
+                              )
+                              .value(state.encounterInfo.treasure.gp.toDouble)
+                          ),
+                          Table.Cell(
+                            Input
+                              .`type`("number")
+                              .min(0)
+                              .size(SemanticSIZES.mini)
+                              .onChange(
+                                (
+                                  _,
+                                  changedData
+                                ) =>
+                                  $.modState(s =>
+                                    s.copy(encounterInfo =
+                                      s.encounterInfo.copy(
+                                        treasure = s.encounterInfo.treasure.copy(pp = changedData.value.asLong(0))
+                                      )
+                                    )
+                                  )
+                              )
+                              .value(state.encounterInfo.treasure.pp.toDouble)
+                          )
+                        )
+                      )
+                    ),
+                  Table
+                    .inverted(DND5eUI.tableInverted)
+                    .color(DND5eUI.tableColor)(
+                      Table.Body(
+                        state.encounterInfo.treasure.items.map { t =>
+                          Table.Row.withKey(t)(
+                            Table.Cell(t),
                             Table.Cell(
                               Button
                                 .icon(true)
@@ -1070,189 +1256,193 @@ object EncounterWizard {
                                     _,
                                     _
                                   ) =>
-                                    $.modState(state =>
-                                      state.copy(encounterInfo =
-                                        state.encounterInfo
-                                          .copy(treasure =
-                                            state.encounterInfo.treasure
-                                              .copy(items = state.encounterInfo.treasure.items :+ entry.name)
+                                    $.modState(s =>
+                                      s.copy(encounterInfo =
+                                        s.encounterInfo.copy(treasure =
+                                          s.encounterInfo.treasure.copy(items =
+                                            s.encounterInfo.treasure.items
+                                              .patch(s.encounterInfo.treasure.items.indexWhere(_ == t), Nil, 1)
                                           )
-                                      )
-                                    )
-                                )(Icon.name(SemanticICONS.`plus`))
-                            )
-                          )
-                      }*
-                    )
-                  ).when(state.treasureTable.nonEmpty)
-                ),
-              Grid.Column
-                .width(SemanticWIDTHS.`8`)(
-                  Table(
-                    Table.Header(
-                      Table.Row(
-                        Table.HeaderCell.colSpan(5)("Selected Treasure")
-                      ),
-                      Table.Row(
-                        Table.HeaderCell("CP"),
-                        Table.HeaderCell("SP"),
-                        Table.HeaderCell("EP"),
-                        Table.HeaderCell("GP"),
-                        Table.HeaderCell("PP")
-                      )
-                    ),
-                    Table.Body(
-                      Table.Row(
-                        Table.Cell(
-                          Input
-                            .`type`("number")
-                            .min(0)
-                            .size(SemanticSIZES.mini)
-                            .onChange(
-                              (
-                                _,
-                                changedData
-                              ) =>
-                                $.modState(s =>
-                                  s.copy(encounterInfo =
-                                    s.encounterInfo.copy(
-                                      treasure = s.encounterInfo.treasure.copy(cp = changedData.value.asLong(0))
-                                    )
-                                  )
-                                )
-                            )
-                            .value(state.encounterInfo.treasure.cp.toDouble)
-                        ),
-                        Table.Cell(
-                          Input
-                            .`type`("number")
-                            .min(0)
-                            .size(SemanticSIZES.mini)
-                            .onChange(
-                              (
-                                _,
-                                changedData
-                              ) =>
-                                $.modState(s =>
-                                  s.copy(encounterInfo =
-                                    s.encounterInfo.copy(
-                                      treasure = s.encounterInfo.treasure.copy(sp = changedData.value.asLong(0))
-                                    )
-                                  )
-                                )
-                            )
-                            .value(state.encounterInfo.treasure.sp.toDouble)
-                        ),
-                        Table.Cell(
-                          Input
-                            .`type`("number")
-                            .min(0)
-                            .size(SemanticSIZES.mini)
-                            .onChange(
-                              (
-                                _,
-                                changedData
-                              ) =>
-                                $.modState(s =>
-                                  s.copy(encounterInfo =
-                                    s.encounterInfo.copy(
-                                      treasure = s.encounterInfo.treasure.copy(ep = changedData.value.asLong(0))
-                                    )
-                                  )
-                                )
-                            )
-                            .value(state.encounterInfo.treasure.ep.toDouble)
-                        ),
-                        Table.Cell(
-                          Input
-                            .`type`("number")
-                            .min(0)
-                            .size(SemanticSIZES.mini)
-                            .onChange(
-                              (
-                                _,
-                                changedData
-                              ) =>
-                                $.modState(s =>
-                                  s.copy(encounterInfo =
-                                    s.encounterInfo.copy(
-                                      treasure = s.encounterInfo.treasure.copy(gp = changedData.value.asLong(0))
-                                    )
-                                  )
-                                )
-                            )
-                            .value(state.encounterInfo.treasure.gp.toDouble)
-                        ),
-                        Table.Cell(
-                          Input
-                            .`type`("number")
-                            .min(0)
-                            .size(SemanticSIZES.mini)
-                            .onChange(
-                              (
-                                _,
-                                changedData
-                              ) =>
-                                $.modState(s =>
-                                  s.copy(encounterInfo =
-                                    s.encounterInfo.copy(
-                                      treasure = s.encounterInfo.treasure.copy(pp = changedData.value.asLong(0))
-                                    )
-                                  )
-                                )
-                            )
-                            .value(state.encounterInfo.treasure.pp.toDouble)
-                        )
-                      )
-                    )
-                  ),
-                  Table(
-                    Table.Body(
-                      state.encounterInfo.treasure.items.map { t =>
-                        Table.Row.withKey(t)(
-                          Table.Cell(t),
-                          Table.Cell(
-                            Button
-                              .icon(true)
-                              .color(SemanticCOLORS.violet)
-                              .onClick(
-                                (
-                                  _,
-                                  _
-                                ) =>
-                                  $.modState(s =>
-                                    s.copy(encounterInfo =
-                                      s.encounterInfo.copy(treasure =
-                                        s.encounterInfo.treasure.copy(items =
-                                          s.encounterInfo.treasure.items
-                                            .patch(s.encounterInfo.treasure.items.indexWhere(_ == t), Nil, 1)
                                         )
                                       )
                                     )
-                                  )
-                              )(Icon.name(SemanticICONS.`minus`))
+                                )(Icon.name(SemanticICONS.`minus`))
+                            )
                           )
-                        )
-                      }*
+                        }*
+                      )
                     )
-                  )
                 )
             )
           )
       )
     }
 
-    private def ConfirmWizard(
-      state: State
-    ): VdomNode =
-      <.div(
-        "All the details",
-        "Confirm Button",
-        "Cancel Button",
-        "Run Encounter Button"
-      )
+    private def readyToSave(state: State): Boolean = {
+        state.encounterHeader.name.nonEmpty &&
+        state.encounterInfo.combatants.nonEmpty
+    }
 
-    def render(state: State): VdomNode = {
+    private def ConfirmWizard(
+      props: Props,
+      state: State
+    ): VdomNode = {
+      val info = state.encounterInfo
+      val header = state.encounterHeader
+
+      <.div(
+        <.div(
+          Button
+            .primary(true)
+            .disabled(!readyToSave(state))
+            .onClick {
+              (
+                _,
+                _
+              ) =>
+                val encounter = Encounter(
+                  header = header,
+                  jsonInfo = info.toJsonAST.getOrElse(Json.Null)
+                )
+                DND5eGraphQLRepository.live
+                  .upsert(encounter.header, encounter.jsonInfo)
+                  .map(id => props.onSaved(encounter.copy(header = encounter.header.copy(id = id))))
+                  .completeWith(_.get)
+            }("Save and Close"),
+          Button
+            .secondary(true).onClick(
+              (
+                _,
+                _
+              ) =>
+                Confirm.confirm("Are you sure you want to cancel and undo all that work?", onConfirm = props.onCancel)
+            )("Cancel")
+        ),
+        <.div(
+          ^.className := "ui segment",
+          ^.style := js.Dynamic.literal(
+            "maxHeight" -> "600px",
+            "overflowY" -> "auto",
+            "padding"   -> "20px"
+          ),
+          Segment(
+            Header.as("h2")(s"Encounter: ${header.name}"),
+            Divider(),
+            Segment(
+              <.p(<.b("Time of Day: "), info.timeOfDay.toString.capitalize),
+              <.p(<.b("Biome: "), info.biome.toString.capitalize),
+              <.p(<.b("Location Notes: "), info.locationNotes),
+              <.p(<.b("Initial Description: "), info.initialDescription),
+              <.p(<.b("Difficulty: "), info.desiredDifficulty.toString.capitalize),
+              <.div(
+                <.b("Generated Description: "),
+                Button
+                  .size(small)
+                  .compact(true)
+                  .primary(true)
+                  .onClick(
+                    (
+                      _,
+                      _
+                    ) =>
+                      $.modState(
+                        s => s.copy(generating = true),
+                        DND5eGraphQLRepository.live
+                          .generateEncounterDescription(
+                            Encounter(header = header, jsonInfo = info.toJsonAST.getOrElse(Json.Null))
+                          )
+                          .map(str =>
+                            $.modState(s =>
+                              s.copy(
+                                encounterInfo = s.encounterInfo.copy(generatedDescription = str),
+                                generating = false
+                              )
+                            )
+                          )
+                          .completeWith(_.get)
+                      )
+                  )("Generate"),
+                <.div(
+                  ^.dangerouslySetInnerHtml := info.generatedDescription
+                ).when(!state.generating),
+                Loader
+                  .inline(true)
+                  .active(state.generating)
+                  .indeterminate(true)("Generating Description")
+              )
+            ),
+            Header.as("h3")("Combatants"),
+            Segment(
+              Table.celled(true)(
+                TableHeader()(
+                  TableRow()(
+                    TableHeaderCell("Name"),
+                    TableHeaderCell("Type"),
+                    TableHeaderCell("HP")
+                  )
+                ),
+                TableBody()(
+                  info.combatants.map {
+                    case c: MonsterCombatant =>
+                      TableRow(
+                        TableCell(c.name),
+                        TableCell(c.monsterHeader.name),
+                        TableCell(s"${c.health.maxHitPoints}")
+                      )
+                    case c: NonPlayerCharacterCombatant =>
+                      val npc = state.npcs.find(_.id == c.nonPlayerCharacterId).get
+                      TableRow(
+                        TableCell(c.name),
+                        TableCell(
+                          npc.info.classes.headOption.fold(<.div("Click to add Classes"))(_ =>
+                            npc.info.classes.zipWithIndex.map {
+                              (
+                                cl,
+                                i
+                              ) =>
+                                <.div(
+                                  ^.key := s"characterClass_$i",
+                                  s"${cl.characterClass.name} ${cl.subclass.fold("")(sc => s"(${sc.name})")} ${cl.level}"
+                                )
+                            }.toVdomArray
+                          )
+                        ),
+                        TableCell(s"${npc.info.health.maxHitPoints}")
+                      )
+                    case _ => EmptyVdom
+                  }*
+                )
+              )
+            ),
+            Header.as("h3")("Treasure"),
+            Segment(
+              <.p(
+                <.b("Coins: "),
+                s"${info.treasure.cp} cp".when(info.treasure.cp > 0),
+                s"${info.treasure.sp} sp".when(info.treasure.sp > 0),
+                s"${info.treasure.ep} ep".when(info.treasure.ep > 0),
+                s"${info.treasure.gp} gp".when(info.treasure.gp > 0),
+                s"${info.treasure.pp} pp".when(info.treasure.pp > 0)
+              ),
+              if (info.treasure.items.nonEmpty)
+                <.div(
+                  <.b("Items: "),
+                  <.ul(
+                    info.treasure.items.map(item => <.li(item))*
+                  )
+                )
+              else EmptyVdom
+            ),
+            Divider()
+          )
+        )
+      )
+    }
+
+    def render(
+      props: Props,
+      state: State
+    ): VdomNode = {
       def renderStep(step: WizardStepType): VdomNode = {
         step match {
           case WizardStepType.setTheScene      => SetTheScene(state)
@@ -1260,7 +1450,7 @@ object EncounterWizard {
           case WizardStepType.selectNPCs       => SelectNPCs(state)
           case WizardStepType.selectCreatures  => SelectCreatures(state)
           case WizardStepType.lootGenerator    => LootGenerator(state)
-          case WizardStepType.confirmWizard    => ConfirmWizard(state)
+          case WizardStepType.confirmWizard    => ConfirmWizard(props, state)
         }
       }
 
@@ -1292,13 +1482,16 @@ object EncounterWizard {
                 }*
               ),
             <.div(
-              ^.display := "inline-block",
+              ^.display       := "inline-block",
+              ^.padding       := 5.px,
+              ^.verticalAlign := "top",
+              ^.fontSize      := "9pt",
               <.div(s"XP Budget: ${state.encounterInfo.xpBudget(state.pcs).xp(state.encounterInfo.desiredDifficulty)}"),
               <.div(s"XP Used: ${state.encounterInfo.enemyXP(state.npcs)}"),
               <.div(s"Difficulty: ${state.encounterInfo.calculateDifficulty(state.pcs, state.npcs)}")
             ),
-            WizardStepType.values.find(_ == state.currentStep).fold(EmptyVdom)(renderStep),
-            Button("Cancel")
+            WizardStepType.values
+              .find(_ == state.currentStep).fold(EmptyVdom)(s => <.div(^.marginLeft := 8.px, renderStep(s)))
           )
         }
       }
@@ -1309,11 +1502,18 @@ object EncounterWizard {
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
     .builder[Props]("EncounterWizard")
-    .initialState(State())
+    .initialStateFromProps { props =>
+      val s = State()
+      s.copy(encounterHeader = s.encounterHeader.copy(campaignId = props.campaign.id))
+    }
     .renderBackend[Backend]
-    .componentDidMount($ => $.backend.loadState($.props.campaign.id))
+    .componentDidMount($ => $.backend.loadState())
     .build
 
-  def apply(campaign: Campaign): Unmounted[Props, State, Backend] = component(Props(campaign))
+  def apply(
+    campaign: Campaign,
+    onCancel: Callback = Callback.empty,
+    onSaved:  Encounter => Callback = _ => Callback.empty
+  ): Unmounted[Props, State, Backend] = component(Props(campaign, onCancel, onSaved))
 
 }

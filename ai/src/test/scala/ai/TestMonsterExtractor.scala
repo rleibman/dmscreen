@@ -10,14 +10,14 @@ import scala.jdk.CollectionConverters.*
 
 object TestMonsterExtractor extends ZIOApp {
 
-  override type Environment = LangChainEnvironment
+  override type Environment = StreamingLangChainEnvironment
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
-  override def bootstrap: ULayer[LangChainEnvironment] =
-    ZLayer.make[LangChainEnvironment](
+  override def bootstrap: ULayer[StreamingLangChainEnvironment] =
+    ZLayer.make[StreamingLangChainEnvironment](
       LangChainServiceBuilder.ollamaStreamingChatModelLayer,
       LangChainServiceBuilder.messageWindowChatMemoryLayer(),
-      LangChainServiceBuilder.assistantLayer(),
+      LangChainServiceBuilder.streamingAssistantLayer(),
       LangChainConfiguration.live
     )
 

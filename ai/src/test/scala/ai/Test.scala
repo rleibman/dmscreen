@@ -4,14 +4,14 @@ import zio.{Console, EnvironmentTag, Scope, ULayer, ZIO, ZIOApp, ZIOAppArgs, ZLa
 
 object Test extends ZIOApp {
 
-  override type Environment = LangChainEnvironment
+  override type Environment = StreamingLangChainEnvironment
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
-  override def bootstrap: ULayer[LangChainEnvironment] =
-    ZLayer.make[LangChainEnvironment](
+  override def bootstrap: ULayer[StreamingLangChainEnvironment] =
+    ZLayer.make[StreamingLangChainEnvironment](
       LangChainServiceBuilder.ollamaStreamingChatModelLayer,
       LangChainServiceBuilder.messageWindowChatMemoryLayer(),
-      LangChainServiceBuilder.assistantLayer(),
+      LangChainServiceBuilder.streamingAssistantLayer(),
       LangChainConfiguration.live
     )
 
@@ -21,7 +21,7 @@ object Test extends ZIOApp {
       _ <- ZIO.iterate(true)(identity) { _ =>
         for {
           question <- Console.readLine
-          _ <- chat(question)
+          _ <- streamedChat(question)
             .takeWhile(_.nonEmpty)
             .foreach(token => Console.print(token))
             .when(question.nonEmpty)

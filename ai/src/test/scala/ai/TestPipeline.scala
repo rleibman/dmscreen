@@ -12,7 +12,7 @@ import scala.jdk.CollectionConverters.*
 
 object TestPipeline extends ZIOApp {
 
-  override type Environment = LangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper &
+  override type Environment = StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper &
     TestDMScreenServerEnvironment
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
@@ -20,7 +20,7 @@ object TestPipeline extends ZIOApp {
     ZLayer.make[Environment](
       LangChainServiceBuilder.ollamaStreamingChatModelLayer,
       LangChainServiceBuilder.messageWindowChatMemoryLayer(),
-      LangChainServiceBuilder.assistantLayerWithStore,
+      LangChainServiceBuilder.streamingAssistantLayerWithStore,
       QdrantContainer.live.orDie,
       EmbeddingStoreWrapper.qdrantStoreLayer("monsters").orDie,
       LangChainConfiguration.live,
@@ -83,7 +83,7 @@ object TestPipeline extends ZIOApp {
       _ <- ZIO.iterate(true)(identity) { _ =>
         for {
           question <- Console.readLine
-          _ <- chat(question)
+          _ <- streamedChat(question)
             .takeWhile(_.nonEmpty)
             .foreach(token => Console.print(token))
             .when(question.nonEmpty)

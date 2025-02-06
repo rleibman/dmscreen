@@ -21,6 +21,7 @@
 
 package dmscreen.dnd5e
 
+import ai.dnd5e.DND5eAIServer
 import caliban.*
 import caliban.CalibanError.ExecutionError
 import caliban.interop.zio.*
@@ -31,6 +32,7 @@ import caliban.schema.ArgBuilder.auto.*
 import caliban.schema.Schema.auto.*
 import caliban.wrappers.Wrappers.printErrors
 import dmscreen.*
+import dmscreen.db.DMScreenZIORepository
 import dmscreen.db.dnd5e.DND5eZIORepository
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
 import just.semver.SemVer
@@ -213,7 +215,12 @@ object DND5eAPI {
     backgrounds:         ZIO[DND5eZIORepository, DMScreenError, Seq[Background]],
     subclasses:          CharacterClassId => ZIO[DND5eZIORepository, DMScreenError, Seq[SubClass]],
     randomTables:        RandomTableSearch => ZIO[DND5eZIORepository, DMScreenError, Seq[RandomTable]],
-    randomTable:         RandomTableId => ZIO[DND5eZIORepository, DMScreenError, Option[RandomTable]]
+    randomTable:         RandomTableId => ZIO[DND5eZIORepository, DMScreenError, Option[RandomTable]],
+    generateEncounterDescription: Encounter => ZIO[
+      DND5eZIORepository & DMScreenZIORepository & DND5eAIServer,
+      DMScreenError,
+      String
+    ]
   )
   case class Mutations(
     // All these mutations are temporary, eventually, only the headers will be saved, and the infos will be saved in the events
@@ -258,7 +265,9 @@ object DND5eAPI {
           backgrounds = ZIO.serviceWithZIO[DND5eZIORepository](_.backgrounds),
           subclasses = characterClassId => ZIO.serviceWithZIO[DND5eZIORepository](_.subClasses(characterClassId)),
           randomTables = tableType => ZIO.serviceWithZIO[DND5eZIORepository](_.randomTables(tableType.randomTableType)),
-          randomTable = id => ZIO.serviceWithZIO[DND5eZIORepository](_.randomTable(id))
+          randomTable = id => ZIO.serviceWithZIO[DND5eZIORepository](_.randomTable(id)),
+          generateEncounterDescription =
+            encounter => ZIO.serviceWithZIO[DND5eAIServer](_.generateEncounterDescription(encounter))
         ),
         Mutations(
           upsertScene = scene => ZIO.serviceWithZIO[DND5eZIORepository](_.upsert(scene.header, scene.jsonInfo)),

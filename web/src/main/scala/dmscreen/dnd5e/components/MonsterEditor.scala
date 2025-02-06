@@ -342,57 +342,59 @@ object MonsterEditor {
                     className = "field",
                     view = VdomArray(
                       <.label("Abilities"),
-                      Table(
-                        Table.Header(
-                          Table.Row(
-                            Table.HeaderCell(^.width := "16.667%", "Str"),
-                            Table.HeaderCell(^.width := "16.666%", "Dex"),
-                            Table.HeaderCell(^.width := "16.666%", "Con"),
-                            Table.HeaderCell(^.width := "16.666%", "Int"),
-                            Table.HeaderCell(^.width := "16.666%", "Wis"),
-                            Table.HeaderCell(^.width := "16.666%", "Cha")
-                          )
-                        ),
-                        Table.Body(
-                          Table.Row(
-                            Table.Cell(s"${info.abilities.strength.overridenValue}"),
-                            Table.Cell(s"${info.abilities.dexterity.overridenValue}"),
-                            Table.Cell(s"${info.abilities.constitution.overridenValue}"),
-                            Table.Cell(s"${info.abilities.intelligence.overridenValue}"),
-                            Table.Cell(s"${info.abilities.wisdom.overridenValue}"),
-                            Table.Cell(s"${info.abilities.charisma.overridenValue}")
+                      Table
+                        .inverted(DND5eUI.tableInverted)
+                        .color(DND5eUI.tableColor)(
+                          Table.Header(
+                            Table.Row(
+                              Table.HeaderCell(^.width := "16.667%", "Str"),
+                              Table.HeaderCell(^.width := "16.666%", "Dex"),
+                              Table.HeaderCell(^.width := "16.666%", "Con"),
+                              Table.HeaderCell(^.width := "16.666%", "Int"),
+                              Table.HeaderCell(^.width := "16.666%", "Wis"),
+                              Table.HeaderCell(^.width := "16.666%", "Cha")
+                            )
                           ),
-                          Table.Row(
-                            Table.Cell(s"(${info.abilities.strength.modifierString})"),
-                            Table.Cell(s"(${info.abilities.dexterity.modifierString})"),
-                            Table.Cell(s"(${info.abilities.constitution.modifierString})"),
-                            Table.Cell(s"(${info.abilities.intelligence.modifierString})"),
-                            Table.Cell(s"(${info.abilities.wisdom.modifierString})"),
-                            Table.Cell(s"(${info.abilities.charisma.modifierString})")
-                          )
-                        ),
-                        Table.Header(
-                          Table.Row(Table.HeaderCell(^.colSpan := 6, <.div("Saving Throws"))),
-                          Table.Row(
-                            Table.HeaderCell("Str"),
-                            Table.HeaderCell("Dex"),
-                            Table.HeaderCell("Con"),
-                            Table.HeaderCell("Int"),
-                            Table.HeaderCell("Wis"),
-                            Table.HeaderCell("Cha")
-                          )
-                        ),
-                        Table.Body(
-                          Table.Row(
-                            Table.Cell(s"${info.abilities.strength.savingThrowString(info.proficiencyBonus)}"),
-                            Table.Cell(s"${info.abilities.dexterity.savingThrowString(info.proficiencyBonus)}"),
-                            Table.Cell(s"${info.abilities.constitution.savingThrowString(info.proficiencyBonus)}"),
-                            Table.Cell(s"${info.abilities.intelligence.savingThrowString(info.proficiencyBonus)}"),
-                            Table.Cell(s"${info.abilities.wisdom.savingThrowString(info.proficiencyBonus)}"),
-                            Table.Cell(s"${info.abilities.charisma.savingThrowString(info.proficiencyBonus)}")
+                          Table.Body(
+                            Table.Row(
+                              Table.Cell(s"${info.abilities.strength.overridenValue}"),
+                              Table.Cell(s"${info.abilities.dexterity.overridenValue}"),
+                              Table.Cell(s"${info.abilities.constitution.overridenValue}"),
+                              Table.Cell(s"${info.abilities.intelligence.overridenValue}"),
+                              Table.Cell(s"${info.abilities.wisdom.overridenValue}"),
+                              Table.Cell(s"${info.abilities.charisma.overridenValue}")
+                            ),
+                            Table.Row(
+                              Table.Cell(s"(${info.abilities.strength.modifierString})"),
+                              Table.Cell(s"(${info.abilities.dexterity.modifierString})"),
+                              Table.Cell(s"(${info.abilities.constitution.modifierString})"),
+                              Table.Cell(s"(${info.abilities.intelligence.modifierString})"),
+                              Table.Cell(s"(${info.abilities.wisdom.modifierString})"),
+                              Table.Cell(s"(${info.abilities.charisma.modifierString})")
+                            )
+                          ),
+                          Table.Header(
+                            Table.Row(Table.HeaderCell(^.colSpan := 6, <.div("Saving Throws"))),
+                            Table.Row(
+                              Table.HeaderCell("Str"),
+                              Table.HeaderCell("Dex"),
+                              Table.HeaderCell("Con"),
+                              Table.HeaderCell("Int"),
+                              Table.HeaderCell("Wis"),
+                              Table.HeaderCell("Cha")
+                            )
+                          ),
+                          Table.Body(
+                            Table.Row(
+                              Table.Cell(s"${info.abilities.strength.savingThrowString(info.proficiencyBonus)}"),
+                              Table.Cell(s"${info.abilities.dexterity.savingThrowString(info.proficiencyBonus)}"),
+                              Table.Cell(s"${info.abilities.constitution.savingThrowString(info.proficiencyBonus)}"),
+                              Table.Cell(s"${info.abilities.intelligence.savingThrowString(info.proficiencyBonus)}"),
+                              Table.Cell(s"${info.abilities.wisdom.savingThrowString(info.proficiencyBonus)}"),
+                              Table.Cell(s"${info.abilities.charisma.savingThrowString(info.proficiencyBonus)}")
+                            )
                           )
                         )
-                      )
                     ),
                     edit = AbilitiesEditor(
                       info.abilities,
@@ -407,20 +409,22 @@ object MonsterEditor {
                     view = VdomArray(
                       <.label("Speeds"),
                       info.speeds.headOption.fold(<.div("Click to add")) { _ =>
-                        Table(
-                          Table.Header(
-                            Table.Row(
-                              info.speeds.toSeq
-                                .map(sp => Table.HeaderCell(^.key := sp.speedType.toString, sp.speedType.toString))*
-                            )
-                          ),
-                          Table.Body(
-                            Table.Row(
-                              info.speeds.toSeq
-                                .map(sp => Table.Cell(^.key := sp.speedType.toString, sp.value.toString))*
+                        Table
+                          .inverted(DND5eUI.tableInverted)
+                          .color(DND5eUI.tableColor)(
+                            Table.Header(
+                              Table.Row(
+                                info.speeds.toSeq
+                                  .map(sp => Table.HeaderCell(^.key := sp.speedType.toString, sp.speedType.toString))*
+                              )
+                            ),
+                            Table.Body(
+                              Table.Row(
+                                info.speeds.toSeq
+                                  .map(sp => Table.Cell(^.key := sp.speedType.toString, sp.value.toString))*
+                              )
                             )
                           )
-                        )
                       }
                     ),
                     edit = SpeedsEditor(

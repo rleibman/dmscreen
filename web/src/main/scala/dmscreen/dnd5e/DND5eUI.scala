@@ -25,6 +25,7 @@ import dmscreen.*
 import dmscreen.dnd5e.pages.*
 import japgolly.scalajs.react.vdom.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticCOLORS
 
 enum DND5eUIPages {
 
@@ -60,5 +61,10 @@ case object DND5eUI extends GameUI {
       "css/sui-dnd5e.css",
       "css/statBlock.css"
     )
+
+  val tableColor = SemanticCOLORS.grey
+  val tableInverted = true
+  val menuColor = SemanticCOLORS.brown
+  val menuInverted = true
 
 }

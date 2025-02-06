@@ -153,6 +153,40 @@ object NPCEditComponent {
                       )
                     ),
                     <.tr(
+                      <.th("Relation to Players"),
+                      <.td(
+                        Dropdown
+                          .placeholder("Choose")
+                          .clearable(true)
+                          .compact(true)
+                          .allowAdditions(true)
+                          .search(true)
+                          .options(
+                            RelationToPlayers.values
+                              .map(relation =>
+                                DropdownItemProps()
+                                  .setValue(relation.toString)
+                                  .setText(relation.toString.capitalize)
+                              ).toJSArray
+                          )
+                          .onChange(
+                            (
+                              _,
+                              changedData
+                            ) =>
+                              modNPCInfo(
+                                info.copy(relationToPlayers = changedData.value match {
+                                  case s: String if s.isEmpty => info.relationToPlayers
+                                  case s: String =>
+                                    RelationToPlayers.values.find(_.toString == s).getOrElse(RelationToPlayers.unknown)
+                                  case _ => throw RuntimeException("Unexpected value")
+                                })
+                              )
+                          )
+                          .value(info.relationToPlayers.toString)
+                      )
+                    ),
+                    <.tr(
                       <.th("Race"),
                       <.td(
                         Dropdown
@@ -531,7 +565,6 @@ object NPCEditComponent {
               ),
               <.div(
                 ^.className := "notesSection",
-                ^.height    := 700.px,
                 <.div(^.className := "sectionTitle", "Notes"),
                 EditableComponent(
                   view = <.div(

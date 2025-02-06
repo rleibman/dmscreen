@@ -53,67 +53,69 @@ object LanguageEditor {
       props: Props,
       state: State
     ): VdomNode = {
-      Table(
-        Table.Body(state.languages.toList.zipWithIndex.map {
-          (
-            lang,
-            i
-          ) =>
-            Table.Row.withKey(lang._1.toString)(
-              Table.Cell(
-                Input
-                  .value(lang._2.name)
-                  .onChange(
-                    (
-                      _,
-                      data
-                    ) => {
-                      val newVal = data.value match {
-                        case s: String => s
-                        case _ => lang._2.name
+      Table
+        .inverted(DND5eUI.tableInverted)
+        .color(DND5eUI.tableColor)(
+          Table.Body(state.languages.toList.zipWithIndex.map {
+            (
+              lang,
+              i
+            ) =>
+              Table.Row.withKey(lang._1.toString)(
+                Table.Cell(
+                  Input
+                    .value(lang._2.name)
+                    .onChange(
+                      (
+                        _,
+                        data
+                      ) => {
+                        val newVal = data.value match {
+                          case s: String => s
+                          case _ => lang._2.name
+                        }
+                        $.modState(
+                          s => s.copy(languages = s.languages + (lang._1 -> Language(newVal))),
+                          $.state.flatMap(s => props.onChange(s.languages.values.filter(_.name.trim.nonEmpty).toSet))
+                        )
                       }
-                      $.modState(
-                        s => s.copy(languages = s.languages + (lang._1 -> Language(newVal))),
-                        $.state.flatMap(s => props.onChange(s.languages.values.filter(_.name.trim.nonEmpty).toSet))
-                      )
-                    }
-                  )
-              ),
-              Table.Cell(
+                    )
+                ),
+                Table.Cell(
+                  Button
+                    .title("Delete this language")
+                    .icon(true).onClick {
+                      (
+                        _,
+                        _
+                      ) =>
+                        $.modState(
+                          s => s.copy(languages = s.languages.filter(_ != lang)),
+                          $.state.flatMap(s => props.onChange(s.languages.values.toSet))
+                        )
+                    }(Icon.name(SemanticICONS.delete))
+                )
+              )
+          }*),
+          Table.Footer(
+            Table.Row(
+              Table.Cell.colSpan(4)(
                 Button
-                  .title("Delete this language")
-                  .icon(true).onClick {
+                  .title("Add a language")
+                  .icon(true).onClick(
                     (
                       _,
                       _
                     ) =>
                       $.modState(
-                        s => s.copy(languages = s.languages.filter(_ != lang)),
-                        $.state.flatMap(s => props.onChange(s.languages.values.toSet))
+                        s => s.copy(languages = s.languages + (UUID.randomUUID().toString.hashCode() -> Language(""))),
+                        $.state.flatMap(s => props.onChange(s.languages.values.filter(_.name.trim.nonEmpty).toSet))
                       )
-                  }(Icon.name(SemanticICONS.delete))
+                  )(Icon.name(SemanticICONS.add))
               )
-            )
-        }*),
-        Table.Footer(
-          Table.Row(
-            Table.Cell.colSpan(4)(
-              Button
-                .title("Add a language")
-                .icon(true).onClick(
-                  (
-                    _,
-                    _
-                  ) =>
-                    $.modState(
-                      s => s.copy(languages = s.languages + (UUID.randomUUID().toString.hashCode() -> Language(""))),
-                      $.state.flatMap(s => props.onChange(s.languages.values.filter(_.name.trim.nonEmpty).toSet))
-                    )
-                )(Icon.name(SemanticICONS.add))
             )
           )
         )
-      )
 
     }
 

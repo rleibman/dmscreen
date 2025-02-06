@@ -73,7 +73,7 @@ object DND5eSchema {
   given MappedEncoding[TreasureTheme, String] = MappedEncoding[TreasureTheme, String](_.toString)
   given MappedEncoding[String, TreasureTheme] =
     MappedEncoding[String, TreasureTheme](s =>
-      TreasureTheme.values.find(_.toString.equalsIgnoreCase(s)).getOrElse(TreasureTheme.empty)
+      TreasureTheme.values.find(_.toString.equalsIgnoreCase(s)).getOrElse(TreasureTheme.other)
     )
   given MappedEncoding[TreasureRarity, String] = MappedEncoding[TreasureRarity, String](_.toString)
   given MappedEncoding[String, TreasureRarity] =
@@ -319,6 +319,18 @@ object QuillRepository {
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
         }
+
+        override def scene(id: SceneId): DMScreenTask[Option[Scene]] =
+          ctx
+            .run(
+              qScenes
+                .filter(v => !v.deleted && v.value.header.id == lift(id))
+                .take(1)
+            )
+            .map(_.map(_.value).headOption)
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
         override def scenes(campaignId: CampaignId): IO[DMScreenError, Seq[Scene]] =
           ctx

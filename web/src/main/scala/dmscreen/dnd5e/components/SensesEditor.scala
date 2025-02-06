@@ -51,265 +51,267 @@ object SensesEditor {
       props: Props,
       state: State
     ): VdomNode = {
-      Table(
-        Table.Header(
-          Table.Row(
-            Table.HeaderCell("Sight"),
-            Table.HeaderCell("Blindsight"),
-            Table.HeaderCell("Darkvision"),
-            Table.HeaderCell("Tremorsense"),
-            Table.HeaderCell("Truesight"),
-            Table.HeaderCell("Scent"),
-            Table.HeaderCell("Other")
-          )
-        ),
-        Table.Body(
-          Table.Row(
-            Table.Cell(
-              Input
-                .`type`("number")
-                .min(0)
-                .step(5)
-                .style(CSSProperties().set("width", 70.px))
-                .maxLength(4)
-                .size(SemanticSIZES.mini)
-                .onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    val newVal = data.value match {
-                      case x: Double => x.toInt
-                      case s: String =>
-                        s.toIntOption.orElse(state.senses.find(_.sense == Sense.sight).map(_.range)).getOrElse(0)
-                      case _ => 0
+      Table
+        .inverted(DND5eUI.tableInverted)
+        .color(DND5eUI.tableColor)(
+          Table.Header(
+            Table.Row(
+              Table.HeaderCell("Sight"),
+              Table.HeaderCell("Blindsight"),
+              Table.HeaderCell("Darkvision"),
+              Table.HeaderCell("Tremorsense"),
+              Table.HeaderCell("Truesight"),
+              Table.HeaderCell("Scent"),
+              Table.HeaderCell("Other")
+            )
+          ),
+          Table.Body(
+            Table.Row(
+              Table.Cell(
+                Input
+                  .`type`("number")
+                  .min(0)
+                  .step(5)
+                  .style(CSSProperties().set("width", 70.px))
+                  .maxLength(4)
+                  .size(SemanticSIZES.mini)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case x: Double => x.toInt
+                        case s: String =>
+                          s.toIntOption.orElse(state.senses.find(_.sense == Sense.sight).map(_.range)).getOrElse(0)
+                        case _ => 0
+                      }
+                      $.modState(
+                        s =>
+                          s.copy(senses =
+                            s.senses.filter(_.sense != Sense.sight) ++
+                              (if (newVal > 0) Seq(SenseRange(Sense.sight, newVal))
+                               else Seq.empty)
+                          ),
+                        $.state.flatMap(s => props.onChange(s.senses))
+                      )
                     }
-                    $.modState(
-                      s =>
-                        s.copy(senses =
-                          s.senses.filter(_.sense != Sense.sight) ++
-                            (if (newVal > 0) Seq(SenseRange(Sense.sight, newVal))
-                             else Seq.empty)
-                        ),
-                      $.state.flatMap(s => props.onChange(s.senses))
-                    )
-                  }
-                )
-                .value(
-                  state.senses.find(_.sense == Sense.sight).map(_.range).getOrElse(0).toString
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number")
-                .min(0)
-                .step(5)
-                .style(CSSProperties().set("width", 70.px))
-                .maxLength(4)
-                .size(SemanticSIZES.mini)
-                .onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    val newVal = data.value match {
-                      case x: Double => x.toInt
-                      case s: String =>
-                        s.toIntOption.orElse(state.senses.find(_.sense == Sense.blindsight).map(_.range)).getOrElse(0)
-                      case _ => 0
+                  )
+                  .value(
+                    state.senses.find(_.sense == Sense.sight).map(_.range).getOrElse(0).toString
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number")
+                  .min(0)
+                  .step(5)
+                  .style(CSSProperties().set("width", 70.px))
+                  .maxLength(4)
+                  .size(SemanticSIZES.mini)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case x: Double => x.toInt
+                        case s: String =>
+                          s.toIntOption.orElse(state.senses.find(_.sense == Sense.blindsight).map(_.range)).getOrElse(0)
+                        case _ => 0
+                      }
+                      $.modState(
+                        s =>
+                          s.copy(senses =
+                            s.senses.filter(_.sense != Sense.blindsight) ++
+                              (if (newVal > 0) Seq(SenseRange(Sense.blindsight, newVal))
+                               else Seq.empty)
+                          ),
+                        $.state.flatMap(s => props.onChange(s.senses))
+                      )
                     }
-                    $.modState(
-                      s =>
-                        s.copy(senses =
-                          s.senses.filter(_.sense != Sense.blindsight) ++
-                            (if (newVal > 0) Seq(SenseRange(Sense.blindsight, newVal))
-                             else Seq.empty)
-                        ),
-                      $.state.flatMap(s => props.onChange(s.senses))
-                    )
-                  }
-                )
-                .value(
-                  state.senses.find(_.sense == Sense.blindsight).map(_.range).getOrElse(0).toString
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number")
-                .min(0)
-                .step(5)
-                .style(CSSProperties().set("width", 70.px))
-                .maxLength(4)
-                .size(SemanticSIZES.mini)
-                .onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    val newVal = data.value match {
-                      case x: Double => x.toInt
-                      case s: String =>
-                        s.toIntOption.orElse(state.senses.find(_.sense == Sense.darkvision).map(_.range)).getOrElse(0)
-                      case _ => 0
+                  )
+                  .value(
+                    state.senses.find(_.sense == Sense.blindsight).map(_.range).getOrElse(0).toString
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number")
+                  .min(0)
+                  .step(5)
+                  .style(CSSProperties().set("width", 70.px))
+                  .maxLength(4)
+                  .size(SemanticSIZES.mini)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case x: Double => x.toInt
+                        case s: String =>
+                          s.toIntOption.orElse(state.senses.find(_.sense == Sense.darkvision).map(_.range)).getOrElse(0)
+                        case _ => 0
+                      }
+                      $.modState(
+                        s =>
+                          s.copy(senses =
+                            s.senses.filter(_.sense != Sense.darkvision) ++
+                              (if (newVal > 0) Seq(SenseRange(Sense.darkvision, newVal))
+                               else Seq.empty)
+                          ),
+                        $.state.flatMap(s => props.onChange(s.senses))
+                      )
                     }
-                    $.modState(
-                      s =>
-                        s.copy(senses =
-                          s.senses.filter(_.sense != Sense.darkvision) ++
-                            (if (newVal > 0) Seq(SenseRange(Sense.darkvision, newVal))
-                             else Seq.empty)
-                        ),
-                      $.state.flatMap(s => props.onChange(s.senses))
-                    )
-                  }
-                )
-                .value(
-                  state.senses.find(_.sense == Sense.darkvision).map(_.range).getOrElse(0).toString
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number")
-                .min(0)
-                .step(5)
-                .style(CSSProperties().set("width", 70.px))
-                .maxLength(4)
-                .size(SemanticSIZES.mini)
-                .onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    val newVal = data.value match {
-                      case x: Double => x.toInt
-                      case s: String =>
-                        s.toIntOption
-                          .orElse(state.senses.find(_.sense == Sense.tremorsense).map(_.range)).getOrElse(0)
-                      case _ => 0
+                  )
+                  .value(
+                    state.senses.find(_.sense == Sense.darkvision).map(_.range).getOrElse(0).toString
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number")
+                  .min(0)
+                  .step(5)
+                  .style(CSSProperties().set("width", 70.px))
+                  .maxLength(4)
+                  .size(SemanticSIZES.mini)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case x: Double => x.toInt
+                        case s: String =>
+                          s.toIntOption
+                            .orElse(state.senses.find(_.sense == Sense.tremorsense).map(_.range)).getOrElse(0)
+                        case _ => 0
+                      }
+                      $.modState(
+                        s =>
+                          s.copy(senses =
+                            s.senses.filter(_.sense != Sense.tremorsense) ++
+                              (if (newVal > 0) Seq(SenseRange(Sense.tremorsense, newVal))
+                               else Seq.empty)
+                          ),
+                        $.state.flatMap(s => props.onChange(s.senses))
+                      )
                     }
-                    $.modState(
-                      s =>
-                        s.copy(senses =
-                          s.senses.filter(_.sense != Sense.tremorsense) ++
-                            (if (newVal > 0) Seq(SenseRange(Sense.tremorsense, newVal))
-                             else Seq.empty)
-                        ),
-                      $.state.flatMap(s => props.onChange(s.senses))
-                    )
-                  }
-                )
-                .value(
-                  state.senses.find(_.sense == Sense.tremorsense).map(_.range).getOrElse(0).toString
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number")
-                .min(0)
-                .step(5)
-                .style(CSSProperties().set("width", 70.px))
-                .maxLength(4)
-                .size(SemanticSIZES.mini)
-                .onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    val newVal = data.value match {
-                      case x: Double => x.toInt
-                      case s: String =>
-                        s.toIntOption
-                          .orElse(state.senses.find(_.sense == Sense.truesight).map(_.range)).getOrElse(0)
-                      case _ => 0
+                  )
+                  .value(
+                    state.senses.find(_.sense == Sense.tremorsense).map(_.range).getOrElse(0).toString
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number")
+                  .min(0)
+                  .step(5)
+                  .style(CSSProperties().set("width", 70.px))
+                  .maxLength(4)
+                  .size(SemanticSIZES.mini)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case x: Double => x.toInt
+                        case s: String =>
+                          s.toIntOption
+                            .orElse(state.senses.find(_.sense == Sense.truesight).map(_.range)).getOrElse(0)
+                        case _ => 0
+                      }
+                      $.modState(
+                        s =>
+                          s.copy(senses =
+                            s.senses.filter(_.sense != Sense.truesight) ++
+                              (if (newVal > 0) Seq(SenseRange(Sense.truesight, newVal))
+                               else Seq.empty)
+                          ),
+                        $.state.flatMap(s => props.onChange(s.senses))
+                      )
                     }
-                    $.modState(
-                      s =>
-                        s.copy(senses =
-                          s.senses.filter(_.sense != Sense.truesight) ++
-                            (if (newVal > 0) Seq(SenseRange(Sense.truesight, newVal))
-                             else Seq.empty)
-                        ),
-                      $.state.flatMap(s => props.onChange(s.senses))
-                    )
-                  }
-                )
-                .value(
-                  state.senses.find(_.sense == Sense.truesight).map(_.range).getOrElse(0).toString
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number")
-                .min(0)
-                .step(5)
-                .style(CSSProperties().set("width", 70.px))
-                .maxLength(4)
-                .size(SemanticSIZES.mini)
-                .onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    val newVal = data.value match {
-                      case x: Double => x.toInt
-                      case s: String =>
-                        s.toIntOption
-                          .orElse(state.senses.find(_.sense == Sense.scent).map(_.range)).getOrElse(0)
-                      case _ => 0
+                  )
+                  .value(
+                    state.senses.find(_.sense == Sense.truesight).map(_.range).getOrElse(0).toString
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number")
+                  .min(0)
+                  .step(5)
+                  .style(CSSProperties().set("width", 70.px))
+                  .maxLength(4)
+                  .size(SemanticSIZES.mini)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case x: Double => x.toInt
+                        case s: String =>
+                          s.toIntOption
+                            .orElse(state.senses.find(_.sense == Sense.scent).map(_.range)).getOrElse(0)
+                        case _ => 0
+                      }
+                      $.modState(
+                        s =>
+                          s.copy(senses =
+                            s.senses.filter(_.sense != Sense.scent) ++
+                              (if (newVal > 0) Seq(SenseRange(Sense.scent, newVal))
+                               else Seq.empty)
+                          ),
+                        $.state.flatMap(s => props.onChange(s.senses))
+                      )
                     }
-                    $.modState(
-                      s =>
-                        s.copy(senses =
-                          s.senses.filter(_.sense != Sense.scent) ++
-                            (if (newVal > 0) Seq(SenseRange(Sense.scent, newVal))
-                             else Seq.empty)
-                        ),
-                      $.state.flatMap(s => props.onChange(s.senses))
-                    )
-                  }
-                )
-                .value(
-                  state.senses.find(_.sense == Sense.scent).map(_.range).getOrElse(0).toString
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number")
-                .min(0)
-                .step(5)
-                .style(CSSProperties().set("width", 70.px))
-                .maxLength(4)
-                .size(SemanticSIZES.mini)
-                .onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    val newVal = data.value match {
-                      case x: Double => x.toInt
-                      case s: String =>
-                        s.toIntOption
-                          .orElse(state.senses.find(_.sense == Sense.other).map(_.range)).getOrElse(0)
-                      case _ => 0
+                  )
+                  .value(
+                    state.senses.find(_.sense == Sense.scent).map(_.range).getOrElse(0).toString
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number")
+                  .min(0)
+                  .step(5)
+                  .style(CSSProperties().set("width", 70.px))
+                  .maxLength(4)
+                  .size(SemanticSIZES.mini)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case x: Double => x.toInt
+                        case s: String =>
+                          s.toIntOption
+                            .orElse(state.senses.find(_.sense == Sense.other).map(_.range)).getOrElse(0)
+                        case _ => 0
+                      }
+                      $.modState(
+                        s =>
+                          s.copy(senses =
+                            s.senses.filter(_.sense != Sense.other) ++
+                              (if (newVal > 0) Seq(SenseRange(Sense.other, newVal))
+                               else Seq.empty)
+                          ),
+                        $.state.flatMap(s => props.onChange(s.senses))
+                      )
                     }
-                    $.modState(
-                      s =>
-                        s.copy(senses =
-                          s.senses.filter(_.sense != Sense.other) ++
-                            (if (newVal > 0) Seq(SenseRange(Sense.other, newVal))
-                             else Seq.empty)
-                        ),
-                      $.state.flatMap(s => props.onChange(s.senses))
-                    )
-                  }
-                )
-                .value(
-                  state.senses.find(_.sense == Sense.other).map(_.range).getOrElse(0).toString
-                )
+                  )
+                  .value(
+                    state.senses.find(_.sense == Sense.other).map(_.range).getOrElse(0).toString
+                  )
+              )
             )
           )
         )
-      )
     }
 
   }

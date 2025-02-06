@@ -204,7 +204,15 @@ case class EncounterInfo(
       }.sum.toLong
 
     val npcXP: Long = fullNPCs
-      .filter(npc => npcs.exists(_.nonPlayerCharacterId == npc.id)).map { npc =>
+      .filter(npc =>
+        npcs.exists(
+          _.nonPlayerCharacterId == npc.id && Seq(
+            RelationToPlayers.enemy,
+            RelationToPlayers.unknown,
+            RelationToPlayers.itsComplicated
+          ).contains(npc.info.relationToPlayers)
+        )
+      ).map { npc =>
         npc.info.challengeRating
           .orElse(ChallengeRating.fromDouble(npc.info.totalLevel * 0.5)).fold(ChallengeRating.`1`.xp)(_.xp)
       }.sum

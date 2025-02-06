@@ -1203,6 +1203,24 @@ object DND5eClient {
         OptionOf(Obj(innerSelection)),
         arguments = List(Argument("value", value, "Long!")(encoder0))
       )
+    def generateEncounterDescription(
+      header:   EncounterHeaderInput,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )(implicit
+      encoder0: ArgEncoder[EncounterHeaderInput],
+      encoder1: ArgEncoder[zio.json.ast.Json],
+      encoder2: ArgEncoder[String]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "generateEncounterDescription",
+        OptionOf(Scalar()),
+        arguments = List(
+          Argument("header", header, "EncounterHeaderInput!")(encoder0),
+          Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
+          Argument("version", version, "String!")(encoder2)
+        )
+      )
 
   }
 

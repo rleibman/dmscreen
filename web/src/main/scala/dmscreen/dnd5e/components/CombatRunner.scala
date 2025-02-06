@@ -45,7 +45,7 @@ object CombatRunner {
 
   enum DialogType {
 
-    case none, initiative
+    case none, initiative, viewTreasure
 
   }
 
@@ -77,33 +77,34 @@ object CombatRunner {
 
   case class Backend($ : BackendScope[Props, State]) {
 
-    def reSort1(
-      combatants: List[EncounterCombatant],
-      pcs:        Seq[PlayerCharacter],
-      npcs:       Seq[NonPlayerCharacter]
-    ): List[EncounterCombatant] =
-      combatants.sortBy(c =>
-        (
-          -c.initiative,
-          (
-            c match {
-              case pc: PlayerCharacterCombatant =>
-                pcs
-                  .find(_.header.id == pc.playerCharacterId).fold((0, 0, 0, 0, 0, 0))(
-                    _.info.initiativeTuple
-                  )
-              case npc: NonPlayerCharacterCombatant =>
-                npcs
-                  .find(_.header.id == npc.nonPlayerCharacterId).fold((0, 0, 0, 0, 0, 0))(
-                    _.info.initiativeTuple
-                  )
+    def initiativeTuple(
+      pcs:  Seq[PlayerCharacter],
+      npcs: Seq[NonPlayerCharacter]
+    )(
+      combatant: EncounterCombatant
+    ): (Int, Int, Int, Int, Int, Int, Int, String) = {
 
-              case _: MonsterCombatant => (100, 100, 100, 100, 100, 100)
-            },
-            c.name
-          )
-        )
-      )
+      val t = combatant match {
+        case pc: PlayerCharacterCombatant =>
+          pcs
+            .find(_.header.id == pc.playerCharacterId).fold((0, 0, 0, 0, 0, 0))(
+              _.info.initiativeTuple
+            )
+        case npc: NonPlayerCharacterCombatant =>
+          npcs
+            .find(_.header.id == npc.nonPlayerCharacterId).fold((0, 0, 0, 0, 0, 0))(
+              _.info.initiativeTuple
+            )
+
+        case _: MonsterCombatant => (100, 100, 100, 100, 100, 100)
+      }
+
+      t match {
+        case (initiativeBonus, dex, int, cha, str, con) =>
+          (-combatant.initiative, initiativeBonus, dex, int, cha, str, con, combatant.name)
+      }
+
+    }
 
     private def initializeEncounter(
       encounter: Encounter,
@@ -133,15 +134,9 @@ object CombatRunner {
               )
             )
         }
-      encounter
-        .copy(
-          header = encounter.header.copy(status = EncounterStatus.active),
-          jsonInfo = encounter.info
-            .copy(
-              combatants = reSort1(encounter.info.monsters ++ encounter.info.npcs ++ playerCombatants, pcs, npcs),
-              round = if (encounter.info.round == 0) 1 else encounter.info.round // This is the first time we're running this encounter
-            ).toJsonAST.toOption.get
-        )
+      encounter.copy(
+        header = encounter.header.copy(status = EncounterStatus.active)
+      )
     }
 
     def loadState(props: Props): Callback = {
@@ -161,10 +156,7 @@ object CombatRunner {
     def render(
       state: State,
       props: Props
-    ): VdomNode = {
-      def reSort(combatants: List[EncounterCombatant]): List[EncounterCombatant] =
-        reSort1(combatants, state.pcs, state.npcs)
-
+    ): VdomNode =
       DMScreenState.ctx.consume { dmScreenState =>
         (for {
           campaignState <- dmScreenState.campaignState.map(_.asInstanceOf[DND5eCampaignState])
@@ -188,7 +180,8 @@ object CombatRunner {
           def modEncounterInfo(
             f:   EncounterInfo => EncounterInfo,
             log: String
-          ): Callback = modEncounter(e => e.copy(jsonInfo = f(e.info).toJsonAST.toOption.get), log)
+          ): Callback =
+            modEncounter(encounter => encounter.copy(jsonInfo = f(encounter.info).toJsonAST.toOption.get), log)
 
           def modPC(
             updatedPC: PlayerCharacter,
@@ -227,26 +220,54 @@ object CombatRunner {
             PCInitativeEditor(
               pcs = pcs,
               onChange = { initatives =>
-                val callback =
+                $.modState(
+                  _.copy(dialogType = DialogType.none),
                   modEncounterInfo(
                     info =>
                       info.copy(
                         currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
-                        combatants = reSort(info.combatants.map {
+                        combatants = info.combatants.map {
                           case c: PlayerCharacterCombatant =>
-                            c.copy(initiative = initatives.find(_._1.id == c.playerCharacterId).fold(10)(_._2))
+                            c.copy(initiative = initatives(c.playerCharacterId))
                           case o => o
-                        })
+                        }
                       ),
                     "Set initiative for PCs"
-                  ) >> $.modState(_.copy(dialogType = DialogType.none))
-
+                  )
+                )
                 // TODO something about this is still wrong, as the table gets properly resorted, but the initiatives don't reflect those values
-                callback
               },
               onCancel = $.modState(_.copy(dialogType = DialogType.none)),
               open = state.dialogType == DialogType.initiative
             ),
+            Modal
+              .open(state.dialogType == DialogType.viewTreasure)(
+                Modal.Header("Treasure"),
+                Modal.Content(
+                  <.p(
+                    <.b("Coins: "),
+                    s"${encounter.info.treasure.cp} cp".when(encounter.info.treasure.cp > 0),
+                    s"${encounter.info.treasure.sp} sp".when(encounter.info.treasure.sp > 0),
+                    s"${encounter.info.treasure.ep} ep".when(encounter.info.treasure.ep > 0),
+                    s"${encounter.info.treasure.gp} gp".when(encounter.info.treasure.gp > 0),
+                    s"${encounter.info.treasure.pp} pp".when(encounter.info.treasure.pp > 0)
+                  ),
+                  <.div(
+                    <.b("Items: "),
+                    <.ul(
+                      encounter.info.treasure.items.map(item => <.li(item))*
+                    )
+                  ).when(encounter.info.treasure.items.nonEmpty)
+                ),
+                Modal.Actions(
+                  Button("Close").onClick(
+                    (
+                      _,
+                      _
+                    ) => $.modState(_.copy(dialogType = DialogType.none))
+                  )
+                )
+              ),
             state.viewMonsterId.fold(EmptyVdom: VdomNode)(monsterId =>
               Modal
                 .withKey("monsterStackBlockModal")
@@ -296,6 +317,8 @@ object CombatRunner {
                 ): VdomNode
             ),
             Table
+              .inverted(DND5eUI.tableInverted)
+              .color(DND5eUI.tableColor)
               .withKey("CombatRunnerTable")(
                 Table.Header(
                   Table.Row(
@@ -335,6 +358,27 @@ object CombatRunner {
                       .textAlign(semanticUiReactStrings.right)(
                         Button
                           .compact(true)
+                          .title("Treasure")
+                          .onClick(
+                            (
+                              _,
+                              _
+                            ) => $.modState(_.copy(dialogType = DialogType.viewTreasure))
+                          )
+                          .icon(true)(Icon.name(SemanticICONS.`gem outline`))
+                          .when(encounter.info.treasure.nonEmpty),
+                        Button
+                          .compact(true)
+                          .title("Re sort by initiative")
+                          .onClick(
+                            (
+                              _,
+                              _
+                            ) => Callback.empty
+                          )
+                          .icon(true)(Icon.name(SemanticICONS.`sort numeric up`)),
+                        Button
+                          .compact(true)
                           .title("Set initative for PCs")
                           .onClick {
                             (
@@ -361,14 +405,14 @@ object CombatRunner {
                                 .roll(s"${monsterCount + npcCount}d20")
                                 .map { results =>
                                   modEncounterInfo(
-                                    { e =>
-                                      val monsters = encounter.info.combatants
+                                    { info =>
+                                      val monsters = info.combatants
                                         .collect { case m: MonsterCombatant => m }.groupBy(_.monsterHeader.id)
-                                      val pcs = encounter.info.combatants.collect { case pc: PlayerCharacterCombatant =>
+                                      val pcs = info.combatants.collect { case pc: PlayerCharacterCombatant =>
                                         pc
                                       }
                                       val npcs =
-                                        encounter.info.combatants.collect { case npc: NonPlayerCharacterCombatant =>
+                                        info.combatants.collect { case npc: NonPlayerCharacterCombatant =>
                                           npc
                                         }
                                       val npcInitatives = results.take(npcs.size).map(_.value)
@@ -395,9 +439,9 @@ object CombatRunner {
                                           )
                                       }
 
-                                      val newCombatants = reSort(newNpcs ++ newMonsters ++ pcs)
+                                      val newCombatants = newNpcs ++ newMonsters ++ pcs
 
-                                      e.copy(
+                                      info.copy(
                                         currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
                                         combatants = newCombatants
                                       )
@@ -423,37 +467,35 @@ object CombatRunner {
                                 .map { results =>
                                   modEncounterInfo(
                                     {
-                                      e =>
-                                        val (npcs, pcs) = encounter.info.combatants.partition(_.isNPC)
+                                      info =>
+                                        val (npcs, pcs) = info.combatants.partition(_.isNPC)
                                         val initiatives = results.map(_.value)
 
                                         val newCombatants =
-                                          reSort(
-                                            npcs
-                                              .zip(initiatives)
-                                              .collect {
-                                                case (combatant: MonsterCombatant, initiative) =>
-                                                  combatant.copy(
-                                                    initiative =
-                                                      scala.math.max(1, initiative + combatant.initiativeBonus),
-                                                    health = combatant.health
-                                                      .copy(currentHitPoints = combatant.health.maxHitPoints),
-                                                    conditions = Set.empty,
-                                                    otherMarkers = List.empty
-                                                  )
-                                                case (combatant: NonPlayerCharacterCombatant, initiative) =>
-                                                  combatant.copy(
-                                                    initiative =
-                                                      scala.math.max(1, initiative + combatant.initiativeBonus),
-                                                    otherMarkers = List.empty
-                                                  )
-                                              } ++
-                                              pcs.map(
-                                                _.asInstanceOf[PlayerCharacterCombatant].copy(otherMarkers = List.empty)
-                                              )
-                                          )
+                                          npcs
+                                            .zip(initiatives)
+                                            .collect {
+                                              case (combatant: MonsterCombatant, initiative) =>
+                                                combatant.copy(
+                                                  initiative =
+                                                    scala.math.max(1, initiative + combatant.initiativeBonus),
+                                                  health = combatant.health
+                                                    .copy(currentHitPoints = combatant.health.maxHitPoints),
+                                                  conditions = Set.empty,
+                                                  otherMarkers = List.empty
+                                                )
+                                              case (combatant: NonPlayerCharacterCombatant, initiative) =>
+                                                combatant.copy(
+                                                  initiative =
+                                                    scala.math.max(1, initiative + combatant.initiativeBonus),
+                                                  otherMarkers = List.empty
+                                                )
+                                            } ++
+                                            pcs.map(
+                                              _.asInstanceOf[PlayerCharacterCombatant].copy(otherMarkers = List.empty)
+                                            )
 
-                                      e.copy(currentTurn = 0, round = 0, combatants = newCombatants)
+                                      info.copy(currentTurn = 0, round = 0, combatants = newCombatants)
                                     },
                                     "Cleared all NPC stats to beginning of combat"
                                   ) >> Callback.traverse(encounter.info.combatants.collect {
@@ -552,6 +594,7 @@ object CombatRunner {
                 ),
                 Table.Body(
                   encounter.info.combatants
+                    .sortBy(initiativeTuple(pcs, npcs))
                     .filter(p =>
                       if (state.filterDeadMonsters)
                         p match {
@@ -561,7 +604,7 @@ object CombatRunner {
                         }
                       else true
                     )
-                    .zipWithIndex
+                    .zipWithIndex // The index is used to figure out who's current turn it is.
                     .map {
                       case (pcCombatant: PlayerCharacterCombatant, i: Int) =>
                         val pc = pcs.find(_.header.id.value == pcCombatant.playerCharacterId.value).get
@@ -581,10 +624,11 @@ object CombatRunner {
                                       info =>
                                         info.copy(
                                           currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
-                                          combatants = reSort(
-                                            info.combatants.filter(_.id.value != pcCombatant.id.value) :+ pcCombatant
-                                              .copy(initiative = v.toInt)
-                                          )
+                                          combatants = info.combatants.map {
+                                            case c: PlayerCharacterCombatant if c.id == pcCombatant.id =>
+                                              c.copy(initiative = v.toInt)
+                                            case c => c
+                                          }
                                         ),
                                       s"Setting initiative for ${pcCombatant.name} to $v"
                                     )
@@ -601,7 +645,6 @@ object CombatRunner {
                                   .compact(true)
                                   .title("Enter points in the damage box and click here to heal")
                                   .color(SemanticCOLORS.green)
-                                  .basic(true)
                                   .size(SemanticSIZES.mini)
                                   .disabled(!state.healOrDamage.contains(pcCombatant.id))
                                   .onClick {
@@ -658,7 +701,6 @@ object CombatRunner {
                                   .compact(true)
                                   .title("Enter points in the damage box and click here for damage")
                                   .color(SemanticCOLORS.red)
-                                  .basic(true)
                                   .size(SemanticSIZES.mini)
                                   .disabled(!state.healOrDamage.contains(pcCombatant.id))
                                   .onClick {
@@ -823,10 +865,11 @@ object CombatRunner {
                                     info =>
                                       info.copy(
                                         currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
-                                        combatants = reSort(
-                                          info.combatants.filter(_.id.value != npcCombatant.id.value) :+ npcCombatant
-                                            .copy(initiative = v.toInt)
-                                        )
+                                        combatants = info.combatants.map {
+                                          case c: NonPlayerCharacterCombatant if c.id == npcCombatant.id =>
+                                            c.copy(initiative = v.toInt)
+                                          case c => c
+                                        }
                                       ),
                                     s"Setting initiative for ${npcCombatant.name} to $v"
                                   )
@@ -839,7 +882,6 @@ object CombatRunner {
                                 .compact(true)
                                 .title("Enter points in the damage box and click here to heal")
                                 .color(SemanticCOLORS.green)
-                                .basic(true)
                                 .size(SemanticSIZES.mini)
                                 .disabled(!state.healOrDamage.contains(npcCombatant.id))
                                 .onClick {
@@ -896,7 +938,6 @@ object CombatRunner {
                                 .compact(true)
                                 .title("Enter points in the damage box and click here for damage")
                                 .color(SemanticCOLORS.red)
-                                .basic(true)
                                 .size(SemanticSIZES.mini)
                                 .disabled(!state.healOrDamage.contains(npcCombatant.id))
                                 .onClick {
@@ -1050,11 +1091,11 @@ object CombatRunner {
                                       info
                                         .copy(
                                           currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
-                                          combatants = reSort(
-                                            info.combatants
-                                              .filter(_.id.value != monsterCombatant.id.value) :+ monsterCombatant
-                                              .copy(initiative = v.toInt)
-                                          )
+                                          combatants = info.combatants.map {
+                                            case c: MonsterCombatant if c.id == monsterCombatant.id =>
+                                              c.copy(initiative = v.toInt)
+                                            case c => c
+                                          }
                                         ),
                                     s"Setting initiative for ${monsterCombatant.name} to $v"
                                   )
@@ -1084,7 +1125,6 @@ object CombatRunner {
                                 .compact(true)
                                 .title("Enter points in the damage box and click here to heal")
                                 .color(SemanticCOLORS.green)
-                                .basic(true)
                                 .size(SemanticSIZES.mini)
                                 .disabled(!state.healOrDamage.contains(monsterCombatant.id))
                                 .onClick {
@@ -1144,7 +1184,6 @@ object CombatRunner {
                                 .compact(true)
                                 .title("Enter points in the damage box and click here for damage")
                                 .color(SemanticCOLORS.red)
-                                .basic(true)
                                 .size(SemanticSIZES.mini)
                                 .disabled(!state.healOrDamage.contains(monsterCombatant.id))
                                 .onClick {
@@ -1325,7 +1364,6 @@ object CombatRunner {
           )
         }).getOrElse(EmptyVdom)
       }
-    }
 
   }
 

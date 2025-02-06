@@ -55,7 +55,7 @@ val tapirVersion = "1.10.8"
 val testContainerVersion = "0.41.8"
 val zioConfigVersion = "4.0.3"
 val zioHttpVersion = "3.0.1"
-val zioJsonVersion = "0.7.13"
+val zioJsonVersion = "0.7.14"
 val zioVersion = "2.1.14"
 
 lazy val commonSettings = Seq(
@@ -167,7 +167,7 @@ lazy val server = project
     CalibanPlugin
   )
   .settings(debianSettings, commonSettings)
-  .dependsOn(commonJVM, db)
+  .dependsOn(commonJVM, db, ai)
   .settings(
     name := "dmscreen-server",
     libraryDependencies ++= Seq(
@@ -303,7 +303,7 @@ lazy val commonWeb: Project => Project =
       "net.leibman" %%% "dmscreen-stlib"              % "0.8.0-SNAPSHOT" withSources (),
       "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
       "dev.zio" %%% "zio"                             % zioVersion withSources (),
-      "com.softwaremill.sttp.client3" %%% "core"      % "3.10.2" withSources (),
+      "com.softwaremill.sttp.client3" %%% "core"      % "3.10.3" withSources (),
       "io.github.cquiroz" %%% "scala-java-time"       % "2.6.0" withSources (),
       "io.github.cquiroz" %%% "scala-java-time-tzdb"  % "2.6.0" withSources (),
       "org.scala-js" %%% "scalajs-dom"                % "2.8.0" withSources (),

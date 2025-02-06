@@ -23,12 +23,18 @@ package dmscreen.dnd5e
 
 enum TreasureTheme(description: String) {
 
-  case empty extends TreasureTheme("No theme")
   case arcana extends TreasureTheme("Gemstones plus magic items of an eldritch or esoteric nature")
   case armaments extends TreasureTheme("Coins or trade bars plus magic items that are useful in battle")
   case contraptions
       extends TreasureTheme("Implements: Coins, trade bars, or trade goods plus magic items that focus on utility")
   case relics extends TreasureTheme("Art objects plus magic items that have religious origins or purposes")
+  case other extends TreasureTheme("Other") // Not really used
+
+}
+
+object Treasure {
+
+  lazy val empty: Treasure = Treasure()
 
 }
 
@@ -41,6 +47,9 @@ case class Treasure(
   items:   List[String] = List.empty,
   isHoard: Boolean = false
 ) {
+
+  lazy val isEmpty:  Boolean = cp == 0 && sp == 0 && ep == 0 && gp == 0 && pp == 0 && items.isEmpty
+  lazy val nonEmpty: Boolean = !isEmpty
 
   def +(other: Treasure): Treasure =
     Treasure(

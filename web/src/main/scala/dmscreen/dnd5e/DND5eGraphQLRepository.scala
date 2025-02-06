@@ -110,6 +110,8 @@ object SelectionBuilderRepository {
 
     override def scenes(campaignId: CampaignId): SelectionBuilder[RootQuery, Seq[Scene]] = ???
 
+    override def scene(id: SceneId): QueryOrMutationSelectionBuilder[Option[Scene]] = ???
+
     override def nonPlayerCharacters(campaignId: CampaignId): SelectionBuilder[RootQuery, Seq[NonPlayerCharacter]] = ???
 
     override def encounters(campaignId: CampaignId): SelectionBuilder[RootQuery, Seq[Encounter]] = ???
@@ -178,6 +180,8 @@ object DND5eGraphQLRepository {
       dndBeyondId: DndBeyondId,
       fresh:       Boolean = false
     ): AsyncCallback[PlayerCharacter]
+
+    def generateEncounterDescription(encounter: Encounter): AsyncCallback[String]
 
   }
 
@@ -323,6 +327,8 @@ object DND5eGraphQLRepository {
       calibanClient.asyncCalibanCall(Queries.scenes(campaignId.value)(sb)).map(_.toSeq.flatten)
 
     }
+
+    override def scene(sceneId: SceneId): AsyncCallback[Option[Scene]] = ???
 
     override def nonPlayerCharacters(campaignId: CampaignId): AsyncCallback[Seq[NonPlayerCharacter]] = {
       val query: SelectionBuilder[RootQuery, Option[List[NonPlayerCharacter]]] =
@@ -656,6 +662,32 @@ object DND5eGraphQLRepository {
 
     override def randomTable(id: RandomTableId): AsyncCallback[Option[RandomTable]] =
       calibanClient.asyncCalibanCall(Queries.randomTable(id.value)(randomTableSB))
+
+    private def htmlify(str: String) = {
+      str
+        .replaceAll("\n\n", "\n")
+        .split("\n")
+        .map(s => s"<p>$s</p>\n")
+        .mkString
+    }
+
+    override def generateEncounterDescription(encounter: Encounter): AsyncCallback[String] = {
+      val calibanEncounterHeader = EncounterHeaderInput(
+        id = encounter.header.id.value,
+        campaignId = encounter.header.campaignId.value,
+        name = encounter.header.name,
+        status = encounter.header.status.toString,
+        sceneId = encounter.header.sceneId.map(_.value),
+        orderCol = encounter.header.orderCol
+      )
+
+      calibanClient.asyncCalibanCall(
+        Queries
+          .generateEncounterDescription(calibanEncounterHeader, encounter.jsonInfo, dmscreen.BuildInfo.version).map(
+            _.fold("")(htmlify)
+          )
+      )
+    }
 
   }
 

@@ -158,24 +158,26 @@ object RandomTablePage extends DMScreenTab {
         ),
         Grid.Row(
           Grid.Column.width(SemanticWIDTHS.`8`)(
-            Table(
-              Table.Header(
-                Table.Row(
-                  Table.HeaderCell("Range"),
-                  Table.HeaderCell("Name"),
-                  Table.HeaderCell("Description")
-                )
-              ),
-              Table.Body(
-                state.selectedTable.map(_.entries).toSeq.flatten.map { entry =>
+            Table
+              .inverted(DND5eUI.tableInverted)
+              .color(DND5eUI.tableColor)(
+                Table.Header(
                   Table.Row(
-                    Table.Cell(s"${entry.rangeLow} - ${entry.rangeHigh}"),
-                    Table.Cell(entry.name),
-                    Table.Cell(entry.description)
+                    Table.HeaderCell("Range"),
+                    Table.HeaderCell("Name"),
+                    Table.HeaderCell("Description")
                   )
-                }*
-              )
-            ).when(state.selectedTable.flatMap(_.entries.headOption).nonEmpty)
+                ),
+                Table.Body(
+                  state.selectedTable.map(_.entries).toSeq.flatten.map { entry =>
+                    Table.Row(
+                      Table.Cell(s"${entry.rangeLow} - ${entry.rangeHigh}"),
+                      Table.Cell(entry.name),
+                      Table.Cell(entry.description)
+                    )
+                  }*
+                )
+              ).when(state.selectedTable.flatMap(_.entries.headOption).nonEmpty)
           ),
           Grid.Column.width(SemanticWIDTHS.`8`)(
             Header.as("h2")("Roll log"),
