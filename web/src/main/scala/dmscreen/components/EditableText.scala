@@ -37,7 +37,6 @@ import scala.scalajs.js.UndefOr
 object EditableText {
 
   case class State(
-    value:     String = "",
     isEditing: Boolean = false
   )
 
@@ -53,18 +52,18 @@ object EditableText {
       p: Props,
       s: State
     ): VdomNode = {
-      def doBlur = $.modState(_.copy(isEditing = false)) >> $.props.flatMap(_.onChange(s.value))
+      def doBlur = $.modState(_.copy(isEditing = false))
 
       if (s.isEditing) {
         Input
-          .value(s.value)
+          .value(p.value)
           .autoFocus(true)
           .size(semanticUiReactStrings.mini)
           .onChange(
             (
               _,
               d
-            ) => $.modState(_.copy(value = d.value.get.asInstanceOf[String]))
+            ) => $.props.flatMap(_.onChange(d.value.get.asInstanceOf[String]))
           )
           .onKeyUp { e =>
             if (e.key == "Enter" || e.keyCode == 13) doBlur else Callback.empty
@@ -74,10 +73,10 @@ object EditableText {
         if (p.allowEditing)
           <.span(
             ^.onClick --> $.modState(_.copy(isEditing = true)),
-            s.value
+            p.value
           )
         else
-          <.span(s.value)
+          <.span(p.value)
       }
     }
 
@@ -89,7 +88,7 @@ object EditableText {
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
     .builder[Props]("EditableText")
-    .initialStateFromProps(p => State(p.value))
+    .initialState(State())
     .renderBackend[Backend]
     .configure(Reusability.shouldComponentUpdate)
     .build

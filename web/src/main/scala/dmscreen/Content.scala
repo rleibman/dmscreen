@@ -113,10 +113,13 @@ object Content {
           DynamicStylesheet(state.dmScreenState.campaignState.map(_.gameUI)),
           Confirm.render(),
           Toast.render(),
-          AppRouter.router(
-            state.dmScreenState.campaignState.map(_.campaignHeader.id),
-            state.dmScreenState.campaignState.map(_.gameUI)
-          )()
+          <.div(
+            ^.key := "router",
+            AppRouter.router(
+              state.dmScreenState.campaignState.map(_.campaignHeader.id),
+              state.dmScreenState.campaignState.map(_.gameUI)
+            )()
+          )
         )
       }
     }

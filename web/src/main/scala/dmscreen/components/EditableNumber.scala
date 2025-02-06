@@ -36,7 +36,6 @@ import dmscreen.util.{*, given}
 object EditableNumber {
 
   case class State(
-    value:     Double,
     isEditing: Boolean = false
   )
 
@@ -54,12 +53,12 @@ object EditableNumber {
       p: Props,
       s: State
     ): VdomNode = {
-      val doBlur = $.modState(_.copy(isEditing = false)) >> $.props.flatMap(_.onChange(s.value))
+      val doBlur = $.modState(_.copy(isEditing = false))
 
       if (s.isEditing) {
         Input
           .`type`("Number")
-          .value(s.value)
+          .value(p.value)
           .set("min", p.min)
           .set("max", p.max)
           .maxLength(5)
@@ -71,7 +70,7 @@ object EditableNumber {
               _,
               d
             ) =>
-              $.modState(_.copy(value = d.value.asDouble()))
+              $.props.flatMap(_.onChange(d.value.asDouble()))
           }
           .onKeyUp { e =>
             if (e.key == "Enter" || e.keyCode == 13) doBlur else Callback.empty
@@ -81,10 +80,10 @@ object EditableNumber {
         if (p.allowEditing)
           <.span(
             ^.onClick --> $.modState(_.copy(isEditing = true)),
-            s.value
+            p.value
           )
         else
-          <.span(s.value)
+          <.span(p.value)
       }
     }
 
@@ -94,7 +93,7 @@ object EditableNumber {
 
   private val component: Component[Props, State, Backend, CtorType.Props] = ScalaComponent
     .builder[Props]("EditableNumber")
-    .initialStateFromProps(p => State(p.value))
+    .initialState(State())
     .renderBackend[Backend]
     .build
 

@@ -126,9 +126,8 @@ object PCInitativeEditor {
                 _
               ) =>
                 $.modState(
-                  _.copy(editingMode = EditingMode.closed),
-                  $.state.flatMap(s => props.onChange(s.initiatives.map(t => t._1.id -> t._2).toMap))
-                )
+                  _.copy(editingMode = EditingMode.closed)
+                ) >> $.state.flatMap(s => props.onChange(s.initiatives.map(t => t._1.id -> t._2).toMap))
             }
           )
         )

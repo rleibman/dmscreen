@@ -178,7 +178,7 @@ object AppRouter {
     gameUI:     Option[GameUI]
   ): Router[AppPageType] = {
     val c: RouterConfig[AppPageType] = config(campaignId, gameUI)
-    Router.apply(baseUrl, c)
+    Router(baseUrl, c)
   }
 
 }

@@ -1279,8 +1279,8 @@ object EncounterWizard {
     }
 
     private def readyToSave(state: State): Boolean = {
-        state.encounterHeader.name.nonEmpty &&
-        state.encounterInfo.combatants.nonEmpty
+      state.encounterHeader.name.nonEmpty &&
+      state.encounterInfo.combatants.nonEmpty
     }
 
     private def ConfirmWizard(

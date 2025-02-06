@@ -235,7 +235,6 @@ object CombatRunner {
                     "Set initiative for PCs"
                   )
                 )
-                // TODO something about this is still wrong, as the table gets properly resorted, but the initiatives don't reflect those values
               },
               onCancel = $.modState(_.copy(dialogType = DialogType.none)),
               open = state.dialogType == DialogType.initiative
@@ -367,16 +366,6 @@ object CombatRunner {
                           )
                           .icon(true)(Icon.name(SemanticICONS.`gem outline`))
                           .when(encounter.info.treasure.nonEmpty),
-                        Button
-                          .compact(true)
-                          .title("Re sort by initiative")
-                          .onClick(
-                            (
-                              _,
-                              _
-                            ) => Callback.empty
-                          )
-                          .icon(true)(Icon.name(SemanticICONS.`sort numeric up`)),
                         Button
                           .compact(true)
                           .title("Set initative for PCs")
