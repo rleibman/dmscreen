@@ -49,14 +49,14 @@ enablePlugins(
 )
 
 val calibanVersion = "2.9.1"
-val langchainVersion = "1.0.0-alpha1"
+val langchainVersion = "1.0.0-beta1"
 val quillVersion = "4.8.6"
 val tapirVersion = "1.10.8"
 val testContainerVersion = "0.41.8"
 val zioConfigVersion = "4.0.3"
 val zioHttpVersion = "3.0.1"
-val zioJsonVersion = "0.7.14"
-val zioVersion = "2.1.14"
+val zioJsonVersion = "0.7.15"
+val zioVersion = "2.1.15"
 
 lazy val commonSettings = Seq(
   organization     := "net.leibman",
@@ -190,7 +190,7 @@ lazy val server = project
       "com.github.ghostdogpr"  %% "caliban-zio-http"      % calibanVersion withSources (),
       "com.github.ghostdogpr"  %% "caliban-quick"         % calibanVersion withSources (),
       "dev.zio"                %% "zio-http"              % zioHttpVersion withSources (),
-      "com.github.jwt-scala"   %% "jwt-circe"             % "10.0.1" withSources (),
+      "com.github.jwt-scala"   %% "jwt-circe"             % "10.0.4" withSources (),
       "dev.zio"                %% "zio-json"              % zioJsonVersion withSources (),
       "org.scala-lang.modules" %% "scala-xml"             % "2.3.0" withSources (),
       // Other random utilities
