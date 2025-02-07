@@ -153,6 +153,40 @@ object NPCEditComponent {
                       )
                     ),
                     <.tr(
+                      <.th("Relation to Players"),
+                      <.td(
+                        Dropdown
+                          .placeholder("Choose")
+                          .clearable(true)
+                          .compact(true)
+                          .allowAdditions(true)
+                          .search(true)
+                          .options(
+                            RelationToPlayers.values
+                              .map(relation =>
+                                DropdownItemProps()
+                                  .setValue(relation.toString)
+                                  .setText(relation.toString.capitalize)
+                              ).toJSArray
+                          )
+                          .onChange(
+                            (
+                              _,
+                              changedData
+                            ) =>
+                              modNPCInfo(
+                                info.copy(relationToPlayers = changedData.value match {
+                                  case s: String if s.isEmpty => info.relationToPlayers
+                                  case s: String =>
+                                    RelationToPlayers.values.find(_.toString == s).getOrElse(RelationToPlayers.unknown)
+                                  case _ => throw RuntimeException("Unexpected value")
+                                })
+                              )
+                          )
+                          .value(info.relationToPlayers.toString)
+                      )
+                    ),
+                    <.tr(
                       <.th("Race"),
                       <.td(
                         Dropdown
@@ -166,7 +200,7 @@ object NPCEditComponent {
                               .map(race =>
                                 DropdownItemProps()
                                   .setValue(race.name)
-                                  .setText(race.name),
+                                  .setText(race.name)
                               ).toJSArray
                           )
                           .onChange(
@@ -226,7 +260,7 @@ object NPCEditComponent {
                               .map(background =>
                                 DropdownItemProps()
                                   .setValue(background.name)
-                                  .setText(background.name),
+                                  .setText(background.name)
                               ).toJSArray
                           )
                           .onChange(
@@ -284,20 +318,13 @@ object NPCEditComponent {
                       <.tr(<.th("HP"), <.th("Temp HP"))
                     ),
                     <.tbody(
-                      if (info.health.currentHitPoints <= 0) {
-                        <.tr(
-                          <.td(
-                            s"${info.health.currentHitPoints}/${info.health.currentMax}",
-                            if (info.health.deathSave.isStabilized) " (stabilized)" else ""
-                          ),
-                          <.td(info.health.temporaryHitPoints.toString)
-                        )
-                      } else {
-                        <.tr(
-                          <.td(s"${info.health.currentHitPoints}/${info.health.currentMax}"),
-                          <.td(info.health.temporaryHitPoints.toString)
-                        )
-                      }
+                      <.tr(
+                        <.td(
+                          s"${info.health.currentHitPoints}/${info.health.currentMax}",
+                          " (stabilized)".when(info.health.currentHitPoints <= 0 && info.health.deathSave.isStabilized)
+                        ),
+                        <.td(info.health.temporaryHitPoints.toString)
+                      )
                     )
                   ),
                   edit = HealthEditor(
@@ -538,7 +565,6 @@ object NPCEditComponent {
               ),
               <.div(
                 ^.className := "notesSection",
-                ^.height    := 700.px,
                 <.div(^.className := "sectionTitle", "Notes"),
                 EditableComponent(
                   view = <.div(

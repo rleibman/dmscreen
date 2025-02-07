@@ -96,8 +96,10 @@ case class ScalaJSClientAdapter(endpoint: String) extends TimerSupport {
     val request: Request[Either[CalibanClientError, A], Any] = selectionBuilder.toRequest(serverUri)
     // ENHANCEMENT add headers as necessary
     import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
+    import scala.concurrent.duration.*
+
     AsyncCallback
-      .fromFuture(request.send(backend))
+      .fromFuture(request.copy(options = request.options.copy(readTimeout = 2.minute)).send(backend))
       .map { s =>
         s.body match {
           case Left(exception) => throw exception

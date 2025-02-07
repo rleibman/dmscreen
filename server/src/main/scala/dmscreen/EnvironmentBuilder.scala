@@ -21,6 +21,7 @@
 
 package dmscreen
 
+import ai.dnd5e.DND5eAIServer
 import dmscreen.db.DMScreenZIORepository
 import dmscreen.db.dnd5e.DND5eZIORepository
 import dmscreen.db.sta.STAZIORepository
@@ -30,20 +31,20 @@ import dmscreen.dnd5e.srd.SRDImporter
 import dmscreen.util.TestCreator
 import zio.*
 
-
 type DMScreenServerEnvironment = DMScreenZIORepository & STAZIORepository & DND5eZIORepository & DNDBeyondImporter &
-  ConfigurationService
+  ConfigurationService & DND5eAIServer
 
 object EnvironmentBuilder {
 
-  def live: ULayer[DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter] =
+  def live: ULayer[DMScreenServerEnvironment] =
     ZLayer
-      .make[DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter](
+      .make[DMScreenServerEnvironment](
         ConfigurationServiceImpl.live,
         dmscreen.db.QuillRepository.db,
         dmscreen.db.dnd5e.QuillRepository.db,
         dmscreen.db.sta.QuillRepository.db,
-        DNDBeyondImporter.live
+        DNDBeyondImporter.live,
+        DND5eAIServer.live
       ).orDie
 
   case class InitializingLayer()
@@ -79,15 +80,9 @@ object EnvironmentBuilder {
 
     }
 
-  def withContainer: ULayer[
-    DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter &
-      InitializingLayer
-  ] = {
+  def withContainer: ULayer[DMScreenServerEnvironment & InitializingLayer] = {
     ZLayer
-      .make[
-        DMScreenZIORepository & STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter &
-          InitializingLayer
-      ](
+      .make[DMScreenServerEnvironment & InitializingLayer](
         DMScreenContainer.containerLayer,
         ConfigurationServiceImpl.live >>> DMScreenContainer.configLayer,
         dmscreen.db.QuillRepository.db,
@@ -96,7 +91,8 @@ object EnvironmentBuilder {
         DNDBeyondImporter.live,
         FifthEditionCharacterSheetImporter.live,
         SRDImporter.live,
-        containerInitializingLayer
+        containerInitializingLayer,
+        DND5eAIServer.live
       ).orDie
   }
 

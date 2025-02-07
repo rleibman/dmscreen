@@ -22,11 +22,9 @@
 package caliban.client.scalajs
 
 import caliban.client.CalibanClientError.DecodingError
-import caliban.client.FieldBuilder.*
-import caliban.client.*
-import caliban.client.Operations.{RootMutation, RootQuery}
-import caliban.client.__Value.*
-import zio.json.ast.Json
+import caliban.client.FieldBuilder._
+import caliban.client._
+import caliban.client.__Value._
 
 object DND5eClient {
 
@@ -102,41 +100,57 @@ object DND5eClient {
     case object Swamp extends Biome { val value: String = "Swamp" }
     case object Underdark extends Biome { val value: String = "Underdark" }
     case object Underwater extends Biome { val value: String = "Underwater" }
+    case object Unimportant extends Biome { val value: String = "Unimportant" }
     case object Unknown extends Biome { val value: String = "Unknown" }
     case object Urban extends Biome { val value: String = "Urban" }
 
     implicit val decoder: ScalarDecoder[Biome] = {
-      case __StringValue("Arctic")     => Right(Biome.Arctic)
-      case __StringValue("Coastal")    => Right(Biome.Coastal)
-      case __StringValue("Desert")     => Right(Biome.Desert)
-      case __StringValue("Forest")     => Right(Biome.Forest)
-      case __StringValue("Grassland")  => Right(Biome.Grassland)
-      case __StringValue("Hill")       => Right(Biome.Hill)
-      case __StringValue("Mountain")   => Right(Biome.Mountain)
-      case __StringValue("Swamp")      => Right(Biome.Swamp)
-      case __StringValue("Underdark")  => Right(Biome.Underdark)
-      case __StringValue("Underwater") => Right(Biome.Underwater)
-      case __StringValue("Unknown")    => Right(Biome.Unknown)
-      case __StringValue("Urban")      => Right(Biome.Urban)
-      case other                       => Left(DecodingError(s"Can't build Biome from input $other"))
+      case __StringValue("Arctic")      => Right(Biome.Arctic)
+      case __StringValue("Coastal")     => Right(Biome.Coastal)
+      case __StringValue("Desert")      => Right(Biome.Desert)
+      case __StringValue("Forest")      => Right(Biome.Forest)
+      case __StringValue("Grassland")   => Right(Biome.Grassland)
+      case __StringValue("Hill")        => Right(Biome.Hill)
+      case __StringValue("Mountain")    => Right(Biome.Mountain)
+      case __StringValue("Swamp")       => Right(Biome.Swamp)
+      case __StringValue("Underdark")   => Right(Biome.Underdark)
+      case __StringValue("Underwater")  => Right(Biome.Underwater)
+      case __StringValue("Unimportant") => Right(Biome.Unimportant)
+      case __StringValue("Unknown")     => Right(Biome.Unknown)
+      case __StringValue("Urban")       => Right(Biome.Urban)
+      case other                        => Left(DecodingError(s"Can't build Biome from input $other"))
     }
     implicit val encoder: ArgEncoder[Biome] = {
-      case Biome.Arctic     => __EnumValue("Arctic")
-      case Biome.Coastal    => __EnumValue("Coastal")
-      case Biome.Desert     => __EnumValue("Desert")
-      case Biome.Forest     => __EnumValue("Forest")
-      case Biome.Grassland  => __EnumValue("Grassland")
-      case Biome.Hill       => __EnumValue("Hill")
-      case Biome.Mountain   => __EnumValue("Mountain")
-      case Biome.Swamp      => __EnumValue("Swamp")
-      case Biome.Underdark  => __EnumValue("Underdark")
-      case Biome.Underwater => __EnumValue("Underwater")
-      case Biome.Unknown    => __EnumValue("Unknown")
-      case Biome.Urban      => __EnumValue("Urban")
+      case Biome.Arctic      => __EnumValue("Arctic")
+      case Biome.Coastal     => __EnumValue("Coastal")
+      case Biome.Desert      => __EnumValue("Desert")
+      case Biome.Forest      => __EnumValue("Forest")
+      case Biome.Grassland   => __EnumValue("Grassland")
+      case Biome.Hill        => __EnumValue("Hill")
+      case Biome.Mountain    => __EnumValue("Mountain")
+      case Biome.Swamp       => __EnumValue("Swamp")
+      case Biome.Underdark   => __EnumValue("Underdark")
+      case Biome.Underwater  => __EnumValue("Underwater")
+      case Biome.Unimportant => __EnumValue("Unimportant")
+      case Biome.Unknown     => __EnumValue("Unknown")
+      case Biome.Urban       => __EnumValue("Urban")
     }
 
-    val values: scala.collection.immutable.Vector[Biome] = scala.collection.immutable
-      .Vector(Arctic, Coastal, Desert, Forest, Grassland, Hill, Mountain, Swamp, Underdark, Underwater, Unknown, Urban)
+    val values: scala.collection.immutable.Vector[Biome] = scala.collection.immutable.Vector(
+      Arctic,
+      Coastal,
+      Desert,
+      Forest,
+      Grassland,
+      Hill,
+      Mountain,
+      Swamp,
+      Underdark,
+      Underwater,
+      Unimportant,
+      Unknown,
+      Urban
+    )
 
   }
 
@@ -311,6 +325,39 @@ object DND5eClient {
 
   }
 
+  sealed trait RandomTableType extends scala.Product with scala.Serializable { def value: String }
+  object RandomTableType {
+
+    case object adventure extends RandomTableType { val value: String = "adventure" }
+    case object encounter extends RandomTableType { val value: String = "encounter" }
+    case object environment extends RandomTableType { val value: String = "environment" }
+    case object npcs extends RandomTableType { val value: String = "npcs" }
+    case object other extends RandomTableType { val value: String = "other" }
+    case object treasure extends RandomTableType { val value: String = "treasure" }
+
+    implicit val decoder: ScalarDecoder[RandomTableType] = {
+      case __StringValue("adventure")   => Right(RandomTableType.adventure)
+      case __StringValue("encounter")   => Right(RandomTableType.encounter)
+      case __StringValue("environment") => Right(RandomTableType.environment)
+      case __StringValue("npcs")        => Right(RandomTableType.npcs)
+      case __StringValue("other")       => Right(RandomTableType.other)
+      case __StringValue("treasure")    => Right(RandomTableType.treasure)
+      case other                        => Left(DecodingError(s"Can't build RandomTableType from input $other"))
+    }
+    implicit val encoder: ArgEncoder[RandomTableType] = {
+      case RandomTableType.adventure   => __EnumValue("adventure")
+      case RandomTableType.encounter   => __EnumValue("encounter")
+      case RandomTableType.environment => __EnumValue("environment")
+      case RandomTableType.npcs        => __EnumValue("npcs")
+      case RandomTableType.other       => __EnumValue("other")
+      case RandomTableType.treasure    => __EnumValue("treasure")
+    }
+
+    val values: scala.collection.immutable.Vector[RandomTableType] =
+      scala.collection.immutable.Vector(adventure, encounter, environment, npcs, other, treasure)
+
+  }
+
   type Background
   object Background {
 
@@ -320,7 +367,7 @@ object DND5eClient {
 
     def view: ViewSelection = name.map(name => BackgroundView(name))
 
-    def name: SelectionBuilder[Background, String] = SelectionBuilder.Field("name", Scalar())
+    def name: SelectionBuilder[Background, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
 
   }
 
@@ -338,9 +385,9 @@ object DND5eClient {
       : ViewSelection[HitDiceSelection] =
       (id ~ hitDice(hitDiceSelection)).map { case (id, hitDice) => CharacterClassView(id, hitDice) }
 
-    def id: SelectionBuilder[CharacterClass, String] = SelectionBuilder.Field("id", Scalar())
+    def id: SelectionBuilder[CharacterClass, String] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def hitDice[A](innerSelection: SelectionBuilder[DiceRoll, A]): SelectionBuilder[CharacterClass, A] =
-      SelectionBuilder.Field("hitDice", Obj(innerSelection))
+      _root_.caliban.client.SelectionBuilder.Field("hitDice", Obj(innerSelection))
 
   }
 
@@ -353,7 +400,7 @@ object DND5eClient {
 
     def view: ViewSelection = roll.map(roll => DiceRollView(roll))
 
-    def roll: SelectionBuilder[DiceRoll, String] = SelectionBuilder.Field("roll", Scalar())
+    def roll: SelectionBuilder[DiceRoll, String] = _root_.caliban.client.SelectionBuilder.Field("roll", Scalar())
 
   }
 
@@ -362,7 +409,7 @@ object DND5eClient {
 
     final case class EncounterView[HeaderSelection](
       header:   HeaderSelection,
-      jsonInfo: Json,
+      jsonInfo: zio.json.ast.Json,
       version:  String
     )
 
@@ -375,9 +422,10 @@ object DND5eClient {
       }
 
     def header[A](innerSelection: SelectionBuilder[EncounterHeader, A]): SelectionBuilder[Encounter, A] =
-      SelectionBuilder.Field("header", Obj(innerSelection))
-    def jsonInfo: SelectionBuilder[Encounter, Json] = SelectionBuilder.Field("jsonInfo", Scalar())
-    def version:  SelectionBuilder[Encounter, String] = SelectionBuilder.Field("version", Scalar())
+      _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
+    def jsonInfo: SelectionBuilder[Encounter, zio.json.ast.Json] =
+      _root_.caliban.client.SelectionBuilder.Field("jsonInfo", Scalar())
+    def version: SelectionBuilder[Encounter, String] = _root_.caliban.client.SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -401,13 +449,16 @@ object DND5eClient {
           EncounterHeaderView(id, campaignId, name, status, sceneId, orderCol)
       }
 
-    def id:         SelectionBuilder[EncounterHeader, Long] = SelectionBuilder.Field("id", Scalar())
-    def campaignId: SelectionBuilder[EncounterHeader, Long] = SelectionBuilder.Field("campaignId", Scalar())
-    def name:       SelectionBuilder[EncounterHeader, String] = SelectionBuilder.Field("name", Scalar())
-    def status:     SelectionBuilder[EncounterHeader, String] = SelectionBuilder.Field("status", Scalar())
+    def id: SelectionBuilder[EncounterHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
+    def campaignId: SelectionBuilder[EncounterHeader, Long] =
+      _root_.caliban.client.SelectionBuilder.Field("campaignId", Scalar())
+    def name: SelectionBuilder[EncounterHeader, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def status: SelectionBuilder[EncounterHeader, String] =
+      _root_.caliban.client.SelectionBuilder.Field("status", Scalar())
     def sceneId: SelectionBuilder[EncounterHeader, scala.Option[Long]] =
-      SelectionBuilder.Field("sceneId", OptionOf(Scalar()))
-    def orderCol: SelectionBuilder[EncounterHeader, Int] = SelectionBuilder.Field("orderCol", Scalar())
+      _root_.caliban.client.SelectionBuilder.Field("sceneId", OptionOf(Scalar()))
+    def orderCol: SelectionBuilder[EncounterHeader, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("orderCol", Scalar())
 
   }
 
@@ -416,7 +467,7 @@ object DND5eClient {
 
     final case class MonsterView[HeaderSelection](
       header:   HeaderSelection,
-      jsonInfo: Json,
+      jsonInfo: zio.json.ast.Json,
       version:  String
     )
 
@@ -429,9 +480,10 @@ object DND5eClient {
       }
 
     def header[A](innerSelection: SelectionBuilder[MonsterHeader, A]): SelectionBuilder[Monster, A] =
-      SelectionBuilder.Field("header", Obj(innerSelection))
-    def jsonInfo: SelectionBuilder[Monster, Json] = SelectionBuilder.Field("jsonInfo", Scalar())
-    def version:  SelectionBuilder[Monster, String] = SelectionBuilder.Field("version", Scalar())
+      _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
+    def jsonInfo: SelectionBuilder[Monster, zio.json.ast.Json] =
+      _root_.caliban.client.SelectionBuilder.Field("jsonInfo", Scalar())
+    def version: SelectionBuilder[Monster, String] = _root_.caliban.client.SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -488,20 +540,26 @@ object DND5eClient {
             )
         }
 
-    def id:          SelectionBuilder[MonsterHeader, Long] = SelectionBuilder.Field("id", Scalar())
-    def sourceId:    SelectionBuilder[MonsterHeader, String] = SelectionBuilder.Field("sourceId", Scalar())
-    def name:        SelectionBuilder[MonsterHeader, String] = SelectionBuilder.Field("name", Scalar())
-    def monsterType: SelectionBuilder[MonsterHeader, MonsterType] = SelectionBuilder.Field("monsterType", Scalar())
+    def id: SelectionBuilder[MonsterHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
+    def sourceId: SelectionBuilder[MonsterHeader, String] =
+      _root_.caliban.client.SelectionBuilder.Field("sourceId", Scalar())
+    def name: SelectionBuilder[MonsterHeader, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def monsterType: SelectionBuilder[MonsterHeader, MonsterType] =
+      _root_.caliban.client.SelectionBuilder.Field("monsterType", Scalar())
     def biome: SelectionBuilder[MonsterHeader, scala.Option[Biome]] =
-      SelectionBuilder.Field("biome", OptionOf(Scalar()))
+      _root_.caliban.client.SelectionBuilder.Field("biome", OptionOf(Scalar()))
     def alignment: SelectionBuilder[MonsterHeader, scala.Option[Alignment]] =
-      SelectionBuilder.Field("alignment", OptionOf(Scalar()))
-    def cr:               SelectionBuilder[MonsterHeader, Double] = SelectionBuilder.Field("cr", Scalar())
-    def xp:               SelectionBuilder[MonsterHeader, Long] = SelectionBuilder.Field("xp", Scalar())
-    def armorClass:       SelectionBuilder[MonsterHeader, Int] = SelectionBuilder.Field("armorClass", Scalar())
-    def maximumHitPoints: SelectionBuilder[MonsterHeader, Int] = SelectionBuilder.Field("maximumHitPoints", Scalar())
-    def size:             SelectionBuilder[MonsterHeader, CreatureSize] = SelectionBuilder.Field("size", Scalar())
-    def initiativeBonus:  SelectionBuilder[MonsterHeader, Int] = SelectionBuilder.Field("initiativeBonus", Scalar())
+      _root_.caliban.client.SelectionBuilder.Field("alignment", OptionOf(Scalar()))
+    def cr: SelectionBuilder[MonsterHeader, Double] = _root_.caliban.client.SelectionBuilder.Field("cr", Scalar())
+    def xp: SelectionBuilder[MonsterHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("xp", Scalar())
+    def armorClass: SelectionBuilder[MonsterHeader, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("armorClass", Scalar())
+    def maximumHitPoints: SelectionBuilder[MonsterHeader, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("maximumHitPoints", Scalar())
+    def size: SelectionBuilder[MonsterHeader, CreatureSize] =
+      _root_.caliban.client.SelectionBuilder.Field("size", Scalar())
+    def initiativeBonus: SelectionBuilder[MonsterHeader, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("initiativeBonus", Scalar())
 
   }
 
@@ -521,8 +579,10 @@ object DND5eClient {
       (results(resultsSelection) ~ total).map { case (results, total) => MonsterSearchResultsView(results, total) }
 
     def results[A](innerSelection: SelectionBuilder[MonsterHeader, A])
-      : SelectionBuilder[MonsterSearchResults, List[A]] = SelectionBuilder.Field("results", ListOf(Obj(innerSelection)))
-    def total: SelectionBuilder[MonsterSearchResults, Long] = SelectionBuilder.Field("total", Scalar())
+      : SelectionBuilder[MonsterSearchResults, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("results", ListOf(Obj(innerSelection)))
+    def total: SelectionBuilder[MonsterSearchResults, Long] =
+      _root_.caliban.client.SelectionBuilder.Field("total", Scalar())
 
   }
 
@@ -531,7 +591,7 @@ object DND5eClient {
 
     final case class NonPlayerCharacterView[HeaderSelection](
       header:   HeaderSelection,
-      jsonInfo: Json,
+      jsonInfo: zio.json.ast.Json,
       version:  String
     )
 
@@ -544,9 +604,12 @@ object DND5eClient {
       }
 
     def header[A](innerSelection: SelectionBuilder[NonPlayerCharacterHeader, A])
-      : SelectionBuilder[NonPlayerCharacter, A] = SelectionBuilder.Field("header", Obj(innerSelection))
-    def jsonInfo: SelectionBuilder[NonPlayerCharacter, Json] = SelectionBuilder.Field("jsonInfo", Scalar())
-    def version:  SelectionBuilder[NonPlayerCharacter, String] = SelectionBuilder.Field("version", Scalar())
+      : SelectionBuilder[NonPlayerCharacter, A] =
+      _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
+    def jsonInfo: SelectionBuilder[NonPlayerCharacter, zio.json.ast.Json] =
+      _root_.caliban.client.SelectionBuilder.Field("jsonInfo", Scalar())
+    def version: SelectionBuilder[NonPlayerCharacter, String] =
+      _root_.caliban.client.SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -564,9 +627,12 @@ object DND5eClient {
     def view: ViewSelection =
       (id ~ campaignId ~ name).map { case (id, campaignId, name) => NonPlayerCharacterHeaderView(id, campaignId, name) }
 
-    def id:         SelectionBuilder[NonPlayerCharacterHeader, Long] = SelectionBuilder.Field("id", Scalar())
-    def campaignId: SelectionBuilder[NonPlayerCharacterHeader, Long] = SelectionBuilder.Field("campaignId", Scalar())
-    def name:       SelectionBuilder[NonPlayerCharacterHeader, String] = SelectionBuilder.Field("name", Scalar())
+    def id: SelectionBuilder[NonPlayerCharacterHeader, Long] =
+      _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
+    def campaignId: SelectionBuilder[NonPlayerCharacterHeader, Long] =
+      _root_.caliban.client.SelectionBuilder.Field("campaignId", Scalar())
+    def name: SelectionBuilder[NonPlayerCharacterHeader, String] =
+      _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
 
   }
 
@@ -575,7 +641,7 @@ object DND5eClient {
 
     final case class PlayerCharacterView[HeaderSelection](
       header:   HeaderSelection,
-      jsonInfo: Json,
+      jsonInfo: zio.json.ast.Json,
       version:  String
     )
 
@@ -588,9 +654,11 @@ object DND5eClient {
       }
 
     def header[A](innerSelection: SelectionBuilder[PlayerCharacterHeader, A]): SelectionBuilder[PlayerCharacter, A] =
-      SelectionBuilder.Field("header", Obj(innerSelection))
-    def jsonInfo: SelectionBuilder[PlayerCharacter, Json] = SelectionBuilder.Field("jsonInfo", Scalar())
-    def version:  SelectionBuilder[PlayerCharacter, String] = SelectionBuilder.Field("version", Scalar())
+      _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
+    def jsonInfo: SelectionBuilder[PlayerCharacter, zio.json.ast.Json] =
+      _root_.caliban.client.SelectionBuilder.Field("jsonInfo", Scalar())
+    def version: SelectionBuilder[PlayerCharacter, String] =
+      _root_.caliban.client.SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -612,12 +680,15 @@ object DND5eClient {
         PlayerCharacterHeaderView(id, campaignId, name, source, playerName)
       }
 
-    def id:         SelectionBuilder[PlayerCharacterHeader, Long] = SelectionBuilder.Field("id", Scalar())
-    def campaignId: SelectionBuilder[PlayerCharacterHeader, Long] = SelectionBuilder.Field("campaignId", Scalar())
-    def name:       SelectionBuilder[PlayerCharacterHeader, String] = SelectionBuilder.Field("name", Scalar())
-    def source:     SelectionBuilder[PlayerCharacterHeader, String] = SelectionBuilder.Field("source", Scalar())
+    def id: SelectionBuilder[PlayerCharacterHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
+    def campaignId: SelectionBuilder[PlayerCharacterHeader, Long] =
+      _root_.caliban.client.SelectionBuilder.Field("campaignId", Scalar())
+    def name: SelectionBuilder[PlayerCharacterHeader, String] =
+      _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def source: SelectionBuilder[PlayerCharacterHeader, String] =
+      _root_.caliban.client.SelectionBuilder.Field("source", Scalar())
     def playerName: SelectionBuilder[PlayerCharacterHeader, scala.Option[String]] =
-      SelectionBuilder.Field("playerName", OptionOf(Scalar()))
+      _root_.caliban.client.SelectionBuilder.Field("playerName", OptionOf(Scalar()))
 
   }
 
@@ -630,7 +701,76 @@ object DND5eClient {
 
     def view: ViewSelection = name.map(name => RaceView(name))
 
-    def name: SelectionBuilder[Race, String] = SelectionBuilder.Field("name", Scalar())
+    def name: SelectionBuilder[Race, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+
+  }
+
+  type RandomTable
+  object RandomTable {
+
+    final case class RandomTableView[DiceRollSelection, EntriesSelection](
+      id:        Long,
+      name:      String,
+      tableType: RandomTableType,
+      subType:   String,
+      diceRoll:  DiceRollSelection,
+      entries:   List[EntriesSelection]
+    )
+
+    type ViewSelection[DiceRollSelection, EntriesSelection] =
+      SelectionBuilder[RandomTable, RandomTableView[DiceRollSelection, EntriesSelection]]
+
+    def view[DiceRollSelection, EntriesSelection](
+      diceRollSelection: SelectionBuilder[DiceRoll, DiceRollSelection],
+      entriesSelection:  SelectionBuilder[RandomTableEntry, EntriesSelection]
+    ): ViewSelection[DiceRollSelection, EntriesSelection] =
+      (id ~ name ~ tableType ~ subType ~ diceRoll(diceRollSelection) ~ entries(entriesSelection)).map {
+        case (id, name, tableType, subType, diceRoll, entries) =>
+          RandomTableView(id, name, tableType, subType, diceRoll, entries)
+      }
+
+    def id:   SelectionBuilder[RandomTable, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
+    def name: SelectionBuilder[RandomTable, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def tableType: SelectionBuilder[RandomTable, RandomTableType] =
+      _root_.caliban.client.SelectionBuilder.Field("tableType", Scalar())
+    def subType: SelectionBuilder[RandomTable, String] =
+      _root_.caliban.client.SelectionBuilder.Field("subType", Scalar())
+    def diceRoll[A](innerSelection: SelectionBuilder[DiceRoll, A]): SelectionBuilder[RandomTable, A] =
+      _root_.caliban.client.SelectionBuilder.Field("diceRoll", Obj(innerSelection))
+    def entries[A](innerSelection: SelectionBuilder[RandomTableEntry, A]): SelectionBuilder[RandomTable, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("entries", ListOf(Obj(innerSelection)))
+
+  }
+
+  type RandomTableEntry
+  object RandomTableEntry {
+
+    final case class RandomTableEntryView(
+      randomTableId: Long,
+      rangeLow:      Int,
+      rangeHigh:     Int,
+      name:          String,
+      description:   String
+    )
+
+    type ViewSelection = SelectionBuilder[RandomTableEntry, RandomTableEntryView]
+
+    def view: ViewSelection =
+      (randomTableId ~ rangeLow ~ rangeHigh ~ name ~ description).map {
+        case (randomTableId, rangeLow, rangeHigh, name, description) =>
+          RandomTableEntryView(randomTableId, rangeLow, rangeHigh, name, description)
+      }
+
+    def randomTableId: SelectionBuilder[RandomTableEntry, Long] =
+      _root_.caliban.client.SelectionBuilder.Field("randomTableId", Scalar())
+    def rangeLow: SelectionBuilder[RandomTableEntry, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("rangeLow", Scalar())
+    def rangeHigh: SelectionBuilder[RandomTableEntry, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("rangeHigh", Scalar())
+    def name: SelectionBuilder[RandomTableEntry, String] =
+      _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def description: SelectionBuilder[RandomTableEntry, String] =
+      _root_.caliban.client.SelectionBuilder.Field("description", Scalar())
 
   }
 
@@ -639,7 +779,7 @@ object DND5eClient {
 
     final case class SceneView[HeaderSelection](
       header:   HeaderSelection,
-      jsonInfo: Json,
+      jsonInfo: zio.json.ast.Json,
       version:  String
     )
 
@@ -652,9 +792,10 @@ object DND5eClient {
       }
 
     def header[A](innerSelection: SelectionBuilder[SceneHeader, A]): SelectionBuilder[Scene, A] =
-      SelectionBuilder.Field("header", Obj(innerSelection))
-    def jsonInfo: SelectionBuilder[Scene, Json] = SelectionBuilder.Field("jsonInfo", Scalar())
-    def version:  SelectionBuilder[Scene, String] = SelectionBuilder.Field("version", Scalar())
+      _root_.caliban.client.SelectionBuilder.Field("header", Obj(innerSelection))
+    def jsonInfo: SelectionBuilder[Scene, zio.json.ast.Json] =
+      _root_.caliban.client.SelectionBuilder.Field("jsonInfo", Scalar())
+    def version: SelectionBuilder[Scene, String] = _root_.caliban.client.SelectionBuilder.Field("version", Scalar())
 
   }
 
@@ -676,11 +817,14 @@ object DND5eClient {
         SceneHeaderView(id, campaignId, name, orderCol, isActive)
       }
 
-    def id:         SelectionBuilder[SceneHeader, Long] = SelectionBuilder.Field("id", Scalar())
-    def campaignId: SelectionBuilder[SceneHeader, Long] = SelectionBuilder.Field("campaignId", Scalar())
-    def name:       SelectionBuilder[SceneHeader, String] = SelectionBuilder.Field("name", Scalar())
-    def orderCol:   SelectionBuilder[SceneHeader, Int] = SelectionBuilder.Field("orderCol", Scalar())
-    def isActive:   SelectionBuilder[SceneHeader, Boolean] = SelectionBuilder.Field("isActive", Scalar())
+    def id: SelectionBuilder[SceneHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
+    def campaignId: SelectionBuilder[SceneHeader, Long] =
+      _root_.caliban.client.SelectionBuilder.Field("campaignId", Scalar())
+    def name: SelectionBuilder[SceneHeader, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def orderCol: SelectionBuilder[SceneHeader, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("orderCol", Scalar())
+    def isActive: SelectionBuilder[SceneHeader, Boolean] =
+      _root_.caliban.client.SelectionBuilder.Field("isActive", Scalar())
 
   }
 
@@ -697,9 +841,10 @@ object DND5eClient {
 
     def view: ViewSelection = (name ~ id ~ url).map { case (name, id, url) => SourceView(name, id, url) }
 
-    def name: SelectionBuilder[Source, String] = SelectionBuilder.Field("name", Scalar())
-    def id:   SelectionBuilder[Source, String] = SelectionBuilder.Field("id", Scalar())
-    def url:  SelectionBuilder[Source, scala.Option[String]] = SelectionBuilder.Field("url", OptionOf(Scalar()))
+    def name: SelectionBuilder[Source, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def id:   SelectionBuilder[Source, String] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
+    def url: SelectionBuilder[Source, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("url", OptionOf(Scalar()))
 
   }
 
@@ -712,7 +857,7 @@ object DND5eClient {
 
     def view: ViewSelection = name.map(name => SubClassView(name))
 
-    def name: SelectionBuilder[SubClass, String] = SelectionBuilder.Field("name", Scalar())
+    def name: SelectionBuilder[SubClass, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
 
   }
 
@@ -881,12 +1026,12 @@ object DND5eClient {
     }
 
   }
-  type Queries = RootQuery
+  type Queries = _root_.caliban.client.Operations.RootQuery
   object Queries {
 
     def monster[A](value: Long)(innerSelection: SelectionBuilder[Monster, A])(implicit encoder0: ArgEncoder[Long])
-      : SelectionBuilder[RootQuery, scala.Option[A]] =
-      SelectionBuilder
+      : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder
         .Field("monster", OptionOf(Obj(innerSelection)), arguments = List(Argument("value", value, "Long!")(encoder0)))
     def playerCharacters[A](
       campaignId:            Long,
@@ -896,8 +1041,8 @@ object DND5eClient {
     )(implicit
       encoder0: ArgEncoder[Long],
       encoder1: ArgEncoder[PlayerCharacterSearchInput]
-    ): SelectionBuilder[RootQuery, scala.Option[List[A]]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "playerCharacters",
         OptionOf(ListOf(Obj(innerSelection))),
         arguments = List(
@@ -906,8 +1051,8 @@ object DND5eClient {
         )
       )
     def scenes[A](value: Long)(innerSelection: SelectionBuilder[Scene, A])(implicit encoder0: ArgEncoder[Long])
-      : SelectionBuilder[RootQuery, scala.Option[List[A]]] =
-      SelectionBuilder.Field(
+      : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "scenes",
         OptionOf(ListOf(Obj(innerSelection))),
         arguments = List(Argument("value", value, "Long!")(encoder0))
@@ -917,8 +1062,8 @@ object DND5eClient {
     )(
       innerSelection:    SelectionBuilder[NonPlayerCharacter, A]
     )(implicit encoder0: ArgEncoder[Long]
-    ): SelectionBuilder[RootQuery, scala.Option[List[A]]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "nonPlayerCharacters",
         OptionOf(ListOf(Obj(innerSelection))),
         arguments = List(Argument("value", value, "Long!")(encoder0))
@@ -928,8 +1073,8 @@ object DND5eClient {
     )(
       innerSelection:    SelectionBuilder[PlayerCharacter, A]
     )(implicit encoder0: ArgEncoder[Long]
-    ): SelectionBuilder[RootQuery, scala.Option[A]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "playerCharacter",
         OptionOf(Obj(innerSelection)),
         arguments = List(Argument("value", value, "Long!")(encoder0))
@@ -939,15 +1084,15 @@ object DND5eClient {
     )(
       innerSelection:    SelectionBuilder[NonPlayerCharacter, A]
     )(implicit encoder0: ArgEncoder[Long]
-    ): SelectionBuilder[RootQuery, scala.Option[A]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "nonPlayerCharacter",
         OptionOf(Obj(innerSelection)),
         arguments = List(Argument("value", value, "Long!")(encoder0))
       )
     def encounters[A](value: Long)(innerSelection: SelectionBuilder[Encounter, A])(implicit encoder0: ArgEncoder[Long])
-      : SelectionBuilder[RootQuery, scala.Option[List[A]]] =
-      SelectionBuilder.Field(
+      : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "encounters",
         OptionOf(ListOf(Obj(innerSelection))),
         arguments = List(Argument("value", value, "Long!")(encoder0))
@@ -960,8 +1105,8 @@ object DND5eClient {
     )(implicit
       encoder0: ArgEncoder[Long],
       encoder1: ArgEncoder[Long]
-    ): SelectionBuilder[RootQuery, scala.Option[A]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "encounter",
         OptionOf(Obj(innerSelection)),
         arguments = List(
@@ -995,8 +1140,8 @@ object DND5eClient {
       encoder8:  ArgEncoder[OrderDirection],
       encoder9:  ArgEncoder[Int],
       encoder10: ArgEncoder[Int]
-    ): SelectionBuilder[RootQuery, scala.Option[A]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "bestiary",
         OptionOf(Obj(innerSelection)),
         arguments = List(
@@ -1013,43 +1158,85 @@ object DND5eClient {
           Argument("pageSize", pageSize, "Int!")(encoder10)
         )
       )
-    def sources[A](innerSelection: SelectionBuilder[Source, A]): SelectionBuilder[RootQuery, scala.Option[List[A]]] =
-      SelectionBuilder.Field("sources", OptionOf(ListOf(Obj(innerSelection))))
+    def sources[A](innerSelection: SelectionBuilder[Source, A])
+      : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field("sources", OptionOf(ListOf(Obj(innerSelection))))
     def classes[A](innerSelection: SelectionBuilder[CharacterClass, A])
-      : SelectionBuilder[RootQuery, scala.Option[List[A]]] =
-      SelectionBuilder.Field("classes", OptionOf(ListOf(Obj(innerSelection))))
-    def races[A](innerSelection: SelectionBuilder[Race, A]): SelectionBuilder[RootQuery, scala.Option[List[A]]] =
-      SelectionBuilder.Field("races", OptionOf(ListOf(Obj(innerSelection))))
+      : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field("classes", OptionOf(ListOf(Obj(innerSelection))))
+    def races[A](innerSelection: SelectionBuilder[Race, A])
+      : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field("races", OptionOf(ListOf(Obj(innerSelection))))
     def backgrounds[A](innerSelection: SelectionBuilder[Background, A])
-      : SelectionBuilder[RootQuery, scala.Option[List[A]]] =
-      SelectionBuilder.Field("backgrounds", OptionOf(ListOf(Obj(innerSelection))))
+      : SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field("backgrounds", OptionOf(ListOf(Obj(innerSelection))))
     def subclasses[A](
       value: String
     )(
       innerSelection:    SelectionBuilder[SubClass, A]
     )(implicit encoder0: ArgEncoder[String]
-    ): SelectionBuilder[RootQuery, scala.Option[List[A]]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "subclasses",
         OptionOf(ListOf(Obj(innerSelection))),
         arguments = List(Argument("value", value, "String!")(encoder0))
       )
+    def randomTables[A](
+      randomTableType: scala.Option[RandomTableType] = None
+    )(
+      innerSelection:    SelectionBuilder[RandomTable, A]
+    )(implicit encoder0: ArgEncoder[scala.Option[RandomTableType]]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "randomTables",
+        OptionOf(ListOf(Obj(innerSelection))),
+        arguments = List(Argument("randomTableType", randomTableType, "RandomTableType")(encoder0))
+      )
+    def randomTable[A](
+      value: Long
+    )(
+      innerSelection:    SelectionBuilder[RandomTable, A]
+    )(implicit encoder0: ArgEncoder[Long]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "randomTable",
+        OptionOf(Obj(innerSelection)),
+        arguments = List(Argument("value", value, "Long!")(encoder0))
+      )
+    def generateEncounterDescription(
+      header:   EncounterHeaderInput,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )(implicit
+      encoder0: ArgEncoder[EncounterHeaderInput],
+      encoder1: ArgEncoder[zio.json.ast.Json],
+      encoder2: ArgEncoder[String]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "generateEncounterDescription",
+        OptionOf(Scalar()),
+        arguments = List(
+          Argument("header", header, "EncounterHeaderInput!")(encoder0),
+          Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
+          Argument("version", version, "String!")(encoder2)
+        )
+      )
 
   }
 
-  type Mutations = RootMutation
+  type Mutations = _root_.caliban.client.Operations.RootMutation
   object Mutations {
 
     def upsertScene(
       header:   SceneHeaderInput,
-      jsonInfo: Json,
+      jsonInfo: zio.json.ast.Json,
       version:  String
     )(implicit
       encoder0: ArgEncoder[SceneHeaderInput],
-      encoder1: ArgEncoder[Json],
+      encoder1: ArgEncoder[zio.json.ast.Json],
       encoder2: ArgEncoder[String]
-    ): SelectionBuilder[RootMutation, scala.Option[Long]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "upsertScene",
         OptionOf(Scalar()),
         arguments = List(
@@ -1060,14 +1247,14 @@ object DND5eClient {
       )
     def upsertPlayerCharacter(
       header:   PlayerCharacterHeaderInput,
-      jsonInfo: Json,
+      jsonInfo: zio.json.ast.Json,
       version:  String
     )(implicit
       encoder0: ArgEncoder[PlayerCharacterHeaderInput],
-      encoder1: ArgEncoder[Json],
+      encoder1: ArgEncoder[zio.json.ast.Json],
       encoder2: ArgEncoder[String]
-    ): SelectionBuilder[RootMutation, scala.Option[Long]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "upsertPlayerCharacter",
         OptionOf(Scalar()),
         arguments = List(
@@ -1078,14 +1265,14 @@ object DND5eClient {
       )
     def upsertNonPlayerCharacter(
       header:   NonPlayerCharacterHeaderInput,
-      jsonInfo: Json,
+      jsonInfo: zio.json.ast.Json,
       version:  String
     )(implicit
       encoder0: ArgEncoder[NonPlayerCharacterHeaderInput],
-      encoder1: ArgEncoder[Json],
+      encoder1: ArgEncoder[zio.json.ast.Json],
       encoder2: ArgEncoder[String]
-    ): SelectionBuilder[RootMutation, scala.Option[Long]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "upsertNonPlayerCharacter",
         OptionOf(Scalar()),
         arguments = List(
@@ -1096,14 +1283,14 @@ object DND5eClient {
       )
     def upsertMonster(
       header:   MonsterHeaderInput,
-      jsonInfo: Json,
+      jsonInfo: zio.json.ast.Json,
       version:  String
     )(implicit
       encoder0: ArgEncoder[MonsterHeaderInput],
-      encoder1: ArgEncoder[Json],
+      encoder1: ArgEncoder[zio.json.ast.Json],
       encoder2: ArgEncoder[String]
-    ): SelectionBuilder[RootMutation, scala.Option[Long]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "upsertMonster",
         OptionOf(Scalar()),
         arguments = List(
@@ -1114,14 +1301,14 @@ object DND5eClient {
       )
     def upsertEncounter(
       header:   EncounterHeaderInput,
-      jsonInfo: Json,
+      jsonInfo: zio.json.ast.Json,
       version:  String
     )(implicit
       encoder0: ArgEncoder[EncounterHeaderInput],
-      encoder1: ArgEncoder[Json],
+      encoder1: ArgEncoder[zio.json.ast.Json],
       encoder2: ArgEncoder[String]
-    ): SelectionBuilder[RootMutation, scala.Option[Long]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "upsertEncounter",
         OptionOf(Scalar()),
         arguments = List(
@@ -1138,8 +1325,8 @@ object DND5eClient {
       encoder0: ArgEncoder[String],
       encoder1: ArgEncoder[Long],
       encoder2: ArgEncoder[Boolean]
-    ): SelectionBuilder[RootMutation, scala.Option[Unit]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Unit]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "deleteEntity",
         OptionOf(Scalar()),
         arguments = List(
@@ -1158,8 +1345,8 @@ object DND5eClient {
       encoder0: ArgEncoder[Long],
       encoder1: ArgEncoder[String],
       encoder2: ArgEncoder[Boolean]
-    ): SelectionBuilder[RootMutation, scala.Option[A]] =
-      SelectionBuilder.Field(
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
         "importCharacterDNDBeyond",
         OptionOf(Obj(innerSelection)),
         arguments = List(

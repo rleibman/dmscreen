@@ -19,6 +19,37 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package dmscreen.components
+package ai
 
-object EditableDropDown {}
+import com.dimafeng.testcontainers.GenericContainer
+import org.testcontainers.containers.Container
+import zio.*
+import scala.jdk.CollectionConverters.*
+
+import java.io.IOException
+
+case class OllamaContainer() extends GenericContainer("ollama/ollama:latest") {
+
+  private def execInContainerZIO(commands: String*): IO[IOException, Container.ExecResult] =
+    ZIO.attemptBlockingIO {
+      execInContainer(commands*)
+    }
+
+  def pullModel(model: String): IO[IOException, Container.ExecResult] = execInContainerZIO("ollama", "pull", model)
+
+}
+
+object OllamaContainer {
+
+  val live: TaskLayer[OllamaContainer] = ZLayer.fromZIO(for {
+    _ <- ZIO.logInfo("Starting Ollama Container")
+    c <- ZIO.attemptBlocking {
+      val c = OllamaContainer()
+      c.container.setPortBindings(List("11434:11434").asJava)
+      c.start()
+      c
+    }
+    _ <- ZIO.logInfo("Started Ollama Container")
+  } yield c)
+
+}

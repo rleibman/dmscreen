@@ -71,7 +71,7 @@ object EncounterEditor {
 
   extension (orderCol: MonsterSearchOrder) {
 
-    def toReactSoreDirection(
+    def toReactSortDirection(
       compareMe: MonsterSearchOrder,
       direction: OrderDirection
     ): ascending | descending = {
@@ -109,14 +109,14 @@ object EncounterEditor {
 
   case class Props(
     encounter:  Encounter,
-    difficulty: EncounterDifficulty,
+    difficulty: EncounterDifficultyLevel,
     onDelete:   Encounter => Callback,
     onChange:   Encounter => Callback
   )
 
   case class Backend($ : BackendScope[Props, State]) {
 
-    def initializeState: Callback =
+    def loadState: Callback =
       (
         for {
           oldState <- $.state.asAsyncCallback
@@ -283,272 +283,276 @@ object EncounterEditor {
                     )
                 )
             ),
-            Table(
-              Table.Header(
-                Table.Row(
-                  Table.HeaderCell.colSpan(3)(<.h2(s"${encounter.header.name}")),
-                  Table.HeaderCell
-                    .colSpan(3).textAlign(semanticUiReactStrings.center)(
-                      s"Difficulty: ${props.difficulty}, XP: ${encounter.info.xp}"
-                    ),
-                  Table.HeaderCell
-                    .colSpan(4)
-                    .singleLine(true)
-                    .textAlign(semanticUiReactStrings.right)(
-                      Button
-                        .compact(true)
-                        .icon(true)
-                        .title("Add NPC")
-                        .onClick(
-                          (
-                            _,
-                            _
-                          ) =>
-                            if (
-                              state.npcs.exists(npc =>
-                                !encounter.info.combatants.exists(c =>
-                                  c.isInstanceOf[NonPlayerCharacterCombatant] && c
-                                    .asInstanceOf[NonPlayerCharacterCombatant].nonPlayerCharacterId == npc.id
+            Table
+              .inverted(DND5eUI.tableInverted)
+              .color(DND5eUI.tableColor)(
+                Table.Header(
+                  Table.Row(
+                    Table.HeaderCell.colSpan(3)(<.h2(s"${encounter.header.name}")),
+                    Table.HeaderCell
+                      .colSpan(3).textAlign(semanticUiReactStrings.center)(
+                        s"Difficulty: ${props.difficulty}, XP: ${encounter.info.enemyXP(state.npcs)}"
+                      ),
+                    Table.HeaderCell
+                      .colSpan(4)
+                      .singleLine(true)
+                      .textAlign(semanticUiReactStrings.right)(
+                        Button
+                          .compact(true)
+                          .icon(true)
+                          .title("Add NPC")
+                          .onClick(
+                            (
+                              _,
+                              _
+                            ) =>
+                              if (
+                                state.npcs.exists(npc =>
+                                  !encounter.info.combatants.exists(c =>
+                                    c.isInstanceOf[NonPlayerCharacterCombatant] && c
+                                      .asInstanceOf[NonPlayerCharacterCombatant].nonPlayerCharacterId == npc.id
+                                  )
                                 )
+                              ) {
+                                $.modState(_.copy(isAddingNPC = true))
+                              } else {
+                                Callback.alert("There are no NPCs you can add, create one in the NPC page first!")
+                              }
+                          )(Icon.name(SemanticICONS.`add user`)),
+                        Button
+                          .compact(true)
+                          .icon(true)
+                          .title("Archive this encounter")
+                          .onClick(
+                            (
+                              _,
+                              _
+                            ) =>
+                              modEncounter(
+                                encounter.copy(header = encounter.header.copy(status = EncounterStatus.archived))
                               )
-                            ) {
-                              $.modState(_.copy(isAddingNPC = true))
-                            } else {
-                              Callback.alert("There are no NPCs you can add, create one in the NPC page first!")
-                            }
-                        )(Icon.name(SemanticICONS.`add user`)),
-                      Button
-                        .compact(true)
-                        .icon(true)
-                        .title("Archive this encounter")
-                        .onClick(
-                          (
-                            _,
-                            _
-                          ) =>
-                            modEncounter(
-                              encounter.copy(header = encounter.header.copy(status = EncounterStatus.archived))
-                            )
-                        )(Icon.name(SemanticICONS.`archive`)).when(
-                          encounter.header.status != EncounterStatus.archived
-                        ),
-                      Button
-                        .compact(true)
-                        .icon(true)
-                        .title("Delete this encounter")
-                        .onClick(
-                          (
-                            _,
-                            _
-                          ) =>
-                            _root_.components.Confirm.confirm(
-                              question = "Are you 100% sure you want to delete this encounter?",
-                              onConfirm = props.onDelete(encounter)
-                            )
-                        )(Icon.name(SemanticICONS.`trash`))
-                    )
+                          )(Icon.name(SemanticICONS.`archive`)).when(
+                            encounter.header.status != EncounterStatus.archived
+                          ),
+                        Button
+                          .compact(true)
+                          .icon(true)
+                          .title("Delete this encounter")
+                          .onClick(
+                            (
+                              _,
+                              _
+                            ) =>
+                              _root_.components.Confirm.confirm(
+                                question = "Are you 100% sure you want to delete this encounter?",
+                                onConfirm = props.onDelete(encounter)
+                              )
+                          )(Icon.name(SemanticICONS.`trash`))
+                      )
+                  ),
+                  Table.Row(
+                    Table.HeaderCell("Name"),
+                    Table.HeaderCell("Type"),
+                    Table.HeaderCell("Biome"),
+                    Table.HeaderCell("Alignment"),
+                    Table.HeaderCell("CR"),
+                    Table.HeaderCell("XP"),
+                    Table.HeaderCell("AC"),
+                    Table.HeaderCell("HP"),
+                    Table.HeaderCell("Size"),
+                    Table.HeaderCell( /*For actions*/ )
+                  )
                 ),
-                Table.Row(
-                  Table.HeaderCell("Name"),
-                  Table.HeaderCell("Type"),
-                  Table.HeaderCell("Biome"),
-                  Table.HeaderCell("Alignment"),
-                  Table.HeaderCell("CR"),
-                  Table.HeaderCell("XP"),
-                  Table.HeaderCell("AC"),
-                  Table.HeaderCell("HP"),
-                  Table.HeaderCell("Size"),
-                  Table.HeaderCell( /*For actions*/ )
+                Table.Body(
+                  encounter.info.combatants.sortBy(_.name).collect {
+                    case combatant: NonPlayerCharacterCombatant =>
+                      state.npcs
+                        .find(_.id == combatant.nonPlayerCharacterId)
+                        .fold(EmptyVdom) { npc =>
+                          Table.Row
+                            .withKey(s"combatant ${combatant.id.value}")(
+                              Table.Cell(combatant.name),
+                              Table.Cell(
+                                s"NPC (${npc.info.race.name},${npc.info.classes.map(_.characterClass.name).mkString(",")})"
+                              ),
+                              Table.Cell("-"),
+                              Table.Cell(npc.info.alignment.name),
+                              Table.Cell("-"),
+                              Table.Cell("-"),
+                              Table.Cell(npc.info.armorClass),
+                              Table.Cell(npc.info.health.maxHitPoints),
+                              Table.Cell(npc.info.size.toString.capitalize),
+                              Table.Cell.singleLine(true)(
+                                Button
+                                  .compact(true)
+                                  .size(SemanticSIZES.mini)
+                                  .title("Delete this combatant from the encounter")
+                                  .icon(true)
+                                  .onClick {
+                                    (
+                                      _,
+                                      _
+                                    ) =>
+                                      modEncounter(
+                                        encounter
+                                          .copy(jsonInfo =
+                                            encounter.info
+                                              .copy(combatants = encounter.info.combatants.filter(_.id != combatant.id))
+                                              .toJsonAST.toOption.get
+                                          )
+                                      )
+                                  }(Icon.name(SemanticICONS.`trash`))
+                                  .when(encounter.header.status != EncounterStatus.archived),
+                                Button
+                                  .title("View NPC stats")
+                                  .compact(true)
+                                  .size(SemanticSIZES.mini)
+                                  .icon(true)(Icon.name(SemanticICONS.`eye`))
+                                  .onClick(
+                                    (
+                                      _,
+                                      _
+                                    ) => $.modState(_.copy(viewNPCId = Some(npc.header.id)))
+                                  )
+                              )
+                            )
+                        }
+                    case combatant: MonsterCombatant =>
+                      Table.Row
+                        .withKey(s"combatant ${combatant.id.value}")(
+                          Table.Cell(
+                            EditableText(
+                              value = combatant.name,
+                              allowEditing = encounter.header.status != EncounterStatus.archived,
+                              onChange = name =>
+                                modEncounter(
+                                  encounter
+                                    .copy(jsonInfo =
+                                      encounter.info
+                                        .copy(combatants = encounter.info.combatants.map {
+                                          case monsterCombatant2: MonsterCombatant
+                                              if monsterCombatant2.id == combatant.id =>
+                                            monsterCombatant2.copy(name = name)
+                                          case c => c
+                                        }).toJsonAST.toOption.get
+                                    )
+                                )
+                            )
+                          ),
+                          Table.Cell(combatant.monsterHeader.monsterType.toString.capitalize),
+                          Table.Cell(combatant.monsterHeader.biome.fold("")(_.toString.capitalize)),
+                          Table.Cell(combatant.monsterHeader.alignment.fold("")(_.name)),
+                          Table.Cell(combatant.monsterHeader.cr.toString),
+                          Table.Cell(combatant.monsterHeader.xp),
+                          Table.Cell(
+                            EditableNumber(
+                              value = combatant.monsterHeader.armorClass,
+                              allowEditing = encounter.header.status != EncounterStatus.archived,
+                              min = 0,
+                              max = 30,
+                              onChange = v =>
+                                modEncounter {
+                                  encounter
+                                    .copy(jsonInfo =
+                                      encounter.info
+                                        .copy(combatants = encounter.info.combatants.map {
+                                          case monsterCombatant2: MonsterCombatant
+                                              if monsterCombatant2.id == combatant.id =>
+                                            monsterCombatant2.copy(armorClass = v.toInt)
+                                          case c => c
+                                        }).toJsonAST.toOption.get
+                                    )
+                                }
+                            )
+                          ),
+                          Table.Cell(
+                            EditableNumber(
+                              value = combatant.health.maxHitPoints,
+                              allowEditing = encounter.header.status != EncounterStatus.archived,
+                              min = 0,
+                              max = 1000,
+                              onChange = v =>
+                                modEncounter {
+                                  encounter
+                                    .copy(jsonInfo =
+                                      encounter.info
+                                        .copy(combatants = encounter.info.combatants.map {
+                                          case monsterCombatant2: MonsterCombatant
+                                              if monsterCombatant2.id == combatant.id =>
+                                            monsterCombatant2
+                                              .copy(health = monsterCombatant2.health.copy(maxHitPoints = v.toInt))
+                                          case c => c
+                                        }).toJsonAST.toOption.get
+                                    )
+                                }
+                            )
+                          ),
+                          Table.Cell(combatant.monsterHeader.size.toString.capitalize),
+                          Table.Cell.singleLine(true)(
+                            Button
+                              .compact(true)
+                              .size(SemanticSIZES.mini)
+                              .title("Delete this combatant from the encounter")
+                              .icon(true)
+                              .onClick {
+                                (
+                                  _,
+                                  _
+                                ) =>
+                                  modEncounter(
+                                    encounter
+                                      .copy(jsonInfo =
+                                        encounter.info
+                                          .copy(combatants = encounter.info.combatants.filter(_.id != combatant.id))
+                                          .toJsonAST.toOption.get
+                                      )
+                                  )
+                              }(Icon.name(SemanticICONS.`trash`))
+                              .when(encounter.header.status != EncounterStatus.archived),
+                            Button
+                              .compact(true)
+                              .size(SemanticSIZES.mini)
+                              .title("More of this combatant!")
+                              .onClick {
+                                (
+                                  _,
+                                  _
+                                ) =>
+                                  modEncounter(
+                                    encounter
+                                      .copy(jsonInfo =
+                                        encounter.info
+                                          .copy(combatants =
+                                            encounter.info.combatants :+
+                                              createMonsterCombatant(encounter, combatant.monsterHeader)
+                                          )
+                                          .toJsonAST.toOption.get
+                                      )
+                                  )
+                              }
+                              .icon(true)(Icon.name(SemanticICONS.`clone outline`))
+                              .when(encounter.header.status != EncounterStatus.archived),
+                            Button
+                              .title("View Monster Stat Block")
+                              .compact(true)
+                              .size(SemanticSIZES.mini)
+                              .icon(true)(Icon.name(SemanticICONS.`eye`))
+                              .onClick(
+                                (
+                                  _,
+                                  _
+                                ) => $.modState(_.copy(viewMonsterId = Some(combatant.monsterHeader.id)))
+                              )
+                          )
+                        )
+                  }*
                 )
               ),
-              Table.Body(
-                encounter.info.combatants.sortBy(_.name).collect {
-                  case combatant: NonPlayerCharacterCombatant =>
-                    state.npcs
-                      .find(_.id == combatant.nonPlayerCharacterId)
-                      .fold(EmptyVdom) { npc =>
-                        Table.Row
-                          .withKey(s"combatant ${combatant.id.value}")(
-                            Table.Cell(combatant.name),
-                            Table.Cell(
-                              s"NPC (${npc.info.race.name},${npc.info.classes.map(_.characterClass.name).mkString(",")})"
-                            ),
-                            Table.Cell("-"),
-                            Table.Cell(npc.info.alignment.name),
-                            Table.Cell("-"),
-                            Table.Cell("-"),
-                            Table.Cell(npc.info.armorClass),
-                            Table.Cell(npc.info.health.maxHitPoints),
-                            Table.Cell(npc.info.size.toString.capitalize),
-                            Table.Cell.singleLine(true)(
-                              Button
-                                .compact(true)
-                                .size(SemanticSIZES.mini)
-                                .title("Delete this combatant from the encounter")
-                                .icon(true)
-                                .onClick {
-                                  (
-                                    _,
-                                    _
-                                  ) =>
-                                    modEncounter(
-                                      encounter
-                                        .copy(jsonInfo =
-                                          encounter.info
-                                            .copy(combatants = encounter.info.combatants.filter(_.id != combatant.id))
-                                            .toJsonAST.toOption.get
-                                        )
-                                    )
-                                }(Icon.name(SemanticICONS.`trash`))
-                                .when(encounter.header.status != EncounterStatus.archived),
-                              Button
-                                .title("View NPC stats")
-                                .compact(true)
-                                .size(SemanticSIZES.mini)
-                                .icon(true)(Icon.name(SemanticICONS.`eye`))
-                                .onClick(
-                                  (
-                                    _,
-                                    _
-                                  ) => $.modState(_.copy(viewNPCId = Some(npc.header.id)))
-                                )
-                            )
-                          )
-                      }
-                  case combatant: MonsterCombatant =>
-                    Table.Row
-                      .withKey(s"combatant ${combatant.id.value}")(
-                        Table.Cell(
-                          EditableText(
-                            value = combatant.name,
-                            allowEditing = encounter.header.status != EncounterStatus.archived,
-                            onChange = name =>
-                              modEncounter(
-                                encounter
-                                  .copy(jsonInfo =
-                                    encounter.info
-                                      .copy(combatants = encounter.info.combatants.map {
-                                        case monsterCombatant2: MonsterCombatant
-                                            if monsterCombatant2.id == combatant.id =>
-                                          monsterCombatant2.copy(name = name)
-                                        case c => c
-                                      }).toJsonAST.toOption.get
-                                  )
-                              )
-                          )
-                        ),
-                        Table.Cell(combatant.monsterHeader.monsterType.toString.capitalize),
-                        Table.Cell(combatant.monsterHeader.biome.fold("")(_.toString.capitalize)),
-                        Table.Cell(combatant.monsterHeader.alignment.fold("")(_.name)),
-                        Table.Cell(combatant.monsterHeader.cr.toString),
-                        Table.Cell(combatant.monsterHeader.xp),
-                        Table.Cell(
-                          EditableNumber(
-                            value = combatant.monsterHeader.armorClass,
-                            allowEditing = encounter.header.status != EncounterStatus.archived,
-                            min = 0,
-                            max = 30,
-                            onChange = v =>
-                              modEncounter {
-                                encounter
-                                  .copy(jsonInfo =
-                                    encounter.info
-                                      .copy(combatants = encounter.info.combatants.map {
-                                        case monsterCombatant2: MonsterCombatant
-                                            if monsterCombatant2.id == combatant.id =>
-                                          monsterCombatant2.copy(armorClass = v.toInt)
-                                        case c => c
-                                      }).toJsonAST.toOption.get
-                                  )
-                              }
-                          )
-                        ),
-                        Table.Cell(
-                          EditableNumber(
-                            value = combatant.health.maxHitPoints,
-                            allowEditing = encounter.header.status != EncounterStatus.archived,
-                            min = 0,
-                            max = 1000,
-                            onChange = v =>
-                              modEncounter {
-                                encounter
-                                  .copy(jsonInfo =
-                                    encounter.info
-                                      .copy(combatants = encounter.info.combatants.map {
-                                        case monsterCombatant2: MonsterCombatant
-                                            if monsterCombatant2.id == combatant.id =>
-                                          monsterCombatant2
-                                            .copy(health = monsterCombatant2.health.copy(maxHitPoints = v.toInt))
-                                        case c => c
-                                      }).toJsonAST.toOption.get
-                                  )
-                              }
-                          )
-                        ),
-                        Table.Cell(combatant.monsterHeader.size.toString.capitalize),
-                        Table.Cell.singleLine(true)(
-                          Button
-                            .compact(true)
-                            .size(SemanticSIZES.mini)
-                            .title("Delete this combatant from the encounter")
-                            .icon(true)
-                            .onClick {
-                              (
-                                _,
-                                _
-                              ) =>
-                                modEncounter(
-                                  encounter
-                                    .copy(jsonInfo =
-                                      encounter.info
-                                        .copy(combatants = encounter.info.combatants.filter(_.id != combatant.id))
-                                        .toJsonAST.toOption.get
-                                    )
-                                )
-                            }(Icon.name(SemanticICONS.`trash`))
-                            .when(encounter.header.status != EncounterStatus.archived),
-                          Button
-                            .compact(true)
-                            .size(SemanticSIZES.mini)
-                            .title("More of this combatant!")
-                            .onClick {
-                              (
-                                _,
-                                _
-                              ) =>
-                                modEncounter(
-                                  encounter
-                                    .copy(jsonInfo =
-                                      encounter.info
-                                        .copy(combatants =
-                                          encounter.info.combatants :+
-                                            createMonsterCombatant(encounter, combatant.monsterHeader)
-                                        )
-                                        .toJsonAST.toOption.get
-                                    )
-                                )
-                            }
-                            .icon(true)(Icon.name(SemanticICONS.`clone outline`))
-                            .when(encounter.header.status != EncounterStatus.archived),
-                          Button
-                            .title("View Monster Stat Block")
-                            .compact(true)
-                            .size(SemanticSIZES.mini)
-                            .icon(true)(Icon.name(SemanticICONS.`eye`))
-                            .onClick(
-                              (
-                                _,
-                                _
-                              ) => $.modState(_.copy(viewMonsterId = Some(combatant.monsterHeader.id)))
-                            )
-                        )
-                      )
-                }*
-              )
-            ),
             Divider.section(true),
             // ENHANCEMENT move this into a component of it's own
             Table
+              .inverted(DND5eUI.tableInverted)
+              .color(DND5eUI.tableColor)
               .sortable(true)(
                 Table.Header(
                   Table.Row( // Search Row
@@ -647,7 +651,8 @@ object EncounterEditor {
                           ),
                           Form.Field(
                             Label("Biome"),
-                            Dropdown()
+                            Form
+                              .Dropdown()
                               .compact(true)
                               .search(false)
                               .clearable(true)
@@ -675,7 +680,8 @@ object EncounterEditor {
                           ),
                           Form.Field(
                             Label("Aligment"),
-                            Dropdown()
+                            Form
+                              .Dropdown()
                               .compact(true)
                               .search(false)
                               .clearable(true)
@@ -701,7 +707,8 @@ object EncounterEditor {
                           ),
                           Form.Field(
                             Label("CR"),
-                            Dropdown()
+                            Form
+                              .Dropdown()
                               .compact(true)
                               .search(false)
                               .clearable(true)
@@ -727,7 +734,8 @@ object EncounterEditor {
                           ),
                           Form.Field(
                             Label("Size"),
-                            Dropdown()
+                            Form
+                              .Dropdown()
                               .compact(true)
                               .search(false)
                               .clearable(true)
@@ -761,27 +769,27 @@ object EncounterEditor {
                     Table.HeaderCell
                       .sorted(
                         state.monsterSearch.orderCol
-                          .toReactSoreDirection(MonsterSearchOrder.name, state.monsterSearch.orderDir)
+                          .toReactSortDirection(MonsterSearchOrder.name, state.monsterSearch.orderDir)
                       ).onClick(_ => changeSort(MonsterSearchOrder.name))("Name"),
                     Table.HeaderCell
                       .sorted(
                         state.monsterSearch.orderCol
-                          .toReactSoreDirection(MonsterSearchOrder.monsterType, state.monsterSearch.orderDir)
+                          .toReactSortDirection(MonsterSearchOrder.monsterType, state.monsterSearch.orderDir)
                       ).onClick(_ => changeSort(MonsterSearchOrder.monsterType))("Type"),
                     Table.HeaderCell
                       .sorted(
                         state.monsterSearch.orderCol
-                          .toReactSoreDirection(MonsterSearchOrder.biome, state.monsterSearch.orderDir)
+                          .toReactSortDirection(MonsterSearchOrder.biome, state.monsterSearch.orderDir)
                       ).onClick(_ => changeSort(MonsterSearchOrder.biome))("Biome"),
                     Table.HeaderCell
                       .sorted(
                         state.monsterSearch.orderCol
-                          .toReactSoreDirection(MonsterSearchOrder.alignment, state.monsterSearch.orderDir)
+                          .toReactSortDirection(MonsterSearchOrder.alignment, state.monsterSearch.orderDir)
                       ).onClick(_ => changeSort(MonsterSearchOrder.alignment))("Alignment"),
                     Table.HeaderCell
                       .sorted(
                         state.monsterSearch.orderCol
-                          .toReactSoreDirection(MonsterSearchOrder.challengeRating, state.monsterSearch.orderDir)
+                          .toReactSortDirection(MonsterSearchOrder.challengeRating, state.monsterSearch.orderDir)
                       ).onClick(_ => changeSort(MonsterSearchOrder.challengeRating))("CR"),
                     Table.HeaderCell("XP"),
                     Table.HeaderCell("AC"),
@@ -789,7 +797,7 @@ object EncounterEditor {
                     Table.HeaderCell
                       .sorted(
                         state.monsterSearch.orderCol
-                          .toReactSoreDirection(MonsterSearchOrder.size, state.monsterSearch.orderDir)
+                          .toReactSortDirection(MonsterSearchOrder.size, state.monsterSearch.orderDir)
                       ).onClick(_ => changeSort(MonsterSearchOrder.size))("Size"),
                     Table.HeaderCell( /*For actions*/ )
                   )
@@ -920,12 +928,12 @@ object EncounterEditor {
     .builder[Props]("EncounterEditor")
     .initialState(State())
     .renderBackend[Backend]
-    .componentDidMount($ => $.backend.initializeState)
+    .componentDidMount($ => $.backend.loadState)
     .build
 
   def apply(
     encounter:  Encounter,
-    difficulty: EncounterDifficulty,
+    difficulty: EncounterDifficultyLevel,
     onDelete:   Encounter => Callback = _ => Callback.empty,
     onChange:   Encounter => Callback = _ => Callback.empty
   ): Unmounted[Props, State, Backend] =

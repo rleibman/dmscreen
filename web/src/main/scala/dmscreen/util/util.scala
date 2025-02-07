@@ -39,5 +39,12 @@ extension (value: js.UndefOr[String | js.Array[String] | Double]) {
       case a: js.Array[String] => a.headOption.fold(default)(_.toIntOption.getOrElse(default))
       case _: Unit             => default
     }
+  def asLong(default: Long = 0): Long =
+    value match {
+      case s: String           => s.toLongOption.getOrElse(default)
+      case d: Double           => d.toLong
+      case a: js.Array[String] => a.headOption.fold(default)(_.toLongOption.getOrElse(default))
+      case _: Unit             => default
+    }
 
 }

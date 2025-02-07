@@ -67,7 +67,7 @@ case class DND5eCampaignState(
               .mkString(",")}, npcs = ${changeStack.npcs.keys.mkString(",")}, scenes = ${changeStack.scenes.keys
               .mkString(",")}, encounters = ${changeStack.encounters.keys.mkString(",")})"
         ).asAsyncCallback
-      campaign <- DMScreenGraphQLRepository.live
+      _ <- DMScreenGraphQLRepository.live
         .upsert(campaign.header, campaign.jsonInfo)
         .when(changeStack.campaign)
       _ <- AsyncCallback.traverse(changeStack.pcs.values)(pc =>

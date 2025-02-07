@@ -62,8 +62,8 @@ object Toast {
 
     def toastMsg(
       message:   VdomNode,
-      icon:      UndefOr[SemanticICONS],
-      className: String,
+      icon:      UndefOr[SemanticICONS] = js.undefined,
+      className: String = "toast",
       duration:  Duration = 6 seconds,
       position:  (VerticalPosition, HorizontalPosition) = (top, right),
       autoHide:  Boolean = true,
@@ -179,8 +179,8 @@ object Toast {
 
   def toast(
     message:   VdomNode,
-    icon:      UndefOr[SemanticICONS],
-    className: String,
+    icon:      UndefOr[SemanticICONS] = js.undefined,
+    className: String = "toast",
     duration:  Duration = 6 seconds,
     position:  (VerticalPosition, HorizontalPosition) = (top, right),
     autoHide:  Boolean = true,

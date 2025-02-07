@@ -43,6 +43,8 @@ trait DND5eZIORepository extends DND5eRepository[DMScreenTask]
 
 object DND5eSchema {
 
+  given MappedEncoding[Long, RandomTableId] = MappedEncoding[Long, RandomTableId](RandomTableId.apply)
+  given MappedEncoding[RandomTableId, Long] = MappedEncoding[RandomTableId, Long](_.value)
   given MappedEncoding[Long, MonsterId] = MappedEncoding[Long, MonsterId](MonsterId.apply)
   given MappedEncoding[MonsterId, Long] = MappedEncoding[MonsterId, Long](_.value)
   given MappedEncoding[Long, SceneId] = MappedEncoding[Long, SceneId](SceneId.apply)
@@ -68,6 +70,20 @@ object DND5eSchema {
   given MappedEncoding[String, Biome] = MappedEncoding[String, Biome](Biome.valueOf)
   given MappedEncoding[EncounterStatus, String] = MappedEncoding[EncounterStatus, String](_.toString)
   given MappedEncoding[String, EncounterStatus] = MappedEncoding[String, EncounterStatus](EncounterStatus.valueOf)
+  given MappedEncoding[TreasureTheme, String] = MappedEncoding[TreasureTheme, String](_.toString)
+  given MappedEncoding[String, TreasureTheme] =
+    MappedEncoding[String, TreasureTheme](s =>
+      TreasureTheme.values.find(_.toString.equalsIgnoreCase(s)).getOrElse(TreasureTheme.other)
+    )
+  given MappedEncoding[TreasureRarity, String] = MappedEncoding[TreasureRarity, String](_.toString)
+  given MappedEncoding[String, TreasureRarity] =
+    MappedEncoding[String, TreasureRarity](s =>
+      TreasureRarity.values.find(_.toString.equalsIgnoreCase(s)).getOrElse(TreasureRarity.common)
+    )
+  given MappedEncoding[DiceRoll, String] = MappedEncoding[DiceRoll, String](_.roll)
+  given MappedEncoding[String, DiceRoll] = MappedEncoding[String, DiceRoll](DiceRoll.apply)
+  given MappedEncoding[RandomTableType, String] = MappedEncoding[RandomTableType, String](_.toString)
+  given MappedEncoding[String, RandomTableType] = MappedEncoding[String, RandomTableType](RandomTableType.valueOf)
 
   inline def qScenes =
     quote {
@@ -109,6 +125,50 @@ object DND5eSchema {
         _.value.jsonInfo          -> "info",
         _.value.version           -> "version",
         _.deleted                 -> "deleted"
+      )
+    }
+
+  case class RandomTableRow(
+    id:        RandomTableId,
+    name:      String,
+    tableType: RandomTableType,
+    subType:   String,
+    diceRoll:  DiceRoll
+  ) {
+
+    def toRandomTable(entries: List[RandomTableEntry]): RandomTable =
+      RandomTable(
+        id = id,
+        name = name,
+        tableType = tableType,
+        subType = subType,
+        diceRoll = diceRoll,
+        entries = entries
+      )
+
+  }
+
+  inline def qRandomTable =
+    quote {
+      querySchema[RandomTableRow](
+        "DND5eRandomTable",
+        _.id        -> "id",
+        _.name      -> "name",
+        _.tableType -> "tableType",
+        _.subType   -> "subType",
+        _.diceRoll  -> "diceRoll"
+      )
+    }
+
+  inline def qRandomTableEntry =
+    quote {
+      querySchema[RandomTableEntry](
+        "DND5eRandomTableEntry",
+        _.randomTableId -> "tableId",
+        _.rangeLow      -> "rangeLow",
+        _.rangeHigh     -> "rangeHigh",
+        _.name          -> "name",
+        _.description   -> "description"
       )
     }
 
@@ -187,6 +247,33 @@ object QuillRepository {
 
         import DND5eSchema.{*, given}
 
+        val lower = quote { (str: RandomTableType) =>
+          sql"LOWER($str)".pure.as[String]
+        }
+
+        override def randomTables(tableTypeOpt: Option[RandomTableType]): DMScreenTask[Seq[RandomTable]] = {
+          val q: Quoted[EntityQuery[RandomTableRow]] = tableTypeOpt.fold(qRandomTable)(t =>
+            qRandomTable.filter(v => lower(v.tableType) == lift(t.toString.toLowerCase))
+          )
+
+          ctx
+            .run(q).map(_.map(_.toRandomTable(List.empty)))
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+        }
+
+        override def randomTable(id: RandomTableId): DMScreenTask[Option[RandomTable]] = {
+          ctx.transaction(
+            for {
+              tableOpt <- ctx.run(qRandomTable.filter(_.id == lift(id)).take(1)).map(_.headOption)
+              rows <- tableOpt.fold(ZIO.succeed(List.empty))(table =>
+                ctx.run(qRandomTableEntry.filter(_.randomTableId == lift(table.id)))
+              )
+            } yield tableOpt.map(_.toRandomTable(entries = rows))
+          )
+        }.provideLayer(dataSourceLayer)
+          .mapError(RepositoryError.apply)
+
         override def monster(monsterId: MonsterId): DMScreenTask[Option[Monster]] =
           ctx
             .run(qMonsters.filter(v => !v.deleted && v.value.header.id == lift(monsterId)))
@@ -233,6 +320,18 @@ object QuillRepository {
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
         }
 
+        override def scene(id: SceneId): DMScreenTask[Option[Scene]] =
+          ctx
+            .run(
+              qScenes
+                .filter(v => !v.deleted && v.value.header.id == lift(id))
+                .take(1)
+            )
+            .map(_.map(_.value).headOption)
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+
         override def scenes(campaignId: CampaignId): IO[DMScreenError, Seq[Scene]] =
           ctx
             .run(
@@ -264,6 +363,72 @@ object QuillRepository {
             .provideLayer(dataSourceLayer)
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+
+        override def fullBestiary(search: MonsterSearch): IO[DMScreenError, FullMonsterSearchResults] = {
+          val q0: Quoted[EntityQuery[DBObject[Monster]]] = qMonsters.filter(v => !v.deleted)
+          val q1: Quoted[EntityQuery[DBObject[Monster]]] =
+            search.name.fold(q0)(n => q0.filter(_.value.header.name like lift(s"%$n%")))
+          val q2: Quoted[EntityQuery[DBObject[Monster]]] =
+            search.challengeRating.fold(q1)(n => q1.filter(_.value.header.cr == lift(n)))
+          val q3: Quoted[EntityQuery[DBObject[Monster]]] =
+            search.monsterType.fold(q2)(n => q2.filter(_.value.header.monsterType == lift(n)))
+          val q4: Quoted[EntityQuery[DBObject[Monster]]] =
+            search.biome.fold(q3)(n => q3.filter(_.value.header.biome.contains(lift(n))))
+          val q5: Quoted[EntityQuery[DBObject[Monster]]] =
+            search.alignment.fold(q4)(n => q4.filter(_.value.header.alignment.contains(lift(n))))
+          val q6: Quoted[EntityQuery[DBObject[Monster]]] =
+            search.size.fold(q5)(n => q5.filter(_.value.header.size == lift(n)))
+
+          // If sort is random, then it's a bit more complex, for now, we do it the simple (but non-performing) way, read this
+          // https://jan.kneschke.de/projects/mysql/order-by-rand/
+          // ^^ use the stored procedure
+
+          val limited = quote(
+            q6
+              .drop(lift(search.page * search.pageSize))
+              .take(lift(search.pageSize))
+          )
+
+          val sorted: Quoted[Query[DBObject[Monster]]] = (search.orderCol, search.orderDir) match {
+            case (MonsterSearchOrder.challengeRating, OrderDirection.asc) =>
+              quote(limited.sortBy(r => r.value.header.cr)(Ord.asc))
+            case (MonsterSearchOrder.challengeRating, OrderDirection.desc) =>
+              quote(limited.sortBy(r => r.value.header.cr)(Ord.desc))
+            case (MonsterSearchOrder.size, OrderDirection.asc) =>
+              quote(limited.sortBy(r => r.value.header.size)(Ord.asc))
+            case (MonsterSearchOrder.size, OrderDirection.desc) =>
+              quote(limited.sortBy(r => r.value.header.size)(Ord.desc))
+            case (MonsterSearchOrder.alignment, OrderDirection.asc) =>
+              quote(limited.sortBy(r => r.value.header.alignment)(Ord.asc))
+            case (MonsterSearchOrder.alignment, OrderDirection.desc) =>
+              quote(limited.sortBy(r => r.value.header.alignment)(Ord.desc))
+            case (MonsterSearchOrder.biome, OrderDirection.asc) =>
+              quote(limited.sortBy(r => r.value.header.biome)(Ord.asc))
+            case (MonsterSearchOrder.biome, OrderDirection.desc) =>
+              quote(limited.sortBy(r => r.value.header.biome)(Ord.desc))
+            case (MonsterSearchOrder.monsterType, OrderDirection.asc) =>
+              quote(limited.sortBy(r => r.value.header.monsterType)(Ord.asc))
+            case (MonsterSearchOrder.monsterType, OrderDirection.desc) =>
+              quote(limited.sortBy(r => r.value.header.monsterType)(Ord.desc))
+            case (MonsterSearchOrder.random, OrderDirection.asc) =>
+              quote(limited.sortBy(_ => infix"RAND()"))
+            case (_, OrderDirection.asc) =>
+              quote(limited.sortBy(r => r.value.header.name)(Ord.asc))
+            case (_, OrderDirection.desc) =>
+              quote(limited.sortBy(r => r.value.header.name)(Ord.desc))
+          }
+
+          (for {
+            monsters <- ctx.run(sorted)
+            total    <- ctx.run(q6.size)
+          } yield FullMonsterSearchResults(
+            results = monsters.map(_.value),
+            total = total
+          ))
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+        }
 
         override def bestiary(search: MonsterSearch): IO[DMScreenError, MonsterSearchResults] = {
           val q0: Quoted[EntityQuery[DBObject[Monster]]] = qMonsters.filter(v => !v.deleted)

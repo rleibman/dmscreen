@@ -34,7 +34,7 @@ trait HasId[Id] {
 
 trait EntityType[EntityId] {
 
-  def name: String
+  def name:               String
   def createId(id: Long): EntityId
 
 }

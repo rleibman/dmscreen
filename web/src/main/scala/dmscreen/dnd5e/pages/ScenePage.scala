@@ -51,7 +51,7 @@ object ScenePage extends DMScreenTab {
     def loadState(campaignId: CampaignId): Callback = {
       DND5eGraphQLRepository.live
         .scenes(campaignId)
-        .map(scenes => Callback.log(s"Yo, got ${scenes.size} scenes") >> $.modState(_.copy(scenes = scenes)))
+        .map(scenes => $.modState(_.copy(scenes = scenes)))
         .completeWith(_.get)
     }
 
@@ -116,225 +116,229 @@ object ScenePage extends DMScreenTab {
           val activeSceneId = state.scenes.find(_.header.isActive).map(_.header.id).getOrElse(SceneId.empty)
           VdomArray(
             state.editingScene.fold(EmptyVdom)(EditModal),
-            Table.withKey("SceneTable")(
-              Table.Header.withKey("SceneTableHeader")(
-                Table.Row.withKey("title")(
-                  Table.HeaderCell.colSpan(2)(Header.as("h1")("Scenes")),
-                  Table.HeaderCell(
-                    Button
-                      .title("Add Scene")
-                      .compact(true)
-                      .onClick(
-                        (
-                          _,
-                          _
-                        ) => {
-                          val orderCol = state.scenes.size
-                          val newScene = Scene(
-                            header = SceneHeader(
-                              id = SceneId.empty,
-                              campaignId = campaign.header.id,
-                              name = s"Scene #${orderCol + 1}",
-                              orderCol = orderCol,
-                              isActive = false
-                            ),
-                            jsonInfo = SceneInfo().toJsonAST.toOption.get
-                          )
-
-                          DND5eGraphQLRepository.live
-                            .upsert(header = newScene.header, info = newScene.jsonInfo)
-                            .map(id =>
-                              $.modState(
-                                s =>
-                                  s.copy(
-                                    s.scenes :+ newScene.copy(header = newScene.header.copy(id = id)),
-                                    editingScene = Some(newScene.copy(header = newScene.header.copy(id = id)))
-                                  ),
-                                dmScreenState.log(s"Added a new scene")
-                              )
+            Table
+              .inverted(DND5eUI.tableInverted)
+              .color(DND5eUI.tableColor)
+              .withKey("SceneTable")(
+                Table.Header.withKey("SceneTableHeader")(
+                  Table.Row.withKey("title")(
+                    Table.HeaderCell.colSpan(2)(Header.as("h1")("Scenes")),
+                    Table.HeaderCell(
+                      Button
+                        .title("Add Scene")
+                        .compact(true)
+                        .onClick(
+                          (
+                            _,
+                            _
+                          ) => {
+                            val orderCol = state.scenes.size
+                            val newScene = Scene(
+                              header = SceneHeader(
+                                id = SceneId.empty,
+                                campaignId = campaign.header.id,
+                                name = s"Scene #${orderCol + 1}",
+                                orderCol = orderCol,
+                                isActive = false
+                              ),
+                              jsonInfo = SceneInfo().toJsonAST.toOption.get
                             )
-                            .completeWith(_.get)
-                        }
-                      )
-                      .icon(true)(Icon.name(SemanticICONS.`plus circle`))
+
+                            DND5eGraphQLRepository.live
+                              .upsert(header = newScene.header, info = newScene.jsonInfo)
+                              .map(id =>
+                                $.modState(
+                                  s =>
+                                    s.copy(
+                                      s.scenes :+ newScene.copy(header = newScene.header.copy(id = id)),
+                                      editingScene = Some(newScene.copy(header = newScene.header.copy(id = id)))
+                                    ),
+                                  dmScreenState.log(s"Added a new scene")
+                                )
+                              )
+                              .completeWith(_.get)
+                          }
+                        )
+                        .icon(true)(Icon.name(SemanticICONS.`plus circle`))
+                    )
+                  ),
+                  Table.Row.withKey("headerCells")(
+                    Table.HeaderCell.width(SemanticWIDTHS.`1`)("Active"),
+                    Table.HeaderCell("Name"),
+                    Table.HeaderCell("")
                   )
                 ),
-                Table.Row.withKey("headerCells")(
-                  Table.HeaderCell.width(SemanticWIDTHS.`1`)("Active"),
-                  Table.HeaderCell("Name"),
-                  Table.HeaderCell("")
-                )
-              ),
-              Table.Body.withKey("SceneTableBody")(
-                state.scenes
-                  .sortBy(_.header.orderCol)
-                  .map(scene => {
-                    Table.Row.withKey(s"scene${scene.header.id.value}")(
-                      Table.Cell(
-                        Radio
-                          .name("activeScene") // This is required so that the radio buttons work correctly
-                          .checked(activeSceneId == scene.header.id)
-                          .value(scene.header.id.value.toDouble)
-                          .onChange {
-                            (
-                              _,
-                              d
-                            ) =>
-                              modScene(
-                                scene = scene.copy(header = scene.header.copy(isActive = d.checked.getOrElse(false))),
-                                ""
-                              )
-                          }
-                      ),
-                      Table.Cell(
-                        <.p(
-                          ^.fontWeight.bold,
-                          ^.fontSize.larger,
-                          EditableText(
-                            value = scene.header.name,
-                            onChange = newValue => modScene(scene.copy(header = scene.header.copy(name = newValue)), "")
+                Table.Body.withKey("SceneTableBody")(
+                  state.scenes
+                    .sortBy(_.header.orderCol)
+                    .map(scene => {
+                      Table.Row.withKey(s"scene${scene.header.id.value}")(
+                        Table.Cell(
+                          Radio
+                            .name("activeScene") // This is required so that the radio buttons work correctly
+                            .checked(activeSceneId == scene.header.id)
+                            .value(scene.header.id.value.toDouble)
+                            .onChange {
+                              (
+                                _,
+                                d
+                              ) =>
+                                modScene(
+                                  scene = scene.copy(header = scene.header.copy(isActive = d.checked.getOrElse(false))),
+                                  ""
+                                )
+                            }
+                        ),
+                        Table.Cell(
+                          <.p(
+                            ^.fontWeight.bold,
+                            ^.fontSize.larger,
+                            EditableText(
+                              value = scene.header.name,
+                              onChange =
+                                newValue => modScene(scene.copy(header = scene.header.copy(name = newValue)), "")
+                            )
+                          ),
+                          <.p(
+                            ^.dangerouslySetInnerHtml := scene.info.notes.trim
                           )
                         ),
-                        <.p(
-                          ^.dangerouslySetInnerHtml := scene.info.notes.trim
-                        )
-                      ),
-                      Table.Cell(
-                        Button()
-                          .compact(true).size(SemanticSIZES.mini).icon(true).onClick(
-                            (
-                              _,
-                              _
-                            ) => $.modState(_.copy(editingScene = Some(scene)))
-                          )(Icon.name(SemanticICONS.`edit`)).title(
-                            "Edit Scene"
-                          ),
-                        Button()
-                          .compact(true).size(SemanticSIZES.mini).icon(true).onClick(
-                            (
-                              _,
-                              _
-                            ) =>
-                              _root_.components.Confirm.confirm(
-                                question = s"Are you sure you want to delete this scene (${scene.header.name})?",
-                                onConfirm = DND5eGraphQLRepository.live
-                                  .deleteEntity(entityType = DND5eEntityType.scene, id = scene.header.id)
-                                  .map(_ =>
-                                    $.modState(
-                                      s =>
-                                        s.copy(
-                                          scenes = s.scenes
-                                            .filterNot(_.header.id == scene.header.id)
-                                            .sortBy(_.header.orderCol)
-                                            .zipWithIndex
-                                            .map(
-                                              (
-                                                scene,
-                                                index
-                                              ) => scene.copy(header = scene.header.copy(orderCol = index))
-                                            )
+                        Table.Cell(
+                          Button()
+                            .compact(true).size(SemanticSIZES.mini).icon(true).onClick(
+                              (
+                                _,
+                                _
+                              ) => $.modState(_.copy(editingScene = Some(scene)))
+                            )(Icon.name(SemanticICONS.`edit`)).title(
+                              "Edit Scene"
+                            ),
+                          Button()
+                            .compact(true).size(SemanticSIZES.mini).icon(true).onClick(
+                              (
+                                _,
+                                _
+                              ) =>
+                                _root_.components.Confirm.confirm(
+                                  question = s"Are you sure you want to delete this scene (${scene.header.name})?",
+                                  onConfirm = DND5eGraphQLRepository.live
+                                    .deleteEntity(entityType = DND5eEntityType.scene, id = scene.header.id)
+                                    .map(_ =>
+                                      $.modState(
+                                        s =>
+                                          s.copy(
+                                            scenes = s.scenes
+                                              .filterNot(_.header.id == scene.header.id)
+                                              .sortBy(_.header.orderCol)
+                                              .zipWithIndex
+                                              .map(
+                                                (
+                                                  scene,
+                                                  index
+                                                ) => scene.copy(header = scene.header.copy(orderCol = index))
+                                              )
+                                          ),
+                                        dmScreenState.log(s"Deleted scene ${scene.header.name}")
+                                      )
+                                    )
+                                    .completeWith(_.get)
+                                )
+                            )(Icon.name(SemanticICONS.trash)).title(
+                              "Delete Scene"
+                            ),
+                          Button()
+                            .compact(true).size(SemanticSIZES.mini).icon(true).onClick {
+                              (
+                                _,
+                                _
+                              ) =>
+                                val changedScenes: Seq[(Scene, Option[Scene])] = state.scenes
+                                  .map { s =>
+                                    if (s.header.orderCol == scene.header.orderCol)
+                                      (
+                                        s.copy(header = s.header.copy(orderCol = s.header.orderCol - 1)),
+                                        Option(s)
+                                      )
+                                    else if (s.header.orderCol == scene.header.orderCol - 1)
+                                      (
+                                        s.copy(header = s.header.copy(orderCol = s.header.orderCol + 1)),
+                                        Option(s)
+                                      )
+                                    else
+                                      (s, None)
+                                  }
+
+                                val changedScenesOnly = changedScenes.flatMap(_._2)
+
+                                $.modState(
+                                  state => {
+                                    state.copy(
+                                      scenes = changedScenes.map(_._1)
+                                    )
+                                  },
+                                  $.state.flatMap(_ =>
+                                    dmScreenState.onModifyCampaignState(
+                                      // enhancement, we only need to add the scenes that changed, but for now this is easier to write
+                                      campaignState
+                                        .copy(changeStack =
+                                          campaignState.changeStack.logSceneChanges(changedScenesOnly*)
                                         ),
-                                      dmScreenState.log(s"Deleted scene ${scene.header.name}")
+                                      ""
                                     )
-                                  )
-                                  .completeWith(_.get)
-                              )
-                          )(Icon.name(SemanticICONS.trash)).title(
-                            "Delete Scene"
-                          ),
-                        Button()
-                          .compact(true).size(SemanticSIZES.mini).icon(true).onClick {
-                            (
-                              _,
-                              _
-                            ) =>
-                              val changedScenes: Seq[(Scene, Option[Scene])] = state.scenes
-                                .map { s =>
-                                  if (s.header.orderCol == scene.header.orderCol)
-                                    (
-                                      s.copy(header = s.header.copy(orderCol = s.header.orderCol - 1)),
-                                      Option(s)
-                                    )
-                                  else if (s.header.orderCol == scene.header.orderCol - 1)
-                                    (
-                                      s.copy(header = s.header.copy(orderCol = s.header.orderCol + 1)),
-                                      Option(s)
-                                    )
-                                  else
-                                    (s, None)
-                                }
-
-                              val changedScenesOnly = changedScenes.flatMap(_._2)
-
-                              $.modState(
-                                state => {
-                                  state.copy(
-                                    scenes = changedScenes.map(_._1)
-                                  )
-                                },
-                                $.state.flatMap(_ =>
-                                  dmScreenState.onModifyCampaignState(
-                                    // enhancement, we only need to add the scenes that changed, but for now this is easier to write
-                                    campaignState
-                                      .copy(changeStack =
-                                        campaignState.changeStack.logSceneChanges(changedScenesOnly*)
-                                      ),
-                                    ""
                                   )
                                 )
-                              )
-                          }(Icon.name(SemanticICONS.`arrow up`)).title(
-                            "Move Up"
-                          ).disabled(!(scene.header.orderCol > 0)),
-                        Button()
-                          .compact(true).size(SemanticSIZES.mini).icon(true).onClick {
-                            (
-                              _,
-                              _
-                            ) =>
+                            }(Icon.name(SemanticICONS.`arrow up`)).title(
+                              "Move Up"
+                            ).disabled(!(scene.header.orderCol > 0)),
+                          Button()
+                            .compact(true).size(SemanticSIZES.mini).icon(true).onClick {
+                              (
+                                _,
+                                _
+                              ) =>
 
-                              val changedScenes: Seq[(Scene, Option[Scene])] = state.scenes
-                                .map { s =>
-                                  if (s.header.orderCol == scene.header.orderCol)
-                                    (
-                                      s.copy(header = s.header.copy(orderCol = s.header.orderCol + 1)),
-                                      Option(s)
+                                val changedScenes: Seq[(Scene, Option[Scene])] = state.scenes
+                                  .map { s =>
+                                    if (s.header.orderCol == scene.header.orderCol)
+                                      (
+                                        s.copy(header = s.header.copy(orderCol = s.header.orderCol + 1)),
+                                        Option(s)
+                                      )
+                                    else if (s.header.orderCol == scene.header.orderCol + 1)
+                                      (
+                                        s.copy(header = s.header.copy(orderCol = s.header.orderCol - 1)),
+                                        Option(s)
+                                      )
+                                    else
+                                      (s, None)
+                                  }
+
+                                val changedScenesOnly = changedScenes.flatMap(_._2)
+
+                                $.modState(
+                                  state => {
+                                    state.copy(
+                                      scenes = changedScenes.map(_._1)
                                     )
-                                  else if (s.header.orderCol == scene.header.orderCol + 1)
-                                    (
-                                      s.copy(header = s.header.copy(orderCol = s.header.orderCol - 1)),
-                                      Option(s)
+                                  },
+                                  $.state.flatMap(_ =>
+                                    dmScreenState.onModifyCampaignState(
+                                      campaignState
+                                        .copy(changeStack =
+                                          campaignState.changeStack.logSceneChanges(changedScenesOnly*)
+                                        ),
+                                      ""
                                     )
-                                  else
-                                    (s, None)
-                                }
-
-                              val changedScenesOnly = changedScenes.flatMap(_._2)
-
-                              $.modState(
-                                state => {
-                                  state.copy(
-                                    scenes = changedScenes.map(_._1)
-                                  )
-                                },
-                                $.state.flatMap(_ =>
-                                  dmScreenState.onModifyCampaignState(
-                                    campaignState
-                                      .copy(changeStack =
-                                        campaignState.changeStack.logSceneChanges(changedScenesOnly*)
-                                      ),
-                                    ""
                                   )
                                 )
-                              )
-                          }(Icon.name(SemanticICONS.`arrow down`)).title(
-                            "Move Down"
-                          ).disabled(!(scene.header.orderCol < state.scenes.size - 1))
+                            }(Icon.name(SemanticICONS.`arrow down`)).title(
+                              "Move Down"
+                            ).disabled(!(scene.header.orderCol < state.scenes.size - 1))
+                        )
                       )
-                    )
-                  })*
+                    })*
+                )
               )
-            )
           )
         }
       }

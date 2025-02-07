@@ -53,68 +53,70 @@ object FeatsEditor {
       props: Props,
       state: State
     ): VdomNode = {
-      Table(
-        Table.Body(state.feats.toList.zipWithIndex.map {
-          case (
-                (id, feat),
-                i
-              ) =>
-            Table.Row
-              .withKey(id)(
-                Table.Cell(
-                  Input
-                    .value(feat.name)
-                    .onChange(
-                      (
-                        _,
-                        data
-                      ) => {
-                        val newVal = data.value match {
-                          case s: String => s
-                          case _ => feat.name
+      Table
+        .inverted(DND5eUI.tableInverted)
+        .color(DND5eUI.tableColor)(
+          Table.Body(state.feats.toList.zipWithIndex.map {
+            case (
+                  (id, feat),
+                  i
+                ) =>
+              Table.Row
+                .withKey(id)(
+                  Table.Cell(
+                    Input
+                      .value(feat.name)
+                      .onChange(
+                        (
+                          _,
+                          data
+                        ) => {
+                          val newVal = data.value match {
+                            case s: String => s
+                            case _ => feat.name
+                          }
+                          $.modState(
+                            s => s.copy(feats = s.feats + (id -> Feat(newVal))),
+                            $.state.flatMap(s => props.onChange(s.feats.values.toList.filter(_.name.trim.nonEmpty)))
+                          )
                         }
-                        $.modState(
-                          s => s.copy(feats = s.feats + (id -> Feat(newVal))),
-                          $.state.flatMap(s => props.onChange(s.feats.values.toList.filter(_.name.trim.nonEmpty)))
-                        )
-                      }
-                    )
-                ),
-                Table.Cell(
-                  Button
-                    .title("Delete this feat")
-                    .icon(true).onClick {
-                      (
-                        _,
-                        _
-                      ) =>
-                        $.modState(
-                          s => s.copy(feats = s.feats.removed(id)),
-                          $.state.flatMap(s => props.onChange(s.feats.values.toList))
-                        )
-                    }(Icon.name(SemanticICONS.delete))
+                      )
+                  ),
+                  Table.Cell(
+                    Button
+                      .title("Delete this feat")
+                      .icon(true).onClick {
+                        (
+                          _,
+                          _
+                        ) =>
+                          $.modState(
+                            s => s.copy(feats = s.feats.removed(id)),
+                            $.state.flatMap(s => props.onChange(s.feats.values.toList))
+                          )
+                      }(Icon.name(SemanticICONS.delete))
+                  )
                 )
+          }*),
+          Table.Footer(
+            Table.Row(
+              Table.Cell.colSpan(4)(
+                Button
+                  .title("Add a feat")
+                  .icon(true).onClick(
+                    (
+                      _,
+                      _
+                    ) =>
+                      $.modState(
+                        s => s.copy(feats = s.feats + (UUID.randomUUID().toString -> Feat(""))),
+                        $.state.flatMap(s => props.onChange(s.feats.values.toList.filter(_.name.trim.nonEmpty)))
+                      )
+                  )(Icon.name(SemanticICONS.add))
               )
-        }*),
-        Table.Footer(
-          Table.Row(
-            Table.Cell.colSpan(4)(
-              Button
-                .title("Add a feat")
-                .icon(true).onClick(
-                  (
-                    _,
-                    _
-                  ) =>
-                    $.modState(
-                      s => s.copy(feats = s.feats + (UUID.randomUUID().toString -> Feat(""))),
-                      $.state.flatMap(s => props.onChange(s.feats.values.toList.filter(_.name.trim.nonEmpty)))
-                    )
-                )(Icon.name(SemanticICONS.add))
             )
           )
         )
-      )
 
     }
 

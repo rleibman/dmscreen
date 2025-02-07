@@ -51,193 +51,198 @@ object SpeedsEditor {
       props: Props,
       state: State
     ): VdomNode = {
-      Table(
-        Table.Header(
-          Table.Row(
-            Table.HeaderCell("walk"),
-            Table.HeaderCell("fly"),
-            Table.HeaderCell("swim"),
-            Table.HeaderCell("climb"),
-            Table.HeaderCell("burrow")
-          )
-        ),
-        Table.Body(
-          Table.Row(
-            Table.Cell(
-              Input
-                .`type`("number")
-                .min(0)
-                .step(5)
-                .style(CSSProperties().set("width", 100.px))
-                .maxLength(4)
-                .size(SemanticSIZES.mini)
-                .onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    val newVal = data.value match {
-                      case x: Double => x.toInt
-                      case s: String =>
-                        s.toIntOption.orElse(state.speeds.find(_.speedType == SpeedType.walk).map(_.value)).getOrElse(0)
-                      case _ => 0
+      Table
+        .inverted(DND5eUI.tableInverted)
+        .color(DND5eUI.tableColor)(
+          Table.Header(
+            Table.Row(
+              Table.HeaderCell("walk"),
+              Table.HeaderCell("fly"),
+              Table.HeaderCell("swim"),
+              Table.HeaderCell("climb"),
+              Table.HeaderCell("burrow")
+            )
+          ),
+          Table.Body(
+            Table.Row(
+              Table.Cell(
+                Input
+                  .`type`("number")
+                  .min(0)
+                  .step(5)
+                  .style(CSSProperties().set("width", 100.px))
+                  .maxLength(4)
+                  .size(SemanticSIZES.mini)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case x: Double => x.toInt
+                        case s: String =>
+                          s.toIntOption
+                            .orElse(state.speeds.find(_.speedType == SpeedType.walk).map(_.value)).getOrElse(0)
+                        case _ => 0
+                      }
+                      $.modState(
+                        s =>
+                          s.copy(speeds =
+                            s.speeds.filter(_.speedType != SpeedType.walk) ++
+                              (if (newVal > 0) Seq(Speed(SpeedType.walk, newVal))
+                               else Seq.empty)
+                          ),
+                        $.state.flatMap(s => props.onChange(s.speeds))
+                      )
                     }
-                    $.modState(
-                      s =>
-                        s.copy(speeds =
-                          s.speeds.filter(_.speedType != SpeedType.walk) ++
-                            (if (newVal > 0) Seq(Speed(SpeedType.walk, newVal))
-                             else Seq.empty)
-                        ),
-                      $.state.flatMap(s => props.onChange(s.speeds))
-                    )
-                  }
-                )
-                .value(
-                  state.speeds.find(_.speedType == SpeedType.walk).map(_.value).getOrElse(0).toString
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number")
-                .min(0)
-                .step(5)
-                .style(CSSProperties().set("width", 100.px))
-                .maxLength(4)
-                .size(SemanticSIZES.mini)
-                .onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    val newVal = data.value match {
-                      case x: Double => x.toInt
-                      case s: String =>
-                        s.toIntOption.orElse(state.speeds.find(_.speedType == SpeedType.fly).map(_.value)).getOrElse(0)
-                      case _ => 0
+                  )
+                  .value(
+                    state.speeds.find(_.speedType == SpeedType.walk).map(_.value).getOrElse(0).toString
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number")
+                  .min(0)
+                  .step(5)
+                  .style(CSSProperties().set("width", 100.px))
+                  .maxLength(4)
+                  .size(SemanticSIZES.mini)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case x: Double => x.toInt
+                        case s: String =>
+                          s.toIntOption
+                            .orElse(state.speeds.find(_.speedType == SpeedType.fly).map(_.value)).getOrElse(0)
+                        case _ => 0
+                      }
+                      $.modState(
+                        s =>
+                          s.copy(speeds =
+                            s.speeds.filter(_.speedType != SpeedType.fly) ++
+                              (if (newVal > 0) Seq(Speed(SpeedType.fly, newVal))
+                               else Seq.empty)
+                          ),
+                        $.state.flatMap(s => props.onChange(s.speeds))
+                      )
                     }
-                    $.modState(
-                      s =>
-                        s.copy(speeds =
-                          s.speeds.filter(_.speedType != SpeedType.fly) ++
-                            (if (newVal > 0) Seq(Speed(SpeedType.fly, newVal))
-                             else Seq.empty)
-                        ),
-                      $.state.flatMap(s => props.onChange(s.speeds))
-                    )
-                  }
-                )
-                .value(
-                  state.speeds.find(_.speedType == SpeedType.fly).map(_.value).getOrElse(0).toString
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number")
-                .min(0)
-                .step(5)
-                .style(CSSProperties().set("width", 100.px))
-                .maxLength(4)
-                .size(SemanticSIZES.mini)
-                .onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    val newVal = data.value match {
-                      case x: Double => x.toInt
-                      case s: String =>
-                        s.toIntOption.orElse(state.speeds.find(_.speedType == SpeedType.swim).map(_.value)).getOrElse(0)
-                      case _ => 0
+                  )
+                  .value(
+                    state.speeds.find(_.speedType == SpeedType.fly).map(_.value).getOrElse(0).toString
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number")
+                  .min(0)
+                  .step(5)
+                  .style(CSSProperties().set("width", 100.px))
+                  .maxLength(4)
+                  .size(SemanticSIZES.mini)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case x: Double => x.toInt
+                        case s: String =>
+                          s.toIntOption
+                            .orElse(state.speeds.find(_.speedType == SpeedType.swim).map(_.value)).getOrElse(0)
+                        case _ => 0
+                      }
+                      $.modState(
+                        s =>
+                          s.copy(speeds =
+                            s.speeds.filter(_.speedType != SpeedType.swim) ++
+                              (if (newVal > 0) Seq(Speed(SpeedType.swim, newVal))
+                               else Seq.empty)
+                          ),
+                        $.state.flatMap(s => props.onChange(s.speeds))
+                      )
                     }
-                    $.modState(
-                      s =>
-                        s.copy(speeds =
-                          s.speeds.filter(_.speedType != SpeedType.swim) ++
-                            (if (newVal > 0) Seq(Speed(SpeedType.swim, newVal))
-                             else Seq.empty)
-                        ),
-                      $.state.flatMap(s => props.onChange(s.speeds))
-                    )
-                  }
-                )
-                .value(
-                  state.speeds.find(_.speedType == SpeedType.swim).map(_.value).getOrElse(0).toString
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number")
-                .min(0)
-                .step(5)
-                .style(CSSProperties().set("width", 100.px))
-                .maxLength(4)
-                .size(SemanticSIZES.mini)
-                .onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    val newVal = data.value match {
-                      case x: Double => x.toInt
-                      case s: String =>
-                        s.toIntOption
-                          .orElse(state.speeds.find(_.speedType == SpeedType.climb).map(_.value)).getOrElse(0)
-                      case _ => 0
+                  )
+                  .value(
+                    state.speeds.find(_.speedType == SpeedType.swim).map(_.value).getOrElse(0).toString
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number")
+                  .min(0)
+                  .step(5)
+                  .style(CSSProperties().set("width", 100.px))
+                  .maxLength(4)
+                  .size(SemanticSIZES.mini)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case x: Double => x.toInt
+                        case s: String =>
+                          s.toIntOption
+                            .orElse(state.speeds.find(_.speedType == SpeedType.climb).map(_.value)).getOrElse(0)
+                        case _ => 0
+                      }
+                      $.modState(
+                        s =>
+                          s.copy(speeds =
+                            s.speeds.filter(_.speedType != SpeedType.climb) ++
+                              (if (newVal > 0) Seq(Speed(SpeedType.climb, newVal))
+                               else Seq.empty)
+                          ),
+                        $.state.flatMap(s => props.onChange(s.speeds))
+                      )
                     }
-                    $.modState(
-                      s =>
-                        s.copy(speeds =
-                          s.speeds.filter(_.speedType != SpeedType.climb) ++
-                            (if (newVal > 0) Seq(Speed(SpeedType.climb, newVal))
-                             else Seq.empty)
-                        ),
-                      $.state.flatMap(s => props.onChange(s.speeds))
-                    )
-                  }
-                )
-                .value(
-                  state.speeds.find(_.speedType == SpeedType.climb).map(_.value).getOrElse(0).toString
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number")
-                .min(0)
-                .step(5)
-                .style(CSSProperties().set("width", 100.px))
-                .maxLength(4)
-                .size(SemanticSIZES.mini)
-                .onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    val newVal = data.value match {
-                      case x: Double => x.toInt
-                      case s: String =>
-                        s.toIntOption
-                          .orElse(state.speeds.find(_.speedType == SpeedType.burrow).map(_.value)).getOrElse(0)
-                      case _ => 0
+                  )
+                  .value(
+                    state.speeds.find(_.speedType == SpeedType.climb).map(_.value).getOrElse(0).toString
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number")
+                  .min(0)
+                  .step(5)
+                  .style(CSSProperties().set("width", 100.px))
+                  .maxLength(4)
+                  .size(SemanticSIZES.mini)
+                  .onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      val newVal = data.value match {
+                        case x: Double => x.toInt
+                        case s: String =>
+                          s.toIntOption
+                            .orElse(state.speeds.find(_.speedType == SpeedType.burrow).map(_.value)).getOrElse(0)
+                        case _ => 0
+                      }
+                      $.modState(
+                        s =>
+                          s.copy(speeds =
+                            s.speeds.filter(_.speedType != SpeedType.burrow) ++
+                              (if (newVal > 0) Seq(Speed(SpeedType.burrow, newVal))
+                               else Seq.empty)
+                          ),
+                        $.state.flatMap(s => props.onChange(s.speeds))
+                      )
                     }
-                    $.modState(
-                      s =>
-                        s.copy(speeds =
-                          s.speeds.filter(_.speedType != SpeedType.burrow) ++
-                            (if (newVal > 0) Seq(Speed(SpeedType.burrow, newVal))
-                             else Seq.empty)
-                        ),
-                      $.state.flatMap(s => props.onChange(s.speeds))
-                    )
-                  }
-                )
-                .value(
-                  state.speeds.find(_.speedType == SpeedType.burrow).map(_.value).getOrElse(0).toString
-                )
+                  )
+                  .value(
+                    state.speeds.find(_.speedType == SpeedType.burrow).map(_.value).getOrElse(0).toString
+                  )
+              )
             )
           )
         )
-      )
     }
 
   }

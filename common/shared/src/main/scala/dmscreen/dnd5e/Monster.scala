@@ -27,8 +27,6 @@ import just.semver.SemVer
 import zio.json.*
 import zio.json.ast.*
 
-opaque type MonsterId = Long
-
 enum Sense(val name: String) {
 
   case sight extends Sense("Sight")
@@ -45,6 +43,8 @@ case class SenseRange(
   sense: Sense,
   range: Int
 )
+
+opaque type MonsterId = Long
 
 object MonsterId {
 
@@ -68,49 +68,53 @@ object ChallengeRating {
       case "0.25"  => `1/4`
       case "0.5"   => `1/2`
       case "0"     => `0`
-      case s => valueOf(s)
+      case s       => valueOf(s)
     }
   }
   def fromDouble(value: Double): Option[ChallengeRating] = ChallengeRating.values.find(_.value == value)
+  def fromXP(xp:        Long):   Option[ChallengeRating] = ChallengeRating.values.filter(_.xp <= xp).lastOption
 
 }
 
-enum ChallengeRating(val value: Double) {
+enum ChallengeRating(
+  val value: Double,
+  val xp:    Long
+) {
 
-  case `0` extends ChallengeRating(0.0)
-  case `1/8` extends ChallengeRating(0.125)
-  case `1/4` extends ChallengeRating(0.25)
-  case `1/2` extends ChallengeRating(0.5)
-  case `1` extends ChallengeRating(1.0)
-  case `2` extends ChallengeRating(2.0)
-  case `3` extends ChallengeRating(3.0)
-  case `4` extends ChallengeRating(4.0)
-  case `5` extends ChallengeRating(5.0)
-  case `6` extends ChallengeRating(6.0)
-  case `7` extends ChallengeRating(7.0)
-  case `8` extends ChallengeRating(8.0)
-  case `9` extends ChallengeRating(9.0)
-  case `10` extends ChallengeRating(10.0)
-  case `11` extends ChallengeRating(11.0)
-  case `12` extends ChallengeRating(12.0)
-  case `13` extends ChallengeRating(13.0)
-  case `14` extends ChallengeRating(14.0)
-  case `15` extends ChallengeRating(15.0)
-  case `16` extends ChallengeRating(16.0)
-  case `17` extends ChallengeRating(17.0)
-  case `18` extends ChallengeRating(18.0)
-  case `19` extends ChallengeRating(19.0)
-  case `20` extends ChallengeRating(20.0)
-  case `21` extends ChallengeRating(21.0)
-  case `22` extends ChallengeRating(22.0)
-  case `23` extends ChallengeRating(23.0)
-  case `24` extends ChallengeRating(24.0)
-  case `25` extends ChallengeRating(25.0)
-  case `26` extends ChallengeRating(26.0)
-  case `27` extends ChallengeRating(27.0)
-  case `28` extends ChallengeRating(28.0)
-  case `29` extends ChallengeRating(29.0)
-  case `30` extends ChallengeRating(30.0)
+  case `0` extends ChallengeRating(0.0, 10)
+  case `1/8` extends ChallengeRating(0.125, 25)
+  case `1/4` extends ChallengeRating(0.25, 50)
+  case `1/2` extends ChallengeRating(0.5, 100)
+  case `1` extends ChallengeRating(1.0, 200)
+  case `2` extends ChallengeRating(2.0, 450)
+  case `3` extends ChallengeRating(3.0, 700)
+  case `4` extends ChallengeRating(4.0, 1100)
+  case `5` extends ChallengeRating(5.0, 1800)
+  case `6` extends ChallengeRating(6.0, 2300)
+  case `7` extends ChallengeRating(7.0, 2900)
+  case `8` extends ChallengeRating(8.0, 3900)
+  case `9` extends ChallengeRating(9.0, 5000)
+  case `10` extends ChallengeRating(10.0, 5900)
+  case `11` extends ChallengeRating(11.0, 7200)
+  case `12` extends ChallengeRating(12.0, 8400)
+  case `13` extends ChallengeRating(13.0, 10000)
+  case `14` extends ChallengeRating(14.0, 11500)
+  case `15` extends ChallengeRating(15.0, 13000)
+  case `16` extends ChallengeRating(16.0, 15000)
+  case `17` extends ChallengeRating(17.0, 18000)
+  case `18` extends ChallengeRating(18.0, 20000)
+  case `19` extends ChallengeRating(19.0, 22000)
+  case `20` extends ChallengeRating(20.0, 25000)
+  case `21` extends ChallengeRating(21.0, 33000)
+  case `22` extends ChallengeRating(22.0, 41000)
+  case `23` extends ChallengeRating(23.0, 50000)
+  case `24` extends ChallengeRating(24.0, 62000)
+  case `25` extends ChallengeRating(25.0, 75000)
+  case `26` extends ChallengeRating(26.0, 90000)
+  case `27` extends ChallengeRating(27.0, 105000)
+  case `28` extends ChallengeRating(28.0, 120000)
+  case `29` extends ChallengeRating(29.0, 135000)
+  case `30` extends ChallengeRating(30.0, 155000)
 
 }
 
@@ -149,6 +153,7 @@ enum Biome {
   case Underwater
   case Urban
   case Unknown
+  case Unimportant
 
 }
 

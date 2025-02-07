@@ -140,12 +140,6 @@ object DashboardPage extends DMScreenTab {
                     .options(
                       ApexOptions()
                         .setLabels(js.Array("Str", "Con", "Dex", "Int", "Wis", "Cha"))
-                        .setLegend(
-                          ApexLegend().setLabels(
-                            UseSeriesColors()
-                              .setColors("#ecf0f1")
-                          )
-                        )
                     )
                 ),
                 Container.className("radarCard")(
@@ -176,12 +170,6 @@ object DashboardPage extends DMScreenTab {
                     .options(
                       ApexOptions()
                         .setLabels(js.Array("Str", "Con", "Dex", "Int", "Wis", "Cha"))
-                        .setLegend(
-                          ApexLegend().setLabels(
-                            UseSeriesColors()
-                              .setColors("#ecf0f1")
-                          )
-                        )
                     )
                 ),
                 Container.className("radarCard")(
@@ -209,12 +197,6 @@ object DashboardPage extends DMScreenTab {
                     .options(
                       ApexOptions()
                         .setLabels(js.Array("Insp", "Perc", "Inv"))
-                        .setLegend(
-                          ApexLegend().setLabels(
-                            UseSeriesColors()
-                              .setColors("#ecf0f1")
-                          )
-                        )
                     )
                 ),
                 Container.className("radarCard")(
@@ -276,12 +258,6 @@ object DashboardPage extends DMScreenTab {
                             "Stealth"
                           )
                         )
-                        .setLegend(
-                          ApexLegend().setLabels(
-                            UseSeriesColors()
-                              .setColors("#ecf0f1")
-                          )
-                        )
                     )
                 ),
                 Container.className("radarCard")(
@@ -328,7 +304,6 @@ object DashboardPage extends DMScreenTab {
                           )
                           .setYaxis(
                             ApexYAxis()
-                              .setLabels(Align().setStyle(CssClassFontFamily().setColors(js.Array("#ecf0f1"))))
                           )
                           .setPlotOptions(
                             ApexPlotOptions()

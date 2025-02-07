@@ -169,6 +169,7 @@ object NPCPage extends DMScreenTab {
                             damageResistances = monster.info.damageResistances,
                             damageImmunities = monster.info.damageImmunities,
                             monster = Some(monster.header.id),
+                            challengeRating = Some(monster.header.cr),
                             classes = List.empty
                           ).toJsonAST.toOption.get
                         )

@@ -50,6 +50,9 @@ import caliban.client.scalajs.DND5eClient.{
   PlayerCharacterSearchInput,
   Queries,
   Race as CalibanRace,
+  RandomTable as CalibanRandomTable,
+  RandomTableEntry as CalibanRandomTableEntry,
+  RandomTableType as CalibanRandomTableType,
   Scene as CalibanScene,
   SceneHeader as CalibanSceneHeader,
   SceneHeaderInput,
@@ -79,6 +82,11 @@ object SelectionBuilderRepository {
   }
 
   val live = new DND5eRepository[QueryOrMutationSelectionBuilder] {
+    override def randomTables(tableTypeOpt: Option[RandomTableType])
+      : QueryOrMutationSelectionBuilder[Seq[RandomTable]] = ???
+
+    override def randomTable(id: RandomTableId): QueryOrMutationSelectionBuilder[Option[RandomTable]] = ???
+
     override def monster(monsterId: MonsterId): SelectionBuilder[RootQuery, Option[Monster]] = ???
 
     override def deleteEntity[IDType](
@@ -102,6 +110,8 @@ object SelectionBuilderRepository {
 
     override def scenes(campaignId: CampaignId): SelectionBuilder[RootQuery, Seq[Scene]] = ???
 
+    override def scene(id: SceneId): QueryOrMutationSelectionBuilder[Option[Scene]] = ???
+
     override def nonPlayerCharacters(campaignId: CampaignId): SelectionBuilder[RootQuery, Seq[NonPlayerCharacter]] = ???
 
     override def encounters(campaignId: CampaignId): SelectionBuilder[RootQuery, Seq[Encounter]] = ???
@@ -112,6 +122,8 @@ object SelectionBuilderRepository {
     ): SelectionBuilder[RootQuery, Option[Encounter]] = ???
 
     override def bestiary(search: MonsterSearch): SelectionBuilder[RootQuery, MonsterSearchResults] = ???
+
+    override def fullBestiary(search: MonsterSearch): SelectionBuilder[RootQuery, FullMonsterSearchResults] = ???
 
     override def sources: SelectionBuilder[RootQuery, Seq[Source]] = ???
 
@@ -169,6 +181,8 @@ object DND5eGraphQLRepository {
       fresh:       Boolean = false
     ): AsyncCallback[PlayerCharacter]
 
+    def generateEncounterDescription(encounter: Encounter): AsyncCallback[String]
+
   }
 
   val live: ExtendedRepository = new ExtendedRepository {
@@ -183,6 +197,46 @@ object DND5eGraphQLRepository {
 
       val sb = Mutations.deleteEntity(entityType.name, id.asInstanceOf[Long], softDelete)
       calibanClient.asyncCalibanCall(sb).map(_.get)
+    }
+
+    private val randomTableSB: SelectionBuilder[CalibanRandomTable, RandomTable] = (
+      CalibanRandomTable.id ~
+        CalibanRandomTable.name ~
+        CalibanRandomTable.tableType ~
+        CalibanRandomTable.subType ~
+        CalibanRandomTable.diceRoll(CalibanDiceRoll.roll) ~
+        CalibanRandomTable.entries(
+          CalibanRandomTableEntry.randomTableId ~
+            CalibanRandomTableEntry.rangeLow ~
+            CalibanRandomTableEntry.rangeHigh ~
+            CalibanRandomTableEntry.name ~
+            CalibanRandomTableEntry.description
+        )
+    ).map {
+      (
+        id,
+        name,
+        tableType,
+        subType,
+        diceRoll,
+        entries
+      ) =>
+        RandomTable(
+          id = RandomTableId(id),
+          name = name,
+          tableType = RandomTableType.valueOf(tableType.value),
+          subType = subType,
+          entries = entries.map { case (itemId, rangeLow, rangeHigh, name, description) =>
+            RandomTableEntry(
+              RandomTableId(itemId),
+              rangeLow,
+              rangeHigh,
+              name,
+              description
+            )
+          },
+          diceRoll = DiceRoll(diceRoll)
+        )
     }
 
     private val pcSB: SelectionBuilder[CalibanPlayerCharacter, PlayerCharacter] =
@@ -274,6 +328,8 @@ object DND5eGraphQLRepository {
 
     }
 
+    override def scene(sceneId: SceneId): AsyncCallback[Option[Scene]] = ???
+
     override def nonPlayerCharacters(campaignId: CampaignId): AsyncCallback[Seq[NonPlayerCharacter]] = {
       val query: SelectionBuilder[RootQuery, Option[List[NonPlayerCharacter]]] =
         Queries.nonPlayerCharacters(campaignId.value)(npcSB)
@@ -314,6 +370,10 @@ object DND5eGraphQLRepository {
 
     override def encounters(campaignId: CampaignId): AsyncCallback[Seq[Encounter]] = {
       calibanClient.asyncCalibanCall(Queries.encounters(campaignId.value)(encounterSB)).map(_.toSeq.flatten)
+    }
+
+    override def fullBestiary(monsterSearch: MonsterSearch): AsyncCallback[FullMonsterSearchResults] = {
+      ???
     }
 
     override def bestiary(monsterSearch: MonsterSearch): AsyncCallback[MonsterSearchResults] = {
@@ -587,6 +647,46 @@ object DND5eGraphQLRepository {
 
     override def nonPlayerCharacter(id: NonPlayerCharacterId): AsyncCallback[Option[NonPlayerCharacter]] = {
       calibanClient.asyncCalibanCall(Queries.nonPlayerCharacter(id.value)(npcSB))
+    }
+
+    override def randomTables(tableTypeOpt: Option[RandomTableType]): AsyncCallback[Seq[RandomTable]] = {
+      val par: Option[CalibanRandomTableType] =
+        tableTypeOpt.flatMap(t => CalibanRandomTableType.values.find(_.value == t.toString))
+      calibanClient
+        .asyncCalibanCall(
+          Queries.randomTables(par)(randomTableSB)
+        ).map(
+          _.toList.flatten
+        )
+    }
+
+    override def randomTable(id: RandomTableId): AsyncCallback[Option[RandomTable]] =
+      calibanClient.asyncCalibanCall(Queries.randomTable(id.value)(randomTableSB))
+
+    private def htmlify(str: String) = {
+      str
+        .replaceAll("\n\n", "\n")
+        .split("\n")
+        .map(s => s"<p>$s</p>\n")
+        .mkString
+    }
+
+    override def generateEncounterDescription(encounter: Encounter): AsyncCallback[String] = {
+      val calibanEncounterHeader = EncounterHeaderInput(
+        id = encounter.header.id.value,
+        campaignId = encounter.header.campaignId.value,
+        name = encounter.header.name,
+        status = encounter.header.status.toString,
+        sceneId = encounter.header.sceneId.map(_.value),
+        orderCol = encounter.header.orderCol
+      )
+
+      calibanClient.asyncCalibanCall(
+        Queries
+          .generateEncounterDescription(calibanEncounterHeader, encounter.jsonInfo, dmscreen.BuildInfo.version).map(
+            _.fold("")(htmlify)
+          )
+      )
     }
 
   }

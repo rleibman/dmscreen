@@ -27,7 +27,6 @@ import com.typesafe.config.ConfigFactory
 import dmscreen.db.RepositoryError
 import io.getquill.jdbczio.Quill
 import org.mariadb.jdbc.MariaDbDataSource
-import org.testcontainers.utility.DockerImageName
 import zio.{IO, ZIO, ZLayer}
 
 import java.sql.SQLException

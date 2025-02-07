@@ -76,6 +76,8 @@ object ConditionsEditor {
       }
 
       Table
+        .inverted(DND5eUI.tableInverted)
+        .color(DND5eUI.tableColor)
         .compact(true)(
           Table.Header(
             Table.Row(

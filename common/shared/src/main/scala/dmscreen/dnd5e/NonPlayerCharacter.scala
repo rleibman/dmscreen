@@ -44,6 +44,12 @@ object NonPlayerCharacterId {
 
 }
 
+enum RelationToPlayers {
+
+  case neutral, enemy, ally, unknown, itsComplicated
+
+}
+
 case class NonPlayerCharacterHeader(
   id:         NonPlayerCharacterId,
   campaignId: CampaignId,
@@ -84,7 +90,9 @@ case class NonPlayerCharacterInfo(
   override val damageImmunities:      Seq[DamageType] = Seq.empty,
   notes:                              String = "",
   rollplayInfo:                       RollplayInfo = RollplayInfo(),
-  monster:                            Option[MonsterId] = None
+  monster:                            Option[MonsterId] = None,
+  challengeRating:                    Option[ChallengeRating] = None,
+  relationToPlayers:                  RelationToPlayers = RelationToPlayers.unknown // TODO add this to editor
 ) extends CharacterInfo {
 
   def initiativeTuple: (Int, Int, Int, Int, Int, Int) =

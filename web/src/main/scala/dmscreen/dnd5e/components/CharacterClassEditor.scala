@@ -23,8 +23,8 @@ package dmscreen.dnd5e.components
 
 import dmscreen.DMScreenState
 import dmscreen.dnd5e.*
-import dmscreen.util.*
 import dmscreen.dnd5e.CharacterClassId.paladin
+import dmscreen.util.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.VdomNode
@@ -82,185 +82,187 @@ object CharacterClassEditor {
         def allClasses = campaignState.classes
         def totalLevel = state.classes.map(_.level).sum
 
-        Table(
-          Table.Header(
-            Table.Row(
-              Table.HeaderCell.colSpan(4).textAlign(semanticUiReactStrings.right)(s"Total Level = $totalLevel")
+        Table
+          .inverted(DND5eUI.tableInverted)
+          .color(DND5eUI.tableColor)(
+            Table.Header(
+              Table.Row(
+                Table.HeaderCell.colSpan(4).textAlign(semanticUiReactStrings.right)(s"Total Level = $totalLevel")
+              ),
+              Table.Row(
+                Table.HeaderCell("Class"),
+                Table.HeaderCell("Subclass"),
+                Table.HeaderCell("Level"),
+                Table.HeaderCell()
+              )
             ),
-            Table.Row(
-              Table.HeaderCell("Class"),
-              Table.HeaderCell("Subclass"),
-              Table.HeaderCell("Level"),
-              Table.HeaderCell()
-            )
-          ),
-          Table.Body(
-            state.classes.zipWithIndex.map {
-              (
-                playerCharacterClass,
-                i
-              ) =>
-                Table.Row.withKey(s"key$i")(
-                  Table.Cell(
-                    Dropdown
-                      .placeholder("Class")
-                      .clearable(true)
-                      .compact(true)
-                      .allowAdditions(true)
-                      .selection(true)
-                      .search(true)
-                      .onChange(
-                        (
-                          _,
-                          changedData
-                        ) =>
-                          changedData.value match {
-                            case str: String if str.isEmpty => Callback.empty // Nothing to do
-                            case str: String =>
-                              $.modState(
-                                s =>
-                                  s.copy(
-                                    classes = s.classes.patch(
-                                      i,
-                                      Seq(
-                                        playerCharacterClass.copy(
-                                          characterClass = CharacterClassId.values
-                                            .find(_.name == str).getOrElse(
-                                              throw RuntimeException(
-                                                s"Bad data trying to find a characterClassId with ${changedData.value}"
-                                              )
-                                            ),
-                                          subclass = None
-                                        )
-                                      ),
-                                      1
-                                    )
-                                  ),
-                                $.state.flatMap(s => loadSubclasses(s) >> props.onChange(s.classes))
-                              )
-                            case a =>
-                              Callback.log(s"Bad data trying to find a characterClassId with ${changedData.value}")
-                          }
-                      )
-                      .options(
-                        allClasses
-                          .map(clazz =>
-                            DropdownItemProps()
-                              .setValue(clazz.id.name)
-                              .setText(clazz.id.name),
-                          ).toJSArray
-                      )
-                      .value(playerCharacterClass.characterClass.name)
-                  ),
-                  Table.Cell(
-                    Dropdown
-                      .placeholder("Subclass")
-                      .clearable(true)
-                      .compact(true)
-                      .allowAdditions(true)
-                      .selection(true)
-                      .search(true)
-                      .onChange {
-                        (
-                          _,
-                          changedData
-                        ) =>
-                          val subclass: Option[SubClass] = changedData.value match {
-                            case s: String if s.isEmpty => None
-                            case s: String              => Some(SubClass(s.toLowerCase))
-                            case _ => throw RuntimeException("Unexpected value")
-                          }
-
-                          $.modState(
-                            s =>
-                              s.copy(
-                                classes = s.classes.patch(i, Seq(playerCharacterClass.copy(subclass = subclass)), 1),
-                                subClasses = s.subClasses + (playerCharacterClass.characterClass -> (s
-                                  .subClasses(playerCharacterClass.characterClass) ++ subclass.toSet))
-                              ),
-                            $.state.flatMap(s => props.onChange(s.classes))
-                          )
-
-                      }
-                      .options(
-                        state.subClasses
-                          .get(playerCharacterClass.characterClass)
-                          .toSeq
-                          .flatten
-                          .map(subclass =>
-                            DropdownItemProps()
-                              .setValue(subclass.name.toLowerCase)
-                              .setText(subclass.name),
-                          ).toJSArray
-                      )
-                      .value(playerCharacterClass.subclass.map(_.name.toLowerCase).getOrElse(""))
-                  ),
-                  Table.Cell(
-                    Input
-                      .`type`("number")
-                      .min(1)
-                      .max(20)
-                      .size(SemanticSIZES.mini)
-                      .onChange(
-                        (
-                          _,
-                          changedData
-                        ) =>
-                          $.modState(
-                            s => {
-                              val newNum = changedData.value.asInt(0)
-                              s.copy(
-                                classes = s.classes.patch(
-                                  i,
-                                  Seq(playerCharacterClass.copy(level = newNum)),
-                                  1
+            Table.Body(
+              state.classes.zipWithIndex.map {
+                (
+                  playerCharacterClass,
+                  i
+                ) =>
+                  Table.Row.withKey(s"key$i")(
+                    Table.Cell(
+                      Dropdown
+                        .placeholder("Class")
+                        .clearable(true)
+                        .compact(true)
+                        .allowAdditions(true)
+                        .selection(true)
+                        .search(true)
+                        .onChange(
+                          (
+                            _,
+                            changedData
+                          ) =>
+                            changedData.value match {
+                              case str: String if str.isEmpty => Callback.empty // Nothing to do
+                              case str: String =>
+                                $.modState(
+                                  s =>
+                                    s.copy(
+                                      classes = s.classes.patch(
+                                        i,
+                                        Seq(
+                                          playerCharacterClass.copy(
+                                            characterClass = CharacterClassId.values
+                                              .find(_.name == str).getOrElse(
+                                                throw RuntimeException(
+                                                  s"Bad data trying to find a characterClassId with ${changedData.value}"
+                                                )
+                                              ),
+                                            subclass = None
+                                          )
+                                        ),
+                                        1
+                                      )
+                                    ),
+                                  $.state.flatMap(s => loadSubclasses(s) >> props.onChange(s.classes))
                                 )
-                              )
-                            },
-                            $.state.flatMap(s => props.onChange(s.classes))
-                          )
-                      )
-                      .value(playerCharacterClass.level)
-                  ),
-                  Table.Cell(
-                    Button
-                      .title("Delete this class")
-                      .icon(true).onClick {
-                        (
-                          _,
-                          _
-                        ) =>
-                          _root_.components.Confirm.confirm(
-                            question = s"Are you sure you want to delete this class (${playerCharacterClass.characterClass.name})?",
-                            onConfirm = $.modState(
-                              s => s.copy(classes = s.classes.patch(i, Nil, 1)),
+                              case a =>
+                                Callback.log(s"Bad data trying to find a characterClassId with ${changedData.value}")
+                            }
+                        )
+                        .options(
+                          allClasses
+                            .map(clazz =>
+                              DropdownItemProps()
+                                .setValue(clazz.id.name)
+                                .setText(clazz.id.name)
+                            ).toJSArray
+                        )
+                        .value(playerCharacterClass.characterClass.name)
+                    ),
+                    Table.Cell(
+                      Dropdown
+                        .placeholder("Subclass")
+                        .clearable(true)
+                        .compact(true)
+                        .allowAdditions(true)
+                        .selection(true)
+                        .search(true)
+                        .onChange {
+                          (
+                            _,
+                            changedData
+                          ) =>
+                            val subclass: Option[SubClass] = changedData.value match {
+                              case s: String if s.isEmpty => None
+                              case s: String              => Some(SubClass(s.toLowerCase))
+                              case _ => throw RuntimeException("Unexpected value")
+                            }
+
+                            $.modState(
+                              s =>
+                                s.copy(
+                                  classes = s.classes.patch(i, Seq(playerCharacterClass.copy(subclass = subclass)), 1),
+                                  subClasses = s.subClasses + (playerCharacterClass.characterClass -> (s
+                                    .subClasses(playerCharacterClass.characterClass) ++ subclass.toSet))
+                                ),
                               $.state.flatMap(s => props.onChange(s.classes))
                             )
-                          )
-                      }(Icon.name(SemanticICONS.delete))
+
+                        }
+                        .options(
+                          state.subClasses
+                            .get(playerCharacterClass.characterClass)
+                            .toSeq
+                            .flatten
+                            .map(subclass =>
+                              DropdownItemProps()
+                                .setValue(subclass.name.toLowerCase)
+                                .setText(subclass.name)
+                            ).toJSArray
+                        )
+                        .value(playerCharacterClass.subclass.map(_.name.toLowerCase).getOrElse(""))
+                    ),
+                    Table.Cell(
+                      Input
+                        .`type`("number")
+                        .min(1)
+                        .max(20)
+                        .size(SemanticSIZES.mini)
+                        .onChange(
+                          (
+                            _,
+                            changedData
+                          ) =>
+                            $.modState(
+                              s => {
+                                val newNum = changedData.value.asInt(0)
+                                s.copy(
+                                  classes = s.classes.patch(
+                                    i,
+                                    Seq(playerCharacterClass.copy(level = newNum)),
+                                    1
+                                  )
+                                )
+                              },
+                              $.state.flatMap(s => props.onChange(s.classes))
+                            )
+                        )
+                        .value(playerCharacterClass.level)
+                    ),
+                    Table.Cell(
+                      Button
+                        .title("Delete this class")
+                        .icon(true).onClick {
+                          (
+                            _,
+                            _
+                          ) =>
+                            _root_.components.Confirm.confirm(
+                              question = s"Are you sure you want to delete this class (${playerCharacterClass.characterClass.name})?",
+                              onConfirm = $.modState(
+                                s => s.copy(classes = s.classes.patch(i, Nil, 1)),
+                                $.state.flatMap(s => props.onChange(s.classes))
+                              )
+                            )
+                        }(Icon.name(SemanticICONS.delete))
+                    )
                   )
+              }*
+            ),
+            Table.Footer(
+              Table.Row(
+                Table.Cell.colSpan(4)(
+                  Button
+                    .title("Add another class")
+                    .icon(true).onClick(
+                      (
+                        _,
+                        _
+                      ) =>
+                        $.modState(
+                          s => s.copy(classes = s.classes :+ PlayerCharacterClass(CharacterClassId.barbarian)),
+                          $.state.flatMap(s => props.onChange(s.classes))
+                        )
+                    )(Icon.name(SemanticICONS.add))
                 )
-            }*
-          ),
-          Table.Footer(
-            Table.Row(
-              Table.Cell.colSpan(4)(
-                Button
-                  .title("Add another class")
-                  .icon(true).onClick(
-                    (
-                      _,
-                      _
-                    ) =>
-                      $.modState(
-                        s => s.copy(classes = s.classes :+ PlayerCharacterClass(CharacterClassId.barbarian)),
-                        $.state.flatMap(s => props.onChange(s.classes))
-                      )
-                  )(Icon.name(SemanticICONS.add))
               )
             )
           )
-        )
       }
     }
 

@@ -21,7 +21,29 @@
 
 package dmscreen
 
-import zio.json.JsonCodec
+import zio.json.{JsonCodec, JsonDecoder}
 
 given JsonCodec[CampaignId] = JsonCodec.long.transform(CampaignId.apply, _.value)
 given JsonCodec[CampaignInfo] = JsonCodec.derived[CampaignInfo]
+
+extension (json: zio.json.ast.Json.Obj) {
+
+  def getEither[T: JsonDecoder](name: String): Either[String, T] =
+    json.fields.find(_._1 == name) match {
+      case Some(value) => value._2.as[T]
+      case None        => Left(s"Missing field '$name'")
+    }
+
+  def getEitherOption[T: JsonDecoder](name: String): Either[String, Option[T]] =
+    json.fields.find(_._1 == name) match {
+      case Some(value) => value._2.as[Option[T]]
+      case None        => Right(None)
+    }
+
+  def getOption[T: JsonDecoder](name: String): Option[T] =
+    json.fields.find(_._1 == name) match {
+      case Some(value) => value._2.as[T].toOption
+      case None        => None
+    }
+
+}

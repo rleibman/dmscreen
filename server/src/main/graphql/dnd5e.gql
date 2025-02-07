@@ -31,6 +31,7 @@ enum Biome {
   Swamp
   Underdark
   Underwater
+  Unimportant
   Unknown
   Urban
 }
@@ -77,6 +78,15 @@ enum MonsterType {
 enum OrderDirection {
   asc
   desc
+}
+
+enum RandomTableType {
+  adventure
+  encounter
+  environment
+  npcs
+  other
+  treasure
 }
 
 input EncounterHeaderInput {
@@ -240,10 +250,30 @@ type Queries {
   races: [Race!]
   backgrounds: [Background!]
   subclasses(value: String!): [SubClass!]
+  randomTables(randomTableType: RandomTableType): [RandomTable!]
+  randomTable(value: Long!): RandomTable
+  generateEncounterDescription(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): String
 }
 
 type Race {
   name: String!
+}
+
+type RandomTable {
+  id: Long!
+  name: String!
+  tableType: RandomTableType!
+  subType: String!
+  diceRoll: DiceRoll!
+  entries: [RandomTableEntry!]!
+}
+
+type RandomTableEntry {
+  randomTableId: Long!
+  rangeLow: Int!
+  rangeHigh: Int!
+  name: String!
+  description: String!
 }
 
 type Scene {

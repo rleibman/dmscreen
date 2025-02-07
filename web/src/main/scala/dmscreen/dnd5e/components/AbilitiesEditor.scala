@@ -53,388 +53,390 @@ object AbilitiesEditor {
       state: State
     ): VdomNode = {
       val abilities = state.abilities
-      Table(
-        Table.Header(
-          Table.Row(
-            Table.HeaderCell(),
-            Table.HeaderCell("Str"),
-            Table.HeaderCell("Dex"),
-            Table.HeaderCell("Con"),
-            Table.HeaderCell("Int"),
-            Table.HeaderCell("Wis"),
-            Table.HeaderCell("Cha")
-          )
-        ),
-        Table.Body(
-          Table.Row(
-            Table.HeaderCell("Value"),
-            Table.Cell(
-              Input
-                .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    $.modState(
-                      s => {
-                        val newNum = changedData.value.asInt(abilities.strength.value)
-                        s.copy(abilities = s.abilities.copy(strength = s.abilities.strength.copy(value = newNum)))
-                      },
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                ).value(abilities.strength.value)
-            ),
-            Table.Cell(
-              Input
-                .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    $.modState(
-                      s => {
-                        val newNum = changedData.value.asInt(abilities.dexterity.value)
-                        s.copy(abilities = s.abilities.copy(dexterity = s.abilities.dexterity.copy(value = newNum)))
-                      },
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                ).value(abilities.dexterity.value)
-            ),
-            Table.Cell(
-              Input
-                .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    $.modState(
-                      s => {
-                        val newNum = changedData.value.asInt(abilities.constitution.value)
-                        s.copy(abilities =
-                          s.abilities.copy(constitution = s.abilities.constitution.copy(value = newNum))
-                        )
-                      },
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                ).value(abilities.constitution.value)
-            ),
-            Table.Cell(
-              Input
-                .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    $.modState(
-                      s => {
-                        val newNum = changedData.value.asInt(abilities.intelligence.value)
-                        s.copy(abilities =
-                          s.abilities.copy(intelligence = s.abilities.intelligence.copy(value = newNum))
-                        )
-                      },
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                ).value(abilities.intelligence.value)
-            ),
-            Table.Cell(
-              Input
-                .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    $.modState(
-                      s => {
-                        val newNum = changedData.value.asInt(abilities.wisdom.value)
-                        s.copy(abilities = s.abilities.copy(wisdom = s.abilities.wisdom.copy(value = newNum)))
-                      },
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                ).value(abilities.wisdom.value)
-            ),
-            Table.Cell(
-              Input
-                .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    $.modState(
-                      s => {
-                        val newNum = changedData.value.asInt(abilities.charisma.value)
-                        s.copy(abilities = s.abilities.copy(charisma = s.abilities.charisma.copy(value = newNum)))
-                      },
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                ).value(abilities.charisma.value)
+      Table
+        .inverted(DND5eUI.tableInverted)
+        .color(DND5eUI.tableColor)(
+          Table.Header(
+            Table.Row(
+              Table.HeaderCell(),
+              Table.HeaderCell("Str"),
+              Table.HeaderCell("Dex"),
+              Table.HeaderCell("Con"),
+              Table.HeaderCell("Int"),
+              Table.HeaderCell("Wis"),
+              Table.HeaderCell("Cha")
             )
           ),
-          Table.Row(
-            Table.HeaderCell("Overriden Value"),
-            Table.Cell(
-              Input
-                .`type`("number").size(SemanticSIZES.mini).min(0).max(30).onChange(
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    $.modState(
-                      s => {
-                        val newNum = changedData.value.asInt(abilities.strength.value)
+          Table.Body(
+            Table.Row(
+              Table.HeaderCell("Value"),
+              Table.Cell(
+                Input
+                  .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      $.modState(
+                        s => {
+                          val newNum = changedData.value.asInt(abilities.strength.value)
+                          s.copy(abilities = s.abilities.copy(strength = s.abilities.strength.copy(value = newNum)))
+                        },
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                  ).value(abilities.strength.value)
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      $.modState(
+                        s => {
+                          val newNum = changedData.value.asInt(abilities.dexterity.value)
+                          s.copy(abilities = s.abilities.copy(dexterity = s.abilities.dexterity.copy(value = newNum)))
+                        },
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                  ).value(abilities.dexterity.value)
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      $.modState(
+                        s => {
+                          val newNum = changedData.value.asInt(abilities.constitution.value)
+                          s.copy(abilities =
+                            s.abilities.copy(constitution = s.abilities.constitution.copy(value = newNum))
+                          )
+                        },
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                  ).value(abilities.constitution.value)
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      $.modState(
+                        s => {
+                          val newNum = changedData.value.asInt(abilities.intelligence.value)
+                          s.copy(abilities =
+                            s.abilities.copy(intelligence = s.abilities.intelligence.copy(value = newNum))
+                          )
+                        },
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                  ).value(abilities.intelligence.value)
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      $.modState(
+                        s => {
+                          val newNum = changedData.value.asInt(abilities.wisdom.value)
+                          s.copy(abilities = s.abilities.copy(wisdom = s.abilities.wisdom.copy(value = newNum)))
+                        },
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                  ).value(abilities.wisdom.value)
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number").size(SemanticSIZES.mini).min(1).max(30).onChange(
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      $.modState(
+                        s => {
+                          val newNum = changedData.value.asInt(abilities.charisma.value)
+                          s.copy(abilities = s.abilities.copy(charisma = s.abilities.charisma.copy(value = newNum)))
+                        },
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                  ).value(abilities.charisma.value)
+              )
+            ),
+            Table.Row(
+              Table.HeaderCell("Overriden Value"),
+              Table.Cell(
+                Input
+                  .`type`("number").size(SemanticSIZES.mini).min(0).max(30).onChange(
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      $.modState(
+                        s => {
+                          val newNum = changedData.value.asInt(abilities.strength.value)
 
-                        s.copy(abilities =
-                          s.abilities.copy(strength =
-                            s.abilities.strength.copy(overrideValue = if (newNum == 0) None else Some(newNum))
+                          s.copy(abilities =
+                            s.abilities.copy(strength =
+                              s.abilities.strength.copy(overrideValue = if (newNum == 0) None else Some(newNum))
+                            )
                           )
-                        )
-                      },
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                ).value(
-                  abilities.strength.overrideValue.getOrElse(0)
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number").size(SemanticSIZES.mini).min(0).max(30).onChange(
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    $.modState(
-                      s => {
-                        val newNum = changedData.value.asInt(abilities.dexterity.value)
+                        },
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                  ).value(
+                    abilities.strength.overrideValue.getOrElse(0)
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number").size(SemanticSIZES.mini).min(0).max(30).onChange(
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      $.modState(
+                        s => {
+                          val newNum = changedData.value.asInt(abilities.dexterity.value)
 
-                        s.copy(abilities =
-                          s.abilities.copy(dexterity =
-                            s.abilities.dexterity.copy(overrideValue = if (newNum == 0) None else Some(newNum))
+                          s.copy(abilities =
+                            s.abilities.copy(dexterity =
+                              s.abilities.dexterity.copy(overrideValue = if (newNum == 0) None else Some(newNum))
+                            )
                           )
-                        )
-                      },
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                ).value(
-                  abilities.dexterity.overrideValue.getOrElse(0)
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number").size(SemanticSIZES.mini).min(0).max(30).onChange(
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    $.modState(
-                      s => {
-                        val newNum = changedData.value.asInt(abilities.constitution.value)
+                        },
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                  ).value(
+                    abilities.dexterity.overrideValue.getOrElse(0)
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number").size(SemanticSIZES.mini).min(0).max(30).onChange(
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      $.modState(
+                        s => {
+                          val newNum = changedData.value.asInt(abilities.constitution.value)
 
-                        s.copy(abilities =
-                          s.abilities.copy(constitution =
-                            s.abilities.constitution.copy(overrideValue = if (newNum == 0) None else Some(newNum))
+                          s.copy(abilities =
+                            s.abilities.copy(constitution =
+                              s.abilities.constitution.copy(overrideValue = if (newNum == 0) None else Some(newNum))
+                            )
                           )
-                        )
-                      },
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                ).value(
-                  abilities.constitution.overrideValue.getOrElse(0)
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number").size(SemanticSIZES.mini).min(0).max(30).onChange(
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    $.modState(
-                      s => {
-                        val newNum = changedData.value.asInt(abilities.intelligence.value)
+                        },
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                  ).value(
+                    abilities.constitution.overrideValue.getOrElse(0)
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number").size(SemanticSIZES.mini).min(0).max(30).onChange(
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      $.modState(
+                        s => {
+                          val newNum = changedData.value.asInt(abilities.intelligence.value)
 
-                        s.copy(abilities =
-                          s.abilities.copy(intelligence =
-                            s.abilities.intelligence.copy(overrideValue = if (newNum == 0) None else Some(newNum))
+                          s.copy(abilities =
+                            s.abilities.copy(intelligence =
+                              s.abilities.intelligence.copy(overrideValue = if (newNum == 0) None else Some(newNum))
+                            )
                           )
-                        )
-                      },
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                ).value(
-                  abilities.intelligence.overrideValue.getOrElse(0)
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number").size(SemanticSIZES.mini).min(0).max(30).onChange(
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    $.modState(
-                      s => {
-                        val newNum = changedData.value.asInt(abilities.wisdom.value)
+                        },
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                  ).value(
+                    abilities.intelligence.overrideValue.getOrElse(0)
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number").size(SemanticSIZES.mini).min(0).max(30).onChange(
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      $.modState(
+                        s => {
+                          val newNum = changedData.value.asInt(abilities.wisdom.value)
 
-                        s.copy(abilities =
-                          s.abilities.copy(wisdom =
-                            s.abilities.wisdom.copy(overrideValue = if (newNum == 0) None else Some(newNum))
+                          s.copy(abilities =
+                            s.abilities.copy(wisdom =
+                              s.abilities.wisdom.copy(overrideValue = if (newNum == 0) None else Some(newNum))
+                            )
                           )
-                        )
-                      },
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                ).value(
-                  abilities.wisdom.overrideValue.getOrElse(0)
-                )
-            ),
-            Table.Cell(
-              Input
-                .`type`("number").size(SemanticSIZES.mini).min(0).max(30).onChange(
-                  (
-                    _,
-                    changedData
-                  ) =>
-                    $.modState(
-                      s => {
-                        val newNum = changedData.value.asInt(abilities.charisma.value)
+                        },
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                  ).value(
+                    abilities.wisdom.overrideValue.getOrElse(0)
+                  )
+              ),
+              Table.Cell(
+                Input
+                  .`type`("number").size(SemanticSIZES.mini).min(0).max(30).onChange(
+                    (
+                      _,
+                      changedData
+                    ) =>
+                      $.modState(
+                        s => {
+                          val newNum = changedData.value.asInt(abilities.charisma.value)
 
-                        s.copy(abilities =
-                          s.abilities.copy(charisma =
-                            s.abilities.charisma.copy(overrideValue = if (newNum == 0) None else Some(newNum))
+                          s.copy(abilities =
+                            s.abilities.copy(charisma =
+                              s.abilities.charisma.copy(overrideValue = if (newNum == 0) None else Some(newNum))
+                            )
                           )
-                        )
-                      },
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                ).value(
-                  abilities.charisma.overrideValue.getOrElse(0)
-                )
-            )
-          ),
-          Table.Row(
-            Table.HeaderCell("Proficiency"),
-            Table.Cell(
-              Checkbox
-                .fitted(true).checked(abilities.strength.isProficient).onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    $.modState(
-                      s =>
-                        s.copy(abilities =
-                          s.abilities.copy(strength =
-                            s.abilities.strength
-                              .copy(isProficient = data.checked.getOrElse(s.abilities.strength.isProficient))
-                          )
-                        ),
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                  }
-                )
+                        },
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                  ).value(
+                    abilities.charisma.overrideValue.getOrElse(0)
+                  )
+              )
             ),
-            Table.Cell(
-              Checkbox
-                .fitted(true).checked(abilities.dexterity.isProficient).onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    $.modState(
-                      s =>
-                        s.copy(abilities =
-                          s.abilities.copy(dexterity =
-                            s.abilities.dexterity
-                              .copy(isProficient = data.checked.getOrElse(s.abilities.dexterity.isProficient))
-                          )
-                        ),
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                  }
-                )
-            ),
-            Table.Cell(
-              Checkbox
-                .fitted(true).checked(abilities.constitution.isProficient).onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    $.modState(
-                      s =>
-                        s.copy(abilities =
-                          s.abilities.copy(constitution =
-                            s.abilities.constitution
-                              .copy(isProficient = data.checked.getOrElse(s.abilities.constitution.isProficient))
-                          )
-                        ),
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                  }
-                )
-            ),
-            Table.Cell(
-              Checkbox
-                .fitted(true).checked(abilities.intelligence.isProficient).onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    $.modState(
-                      s =>
-                        s.copy(abilities =
-                          s.abilities.copy(intelligence =
-                            s.abilities.intelligence
-                              .copy(isProficient = data.checked.getOrElse(s.abilities.intelligence.isProficient))
-                          )
-                        ),
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                  }
-                )
-            ),
-            Table.Cell(
-              Checkbox
-                .fitted(true).checked(abilities.wisdom.isProficient).onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    $.modState(
-                      s =>
-                        s.copy(abilities =
-                          s.abilities.copy(wisdom =
-                            s.abilities.wisdom
-                              .copy(isProficient = data.checked.getOrElse(s.abilities.wisdom.isProficient))
-                          )
-                        ),
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                  }
-                )
-            ),
-            Table.Cell(
-              Checkbox
-                .fitted(true).checked(abilities.charisma.isProficient).onChange(
-                  (
-                    _,
-                    data
-                  ) => {
-                    $.modState(
-                      s =>
-                        s.copy(abilities =
-                          s.abilities.copy(charisma =
-                            s.abilities.charisma
-                              .copy(isProficient = data.checked.getOrElse(s.abilities.charisma.isProficient))
-                          )
-                        ),
-                      $.state.flatMap(s => props.onChange(s.abilities))
-                    )
-                  }
-                )
+            Table.Row(
+              Table.HeaderCell("Proficiency"),
+              Table.Cell(
+                Checkbox
+                  .fitted(true).checked(abilities.strength.isProficient).onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      $.modState(
+                        s =>
+                          s.copy(abilities =
+                            s.abilities.copy(strength =
+                              s.abilities.strength
+                                .copy(isProficient = data.checked.getOrElse(s.abilities.strength.isProficient))
+                            )
+                          ),
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                    }
+                  )
+              ),
+              Table.Cell(
+                Checkbox
+                  .fitted(true).checked(abilities.dexterity.isProficient).onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      $.modState(
+                        s =>
+                          s.copy(abilities =
+                            s.abilities.copy(dexterity =
+                              s.abilities.dexterity
+                                .copy(isProficient = data.checked.getOrElse(s.abilities.dexterity.isProficient))
+                            )
+                          ),
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                    }
+                  )
+              ),
+              Table.Cell(
+                Checkbox
+                  .fitted(true).checked(abilities.constitution.isProficient).onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      $.modState(
+                        s =>
+                          s.copy(abilities =
+                            s.abilities.copy(constitution =
+                              s.abilities.constitution
+                                .copy(isProficient = data.checked.getOrElse(s.abilities.constitution.isProficient))
+                            )
+                          ),
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                    }
+                  )
+              ),
+              Table.Cell(
+                Checkbox
+                  .fitted(true).checked(abilities.intelligence.isProficient).onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      $.modState(
+                        s =>
+                          s.copy(abilities =
+                            s.abilities.copy(intelligence =
+                              s.abilities.intelligence
+                                .copy(isProficient = data.checked.getOrElse(s.abilities.intelligence.isProficient))
+                            )
+                          ),
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                    }
+                  )
+              ),
+              Table.Cell(
+                Checkbox
+                  .fitted(true).checked(abilities.wisdom.isProficient).onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      $.modState(
+                        s =>
+                          s.copy(abilities =
+                            s.abilities.copy(wisdom =
+                              s.abilities.wisdom
+                                .copy(isProficient = data.checked.getOrElse(s.abilities.wisdom.isProficient))
+                            )
+                          ),
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                    }
+                  )
+              ),
+              Table.Cell(
+                Checkbox
+                  .fitted(true).checked(abilities.charisma.isProficient).onChange(
+                    (
+                      _,
+                      data
+                    ) => {
+                      $.modState(
+                        s =>
+                          s.copy(abilities =
+                            s.abilities.copy(charisma =
+                              s.abilities.charisma
+                                .copy(isProficient = data.checked.getOrElse(s.abilities.charisma.isProficient))
+                            )
+                          ),
+                        $.state.flatMap(s => props.onChange(s.abilities))
+                      )
+                    }
+                  )
+              )
             )
           )
         )
-      )
     }
 
   }

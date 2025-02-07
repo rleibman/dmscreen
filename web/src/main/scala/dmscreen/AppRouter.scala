@@ -33,7 +33,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsCollectionsMenuMenuItemMod.MenuItemProps
-import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticWIDTHS
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticCOLORS, SemanticWIDTHS}
 import net.leibman.dmscreen.std.*
 import org.scalajs.dom.{HTMLAnchorElement, window}
 import org.scalajs.dom.html.Paragraph
@@ -67,6 +67,8 @@ object AppRouter {
         .fluid(true)
         .vertical(true)
         .tabular(true)
+        .inverted(DND5eUI.menuInverted)
+        .color(DND5eUI.menuColor)
         .withKey("mainMenu")
         .className("mainMenu")(
           allPageMenuItems.map {
@@ -176,7 +178,7 @@ object AppRouter {
     gameUI:     Option[GameUI]
   ): Router[AppPageType] = {
     val c: RouterConfig[AppPageType] = config(campaignId, gameUI)
-    Router.apply(baseUrl, c)
+    Router(baseUrl, c)
   }
 
 }

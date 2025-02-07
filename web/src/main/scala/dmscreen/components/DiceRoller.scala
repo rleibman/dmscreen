@@ -21,7 +21,7 @@
 
 package dmscreen.components
 
-import dmscreen.DMScreenTab
+import dmscreen.{DMScreenTab, DiceRoll}
 import dmscreen.dnd5e.*
 import dmscreen.dnd5e.components.*
 import japgolly.scalajs.react.component.Scala.Unmounted
@@ -44,7 +44,6 @@ import org.scalajs.dom
 import org.scalajs.dom.*
 import org.scalajs.dom.html.Div
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.scalajs.js
 import scala.scalajs.js.Dynamic.global
@@ -61,7 +60,7 @@ enum DieType {
 @JSImport("@3d-dice/dice-ui/src/displayResults", JSImport.Default)
 class DisplayResults(selector: String) extends js.Object {
 
-  def clear(): Unit = js.native
+  def clear():                                    Unit = js.native
   def showResults(results: js.Array[RollResult]): Unit = js.native
 
 }
@@ -82,12 +81,12 @@ class DiceBox(
   options: DiceBoxOptions
 ) extends js.Object {
 
-  def init(): js.Promise[Unit] = js.native
-  def show(): DiceBox = js.native
-  def roll(dice: js.Any): js.Promise[js.Array[DieResult]] = js.native
-  def hide():         DiceBox = js.native
-  def clear():        Unit = js.native
-  def onRollComplete: js.Function1[js.Any, Unit] = js.native
+  def init():                                                 js.Promise[Unit] = js.native
+  def show():                                                 DiceBox = js.native
+  def roll(dice:                 js.Any):                     js.Promise[js.Array[DieResult]] = js.native
+  def hide():                                                 DiceBox = js.native
+  def clear():                                                Unit = js.native
+  def onRollComplete:                                         js.Function1[js.Any, Unit] = js.native
   def onRollComplete_=(callback: js.Function1[js.Any, Unit]): Unit = js.native
 
 }
@@ -176,12 +175,12 @@ object DiceRoller extends DMScreenTab {
 
       $.state.asAsyncCallback.flatMap { s =>
         s.diceBox.fold(AsyncCallback.pure(js.Array[DieResult]())) { db =>
-          def fut =
+          def promise: Promise[Sequence[DieResult]] =
             db
               .show()
-              .roll(s.diceParser.parseNotation(notation)).toFuture
+              .roll(s.diceParser.parseNotation(notation))
 
-          AsyncCallback.fromFuture(fut)
+          AsyncCallback.fromJsPromise(promise)
         }
       }
     }
@@ -355,7 +354,6 @@ object DiceRoller extends DMScreenTab {
               $.state.diceBox
                 .fold(Callback.empty) { db =>
                   Callback {
-//                    println(s"onRollComplete = $results, ${scala.scalajs.js.JSON.stringify(results)}")
                     db.hide().clear()
                   }
                 } >>
@@ -368,11 +366,11 @@ object DiceRoller extends DMScreenTab {
           onDieComplete = (dieResult: DieResult) => $.props.onDieComplete(dieResult).runNow()
         )
       )
-      def fut = diceBox.init().toFuture
-      val cb: AsyncCallback[Unit] = AsyncCallback.fromFuture(fut)
-      cb.completeWith(_ =>
-        $.modState(s => s.copy(diceBox = Some(diceBox), displayResults = Some(DisplayResults("#dice-box"))))
-      )
+      AsyncCallback
+        .fromJsPromise(diceBox.init())
+        .completeWith(_ =>
+          $.modState(s => s.copy(diceBox = Some(diceBox), displayResults = Some(DisplayResults("#dice-box"))))
+        )
     })
     .build
 
@@ -387,6 +385,10 @@ object DiceRoller extends DMScreenTab {
 
   def roll(notation: String): AsyncCallback[Sequence[DieResult]] = {
     ref.get.asAsyncCallback.flatMap(_.fold(AsyncCallback.pure(js.Array[DieResult]()))(_.backend.roll(notation)))
+  }
+
+  def roll(diceRoll: DiceRoll): AsyncCallback[Sequence[DieResult]] = {
+    roll(diceRoll.roll)
   }
 
 }
