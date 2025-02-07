@@ -219,7 +219,7 @@ object TestMonsterExtractor extends ZIOApp {
 
     val chatRequest = ChatRequest
       .builder()
-      .responseFormat(responseFormat)
+      .parameters(ChatRequestParameters.builder().responseFormat(responseFormat).build())
       .messages(UserMessage.from(monsterText))
       .build();
 

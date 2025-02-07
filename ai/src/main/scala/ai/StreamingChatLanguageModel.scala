@@ -24,6 +24,7 @@ package ai
 import dev.langchain4j.agent.tool.ToolSpecification
 import dev.langchain4j.data.message.{AiMessage, ChatMessage, UserMessage}
 import dev.langchain4j.model.StreamingResponseHandler
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler
 
 import java.util
 import java.util.Collections.singletonList
@@ -34,10 +35,10 @@ object StreamingChatLanguageModel {
     new StreamingChatLanguageModel() {
       def toJava: dev.langchain4j.model.chat.StreamingChatLanguageModel = j
 
-      def generate(
+      def chat(
         messages: util.List[ChatMessage],
-        handler:  StreamingResponseHandler[AiMessage]
-      ): Unit = j.generate(messages, handler)
+        handler:  StreamingChatResponseHandler
+      ): Unit = j.chat(messages, handler)
     }
 
 }
@@ -55,11 +56,11 @@ trait StreamingChatLanguageModel {
     * @param handler
     *   The handler for streaming the response.
     */
-  def generate(
+  def chat(
     userMessage: String,
-    handler:     StreamingResponseHandler[AiMessage]
+    handler:     StreamingChatResponseHandler
   ): Unit = {
-    generate(singletonList(UserMessage.from(userMessage)), handler)
+    chat(singletonList(UserMessage.from(userMessage): ChatMessage), handler)
   }
 
   /** Generates a response from the model based on a message from a user.
@@ -69,11 +70,11 @@ trait StreamingChatLanguageModel {
     * @param handler
     *   The handler for streaming the response.
     */
-  def generate(
+  def chat(
     userMessage: UserMessage,
-    handler:     StreamingResponseHandler[AiMessage]
+    handler:     StreamingChatResponseHandler
   ): Unit = {
-    generate(singletonList(userMessage), handler)
+    chat(singletonList(userMessage), handler)
   }
 
   /** Generates a response from the model based on a sequence of messages. Typically, the sequence contains messages in
@@ -84,9 +85,9 @@ trait StreamingChatLanguageModel {
     * @param handler
     *   The handler for streaming the response.
     */
-  def generate(
+  def chat(
     messages: util.List[ChatMessage],
-    handler:  StreamingResponseHandler[AiMessage]
+    handler:  StreamingChatResponseHandler
   ): Unit
 
   /** Generates a response from the model based on a list of messages and a list of tool specifications. The response
@@ -102,10 +103,10 @@ trait StreamingChatLanguageModel {
     *   The handler for streaming the response. {@link AiMessage} can contain either a textual response or a request to
     *   execute one of the tools.
     */
-  def generate(
+  def chat(
     messages:           util.List[ChatMessage],
     toolSpecifications: util.List[ToolSpecification],
-    handler:            StreamingResponseHandler[AiMessage]
+    handler:            StreamingChatResponseHandler
   ): Unit = {
     throw new IllegalArgumentException("Tools are currently not supported by this model")
   }
@@ -119,10 +120,10 @@ trait StreamingChatLanguageModel {
     * @param handler
     *   The handler for streaming the response.
     */
-  def generate(
+  def chat(
     messages:          util.List[ChatMessage],
     toolSpecification: ToolSpecification,
-    handler:           StreamingResponseHandler[AiMessage]
+    handler:           StreamingChatResponseHandler
   ): Unit = {
     throw new IllegalArgumentException("Tools are currently not supported by this model")
   }

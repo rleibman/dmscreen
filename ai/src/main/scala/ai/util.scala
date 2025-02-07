@@ -190,8 +190,8 @@ def streamedChat(message: String): ZStream[StreamAssistant, Throwable, String] =
   } yield ZStream.async[Any, Throwable, String] { callback =>
     aiServices
       .chat(message)
-      .onNext(str => callback(ZIO.succeed(Chunk(str))))
-      .onComplete(_ => callback(ZIO.succeed(Chunk.empty)))
+      .onPartialResponse(str => callback(ZIO.succeed(Chunk(str))))
+      .onCompleteResponse(_ => callback(ZIO.succeed(Chunk.empty)))
       .onError(error => callback(ZIO.fail(Some(error))))
       .start()
   })

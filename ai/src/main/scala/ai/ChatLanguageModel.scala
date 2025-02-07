@@ -22,6 +22,7 @@
 package ai
 
 import dev.langchain4j.data.message.{AiMessage, ChatMessage}
+import dev.langchain4j.model.chat.response.ChatResponse
 import dev.langchain4j.model.output.Response
 
 import java.util
@@ -32,7 +33,7 @@ object ChatLanguageModel {
     new ChatLanguageModel() {
       override def toJava: dev.langchain4j.model.chat.ChatLanguageModel = j
 
-      override def generate(messages: util.List[ChatMessage]): Response[AiMessage] = j.generate(messages)
+      override def chat(messages: util.List[ChatMessage]): ChatResponse = j.chat(messages)
     }
 
 }
@@ -43,6 +44,6 @@ trait ChatLanguageModel {
 
   def toJava: dev.langchain4j.model.chat.ChatLanguageModel
 
-  def generate(messages: util.List[ChatMessage]): Response[AiMessage]
+  def chat(messages: util.List[ChatMessage]): ChatResponse
 
 }
