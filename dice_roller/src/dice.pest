@@ -1,15 +1,11 @@
-dice_expr = { num_dice? ~ "d" ~ die_size ~ explode_indefinitely? ~ explode_once? ~ keep_drop? ~ modifier? }
+full_expr = { dice_expr ~ (operator ~ dice_expr)* ~ modifier? }
 
-num_dice = { number? }
-
+dice_expr = { num_dice ~ "d" ~ die_size ~ explode_indefinitely? ~ explode_once? ~ keep_drop? }
+num_dice = { number }
 die_size = { number }
-
 explode_indefinitely = { "!!" }
-
 explode_once = { "!" }
-
 keep_drop = { ("kh" | "kl" | "dh" | "dl") ~ number }
-
-modifier = { ("+" | "-") ~ number }
-
+modifier = { ("+" | "-") ~ number }  // Modifiers are now only allowed at the **end**
+operator = { "+" | "-" }
 number = { ASCII_DIGIT+ }
