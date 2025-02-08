@@ -1,0 +1,15 @@
+dice_expr = { num_dice? ~ "d" ~ die_size ~ explode_indefinitely? ~ explode_once? ~ keep_drop? ~ modifier? }
+
+num_dice = { number? }
+
+die_size = { number }
+
+explode_indefinitely = { "!!" }
+
+explode_once = { "!" }
+
+keep_drop = { ("kh" | "kl" | "dh" | "dl") ~ number }
+
+modifier = { ("+" | "-") ~ number }
+
+number = { ASCII_DIGIT+ }
