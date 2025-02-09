@@ -1,9 +1,10 @@
 WHITESPACE = _{ " " }
 
-expression = { SOI ~ term ~ (operator ~ term)* ~ EOI }
-term = { dice_roll | function | number | "(" ~ expression ~ ")" }
+expression = { SOI ~ operation ~ EOI }
+operation = { term ~ (operator ~ term)* }
+term = { dice_roll | function | number | "(" ~ operation ~ ")" }
 
-function = { function_name ~ "(" ~ expression ~ ")" }
+function = { function_name ~ "(" ~ operation ~ ")" }
 function_name = { "floor" | "round" | "ceil" | "abs" }
 
 dice_roll = { number? ~ "d" ~ sides ~ modifier* }
@@ -11,9 +12,10 @@ sides = @{ "%" | number }
 number = @{ ASCII_DIGIT+ }
 
 modifier = { keep | drop | reroll | exploding | target_number }
-
-keep = { ("k" | "kh" | "kl") ~ number? }
-drop = { ("d" | "dh" | "dl") ~ number? }
+keep = { keep_type ~ number? }
+keep_type = { "k" | "kh" | "kl" }
+drop = { drop_type ~ number? }
+drop_type = { "d" | "dh" | "dl" }
 reroll = { "r" ~ number? }
 exploding = { "!" ~ number? }
 target_number = { (">=" | "<=" | "=" | ">" | "<") ~ number }

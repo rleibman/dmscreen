@@ -48,26 +48,26 @@ fn parse_dice_roll(mut pairs: Peekable<Pairs<Rule>>, dice_rolls: &mut Vec<DiceRo
                     }
                     Rule::keep => {
                         let mut inner = inner.into_inner();
-                        let kind = inner.next().unwrap().as_str();
+                        let kind = inner.next().unwrap();
                         let num = inner.next()
                             .map(|n| n.as_str().parse::<usize>().unwrap())
                             .unwrap_or(1);
-                        keep_drop = match kind {
+                        keep_drop = match kind.as_str() {
                             "k" | "kh" => KeepDrop::KeepHighest(num),
                             "kl" => KeepDrop::KeepLowest(num),
-                            _ => unreachable!()
+                            _ => panic!("Invalid keep type: {}", kind.as_str())
                         };
                     }
                     Rule::drop => {
                         let mut inner = inner.into_inner();
-                        let kind = inner.next().unwrap().as_str();
+                        let kind = inner.next().unwrap();
                         let num = inner.next()
                             .map(|n| n.as_str().parse::<usize>().unwrap())
                             .unwrap_or(1);
-                        keep_drop = match kind {
+                        keep_drop = match kind.as_str() {
                             "d" | "dh" => KeepDrop::DropHighest(num),
                             "dl" => KeepDrop::DropLowest(num),
-                            _ => unreachable!()
+                            _ => panic!("Invalid drop type: {}", kind.as_str())
                         };
                     }
                     _ => {}
@@ -90,19 +90,22 @@ pub fn parse(input: &str) -> Result<(Expr, Vec<DiceRoll>), pest::error::Error<Ru
 
     fn parse_expr(pair: Pair<Rule>, dice_rolls: &mut Vec<DiceRoll>) -> Expr {
         match pair.as_rule() {
-            Rule::expression => {
-                let mut pairs = pair.into_inner();
-                let first = parse_expr(pairs.next().unwrap(), dice_rolls);
+            Rule::expression => parse_expr(pair.into_inner().next().unwrap(), dice_rolls),
+            Rule::operation => {
+                let mut pairs = pair.into_inner().peekable();
+                let mut expr = parse_expr(pairs.next().unwrap(), dice_rolls);
 
-                let mut result = first;
-                while let Some(op_pair) = pairs.next() {
-                    if op_pair.as_rule() == Rule::operator {
-                        let op = op_pair.as_str().to_string();
-                        let rhs = parse_expr(pairs.next().unwrap(), dice_rolls);
-                        result = Expr::BinaryOp(Box::new(result), op, Box::new(rhs));
+                while let Some(op) = pairs.next() {
+                    if op.as_rule() == Rule::operator {
+                        let rhs = pairs.next().unwrap();
+                        expr = Expr::BinaryOp(
+                            Box::new(expr),
+                            op.as_str().to_string(),
+                            Box::new(parse_expr(rhs, dice_rolls))
+                        );
                     }
                 }
-                result
+                expr
             }
             Rule::term => parse_expr(pair.into_inner().next().unwrap(), dice_rolls),
             Rule::dice_roll => parse_dice_roll(pair.into_inner().peekable(), dice_rolls),
@@ -113,11 +116,11 @@ pub fn parse(input: &str) -> Result<(Expr, Vec<DiceRoll>), pest::error::Error<Ru
                 let arg = parse_expr(pairs.next().unwrap(), dice_rolls);
                 Expr::Function(name, Box::new(arg))
             }
-            _ => unreachable!()
+            _ => unreachable!("{:?}", pair.as_rule())
         }
     }
 
-    let expr = parse_expr(parsed.into_inner().next().unwrap(), &mut dice_rolls);
+    let expr = parse_expr(parsed, &mut dice_rolls);
     Ok((expr, dice_rolls))
 }
 
@@ -133,7 +136,9 @@ mod tests {
 
     #[test]
     fn test_complex_expression() {
-        let (_, rolls) = parse("2d20k1 + 1d6!").unwrap();
+        let (expr, rolls) = parse("2d20k1 + 1d6!").unwrap();
+        println!("Expression: {:?}", expr);
+        println!("Rolls: {:?}", rolls);
         assert_eq!(rolls[0], DiceRoll::new(2, 20, Exploding::None, KeepDrop::KeepHighest(1), 0));
         assert_eq!(rolls[1], DiceRoll::new(1, 6, Exploding::Indefinite, KeepDrop::None, 0));
     }
