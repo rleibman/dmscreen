@@ -1,11 +1,11 @@
-#[derive(Debug, PartialEq)] // Add PartialEq to allow assert_eq! in tests
+#[derive(Debug, PartialEq, Clone)]
 pub enum Exploding {
     None,
     Once,
     Indefinite,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum KeepDrop {
     KeepHighest(usize),
     KeepLowest(usize),
@@ -14,7 +14,7 @@ pub enum KeepDrop {
     None,
 }
 
-#[derive(Debug, PartialEq)] // Needed for assertions in tests
+#[derive(Debug, PartialEq, Clone)]
 pub struct DiceRoll {
     pub num_dice: usize,
     pub die_size: usize,

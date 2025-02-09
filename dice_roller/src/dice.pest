@@ -1,11 +1,21 @@
-full_expr = { dice_expr ~ (operator ~ dice_expr)* ~ modifier? }
+WHITESPACE = _{ " " }
 
-dice_expr = { num_dice ~ "d" ~ die_size ~ explode_indefinitely? ~ explode_once? ~ keep_drop? }
-num_dice = { number }
-die_size = { number }
-explode_indefinitely = { "!!" }
-explode_once = { "!" }
-keep_drop = { ("kh" | "kl" | "dh" | "dl") ~ number }
-modifier = { ("+" | "-") ~ number }  // Modifiers are now only allowed at the **end**
-operator = { "+" | "-" }
-number = { ASCII_DIGIT+ }
+expression = { SOI ~ term ~ (operator ~ term)* ~ EOI }
+term = { dice_roll | function | number | "(" ~ expression ~ ")" }
+
+function = { function_name ~ "(" ~ expression ~ ")" }
+function_name = { "floor" | "round" | "ceil" | "abs" }
+
+dice_roll = { number? ~ "d" ~ sides ~ modifier* }
+sides = @{ "%" | number }
+number = @{ ASCII_DIGIT+ }
+
+modifier = { keep | drop | reroll | exploding | target_number }
+
+keep = { ("k" | "kh" | "kl") ~ number? }
+drop = { ("d" | "dh" | "dl") ~ number? }
+reroll = { "r" ~ number? }
+exploding = { "!" ~ number? }
+target_number = { (">=" | "<=" | "=" | ">" | "<") ~ number }
+
+operator = { "**" | "+" | "-" | "*" | "/" | "%" }
