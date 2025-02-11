@@ -1,23 +1,40 @@
 WHITESPACE = _{ " " }
-
 expression = { SOI ~ operation ~ EOI }
 operation = { term ~ (operator ~ term)* }
-term = { dice_roll | function | number | "(" ~ operation ~ ")" }
+term = { dice_roll | function | term_number | "(" ~ operation ~ ")" }
+term_number = @{ ASCII_DIGIT+ }
+dice_roll = { dice_number? ~ "d" ~ sides ~ modifier* }
+operator = { "**" | "+" | "-" | "*" | "/" | "%" }
+modifier = { keep | drop | reroll | indefinite | exploding | target_number }
+sides = @{ ASCII_DIGIT+ }
+
+dice_number = @{ ASCII_DIGIT+ }
+
+keep = { keep_type ~ keep_number }
+keep_type = { keep_higest | keep_lowest}
+keep_higest = { "kh" | "k" }
+keep_lowest = { "kl" }
+
+keep_number = @{ ASCII_DIGIT+ }
+
+drop = { drop_type ~ drop_number }
+drop_type = { drop_higest | drop_lowest}
+drop_higest = { "dh" | "d" }
+drop_lowest = { "dl" }
+
+drop_number = @{ ASCII_DIGIT+ }
+
+reroll = { "r" ~ reroll_number? }
+reroll_number = @{ ASCII_DIGIT+ }
+
+indefinite = { "!!" ~ indefinite_number? }
+indefinite_number = @{ ASCII_DIGIT+ }
+
+exploding = { "!" ~ exploding_number? }
+exploding_number = @{ ASCII_DIGIT+ }
+
+target_number = { (">=" | "<=" | "=" | ">" | "<") ~ target_number_value }
+target_number_value = @{ ASCII_DIGIT+ }
 
 function = { function_name ~ "(" ~ operation ~ ")" }
 function_name = { "floor" | "round" | "ceil" | "abs" }
-
-dice_roll = { number? ~ "d" ~ sides ~ modifier* }
-sides = @{ "%" | number }
-number = @{ ASCII_DIGIT+ }
-
-modifier = { keep | drop | reroll | exploding | target_number }
-keep = { keep_type ~ number? }
-keep_type = { "k" | "kh" | "kl" }
-drop = { drop_type ~ number? }
-drop_type = { "d" | "dh" | "dl" }
-reroll = { "r" ~ number? }
-exploding = { "!" ~ number? }
-target_number = { (">=" | "<=" | "=" | ">" | "<") ~ number }
-
-operator = { "**" | "+" | "-" | "*" | "/" | "%" }

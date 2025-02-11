@@ -20,17 +20,20 @@ pub struct DiceRoll {
     pub die_size: usize,
     pub exploding: Exploding,
     pub keep_drop: KeepDrop,
-    pub modifier: isize,
 }
 
 impl DiceRoll {
-    pub fn new(num_dice: usize, die_size: usize, exploding: Exploding, keep_drop: KeepDrop, modifier: isize) -> Self {
+    pub fn new(
+        num_dice: usize,
+        die_size: usize,
+        exploding: Exploding,
+        keep_drop: KeepDrop,
+    ) -> Self {
         Self {
             num_dice,
             die_size,
             exploding,
             keep_drop,
-            modifier,
         }
     }
 }

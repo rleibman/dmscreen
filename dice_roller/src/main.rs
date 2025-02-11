@@ -23,13 +23,12 @@ fn main() {
                 println!("\nParsed Dice Rolls:");
                 for (i, roll) in rolls.iter().enumerate() {
                     println!(
-                        "  Roll {}: {}d{} {:?} {:?} Modifier: {}",
+                        "  Roll {}: {}d{} {:?} {:?}",
                         i + 1,
                         roll.num_dice,
                         roll.die_size,
                         roll.exploding,
                         roll.keep_drop,
-                        roll.modifier
                     );
                 }
                 println!();
@@ -47,8 +46,8 @@ fn print_expr(expr: &Expr, indent: usize) {
     match expr {
         Expr::Number(n) => println!("{}Number: {}", prefix, n),
         Expr::DiceRoll(roll) => println!(
-            "{}Dice Roll: {}d{} {:?} {:?} Modifier: {}",
-            prefix, roll.num_dice, roll.die_size, roll.exploding, roll.keep_drop, roll.modifier
+            "{}Dice Roll: {}d{} {:?} {:?}",
+            prefix, roll.num_dice, roll.die_size, roll.exploding, roll.keep_drop
         ),
         Expr::BinaryOp(left, op, right) => {
             println!("{}BinaryOp: {}", prefix, op);
