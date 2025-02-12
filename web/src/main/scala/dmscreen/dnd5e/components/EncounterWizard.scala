@@ -557,7 +557,7 @@ object EncounterWizard {
                 Form.Field(
                   Label("Type"),
                   Dropdown
-                    .compact(true)
+                    .fluid(true)
                     .search(false)
                     .clearable(true)
                     .placeholder("All")
@@ -586,7 +586,7 @@ object EncounterWizard {
                   Label("Biome"),
                   Form
                     .Dropdown()
-                    .compact(true)
+                    .fluid(true)
                     .search(false)
                     .clearable(true)
                     .placeholder("All")
@@ -615,7 +615,7 @@ object EncounterWizard {
                   Label("Aligment"),
                   Form
                     .Dropdown()
-                    .compact(true)
+                    .fluid(true)
                     .search(false)
                     .clearable(true)
                     .placeholder("All")
@@ -642,7 +642,7 @@ object EncounterWizard {
                   Label("CR"),
                   Form
                     .Dropdown()
-                    .compact(true)
+                    .fluid(true)
                     .search(false)
                     .clearable(true)
                     .placeholder("All")
@@ -669,7 +669,7 @@ object EncounterWizard {
                   Label("Size"),
                   Form
                     .Dropdown()
-                    .compact(true)
+                    .fluid(true)
                     .search(false)
                     .clearable(true)
                     .placeholder("All")
@@ -1320,11 +1320,9 @@ object EncounterWizard {
         ),
         <.div(
           ^.className := "ui segment",
-          ^.style := js.Dynamic.literal(
-            "maxHeight" -> "600px",
-            "overflowY" -> "auto",
-            "padding"   -> "20px"
-          ),
+          ^.maxHeight := 600.px,
+          ^.overflowY := "auto",
+          ^.padding   := 20.px,
           Segment(
             Header.as("h2")(s"Encounter: ${header.name}"),
             Divider(),

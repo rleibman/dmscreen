@@ -40,12 +40,13 @@ import zio.json.ast.Json
 
 import scala.annotation.tailrec
 import scala.concurrent.duration.Duration
+import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
 object CombatRunner {
 
   enum DialogType {
 
-    case none, initiative, viewTreasure
+    case none, initiative, viewTreasure, info
 
   }
 
@@ -267,6 +268,38 @@ object CombatRunner {
                   )
                 )
               ),
+            Modal
+              .open(state.dialogType == DialogType.info)(
+                Modal.Header(s"Info: Encounter: ${encounter.header.name}"),
+                Modal.Content(
+                  <.div(
+                    ^.className := "ui segment",
+                    ^.maxHeight := 600.px,
+                    ^.overflowY := "auto",
+                    ^.padding   := 20.px,
+                    Segment(
+                      <.p(<.b("Time of Day: "), encounter.info.timeOfDay.toString.capitalize),
+                      <.p(<.b("Biome: "), encounter.info.biome.toString.capitalize),
+                      <.p(<.b("Location Notes: "), encounter.info.locationNotes),
+                      <.p(<.b("Initial Description: "), encounter.info.initialDescription),
+                      <.div(
+                        <.b("Generated Description: "),
+                        <.div(
+                          ^.dangerouslySetInnerHtml := encounter.info.generatedDescription
+                        )
+                      )
+                    )
+                  )
+                ),
+                Modal.Actions(
+                  Button("Close").onClick(
+                    (
+                      _,
+                      _
+                    ) => $.modState(_.copy(dialogType = DialogType.none))
+                  )
+                )
+              ),
             state.viewMonsterId.fold(EmptyVdom: VdomNode)(monsterId =>
               Modal
                 .withKey("monsterStackBlockModal")
@@ -355,6 +388,16 @@ object CombatRunner {
                       .colSpan(2)
                       .singleLine(true)
                       .textAlign(semanticUiReactStrings.right)(
+                        Button
+                          .compact(true)
+                          .title("Info")
+                          .onClick(
+                            (
+                              _,
+                              _
+                            ) => $.modState(_.copy(dialogType = DialogType.info))
+                          )
+                          .icon(true)(Icon.name(SemanticICONS.`info circle`)),
                         Button
                           .compact(true)
                           .title("Treasure")

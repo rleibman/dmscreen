@@ -128,4 +128,7 @@ DONE Edit player name in pc is not working
 Next in encounter is broken
 DONE No edit for monsters, need to fix that
 
--- Change segment's padding to 0.25em
+Features:
+- Add snapshot to campaign
+- Add NPCs to scenes outside of encounters
+- Add text generator to encounter editor

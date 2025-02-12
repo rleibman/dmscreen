@@ -52,7 +52,8 @@ object NPCPage extends DMScreenTab {
     monsterSearch:   MonsterSearch = MonsterSearch(name = Some("")),
     monsterSelected: Option[Monster] = None,
     monsterList:     Seq[MonsterHeader] = Seq.empty,
-    selectMonster:   Boolean = false
+    selectMonster:   Boolean = false,
+    filterDead:      Boolean = true
   ) {
 
     def ncpsInScene: Seq[NonPlayerCharacter] =
@@ -259,12 +260,24 @@ object NPCPage extends DMScreenTab {
                         .setText(scene.header.name)
                     ) :+ DropdownItemProps().setValue(-1).setText("All Scenes")).toJSArray
                 )
-                .value(state.filterScene.fold(-1.0)(_.id.value.toDouble))
+                .value(state.filterScene.fold(-1.0)(_.id.value.toDouble)),
+              Checkbox
+                .toggle(true)
+                .label("Remove Dead")
+                .checked(state.filterDead)
+                .onChange(
+                  (
+                    _,
+                    data
+                  ) => $.modState(_.copy(filterDead = data.checked.getOrElse(false)))
+                )
             ),
             <.div(
               ^.className := "pageContainer",
               ^.key       := "pageContainer",
-              state.ncpsInScene
+              state
+                .ncpsInScene
+                .filter(npc => if (state.filterDead) !npc.info.health.isDead else true)
                 .map(npc =>
                   NPCEditComponent( // Internally, make sure each item has a key!
                     npc = npc,

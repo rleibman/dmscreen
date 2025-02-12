@@ -147,7 +147,7 @@ object MonsterEditor {
                       Alignment.values
                         .map(value => DropdownItemProps().setValue(value.ordinal).setText(value.toString)).toJSArray
                     )
-                    .compact(true)
+                    .fluid(true)
                     .label("Alignment")
                     .value(monster.header.alignment.fold("")(_.ordinal))
                     .onChange {
@@ -168,7 +168,7 @@ object MonsterEditor {
                       CreatureSize.values
                         .map(value => DropdownItemProps().setValue(value.ordinal).setText(value.toString)).toJSArray
                     )
-                    .compact(true)
+                    .fluid(true)
                     .label("Creature Size")
                     .value(monster.header.size.ordinal)
                     .onChange {
@@ -189,7 +189,7 @@ object MonsterEditor {
                       MonsterType.values
                         .map(value => DropdownItemProps().setValue(value.ordinal).setText(value.toString)).toJSArray
                     )
-                    .compact(true)
+                    .fluid(true)
                     .label("Monster Type")
                     .value(monster.header.monsterType.ordinal)
                     .onChange {
@@ -210,7 +210,7 @@ object MonsterEditor {
                       Biome.values
                         .map(value => DropdownItemProps().setValue(value.ordinal).setText(value.toString)).toJSArray
                     )
-                    .compact(true)
+                    .fluid(true)
                     .label("Biome")
                     .value(monster.header.biome.fold("")(_.ordinal))
                     .onChange {
@@ -253,7 +253,7 @@ object MonsterEditor {
                       ChallengeRating.values
                         .map(value => DropdownItemProps().setValue(value.ordinal).setText(value.toString)).toJSArray
                     )
-                    .compact(true)
+                    .fluid(true)
                     .label("Challenge Rating")
                     .value(monster.header.cr.ordinal)
                     .onChange {

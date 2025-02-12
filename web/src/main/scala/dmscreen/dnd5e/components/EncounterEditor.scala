@@ -201,7 +201,7 @@ object EncounterEditor {
                 Modal.Header("Select NPC to add"),
                 Modal.Content(
                   Dropdown
-                    .compact(false)
+                    .fluid(true)
                     .search(false)
                     .clearable(true)
                     .placeholder("Click to Select NPC")
@@ -624,7 +624,7 @@ object EncounterEditor {
                           Form.Field(
                             Label("Type"),
                             Dropdown
-                              .compact(true)
+                              .fluid(true)
                               .search(false)
                               .clearable(true)
                               .placeholder("All")
@@ -653,7 +653,7 @@ object EncounterEditor {
                             Label("Biome"),
                             Form
                               .Dropdown()
-                              .compact(true)
+                              .fluid(true)
                               .search(false)
                               .clearable(true)
                               .placeholder("All")
@@ -682,7 +682,7 @@ object EncounterEditor {
                             Label("Aligment"),
                             Form
                               .Dropdown()
-                              .compact(true)
+                              .fluid(true)
                               .search(false)
                               .clearable(true)
                               .placeholder("All")
@@ -709,7 +709,7 @@ object EncounterEditor {
                             Label("CR"),
                             Form
                               .Dropdown()
-                              .compact(true)
+                              .fluid(true)
                               .search(false)
                               .clearable(true)
                               .placeholder("All")
@@ -736,7 +736,7 @@ object EncounterEditor {
                             Label("Size"),
                             Form
                               .Dropdown()
-                              .compact(true)
+                              .fluid(true)
                               .search(false)
                               .clearable(true)
                               .placeholder("All")
