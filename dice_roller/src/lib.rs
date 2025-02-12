@@ -2,6 +2,7 @@ use pest::iterators::{Pair, Pairs};
 use pest::Parser;
 use pest_derive::Parser;
 use std::iter::Peekable;
+use wasm_bindgen::prelude::*;
 
 mod dice;
 pub use dice::{DiceRoll, Exploding, KeepDrop};
@@ -124,6 +125,17 @@ pub fn parse(input: &str) -> Result<(Expr, Vec<DiceRoll>), pest::error::Error<Ru
 
     let expr = parse_expr(parsed, &mut dice_rolls);
     Ok((expr, dice_rolls))
+}
+
+#[wasm_bindgen]  // Exposes this function to JavaScript
+pub fn roll(input: &str) -> Result<i32, String> {
+    match parse(input) {
+        Ok((_, rolls)) => {
+            let total = rolls.iter().map(|_r| 1 /*r.roll()*/).sum();
+            Ok(total)
+        }
+        Err(e) => Err(format!("Parsing error: {:?}", e)),
+    }
 }
 
 #[cfg(test)]
