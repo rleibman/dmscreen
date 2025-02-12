@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dice Roller</title>
+</head>
+<body>
+<h1>Dice Roller</h1>
+<input id="input" type="text" placeholder="Enter roll (e.g., 2d6+1)">
+<button onclick="rollDice()">Roll</button>
+<p id="result"></p>
+
+<script type="module">
+    import init, { roll } from "wasm-out/dice_parser.js";  // Adjust this to your actual output
+
+    async function rollDice() {
+        await init(); // Load WebAssembly
+        let input = document.getElementById("input").value;
+        try {
+            let result = roll(input); // Call the WASM function
+            document.getElementById("result").textContent = "Result: " + result;
+        } catch (e) {
+            document.getElementById("result").textContent = "Error: " + e;
+            console.error(e);
+        }
+    }
+
+    window.rollDice = rollDice; // Ensure it's globally accessible
+</script>
+</body>
+</html>

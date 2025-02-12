@@ -1,0 +1,22 @@
+[package]
+name = "dice_parser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nom = "8.0.0"
+pest = "2.7.15"
+pest_derive = "2.7.15"
+wasm-bindgen = "0.2"
+rand = { version = "0.8", features = ["getrandom"] }
+getrandom = { version = "0.2", features = ["js"] }
+
+[lib]
+name = "dice_parser"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]  # Needed for WASM
+
+[[bin]]
+name = "dice_parser_bin"
+path = "src/main.rs"
+
