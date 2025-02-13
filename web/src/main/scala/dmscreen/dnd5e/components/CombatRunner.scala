@@ -135,8 +135,20 @@ object CombatRunner {
               )
             )
         }
+
+      val sortedCombatants =
+        (encounter.info.monsters ++ encounter.info.npcs ++ playerCombatants).sortBy(initiativeTuple(pcs, npcs))
       encounter.copy(
-        header = encounter.header.copy(status = EncounterStatus.active)
+        header = encounter.header.copy(status = EncounterStatus.active),
+        jsonInfo = encounter.info
+          .copy(
+            combatants = sortedCombatants,
+            currentTurnId =
+              if (encounter.info.currentTurnId == CombatantId.empty)
+                sortedCombatants.find(_.canTakeTurn).fold(CombatantId.empty)(_.id)
+              else encounter.info.currentTurnId,
+            round = if (encounter.info.round == 0) 1 else encounter.info.round // This is the first time we're running this encounter
+          ).toJsonAST.toOption.get
       )
     }
 
@@ -163,6 +175,10 @@ object CombatRunner {
           campaignState <- dmScreenState.campaignState.map(_.asInstanceOf[DND5eCampaignState])
           encounter     <- state.encounter
         } yield {
+
+          val pcs = state.pcs
+          val npcs = state.npcs
+          val sortedCombatants = encounter.info.combatants.sortBy(initiativeTuple(pcs, npcs))
 
           def modeChange(mode: EditingMode): Callback = {
             $.modState(_.copy(dialogMode = mode)) // , props.onModeChange(mode))
@@ -199,6 +215,30 @@ object CombatRunner {
             )
           }
 
+//          def nextCombatantIfCurrentDead(combatant: EncounterCombatant): Callback = {
+//            if (state.encounter.info.currentTurnId == combatant.id && !combatant.canTakeTurn) {
+//              // Find the next combatant that can take a turn, or go back to the beginning if we're at the end
+//              val combatantIndex = sortedCombatants.indexWhere(_.id == combatant.id)
+//              val nextOpt = sortedCombatants
+//                .drop(combatantIndex + 1)
+//                .find(_.canTakeTurn)
+//
+//              val firstOne =
+//                nextOpt.orElse(sortedCombatants.find(_.canTakeTurn))
+//
+//              val nextRound = nextOpt.fold(encounter.info.round + 1)(_ => encounter.info.round)
+//
+//              modEncounterInfo(
+//                _.copy(
+//                  currentTurnId = firstOne.fold(CombatantId.empty)(_.id),
+//                  round = nextRound
+//                ),
+//                ""
+//              )
+//
+//            } else Callback.empty
+//          }
+
           def modNPC(
             updatedNPC: NonPlayerCharacter,
             log:        String
@@ -214,9 +254,6 @@ object CombatRunner {
             )
           }
 
-          val pcs = state.pcs
-          val npcs = state.npcs
-
           VdomArray(
             PCInitativeEditor(
               pcs = pcs,
@@ -226,7 +263,7 @@ object CombatRunner {
                   modEncounterInfo(
                     info =>
                       info.copy(
-                        currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
+                        currentTurnId = CombatantId.empty, // Need to reset the current turn to the beginning, otherwise things can get woird
                         combatants = info.combatants.map {
                           case c: PlayerCharacterCombatant =>
                             c.copy(initiative = initatives(c.playerCharacterId))
@@ -474,7 +511,7 @@ object CombatRunner {
                                       val newCombatants = newNpcs ++ newMonsters ++ pcs
 
                                       info.copy(
-                                        currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
+                                        currentTurnId = CombatantId.empty, // Need to reset the current turn to the beginning, otherwise things can get woird
                                         combatants = newCombatants
                                       )
                                     },
@@ -527,7 +564,8 @@ object CombatRunner {
                                               _.asInstanceOf[PlayerCharacterCombatant].copy(otherMarkers = List.empty)
                                             )
 
-                                      info.copy(currentTurn = 0, round = 0, combatants = newCombatants)
+                                      info
+                                        .copy(currentTurnId = CombatantId.empty, round = 0, combatants = newCombatants)
                                     },
                                     "Cleared all NPC stats to beginning of combat"
                                   ) >> Callback.traverse(encounter.info.combatants.collect {
@@ -586,26 +624,33 @@ object CombatRunner {
                               _,
                               _
                             ) =>
+                              val combatingCombatants = sortedCombatants.filter(_.canTakeTurn)
 
-                              @tailrec def nextLiveCombatant(i: Int): Int = {
-                                val next = if (i == encounter.info.combatants.length - 1) 0 else i + 1
-                                if (
-                                  next == encounter.info.combatants.length || encounter.info
-                                    .combatants(next).canTakeTurn
+                              val currentIndex =
+                                combatingCombatants.indexWhere(c => c.id == encounter.info.currentTurnId)
+
+                              val (nextCombatant, nextRound) = if (currentIndex < 0) {
+                                (
+                                  combatingCombatants.headOption.fold(CombatantId.empty)(_.id),
+                                  encounter.info.round
                                 )
-                                  next
-                                else
-                                  nextLiveCombatant(next)
+                              } else if (currentIndex == combatingCombatants.size - 1) {
+                                // Back to the beginning
+                                (
+                                  combatingCombatants.headOption.fold(CombatantId.empty)(_.id),
+                                  encounter.info.round + 1
+                                )
+                              } else {
+                                combatingCombatants
+                                  .drop(currentIndex + 1).find(_.canTakeTurn).fold(
+                                    (CombatantId.empty, encounter.info.round)
+                                  ) { c =>
+                                    (c.id, encounter.info.round)
+                                  }
                               }
 
-                              val nextTurn = nextLiveCombatant(encounter.info.currentTurn)
-
-                              val nextRound =
-                                if (nextTurn <= encounter.info.currentTurn) encounter.info.round + 1
-                                else encounter.info.round
-
                               modEncounterInfo(
-                                _.copy(round = nextRound, currentTurn = nextTurn),
+                                _.copy(round = nextRound, currentTurnId = nextCombatant),
                                 ""
                               )
                           }
@@ -625,8 +670,7 @@ object CombatRunner {
                   )
                 ),
                 Table.Body(
-                  encounter.info.combatants
-                    .sortBy(initiativeTuple(pcs, npcs))
+                  sortedCombatants
                     .filter(p =>
                       if (state.filterDeadMonsters)
                         p match {
@@ -646,7 +690,10 @@ object CombatRunner {
                           .withKey(pcCombatant.id.value.toString)(
                             Table.Cell
                               .style(CSSProperties().set("backgroundColor", "rgb(255,255,255,.15)"))(
-                                Icon.name(SemanticICONS.`arrow right`).when(i == encounter.info.currentTurn),
+                                Icon
+                                  .name(SemanticICONS.`arrow right`).when(
+                                    pcCombatant.id == encounter.info.currentTurnId
+                                  ),
                                 EditableNumber(
                                   value = pcCombatant.initiative,
                                   min = 1,
@@ -655,7 +702,7 @@ object CombatRunner {
                                     modEncounterInfo(
                                       info =>
                                         info.copy(
-                                          currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
+                                          currentTurnId = CombatantId.empty, // Need to reset the current turn to the beginning, otherwise things can get woird
                                           combatants = info.combatants.map {
                                             case c: PlayerCharacterCombatant if c.id == pcCombatant.id =>
                                               c.copy(initiative = v.toInt)
@@ -707,7 +754,7 @@ object CombatRunner {
                                             s"${pcCombatant.name} healed ${state.healOrDamage(pcCombatant.id)} points"
                                         }
                                       ) >> $.modState(s =>
-                                        s.copy(healOrDamage = s.healOrDamage.filter(_._1 != pcCombatant.id))
+                                        s.copy(healOrDamage = s.healOrDamage.filter(_._1 != pcCombatant.id)),
                                       )
 
                                   },
@@ -887,7 +934,10 @@ object CombatRunner {
                         Table.Row
                           .withKey(npcCombatant.id.value.toString)(
                             Table.Cell(
-                              Icon.name(SemanticICONS.`arrow right`).when(i == encounter.info.currentTurn),
+                              Icon
+                                .name(SemanticICONS.`arrow right`).when(
+                                  npcCombatant.id == encounter.info.currentTurnId
+                                ),
                               EditableNumber(
                                 value = npcCombatant.initiative,
                                 min = 1,
@@ -896,7 +946,7 @@ object CombatRunner {
                                   modEncounterInfo(
                                     info =>
                                       info.copy(
-                                        currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
+                                        currentTurnId = CombatantId.empty, // Need to reset the current turn to the beginning, otherwise things can get woird
                                         combatants = info.combatants.map {
                                           case c: NonPlayerCharacterCombatant if c.id == npcCombatant.id =>
                                             c.copy(initiative = v.toInt)
@@ -1112,7 +1162,10 @@ object CombatRunner {
                         Table.Row
                           .withKey(monsterCombatant.id.value.toString)(
                             Table.Cell(
-                              Icon.name(SemanticICONS.`arrow right`).when(i == encounter.info.currentTurn),
+                              Icon
+                                .name(SemanticICONS.`arrow right`).when(
+                                  monsterCombatant.id == encounter.info.currentTurnId
+                                ),
                               EditableNumber(
                                 value = monsterCombatant.initiative,
                                 min = 1,
@@ -1122,7 +1175,7 @@ object CombatRunner {
                                     info =>
                                       info
                                         .copy(
-                                          currentTurn = 0, // Need to reset the current turn to the beginning, otherwise things can get woird
+                                          currentTurnId = CombatantId.empty, // Need to reset the current turn to the beginning, otherwise things can get woird
                                           combatants = info.combatants.map {
                                             case c: MonsterCombatant if c.id == monsterCombatant.id =>
                                               c.copy(initiative = v.toInt)

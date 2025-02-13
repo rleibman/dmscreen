@@ -132,3 +132,8 @@ Features:
 - Add snapshot to campaign
 - Add NPCs to scenes outside of encounters
 - Add text generator to encounter editor
+- Monsters need to be added to embedding database dynamically.
+- Toast is showing up behind the menu
+DONE - Start combat is not showing the PCs.
+DONE - Next is still not working
+- Killing the current combatant sets the "currentCombatant" back to the top of the round

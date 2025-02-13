@@ -55,7 +55,7 @@ val tapirVersion = "1.10.8"
 val testContainerVersion = "0.41.8"
 val zioConfigVersion = "4.0.3"
 val zioHttpVersion = "3.0.1"
-val zioJsonVersion = "0.7.18"
+val zioJsonVersion = "0.7.20"
 val zioVersion = "2.1.15"
 
 lazy val commonSettings = Seq(
@@ -166,7 +166,7 @@ lazy val server = project
     name := "dmscreen-server",
     libraryDependencies ++= Seq(
       // DB
-      "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.1" withSources (),
+      "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.2" withSources (),
       "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
       // Log
       "ch.qos.logback" % "logback-classic" % "1.5.16" withSources (),

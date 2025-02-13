@@ -30,7 +30,12 @@ import java.util.UUID
 opaque type CombatantId = UUID
 
 object CombatantId {
-
+  
+// 00000000-0000-0000-0000-000000000000 // empty
+// fa4e264e-d2ca-4f8c-8b23-e071006f8e61  
+  
+  def empty: CombatantId = CombatantId(UUID.fromString("00000000-0000-0000-0000-000000000000"))
+  
   def create: CombatantId = CombatantId(UUID.randomUUID)
 
   def apply(combatantId: UUID):   CombatantId = combatantId
@@ -168,7 +173,7 @@ enum EncounterTimeOfDay {
 
 case class EncounterInfo(
   combatants:           List[EncounterCombatant] = List.empty,
-  currentTurn:          Int = 0,
+  currentTurnId:        CombatantId = CombatantId.empty,
   round:                Int = 0,
   notes:                String = "",
   timeOfDay:            EncounterTimeOfDay = EncounterTimeOfDay.unimportant,
