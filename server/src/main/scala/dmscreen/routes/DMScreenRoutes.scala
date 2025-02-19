@@ -23,8 +23,7 @@ package dmscreen.routes
 
 import caliban.*
 import caliban.schema.GenericSchema
-import dmscreen.DMScreenServerEnvironment
-import dmscreen.DMScreenAPI
+import dmscreen.{DMScreenAPI, DMScreenServerEnvironment, DMScreenSession}
 import zio.http.*
 import zio.{IO, ZIO}
 
@@ -32,7 +31,7 @@ object DMScreenRoutes {
 
   lazy private val interpreter = DMScreenAPI.api.interpreter
 
-  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment, Nothing]] =
+  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment & DMScreenSession, Nothing]] =
     for {
       interpreter <- interpreter
     } yield {

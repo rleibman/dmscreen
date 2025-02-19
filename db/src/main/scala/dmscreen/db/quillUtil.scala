@@ -21,6 +21,7 @@
 
 package dmscreen.db
 
+import auth.UserId
 import dmscreen.*
 import io.getquill.*
 import just.semver.SemVer

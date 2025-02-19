@@ -23,7 +23,7 @@ package dmscreen.routes
 
 import caliban.*
 import caliban.schema.GenericSchema
-import dmscreen.DMScreenServerEnvironment
+import dmscreen.{DMScreenServerEnvironment, DMScreenSession}
 import dmscreen.sta.{STAAPI, STARepository}
 import zio.http.*
 import zio.{IO, ZIO}
@@ -32,7 +32,7 @@ object STARoutes {
 
   lazy private val interpreter = STAAPI.api.interpreter
 
-  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment, Nothing]] =
+  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment & DMScreenSession, Nothing]] =
     for {
       interpreter <- interpreter
     } yield {

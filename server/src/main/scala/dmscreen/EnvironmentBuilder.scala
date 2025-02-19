@@ -22,17 +22,20 @@
 package dmscreen
 
 import ai.dnd5e.DND5eAIServer
+import auth.{*, given}
 import dmscreen.db.DMScreenZIORepository
 import dmscreen.db.dnd5e.DND5eZIORepository
 import dmscreen.db.sta.STAZIORepository
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
 import dmscreen.dnd5e.fifthEditionCharacterSheet.FifthEditionCharacterSheetImporter
 import dmscreen.dnd5e.srd.SRDImporter
+import dmscreen.mail.Postman
 import dmscreen.util.TestCreator
 import zio.*
 
 type DMScreenServerEnvironment = DMScreenZIORepository & STAZIORepository & DND5eZIORepository & DNDBeyondImporter &
-  ConfigurationService & DND5eAIServer
+  ConfigurationService & DND5eAIServer & UserRepository[DMScreenTask] & TokenHolder[DMScreenTask] &
+  SessionTransport[DMScreenSession] & Postman & SessionConfig
 
 object EnvironmentBuilder {
 
@@ -40,18 +43,24 @@ object EnvironmentBuilder {
     ZLayer
       .make[DMScreenServerEnvironment](
         ConfigurationServiceImpl.live,
+        dmscreen.db.QuillAuthService.live,
         dmscreen.db.QuillRepository.db,
         dmscreen.db.dnd5e.QuillRepository.db,
         dmscreen.db.sta.QuillRepository.db,
         DNDBeyondImporter.live,
-        DND5eAIServer.live
+        DND5eAIServer.live,
+        Auth.SessionTransport.cookieSessionTransport[DMScreenSession],
+        Auth.SessionStorage.tokenEncripted[DMScreenSession],
+        Postman.live,
+        ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.session)),
+        ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.smtp)) // Specialize the configuration service to pass it to Postman
       ).orDie
 
   case class InitializingLayer()
 
   private val containerInitializingLayer: ZLayer[
-    DMScreenZIORepository & STAZIORepository & DND5eZIORepository & SRDImporter & DNDBeyondImporter &
-      FifthEditionCharacterSheetImporter,
+    DMScreenSession & SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter & DND5eZIORepository &
+      DMScreenZIORepository,
     DMScreenError,
     InitializingLayer
   ] =
@@ -77,22 +86,29 @@ object EnvironmentBuilder {
           dnd5eRepo.upsert(scene.header, scene.jsonInfo).map(id => scene.copy(scene.header.copy(id = id)))
         )
       } yield InitializingLayer()
-
     }
 
-  def withContainer: ULayer[DMScreenServerEnvironment & InitializingLayer] = {
+  def withContainer: ULayer[DMScreenServerEnvironment & InitializingLayer & DMScreenSession] = {
     ZLayer
-      .make[DMScreenServerEnvironment & InitializingLayer](
+      .make[DMScreenServerEnvironment & InitializingLayer & DMScreenSession](
+        DMScreenSession.adminSession.toLayer,
         DMScreenContainer.containerLayer,
         ConfigurationServiceImpl.live >>> DMScreenContainer.configLayer,
         dmscreen.db.QuillRepository.db,
         dmscreen.db.dnd5e.QuillRepository.db,
         dmscreen.db.sta.QuillRepository.db,
+        dmscreen.db.QuillAuthService.live,
         DNDBeyondImporter.live,
         FifthEditionCharacterSheetImporter.live,
         SRDImporter.live,
         containerInitializingLayer,
-        DND5eAIServer.live
+        DND5eAIServer.live,
+        Auth.SessionTransport.cookieSessionTransport[DMScreenSession],
+        Auth.SessionStorage.tokenEncripted[DMScreenSession],
+        Postman.live,
+        // We can't use zlayer on these map because _.appConfig is itself a zio.
+        ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.session)),
+        ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.smtp)) // Specialize the configuration service to pass it to Postman
       ).orDie
   }
 

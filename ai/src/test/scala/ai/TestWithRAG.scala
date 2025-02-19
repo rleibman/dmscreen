@@ -3,21 +3,24 @@ package ai
 import dev.langchain4j.data.document.loader.FileSystemDocumentLoader
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor
 import dev.langchain4j.store.embedding.qdrant.QdrantEmbeddingStore
+import dmscreen.DMScreenSession
 import zio.{Console, EnvironmentTag, Scope, Task, ULayer, ZIO, ZIOApp, ZIOAppArgs, ZLayer}
 
 object TestWithRAG extends ZIOApp {
 
-  override type Environment = StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper
+  override type Environment = StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper & DMScreenSession
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
-  override def bootstrap: ULayer[StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper] =
-    ZLayer.make[StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper](
+  override def bootstrap
+    : ULayer[StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper & DMScreenSession] =
+    ZLayer.make[StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper & DMScreenSession](
       LangChainServiceBuilder.ollamaStreamingChatModelLayer,
       LangChainServiceBuilder.messageWindowChatMemoryLayer(),
       LangChainServiceBuilder.streamingAssistantLayerWithStore,
       QdrantContainer.live.orDie,
       EmbeddingStoreWrapper.qdrantStoreLayer("monsters").orDie,
-      LangChainConfiguration.live
+      LangChainConfiguration.live,
+      DMScreenSession.adminSession.toLayer
     )
 
   private def ingestMonsters: ZIO[EmbeddingStoreWrapper, Throwable, Unit] = {

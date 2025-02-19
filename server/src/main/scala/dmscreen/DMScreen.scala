@@ -21,6 +21,8 @@
 
 package dmscreen
 
+import auth.{SessionConfig, SessionTransport}
+import caliban.CalibanError
 import dmscreen.routes.*
 import zio.*
 import zio.http.*
@@ -29,11 +31,48 @@ import java.util.concurrent.TimeUnit
 
 object DMScreen extends ZIOApp {
 
-  override type Environment = DMScreenServerEnvironment & ConfigurationService
+  override type Environment = DMScreenServerEnvironment
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
-  override def bootstrap: ULayer[DMScreenServerEnvironment & ConfigurationService] = EnvironmentBuilder.live
-//    EnvironmentBuilder.withContainer
+  override def bootstrap: ULayer[DMScreenServerEnvironment] = EnvironmentBuilder.live
+
+  lazy private val unauthRoute: Routes[DMScreenServerEnvironment, Nothing] =
+    Seq(
+      AuthRoutes.unauthRoute,
+      StaticRoutes.unauthRoute
+    ).reduce(_ ++ _).handleErrorCauseZIO(mapError) @@ Middleware.debug
+
+  val ignoreUnauth: Middleware[Any] = new Middleware[Any] {
+    def apply[Env1 <: Any, Err](routes: Routes[Env1, Err]): Routes[Env1, Err] =
+      routes.transform[Env1] { h =>
+        handler { (req: Request) =>
+          if (req.path.toString.startsWith("/unauth")) {
+            // What should go here in order to ignore it
+            ZIO.fail(Response.notFound)
+          } else {
+            // What should go here in order to process it?
+            h(req)
+          }
+        }
+      }
+  }
+
+  def authRoutes: ZIO[SessionTransport[DMScreenSession], Throwable, Routes[DMScreenServerEnvironment, Nothing]] =
+    for {
+      sessionTransport <- ZIO.service[SessionTransport[DMScreenSession]]
+      dmScreenRoute    <- DMScreenRoutes.route
+      dnd5eRoute       <- DND5eRoutes.route
+      staRoute         <- STARoutes.route
+    } yield {
+      (Seq(
+        AuthRoutes.authRoute,
+        dmScreenRoute,
+        staRoute,
+        dnd5eRoute,
+        StaticRoutes.authRoute
+      ).reduce(_ ++ _) @@ ignoreUnauth)
+        .handleErrorCauseZIO(mapError) @@ sessionTransport.bearerAuthWithContext(DMScreenSession.empty) @@ Middleware.debug
+    }
 
   private val defaultRouteZio: ZIO[ConfigurationService, ConfigurationError, Routes[ConfigurationService, Throwable]] =
     for {
@@ -76,19 +115,10 @@ object DMScreen extends ZIOApp {
     }
   }
 
-  val zapp: ZIO[Environment, Throwable, Routes[Environment, Nothing]] = for {
-    _             <- ZIO.log("Initializing Routes")
-    defaultRoutes <- defaultRouteZio
-    dmScreenRoute <- DMScreenRoutes.route
-    dnd5eRoute    <- DND5eRoutes.route
-    staRoute      <- STARoutes.route
-  } yield (dmScreenRoute ++
-    dnd5eRoute ++
-    staRoute ++
-    StaticRoutes.unauthRoute /*Move this to after there's a user*/ ++
-    StaticRoutes.authRoute ++
-    defaultRoutes)
-    .handleErrorCauseZIO(mapError)
+  lazy val zapp: ZIO[Environment, Throwable, Routes[Environment, Nothing]] = for {
+    _         <- ZIO.log("Initializing Routes")
+    authRoute <- authRoutes
+  } yield unauthRoute ++ authRoute
 
   override def run: ZIO[Environment & ZIOAppArgs & Scope, Throwable, ExitCode] = {
     // Configure thread count using CLI
@@ -99,13 +129,13 @@ object DMScreen extends ZIOApp {
       server <- {
         val serverConfig = ZLayer.succeed(
           Server.Config.default
-            .binding(config.dmscreen.host, config.dmscreen.port)
+            .binding(config.dmscreen.http.hostName, config.dmscreen.http.port)
         )
 
         Server
           .serve(app)
-          .zipLeft(ZIO.logDebug(s"Server Started on ${config.dmscreen.port}"))
-          .tapErrorCause(ZIO.logErrorCause(s"Server on port ${config.dmscreen.port} has unexpectedly stopped", _))
+          .zipLeft(ZIO.logDebug(s"Server Started on ${config.dmscreen.http.port}"))
+          .tapErrorCause(ZIO.logErrorCause(s"Server on port ${config.dmscreen.http.port} has unexpectedly stopped", _))
           .provideSome[Environment](serverConfig, Server.live)
           .foldCauseZIO(
             cause => ZIO.logErrorCause("err when booting server", cause).exitCode,

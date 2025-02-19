@@ -55,7 +55,7 @@ val tapirVersion = "1.10.8"
 val testContainerVersion = "0.41.8"
 val zioConfigVersion = "4.0.3"
 val zioHttpVersion = "3.0.1"
-val zioJsonVersion = "0.7.20"
+val zioJsonVersion = "0.7.21"
 val zioVersion = "2.1.15"
 
 lazy val commonSettings = Seq(
@@ -69,17 +69,18 @@ lazy val commonSettings = Seq(
 
 ////////////////////////////////////////////////////////////////////////////////////
 // common (i.e. model)
-lazy val commonJVM = common.jvm
-lazy val commonJS = common.js
+lazy val modelJVM = model.jvm
+lazy val modelJS = model.js
 
-lazy val common = crossProject(JSPlatform, JVMPlatform)
+lazy val model = crossProject(JSPlatform, JVMPlatform)
+  .dependsOn(auth)
   .enablePlugins(
     AutomateHeaderPlugin,
     GitVersioning,
     BuildInfoPlugin
   )
   .settings(
-    name             := "dmscreen-common",
+    name             := "dmscreen-model",
     buildInfoPackage := "dmscreen",
     commonSettings
   )
@@ -95,6 +96,7 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
       "dev.zio"     %% "zio-config-typesafe"   % zioConfigVersion withSources (),
       "dev.zio"     %% "zio-json"              % zioJsonVersion withSources (),
       "dev.zio"     %% "zio-prelude"           % "1.0.0-RC39" withSources (),
+      "dev.zio"     %% "zio-http"              % zioHttpVersion withSources (),
       "io.getquill" %% "quill-jdbc-zio"        % quillVersion withSources (),
       "io.kevinlee" %% "just-semver-core"      % "1.1.0" withSources ()
     )
@@ -112,10 +114,39 @@ lazy val common = crossProject(JSPlatform, JVMPlatform)
     )
   )
 
+lazy val authJVM = auth.jvm
+lazy val authJS = auth.js
+
+lazy val auth = crossProject(JSPlatform, JVMPlatform)
+  .enablePlugins(AutomateHeaderPlugin)
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      "dev.zio"     %% "zio"                   % zioVersion withSources (),
+      "dev.zio"     %% "zio-nio"               % "2.0.2" withSources (),
+      "dev.zio"     %% "zio-config"            % zioConfigVersion withSources (),
+      "dev.zio"     %% "zio-config-derivation" % zioConfigVersion withSources (),
+      "dev.zio"     %% "zio-config-magnolia"   % zioConfigVersion withSources (),
+      "dev.zio"     %% "zio-config-typesafe"   % zioConfigVersion withSources (),
+      "dev.zio"     %% "zio-json"              % zioJsonVersion withSources (),
+      "dev.zio"     %% "zio-prelude"           % "1.0.0-RC39" withSources (),
+      "dev.zio"     %% "zio-http"              % zioHttpVersion withSources (),
+      "io.getquill" %% "quill-jdbc-zio"        % quillVersion withSources (),
+      "io.kevinlee" %% "just-semver-core"      % "1.1.0" withSources ()
+    )
+  )
+  .settings(
+    commonSettings,
+    name := "dmscreen-auth",
+    libraryDependencies ++= Seq(
+      "com.github.jwt-scala" %% "jwt-circe" % "10.0.4" withSources (),
+      "dev.zio"              %% "zio-json"  % zioJsonVersion withSources ()
+    )
+  )
+
 lazy val db = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(commonSettings)
-  .dependsOn(commonJVM)
+  .dependsOn(modelJVM, authJVM)
   .settings(
     name := "dmscreen-db",
     libraryDependencies ++= Seq(
@@ -137,10 +168,9 @@ lazy val db = project
       "dev.zio"                %% "zio-json"              % zioJsonVersion withSources (),
       "org.scala-lang.modules" %% "scala-xml"             % "2.3.0" withSources (),
       // Other random utilities
-      "com.github.pathikrit"  %% "better-files"                 % "3.9.2" withSources (),
-      "com.github.daddykotex" %% "courier"                      % "3.2.0" withSources (),
-      "commons-codec"          % "commons-codec"                % "1.18.0",
-      "com.dimafeng"          %% "testcontainers-scala-mariadb" % testContainerVersion withSources (),
+      "com.github.pathikrit" %% "better-files"                 % "3.9.2" withSources (),
+      "commons-codec"         % "commons-codec"                % "1.18.0",
+      "com.dimafeng"         %% "testcontainers-scala-mariadb" % testContainerVersion withSources (),
       // Testing
       "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
       "dev.zio" %% "zio-test-sbt" % zioVersion % "test" withSources ()
@@ -161,7 +191,7 @@ lazy val server = project
     CalibanPlugin
   )
   .settings(debianSettings, commonSettings)
-  .dependsOn(commonJVM, db, ai)
+  .dependsOn(modelJVM, db, ai)
   .settings(
     name := "dmscreen-server",
     libraryDependencies ++= Seq(
@@ -189,7 +219,7 @@ lazy val server = project
       "org.scala-lang.modules" %% "scala-xml"             % "2.3.0" withSources (),
       // Other random utilities
       "com.github.pathikrit"  %% "better-files"                 % "3.9.2" withSources (),
-      "com.github.daddykotex" %% "courier"                      % "3.2.0" withSources (),
+      "com.github.daddykotex" %% "courier"                      % "4.0.0-RC1" withSources (),
       "commons-codec"          % "commons-codec"                % "1.18.0",
       "com.dimafeng"          %% "testcontainers-scala-mariadb" % testContainerVersion withSources (),
       // Testing
@@ -223,7 +253,7 @@ lazy val ai = project
     GitVersioning
   )
   .settings(commonSettings)
-  .dependsOn(commonJVM, db)
+  .dependsOn(modelJVM, db)
   .settings(
     name := "dmscreen-ai",
     libraryDependencies ++= Seq(
@@ -231,17 +261,16 @@ lazy val ai = project
       "dev.zio" %% "zio"     % zioVersion withSources (),
       "dev.zio" %% "zio-nio" % "2.0.2" withSources (),
       // AI stuff
-      "com.dimafeng" %% "testcontainers-scala-core" % testContainerVersion withSources(),
-      "org.testcontainers" % "qdrant" % "1.20.4" withSources(),
-      "dev.langchain4j" % "langchain4j-core" % langchainVersion withSources(),
-      "dev.langchain4j" % "langchain4j" % langchainVersion withSources(),
-      "dev.langchain4j" % "langchain4j-ollama" % langchainVersion withSources(),
-      "dev.langchain4j" % "langchain4j-easy-rag" % langchainVersion withSources(),
-      "dev.langchain4j" % "langchain4j-qdrant" % langchainVersion withSources(),
+      "com.dimafeng"      %% "testcontainers-scala-core" % testContainerVersion withSources (),
+      "org.testcontainers" % "qdrant"                    % "1.20.4" withSources (),
+      "dev.langchain4j"    % "langchain4j-core"          % langchainVersion withSources (),
+      "dev.langchain4j"    % "langchain4j"               % langchainVersion withSources (),
+      "dev.langchain4j"    % "langchain4j-ollama"        % langchainVersion withSources (),
+      "dev.langchain4j"    % "langchain4j-easy-rag"      % langchainVersion withSources (),
+      "dev.langchain4j"    % "langchain4j-qdrant"        % langchainVersion withSources (),
       // Other random utilities
-      "com.github.pathikrit"  %% "better-files"    % "3.9.2" withSources (),
-      "com.github.daddykotex" %% "courier"         % "3.2.0" withSources (),
-      "ch.qos.logback"         % "logback-classic" % "1.5.16" withSources (),
+      "com.github.pathikrit" %% "better-files"    % "3.9.2" withSources (),
+      "ch.qos.logback"        % "logback-classic" % "1.5.16" withSources (),
       // Testing
       "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
       "dev.zio" %% "zio-test-sbt" % zioVersion % "test" withSources ()
@@ -265,9 +294,9 @@ lazy val bundlerSettings: Project => Project =
       Global / scalaJSStage                     := FastOptStage,
       Compile / scalaJSUseMainModuleInitializer := true,
       Test / scalaJSUseMainModuleInitializer    := false,
-      webpackEmitSourceMaps                     := true,
-      scalaJSLinkerConfig ~= { a =>
-        a.withSourceMap(true) // .withRelativizeSourceMapBase(None)
+      webpackEmitSourceMaps                     := false,
+      scalaJSLinkerConfig ~= {
+        _.withSourceMap(false) // .withRelativizeSourceMapBase(None)
       },
       Compile / npmDependencies ++= Seq(
         "@3d-dice/dice-ui"               -> "^0.5.0",
@@ -311,14 +340,14 @@ lazy val commonWeb: Project => Project =
     ),
     organizationName := "Roberto Leibman",
     startYear        := Some(2024),
-    licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
+    headerLicense    := Some(HeaderLicense.MIT("2024", "Roberto Leibman", HeaderLicenseStyle.Detailed)),
     Compile / unmanagedSourceDirectories := Seq((Compile / scalaSource).value),
     Test / unmanagedSourceDirectories    := Seq((Test / scalaSource).value)
     //    webpackDevServerPort                 := 8009
   )
 
 lazy val web: Project = project
-  .dependsOn(commonJS)
+  .dependsOn(modelJS)
   .settings(commonSettings)
   .configure(bundlerSettings)
   .configure(withCssLoading)
@@ -379,11 +408,73 @@ lazy val web: Project = project
     }
   )
 
+lazy val login: Project = project
+  .dependsOn(modelJS)
+  .settings(commonSettings)
+  .configure(bundlerSettings)
+  .configure(withCssLoading)
+  .configure(commonWeb)
+  .enablePlugins(
+    AutomateHeaderPlugin,
+    GitVersioning,
+    ScalaJSPlugin
+  )
+  .settings(
+    name := "dmscreen-login",
+    libraryDependencies ++= Seq(
+      "dev.zio" %%% "zio"      % zioVersion withSources (),
+      "dev.zio" %%% "zio-json" % zioJsonVersion withSources ()
+    ),
+    debugDist := {
+
+      val assets = (ThisBuild / baseDirectory).value / "login" / "src" / "main" / "web"
+
+      val artifacts = (Compile / fastOptJS / webpack).value
+      val artifactFolder = (Compile / fastOptJS / crossTarget).value
+      val debugFolder = (ThisBuild / baseDirectory).value / "debugDist"
+
+      debugFolder.mkdirs()
+      FileUtils.copyDirectory(assets, debugFolder, true)
+      artifacts.foreach { artifact =>
+        val target = artifact.data.relativeTo(artifactFolder) match {
+          case None          => debugFolder / artifact.data.name
+          case Some(relFile) => debugFolder / relFile.toString
+        }
+
+        //        println(s"Trying to copy ${artifact.data.toPath} to ${target.toPath}")
+        Files.copy(artifact.data.toPath, target.toPath, REPLACE_EXISTING)
+      }
+
+      debugFolder
+    },
+    dist := {
+      val assets = (ThisBuild / baseDirectory).value / "login" / "src" / "main" / "web"
+
+      val artifacts = (Compile / fullOptJS / webpack).value
+      val artifactFolder = (Compile / fullOptJS / crossTarget).value
+      val distFolder = (ThisBuild / baseDirectory).value / "dist"
+
+      distFolder.mkdirs()
+      FileUtils.copyDirectory(assets, distFolder, true)
+      artifacts.foreach { artifact =>
+        val target = artifact.data.relativeTo(artifactFolder) match {
+          case None          => distFolder / artifact.data.name
+          case Some(relFile) => distFolder / relFile.toString
+        }
+
+        //        println(s"Trying to copy ${artifact.data.toPath} to ${target.toPath}")
+        Files.copy(artifact.data.toPath, target.toPath, REPLACE_EXISTING)
+      }
+
+      distFolder
+    }
+  )
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Root project
 lazy val root = project
   .in(file("."))
-  .aggregate(commonJVM, commonJS, server, web, ai)
+  .aggregate(modelJVM, modelJS, server, web, login, ai)
   .settings(
     name           := "dmscreen",
     publish / skip := true,

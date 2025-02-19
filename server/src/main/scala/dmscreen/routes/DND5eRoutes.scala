@@ -23,7 +23,7 @@ package dmscreen.routes
 
 import caliban.*
 import caliban.schema.GenericSchema
-import dmscreen.DMScreenServerEnvironment
+import dmscreen.{DMScreenServerEnvironment, DMScreenSession}
 import dmscreen.dnd5e.{DND5eAPI, DND5eRepository}
 import zio.http.*
 import zio.{IO, ZIO}
@@ -32,7 +32,7 @@ object DND5eRoutes {
 
   lazy private val interpreter = DND5eAPI.api.interpreter
 
-  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment, Nothing]] =
+  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment & DMScreenSession, Nothing]] =
     for {
       interpreter <- interpreter
     } yield {

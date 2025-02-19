@@ -21,6 +21,7 @@
 
 package dmscreen
 
+import auth.UserId
 import caliban.*
 import caliban.CalibanError.ExecutionError
 import caliban.interop.zio.*
@@ -61,20 +62,21 @@ object DMScreenAPI {
   )
 
   case class Queries(
-    campaigns:    ZIO[DMScreenZIORepository, DMScreenError, Seq[CampaignHeader]],
-    campaign:     CampaignId => ZIO[DMScreenZIORepository, DMScreenError, Option[Campaign]],
-    campaignLogs: CampaignLogRequest => ZIO[DMScreenZIORepository, DMScreenError, Seq[CampaignLogEntry]]
+    campaigns: ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Seq[CampaignHeader]],
+    campaign:  CampaignId => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Option[Campaign]],
+    campaignLogs: CampaignLogRequest => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Seq[
+      CampaignLogEntry
+    ]]
   )
 
   case class Mutations(
     // All these mutations are temporary, eventually, only the headers will be saved, and the infos will be saved in the events
-    upsertCampaign: Campaign => ZIO[DMScreenZIORepository, DMScreenError, CampaignId],
-    campaignLog:    CampaignLogInsertRequest => ZIO[DMScreenZIORepository, DMScreenError, Unit],
-    deleteEntity:   EntityDeleteArgs => ZIO[DMScreenZIORepository, DMScreenError, Unit]
+    upsertCampaign: Campaign => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, CampaignId],
+    campaignLog:    CampaignLogInsertRequest => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Unit]
   )
 
   case class Subscriptions(
-    campaignStream: CampaignEventsArgs => ZStream[DMScreenZIORepository, DMScreenError, DMScreenEvent]
+    campaignStream: CampaignEventsArgs => ZStream[DMScreenZIORepository & DMScreenSession, DMScreenError, DMScreenEvent]
   )
 
   private given Schema[Any, EntityType[?]] = Schema.stringSchema.contramap(_.name)
@@ -98,9 +100,9 @@ object DMScreenAPI {
   private given ArgBuilder[CampaignLogRequest] = ArgBuilder.gen[CampaignLogRequest]
   private given ArgBuilder[CampaignLogInsertRequest] = ArgBuilder.gen[CampaignLogInsertRequest]
 
-  lazy val api: GraphQL[DMScreenServerEnvironment] =
+  lazy val api: GraphQL[DMScreenServerEnvironment & DMScreenSession] =
     graphQL[
-      DMScreenServerEnvironment,
+      DMScreenServerEnvironment & DMScreenSession,
       Queries,
       Mutations,
       Subscriptions
@@ -116,15 +118,7 @@ object DMScreenAPI {
           upsertCampaign =
             campaign => ZIO.serviceWithZIO[DMScreenZIORepository](_.upsert(campaign.header, campaign.jsonInfo)),
           campaignLog =
-            request => ZIO.serviceWithZIO[DMScreenZIORepository](_.campaignLog(request.campaignId, request.message)),
-          deleteEntity = deleteArgs =>
-            ZIO.serviceWithZIO[DMScreenZIORepository](
-              _.deleteEntity(
-                deleteArgs.entityType,
-                deleteArgs.entityType.createId(deleteArgs.id),
-                deleteArgs.softDelete
-              )
-            )
+            request => ZIO.serviceWithZIO[DMScreenZIORepository](_.campaignLog(request.campaignId, request.message))
         ),
         Subscriptions(campaignStream = operationArgs => ???)
       )

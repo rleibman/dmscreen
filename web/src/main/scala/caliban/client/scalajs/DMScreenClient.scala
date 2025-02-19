@@ -412,8 +412,7 @@ object DMScreenClient {
           Argument("message", message, "String!")(encoder1)
         )
       )
-    def deleteEntity(
-      entityType: String,
+    def deleteCampaign(
       id:         Long,
       softDelete: Boolean
     )(implicit
@@ -422,10 +421,9 @@ object DMScreenClient {
       encoder2: ArgEncoder[Boolean]
     ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Unit]] =
       _root_.caliban.client.SelectionBuilder.Field(
-        "deleteEntity",
+        "deleteCampaign",
         OptionOf(Scalar()),
         arguments = List(
-          Argument("entityType", entityType, "String!")(encoder0),
           Argument("id", id, "Long!")(encoder1),
           Argument("softDelete", softDelete, "Boolean!")(encoder2)
         )

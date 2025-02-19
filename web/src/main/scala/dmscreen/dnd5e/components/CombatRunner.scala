@@ -754,7 +754,7 @@ object CombatRunner {
                                             s"${pcCombatant.name} healed ${state.healOrDamage(pcCombatant.id)} points"
                                         }
                                       ) >> $.modState(s =>
-                                        s.copy(healOrDamage = s.healOrDamage.filter(_._1 != pcCombatant.id)),
+                                        s.copy(healOrDamage = s.healOrDamage.filter(_._1 != pcCombatant.id))
                                       )
 
                                   },

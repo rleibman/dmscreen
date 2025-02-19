@@ -13,7 +13,7 @@ import scala.jdk.CollectionConverters.*
 object TestPipeline extends ZIOApp {
 
   override type Environment = StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper &
-    TestDMScreenServerEnvironment
+    TestDMScreenServerEnvironment & DMScreenSession
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
   override def bootstrap: ULayer[Environment] =
@@ -24,7 +24,8 @@ object TestPipeline extends ZIOApp {
       QdrantContainer.live.orDie,
       EmbeddingStoreWrapper.qdrantStoreLayer("monsters").orDie,
       LangChainConfiguration.live,
-      TestEnvironmentBuilder.live
+      TestEnvironmentBuilder.live,
+      DMScreenSession.adminSession.toLayer
     )
 
   extension (monster: Monster) {

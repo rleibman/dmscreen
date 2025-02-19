@@ -21,6 +21,7 @@
 
 package dmscreen
 
+import auth.UserId
 import caliban.client.scalajs.DMScreenClient.{
   Campaign as CalibanCampaign,
   CampaignHeader as CalibanCampaignHeader,
@@ -148,12 +149,11 @@ object DMScreenGraphQLRepository {
       calibanClient.asyncCalibanCall(sb).map(_ => ())
     }
 
-    override def deleteEntity[IDType](
-      entityType: EntityType[IDType],
-      id:         IDType,
-      softDelete: Boolean
-    ): AsyncCallback[Unit] = {
-      val sb = Mutations.deleteEntity(entityType.name, id.asInstanceOf[Long], softDelete)
+    override def deleteCampaign(
+      id:         CampaignId,
+      softDelete: Boolean = true
+    ) = {
+      val sb = Mutations.deleteCampaign(id.asInstanceOf[Long], softDelete)
       calibanClient.asyncCalibanCall(sb).map(_.get)
     }
   }

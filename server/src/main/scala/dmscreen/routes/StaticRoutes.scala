@@ -21,7 +21,8 @@
 
 package dmscreen.routes
 
-import dmscreen.ConfigurationService
+import dmscreen.routes.StaticRoutes.file
+import dmscreen.{ConfigurationService, DMScreenSession}
 import zio.*
 import zio.http.*
 
@@ -35,6 +36,8 @@ object StaticRoutes {
     "css/app-sui-theme.css",
     "dmscreen-login-opt-bundle.js",
     "dmscreen-login-opt-bundle.js.map",
+    "dmscreen-web-opt-bundle.js",
+    "dmscreen-web-opt-bundle.js.map",
     "css/app.css",
     "images/favicon.ico",
     "images/logo.png",
@@ -43,8 +46,6 @@ object StaticRoutes {
     "webfonts/fa-solid-900.woff",
     "webfonts/fa-solid-900.ttf"
   )
-
-  //  val meHandler: Handler[Any, Nothing, String, Response] = Handler.fromFunction { (request: String) => Response.text(s"Hello $request") }
 
   private def file(
     fileName: String,
@@ -65,13 +66,13 @@ object StaticRoutes {
       case null => ZIO.fail(Exception(s"HttpError.InternalServerError(Could not find file $fileName))"))
     }
   }
-
+  
   val unauthRoute: Routes[ConfigurationService, Throwable] = Routes(
     Method.GET / "loginForm" -> handler { (request: Request) =>
       Handler.fromFileZIO {
         for {
           config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
-          staticContentDir = config.dmscreen.staticContentDir
+          staticContentDir = config.dmscreen.http.staticContentDir
           file <- file(s"$staticContentDir/login.html", request)
         } yield file
       }
@@ -82,12 +83,13 @@ object StaticRoutes {
         _:    Request
       ) =>
         val somethingElse = path.toString
+        println(somethingElse)
 
         if (authNotRequired(somethingElse)) {
           Handler.fromFileZIO {
             for {
               config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
-              staticContentDir = config.dmscreen.staticContentDir
+              staticContentDir = config.dmscreen.http.staticContentDir
               file <- file(s"$staticContentDir/$somethingElse")
             } yield file
           }
@@ -97,18 +99,27 @@ object StaticRoutes {
     }.flatten
   )
 
-  val authRoute: Routes[ConfigurationService, Throwable] =
+  val authRoute: Routes[ConfigurationService & DMScreenSession, Throwable] =
     Routes(
       Method.GET / "index.html" -> handler { (request: Request) =>
         Handler.fromFileZIO {
           for {
             config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
-            staticContentDir = config.dmscreen.staticContentDir
+            staticContentDir = config.dmscreen.http.staticContentDir
             file <- file(s"$staticContentDir/index.html", request)
           } yield file
         }
       }.flatten,
-      Method.GET / trailing -> handler {
+      Method.GET / "" -> handler { (request: Request) =>
+        Handler.fromFileZIO {
+          for {
+            config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
+            staticContentDir = config.dmscreen.http.staticContentDir
+            file <- file(s"$staticContentDir/index.html", request)
+          } yield file
+        }
+      }.flatten,
+      Method.GET / trailing  -> handler {
         (
           path:    Path,
           request: Request
@@ -119,18 +130,41 @@ object StaticRoutes {
             if (somethingElse == "/" || somethingElse.isEmpty) {
               for {
                 config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
-                staticContentDir = config.dmscreen.staticContentDir
+                staticContentDir = config.dmscreen.http.staticContentDir
                 file <- file(s"$staticContentDir/index.html", request)
               } yield file
             } else {
               for {
                 config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
-                staticContentDir = config.dmscreen.staticContentDir
+                staticContentDir = config.dmscreen.http.staticContentDir
                 file <- file(s"$staticContentDir/$somethingElse", request)
               } yield file
             }
           }
       }.flatten
+//      Method.GET / trailing -> handler {
+//        (
+//          path:    Path,
+//          request: Request
+//        ) =>
+//          Handler.fromFileZIO {
+//            val somethingElse = path.toString.trim.nn
+//
+//            if (somethingElse == "/" || somethingElse.isEmpty) {
+//              for {
+//                config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
+//                staticContentDir = config.dmscreen.staticContentDir
+//                file <- file(s"$staticContentDir/index.html", request)
+//              } yield file
+//            } else {
+//              for {
+//                config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
+//                staticContentDir = config.dmscreen.staticContentDir
+//                file <- file(s"$staticContentDir/$somethingElse", request)
+//              } yield file
+//            }
+//          }
+//      }.flatten
     )
 
 }

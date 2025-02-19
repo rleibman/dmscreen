@@ -21,6 +21,7 @@
 
 package dmscreen.pages
 
+import auth.UserId
 import dmscreen.dnd5e.DND5eUI
 import dmscreen.{*, given}
 import japgolly.scalajs.react.*

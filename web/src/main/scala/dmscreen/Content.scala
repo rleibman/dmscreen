@@ -22,6 +22,7 @@
 package dmscreen
 
 import _root_.components.{Confirm, Toast}
+import auth.UserId
 import caliban.ScalaJSClientAdapter.*
 import caliban.client.CalibanClientError.DecodingError
 import caliban.client.Operations.RootQuery
