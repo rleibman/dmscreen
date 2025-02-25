@@ -153,9 +153,11 @@ object DMScreenGraphQLRepository {
       id:         CampaignId,
       softDelete: Boolean = true
     ) = {
-      val sb = Mutations.deleteCampaign(id.asInstanceOf[Long], softDelete)
-      calibanClient.asyncCalibanCall(sb).map(_.get)
+//      val sb = Mutations.deleteCampaign(id.asInstanceOf[Long], softDelete)
+//      calibanClient.asyncCalibanCall(sb).map(_.get)
+      ???
     }
+
   }
 
 }

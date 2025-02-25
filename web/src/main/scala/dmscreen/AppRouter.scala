@@ -139,6 +139,11 @@ object AppRouter {
         )
       }
 
+      // TODO def handleLogout(): Unit = {
+      //  dom.window.localStorage.removeItem("token") // Remove the token
+      //  dom.window.location.href = "/loginForm" // Redirect to login page
+      // }
+
       (trimSlashes
         | staticRoute(root, homePage.pageType) ~> renderR(_ =>
           homePage.createComponentFn(campaignId.getOrElse(CampaignId.empty))

@@ -49,8 +49,7 @@ object EnvironmentBuilder {
         dmscreen.db.sta.QuillRepository.db,
         DNDBeyondImporter.live,
         DND5eAIServer.live,
-        Auth.SessionTransport.cookieSessionTransport[DMScreenSession],
-        Auth.SessionStorage.tokenEncripted[DMScreenSession],
+        CookieAndBearerSessionTransport.live,
         Postman.live,
         ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.session)),
         ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.smtp)) // Specialize the configuration service to pass it to Postman
@@ -103,8 +102,7 @@ object EnvironmentBuilder {
         SRDImporter.live,
         containerInitializingLayer,
         DND5eAIServer.live,
-        Auth.SessionTransport.cookieSessionTransport[DMScreenSession],
-        Auth.SessionStorage.tokenEncripted[DMScreenSession],
+        CookieAndBearerSessionTransport.live,
         Postman.live,
         // We can't use zlayer on these map because _.appConfig is itself a zio.
         ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.session)),

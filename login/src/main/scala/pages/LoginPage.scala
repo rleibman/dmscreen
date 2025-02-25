@@ -25,19 +25,74 @@ import app.{LoginControllerState, Mode}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
+import net.leibman.dmscreen.react.mod.CSSProperties
 import org.scalajs.dom.window
 import net.leibman.dmscreen.semanticUiReact.semanticUiReactStrings.submit
 import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticCOLORS
+import sttp.capabilities
+import sttp.client3.*
+
+import scala.concurrent.Future
 
 object LoginPage {
 
-  class Backend($ : BackendScope[Props, Unit]) {
+  case class Props(
+    message:       Option[String],
+    changeMessage: String => Callback
+  )
+
+  case class State(
+    email:    String = "",
+    password: String = ""
+  )
+
+  class Backend($ : BackendScope[Props, State]) {
 
     val query: String = if (window.location.search.isEmpty) "" else window.location.search.substring(1).nn
     val isBad: Boolean = query.contains("bad=true")
+
+    def handleSubmit(e: ReactEventFromHtml): Callback = {
+      e.preventDefaultCB >>
+        $.state.flatMap { state =>
+          window.localStorage.removeItem("token")
+
+          given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
+          import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
+
+          Callback.future {
+            basicRequest
+              .post(uri"/doLogin")
+              .body(Map("email" -> state.email, "password" -> state.password))
+              .response(asStringAlways)
+              .send(backend)
+              .map { response =>
+                if (!response.code.isSuccess) {
+                  val error = response.body.headOption.fold("Login Failed")(msg => s"Login failed: $msg")
+                  $.props.flatMap(_.changeMessage(error))
+                } else {
+                  Callback.log(s"Headers ${response.headers.map(_.name).mkString(",")}") >>
+                    (response.headers.find(_.name.equalsIgnoreCase("authorization")) match {
+                      case Some(authHeader) =>
+                        val token = authHeader.value.stripPrefix("Bearer ")
+                        window.localStorage.setItem("authToken", token)
+                        window.location.href = "/" // Redirect
+                        Callback.log("Authentication successful, token received")
+                      case None =>
+                        $.props.flatMap(_.changeMessage("Login successful, but no token received."))
+                    })
+                }
+              }
+
+          }
+
+        }
+
+    }
+
     def render(
-      props: Props
+      props: Props,
+      state: State
     ): VdomElement = {
       LoginControllerState.ctx.consume { context =>
         <.div(
@@ -50,22 +105,45 @@ object LoginPage {
               "Wrong credentials, it's possible your email and password haven't been activated, try again!"
             )
           ).when(isBad),
-          props.messageForScreen.fold(EmptyVdom: VdomNode)(str => <.span(Message()(str))),
-          <.form(
-            ^.action    := "doLogin",
-            ^.method    := "post",
-            ^.className := "ui form",
-            ^.width     := 800.px,
-            FormField()(
-              Label()("Email"),
-              Input().required(true).name("email").`type`("email")()
+          props.message.fold(EmptyVdom: VdomNode)(str => <.span(Message()(str))),
+          Form
+            .style(CSSProperties().set("width", 800.px))
+            .method("post")
+            .action("doLogin")
+            .onSubmit(
+              (
+                e,
+                data
+              ) => handleSubmit(e)
+            )(
+              Form.Input
+                .label("Email")
+                .required(true)
+                .name("email")
+                .`type`("email")
+                .value(state.email)
+                .autoComplete("on")
+                .onChange(
+                  (
+                    _,
+                    d
+                  ) => $.modState(_.copy(email = d.value.get.asInstanceOf[String]))
+                ),
+              Form.Input
+                .label("Password")
+                .`type`("password")
+                .required(true)
+                .name("password")
+                .value(state.password)
+                .autoComplete("on")
+                .onChange(
+                  (
+                    _,
+                    d
+                  ) => $.modState(_.copy(password = d.value.get.asInstanceOf[String]))
+                ),
+              Button().compact(true).basic(true).`type`(submit)("Go!")
             ),
-            FormField()(
-              Label()("Password"),
-              Input().`type`("password").required(true).name("password")()
-            ),
-            Button().compact(true).basic(true).`type`(submit)("Go!")
-          ),
           Button()
             .compact(true)
             .basic(true)
@@ -94,11 +172,13 @@ object LoginPage {
 
   val component = ScalaComponent
     .builder[Props]("LoginPage")
+    .initialState(State())
     .renderBackend[Backend]
     .build
 
-  case class Props(messageForScreen: Option[String])
-
-  def apply(messageForScreen: Option[String]): Unmounted[Props, Unit, Backend] = component(Props(messageForScreen))
+  def apply(
+    message:       Option[String],
+    changeMessage: String => Callback
+  ): Unmounted[Props, State, Backend] = component(Props(message, changeMessage))
 
 }

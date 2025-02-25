@@ -23,28 +23,32 @@ package dmscreen.routes
 
 import caliban.*
 import caliban.schema.GenericSchema
-import dmscreen.{DMScreenAPI, DMScreenServerEnvironment, DMScreenSession}
+import dmscreen.{DMScreenAPI, DMScreenError, DMScreenServerEnvironment, DMScreenSession}
 import zio.http.*
 import zio.{IO, ZIO}
 
-object DMScreenRoutes {
+object DMScreenRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
 
   lazy private val interpreter = DMScreenAPI.api.interpreter
 
-  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment & DMScreenSession, Nothing]] =
-    for {
+  override def api: ZIO[
+    DMScreenServerEnvironment,
+    DMScreenError,
+    Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+  ] =
+    (for {
       interpreter <- interpreter
     } yield {
       Routes(
-        Method.ANY / "api" / "dmscreen" ->
+        Method.ANY / "dmscreen" ->
           QuickAdapter(interpreter).handlers.api,
-        Method.ANY / "api" / "dmscreen" / "graphiql" ->
+        Method.ANY / "dmscreen" / "graphiql" ->
           GraphiQLHandler.handler(apiPath = "/api/dmscreen"),
-        Method.GET / "api" / "dmscreen" / "schema" ->
+        Method.GET / "dmscreen" / "schema" ->
           Handler.fromBody(Body.fromCharSequence(DMScreenAPI.api.render)),
-        Method.POST / "api" / "dmscreen" / "upload" ->
+        Method.POST / "dmscreen" / "upload" ->
           QuickAdapter(interpreter).handlers.upload
       )
-    }
+    }).mapError(DMScreenError(_))
 
 }

@@ -48,7 +48,7 @@ import caliban.client.Operations.{IsOperation, RootSubscription}
 import dmscreen.ClientConfiguration
 import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.{AsyncCallback, Callback}
-import org.scalajs.dom.WebSocket
+import org.scalajs.dom.{WebSocket, window}
 import sttp.capabilities
 import sttp.client3.*
 import zio.*
@@ -88,6 +88,10 @@ case class ScalaJSClientAdapter(endpoint: String) extends TimerSupport {
 
   given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
 
+  def getToken: Option[String] = {
+    Option(window.localStorage.getItem("authToken"))
+  }
+
   // Enhancement error management switch this, insteaf of returning AsyncCallback, return an Either[Throwable, A]
   def asyncCalibanCall[Origin, A](
     selectionBuilder: SelectionBuilder[Origin, A]
@@ -99,7 +103,13 @@ case class ScalaJSClientAdapter(endpoint: String) extends TimerSupport {
     import scala.concurrent.duration.*
 
     AsyncCallback
-      .fromFuture(request.copy(options = request.options.copy(readTimeout = 2.minute)).send(backend))
+      .fromFuture {
+        val noTok = request
+          .copy(options = request.options.copy(readTimeout = 2.minute))
+
+        val tok = getToken.fold(noTok)(noTok.auth.bearer(_))
+        tok.send(backend)
+      }
       .map { s =>
         s.body match {
           case Left(exception) => throw exception
@@ -113,12 +123,20 @@ case class ScalaJSClientAdapter(endpoint: String) extends TimerSupport {
     callback:         A => Callback
   )(using ev:         IsOperation[Origin]
   ): Callback = {
-    val request = selectionBuilder.toRequest(serverUri)
+    val request: Request[Either[CalibanClientError, A], Any] = selectionBuilder.toRequest(serverUri)
+
     // ENHANCEMENT add headers as necessary
     import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
+    import scala.concurrent.duration.*
 
     AsyncCallback
-      .fromFuture(request.send(backend))
+      .fromFuture {
+        val noTok = request
+          .copy(options = request.options.copy(readTimeout = 2.minute))
+
+        val tok = getToken.fold(noTok)(noTok.auth.bearer(_))
+        tok.send(backend)
+      }
       .completeWith {
         case Success(response) if response.code.isSuccess || response.code.isInformational =>
           response.body match {

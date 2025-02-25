@@ -35,8 +35,8 @@ object TokenString {
   
   def apply(str: String): TokenString = str
 
-  extension (st: TokenString) {
-    def str: String = st
+  extension (str: TokenString) {
+    def str: String = str
   }
 }
 

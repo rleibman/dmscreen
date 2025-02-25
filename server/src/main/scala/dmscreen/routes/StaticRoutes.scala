@@ -22,18 +22,18 @@
 package dmscreen.routes
 
 import dmscreen.routes.StaticRoutes.file
-import dmscreen.{ConfigurationService, DMScreenSession}
+import dmscreen.{ConfigurationService, DMScreenError, DMScreenServerEnvironment, DMScreenSession}
 import zio.*
 import zio.http.*
 
 import java.nio.file.{Files, Paths as JPaths}
 
-object StaticRoutes {
+object StaticRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
 
   lazy private val authNotRequired: Set[String] = Set(
     "login.html",
     "css/dmscreen.css",
-    "css/app-sui-theme.css",
+    "css/sui-dmscreen.css",
     "dmscreen-login-opt-bundle.js",
     "dmscreen-login-opt-bundle.js.map",
     "dmscreen-web-opt-bundle.js",
@@ -66,7 +66,7 @@ object StaticRoutes {
       case null => ZIO.fail(Exception(s"HttpError.InternalServerError(Could not find file $fileName))"))
     }
   }
-  
+
   val unauthRoute: Routes[ConfigurationService, Throwable] = Routes(
     Method.GET / "loginForm" -> handler { (request: Request) =>
       Handler.fromFileZIO {
@@ -77,7 +77,7 @@ object StaticRoutes {
         } yield file
       }
     }.flatten,
-    Method.ANY / "unauth" / trailing -> handler {
+    Method.ANY / trailing -> handler {
       (
         path: Path,
         _:    Request
@@ -119,7 +119,7 @@ object StaticRoutes {
           } yield file
         }
       }.flatten,
-      Method.GET / trailing  -> handler {
+      Method.GET / trailing -> handler {
         (
           path:    Path,
           request: Request

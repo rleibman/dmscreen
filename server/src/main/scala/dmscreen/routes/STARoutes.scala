@@ -23,29 +23,33 @@ package dmscreen.routes
 
 import caliban.*
 import caliban.schema.GenericSchema
-import dmscreen.{DMScreenServerEnvironment, DMScreenSession}
+import dmscreen.{DMScreenError, DMScreenServerEnvironment, DMScreenSession}
 import dmscreen.sta.{STAAPI, STARepository}
 import zio.http.*
 import zio.{IO, ZIO}
 
-object STARoutes {
+object STARoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
 
   lazy private val interpreter = STAAPI.api.interpreter
 
-  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment & DMScreenSession, Nothing]] =
-    for {
+  override def api: ZIO[
+    DMScreenServerEnvironment,
+    DMScreenError,
+    Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+  ] =
+    (for {
       interpreter <- interpreter
     } yield {
       Routes(
-        Method.ANY / "api" / "sta" ->
+        Method.ANY / "sta" ->
           QuickAdapter(interpreter).handlers.api,
-        Method.ANY / "api" / "sta" / "graphiql" ->
+        Method.ANY / "sta" / "graphiql" ->
           GraphiQLHandler.handler(apiPath = "/api/sta"),
-        Method.GET / "api" / "sta" / "schema" ->
+        Method.GET / "sta" / "schema" ->
           Handler.fromBody(Body.fromCharSequence(STAAPI.api.render)),
-        Method.POST / "api" / "sta" / "upload" ->
+        Method.POST / "sta" / "upload" ->
           QuickAdapter(interpreter).handlers.upload
       )
-    }
+    }).mapError(DMScreenError(_))
 
 }

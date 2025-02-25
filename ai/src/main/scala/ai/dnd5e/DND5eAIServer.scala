@@ -86,6 +86,7 @@ object DND5eAIServer {
       storeWrapper <- ZIO.service[EmbeddingStoreWrapper]
       res <- ZIO.foreachPar(monsters) { monster =>
         ZIO.attemptBlocking {
+
           EmbeddingStoreIngestor.ingest(
             monster.toDocument,
             storeWrapper.store

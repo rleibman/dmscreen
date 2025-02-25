@@ -23,29 +23,33 @@ package dmscreen.routes
 
 import caliban.*
 import caliban.schema.GenericSchema
-import dmscreen.{DMScreenServerEnvironment, DMScreenSession}
+import dmscreen.{DMScreenError, DMScreenServerEnvironment, DMScreenSession}
 import dmscreen.dnd5e.{DND5eAPI, DND5eRepository}
 import zio.http.*
 import zio.{IO, ZIO}
 
-object DND5eRoutes {
+object DND5eRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
 
   lazy private val interpreter = DND5eAPI.api.interpreter
 
-  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment & DMScreenSession, Nothing]] =
-    for {
+  override def api: ZIO[
+    DMScreenServerEnvironment,
+    DMScreenError,
+    Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+  ] =
+    (for {
       interpreter <- interpreter
     } yield {
       Routes(
-        Method.ANY / "api" / "dnd5e" ->
+        Method.ANY / "dnd5e" ->
           QuickAdapter(interpreter).handlers.api,
-        Method.ANY / "api" / "dnd5e" / "graphiql" ->
+        Method.ANY / "dnd5e" / "graphiql" ->
           GraphiQLHandler.handler(apiPath = "/api/dnd5e"),
-        Method.GET / "api" / "dnd5e" / "schema" ->
+        Method.GET / "dnd5e" / "schema" ->
           Handler.fromBody(Body.fromCharSequence(DND5eAPI.api.render)),
-        Method.POST / "api" / "dnd5e" / "upload" ->
+        Method.POST / "dnd5e" / "upload" ->
           QuickAdapter(interpreter).handlers.upload
       )
-    }
+    }).mapError(DMScreenError(_))
 
 }

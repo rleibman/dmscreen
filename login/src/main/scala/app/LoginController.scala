@@ -72,7 +72,11 @@ object LoginController {
         <.div(
           Toast.render(),
           state.context.mode match {
-            case Mode.login                      => LoginPage(state.context.messageForScreen)
+            case Mode.login =>
+              LoginPage(
+                state.context.messageForScreen,
+                str => $.modState(s => s.copy(context = s.context.copy(messageForScreen = Some(str))))
+              )
             case Mode.registration               => RegistrationPage()
             case Mode.passwordRecoveryRequest    => PasswordRecoveryPage()
             case Mode.passwordRecoveryAfterToken => PasswordRecoveryAfterTokenPage(state.token)

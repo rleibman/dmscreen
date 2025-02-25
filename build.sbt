@@ -9,6 +9,8 @@ import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
 lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time of build").withRank(KeyRanks.Invisible)
 
+ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots")
+
 lazy val SCALA = "3.6.3"
 Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
@@ -48,14 +50,14 @@ enablePlugins(
   GitVersioning
 )
 
-val calibanVersion = "2.9.1"
+val calibanVersion = "2.9.2"
 val langchainVersion = "1.0.0-beta1"
 val quillVersion = "4.8.6"
 val tapirVersion = "1.10.8"
 val testContainerVersion = "0.41.8"
 val zioConfigVersion = "4.0.3"
-val zioHttpVersion = "3.0.1"
-val zioJsonVersion = "0.7.21"
+val zioHttpVersion = "3.0.1+104-f3012d3e-SNAPSHOT"
+val zioJsonVersion = "0.7.31"
 val zioVersion = "2.1.15"
 
 lazy val commonSettings = Seq(
@@ -163,7 +165,7 @@ lazy val db = project
       "dev.zio"                %% "zio-config-derivation" % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-magnolia"   % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-typesafe"   % zioConfigVersion withSources (),
-      "dev.zio"                %% "zio-logging-slf4j2"    % "2.4.0" withSources (),
+      "dev.zio"                %% "zio-logging-slf4j2"    % "2.5.0" withSources (),
       "dev.zio"                %% "izumi-reflect"         % "2.3.10" withSources (),
       "dev.zio"                %% "zio-json"              % zioJsonVersion withSources (),
       "org.scala-lang.modules" %% "scala-xml"             % "2.3.0" withSources (),
@@ -208,7 +210,7 @@ lazy val server = project
       "dev.zio"                %% "zio-config-derivation" % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-magnolia"   % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-typesafe"   % zioConfigVersion withSources (),
-      "dev.zio"                %% "zio-logging-slf4j2"    % "2.4.0" withSources (),
+      "dev.zio"                %% "zio-logging-slf4j2"    % "2.5.0" withSources (),
       "dev.zio"                %% "izumi-reflect"         % "3.0.1" withSources (),
       "com.github.ghostdogpr"  %% "caliban"               % calibanVersion withSources (),
       "com.github.ghostdogpr"  %% "caliban-zio-http"      % calibanVersion withSources (),
@@ -262,7 +264,7 @@ lazy val ai = project
       "dev.zio" %% "zio-nio" % "2.0.2" withSources (),
       // AI stuff
       "com.dimafeng"      %% "testcontainers-scala-core" % testContainerVersion withSources (),
-      "org.testcontainers" % "qdrant"                    % "1.20.4" withSources (),
+      "org.testcontainers" % "qdrant"                    % "1.20.5" withSources (),
       "dev.langchain4j"    % "langchain4j-core"          % langchainVersion withSources (),
       "dev.langchain4j"    % "langchain4j"               % langchainVersion withSources (),
       "dev.langchain4j"    % "langchain4j-ollama"        % langchainVersion withSources (),

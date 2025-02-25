@@ -21,8 +21,8 @@
 
 package dmscreen
 
-import auth.{SessionConfig, SessionTransport}
-import caliban.CalibanError
+import _root_.auth.{SessionConfig, SessionTransport}
+import dmscreen.db.RepositoryError
 import dmscreen.routes.*
 import zio.*
 import zio.http.*
@@ -35,12 +35,6 @@ object DMScreen extends ZIOApp {
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
   override def bootstrap: ULayer[DMScreenServerEnvironment] = EnvironmentBuilder.live
-
-  lazy private val unauthRoute: Routes[DMScreenServerEnvironment, Nothing] =
-    Seq(
-      AuthRoutes.unauthRoute,
-      StaticRoutes.unauthRoute
-    ).reduce(_ ++ _).handleErrorCauseZIO(mapError) @@ Middleware.debug
 
   val ignoreUnauth: Middleware[Any] = new Middleware[Any] {
     def apply[Env1 <: Any, Err](routes: Routes[Env1, Err]): Routes[Env1, Err] =
@@ -57,40 +51,33 @@ object DMScreen extends ZIOApp {
       }
   }
 
-  def authRoutes: ZIO[SessionTransport[DMScreenSession], Throwable, Routes[DMScreenServerEnvironment, Nothing]] =
-    for {
-      sessionTransport <- ZIO.service[SessionTransport[DMScreenSession]]
-      dmScreenRoute    <- DMScreenRoutes.route
-      dnd5eRoute       <- DND5eRoutes.route
-      staRoute         <- STARoutes.route
-    } yield {
-      (Seq(
-        AuthRoutes.authRoute,
-        dmScreenRoute,
-        staRoute,
-        dnd5eRoute,
-        StaticRoutes.authRoute
-      ).reduce(_ ++ _) @@ ignoreUnauth)
-        .handleErrorCauseZIO(mapError) @@ sessionTransport.bearerAuthWithContext(DMScreenSession.empty) @@ Middleware.debug
-    }
+  object AllTogether extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
 
-  private val defaultRouteZio: ZIO[ConfigurationService, ConfigurationError, Routes[ConfigurationService, Throwable]] =
-    for {
-      _ <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
+    private val routes: Seq[AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError]] =
+      Seq(AuthRoutes, StaticRoutes, DMScreenRoutes, DND5eRoutes, STARoutes)
 
-    } yield Routes(Method.ANY / trailing -> handler {
-      (
-        path: Path,
-        _:    Request
-      ) =>
-        ZIO.logWarning(s"Path $path not found") *>
-          ZIO.attempt(Response.notFound(path.toString))
-    })
+    override def api: ZIO[
+      DMScreenServerEnvironment,
+      DMScreenError,
+      Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+    ] = ZIO.foreach(routes)(_.api).map(_.reduce(_ ++ _))
+
+    override def auth: ZIO[
+      DMScreenServerEnvironment,
+      DMScreenError,
+      Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+    ] = ZIO.foreach(routes)(_.auth).map(_.reduce(_ ++ _))
+
+    override def unauth
+      : ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
+      ZIO.foreach(routes)(_.unauth).map(_.reduce(_ ++ _))
+
+  }
 
   def mapError(e: Cause[Throwable]): UIO[Response] = {
     lazy val contentTypeJson: Headers = Headers(Header.ContentType(MediaType.application.json).untyped)
     e.squash match {
-      case e: DMScreenError =>
+      case e: RepositoryError =>
         val body =
           s"""{
             "exceptionMessage": ${e.getMessage},
@@ -100,6 +87,17 @@ object DMScreen extends ZIOApp {
         ZIO
           .logError(body).as(
             Response.apply(body = Body.fromString(body), status = Status.BadGateway, headers = contentTypeJson)
+          )
+      case e: DMScreenError =>
+        val body =
+          s"""{
+            "exceptionMessage": ${e.getMessage},
+            "stackTrace": [${e.getStackTrace.nn.map(s => s"\"${s.toString}\"").mkString(",")}]
+          }"""
+
+        ZIO
+          .logError(body).as(
+            Response.apply(body = Body.fromString(body), status = Status.InternalServerError, headers = contentTypeJson)
           )
       case e =>
         val body =
@@ -115,12 +113,18 @@ object DMScreen extends ZIOApp {
     }
   }
 
-  lazy val zapp: ZIO[Environment, Throwable, Routes[Environment, Nothing]] = for {
-    _         <- ZIO.log("Initializing Routes")
-    authRoute <- authRoutes
-  } yield unauthRoute ++ authRoute
+  lazy val zapp: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, Nothing]] = for {
+    _                <- ZIO.log("Initializing Routes")
+    sessionTransport <- ZIO.service[SessionTransport[DMScreenSession]]
+    auth             <- AllTogether.auth
+    unauth           <- AllTogether.unauth
+    api              <- AllTogether.api
+  } yield (unauth.nest("unauth") ++
+    ((auth @@ sessionTransport.resourceSessionProvider ++
+      api.nest("api")) @@ sessionTransport.apiSessionProvider))
+    .handleErrorCauseZIO(mapError) @@ Middleware.debug
 
-  override def run: ZIO[Environment & ZIOAppArgs & Scope, Throwable, ExitCode] = {
+  override def run: ZIO[Environment & ZIOAppArgs & Scope, DMScreenError, ExitCode] = {
     // Configure thread count using CLI
     for {
       config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
