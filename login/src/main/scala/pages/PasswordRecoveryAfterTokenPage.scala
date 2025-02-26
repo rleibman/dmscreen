@@ -46,9 +46,9 @@ object PasswordRecoveryAfterTokenPage {
       event: ReactEventFrom[HTMLFormElement]
     ): Callback =
       if (state.password.isEmpty)
-        Callback(event.preventDefault()) >> Toast.error("La contraseña no puede estar vacía")
+        Callback(event.preventDefault()) >> Toast.error("Password can't be empty")
       else if (state.password != state.passwordAgain)
-        Callback(event.preventDefault()) >> Toast.error("Ambas contraseñas tienen que ser iguales")
+        Callback(event.preventDefault()) >> Toast.error("Passwords must match")
       else
         Callback.empty
 
@@ -60,9 +60,9 @@ object PasswordRecoveryAfterTokenPage {
         <.div(
           ^.width := 800.px,
           <.div(<.img(^.src := "/unauth/images/logo.png", ^.width := 350.px)),
-          <.h1("Recuperar contraseña!"),
+          <.h1("Recover Password"),
           Form()
-            .action("passwordReset")
+            .action("/unauth/passwordReset")
             .method("post")
             .onSubmit {
               (
@@ -72,7 +72,7 @@ object PasswordRecoveryAfterTokenPage {
                 handleSubmit(state, event)
             }(
               FormField()(
-                Label()("Contraseña"),
+                Label()("Password"),
                 Input()
                   .required(true)
                   .name("password")
@@ -87,7 +87,7 @@ object PasswordRecoveryAfterTokenPage {
                   }()
               ),
               FormField()(
-                Label()("Repite contraseña"),
+                Label()("Repeat password"),
                 Input()
                   .required(true)
                   .name("passwordAgain")

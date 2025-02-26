@@ -69,7 +69,7 @@ object AuthSpec extends ZIOSpec[DMScreenServerEnvironment] {
     app.runZIO(
       Request
         .post(
-          URL(Path("/unauth/doLogin")),
+          URL(Path("/doLogin")),
           Body.fromURLEncodedForm(
             Form(
               FormField.simpleField("email", email),
@@ -131,7 +131,7 @@ object AuthSpec extends ZIOSpec[DMScreenServerEnvironment] {
           validToken <- validToken
           response <- app.runZIO(
             Request
-              .get(URL(Path("/unauth/refresh")))
+              .get(URL(Path("/refresh")))
               .addHeader(Header.Cookie(NonEmptyChunk(Cookie.Request(config.accessTokenName, validToken.str))))
           )
           authHeader = response.header(Header.Authorization)
@@ -149,7 +149,7 @@ object AuthSpec extends ZIOSpec[DMScreenServerEnvironment] {
           expiredToken <- expiredToken
           response <- app.runZIO(
             Request
-              .get(URL(Path("/unauth/refresh")))
+              .get(URL(Path("/refresh")))
               .addHeader(Header.Cookie(NonEmptyChunk(Cookie.Request(config.accessTokenName, expiredToken.str))))
           )
         } yield assertTrue(response.status == Status.Unauthorized)
@@ -160,7 +160,7 @@ object AuthSpec extends ZIOSpec[DMScreenServerEnvironment] {
           app    <- DMScreen.zapp
           response <- app.runZIO(
             Request
-              .get(URL(Path("/unauth/refresh")))
+              .get(URL(Path("/refresh")))
               .addHeader(Header.Cookie(NonEmptyChunk(Cookie.Request(config.accessTokenName, "invalidToken"))))
           )
         } yield assertTrue(response.status == Status.BadRequest)

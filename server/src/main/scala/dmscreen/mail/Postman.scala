@@ -87,7 +87,7 @@ object EmailGenerator {
       token <- tokenHolder.createToken(user, TokenPurpose.NewUser)
     } yield {
       val linkUrl =
-        s"http://$webHostName/confirmRegistration?token=$token"
+        s"http://$webHostName/unauth/confirmRegistration?token=$token"
       Envelope
         .from(new InternetAddress("admin@chuti.fun", "Chuti Administrator"))
         .to(new InternetAddress(user.email))

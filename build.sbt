@@ -56,9 +56,9 @@ val quillVersion = "4.8.6"
 val tapirVersion = "1.10.8"
 val testContainerVersion = "0.41.8"
 val zioConfigVersion = "4.0.3"
-val zioHttpVersion = "3.0.1+104-f3012d3e-SNAPSHOT"
-val zioJsonVersion = "0.7.33"
-val zioVersion = "2.1.15"
+val zioHttpVersion = "3.0.1" // "3.0.1+104-f3012d3e-SNAPSHOT"
+val zioJsonVersion = "0.7.35"
+val zioVersion = "2.1.16"
 
 lazy val commonSettings = Seq(
   organization     := "net.leibman",

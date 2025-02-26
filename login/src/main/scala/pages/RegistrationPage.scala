@@ -78,7 +78,7 @@ object RegistrationPage {
         {
           val async: AsyncCallback[Callback] = for {
             saved <-
-              Ajax("PUT", "/userCreation").setRequestContentTypeJson
+              Ajax("PUT", "/unauth/userCreation").setRequestContentTypeJson
                 .send(UserCreationRequest(state.user, state.passwordPair._1).toJson)
                 .asAsyncCallback
                 .map { xhr =>

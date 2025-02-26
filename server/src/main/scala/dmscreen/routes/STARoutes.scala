@@ -41,13 +41,13 @@ object STARoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, D
       interpreter <- interpreter
     } yield {
       Routes(
-        Method.ANY / "sta" ->
+        Method.ANY / "api" / "sta" ->
           QuickAdapter(interpreter).handlers.api,
-        Method.ANY / "sta" / "graphiql" ->
+        Method.ANY / "api" / "sta" / "graphiql" ->
           GraphiQLHandler.handler(apiPath = "/api/sta"),
-        Method.GET / "sta" / "schema" ->
+        Method.GET / "api" / "sta" / "schema" ->
           Handler.fromBody(Body.fromCharSequence(STAAPI.api.render)),
-        Method.POST / "sta" / "upload" ->
+        Method.POST / "api" / "sta" / "upload" ->
           QuickAdapter(interpreter).handlers.upload
       )
     }).mapError(DMScreenError(_))

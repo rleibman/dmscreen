@@ -50,98 +50,109 @@ object StaticRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession
   private def file(
     fileName: String,
     request:  Request
-  ): IO[Exception, java.io.File] = {
+  ): IO[DMScreenError, java.io.File] = {
     JPaths.get(fileName) match {
-      case path: java.nio.file.Path if !Files.exists(path) => ZIO.fail(Exception(s"NotFound(${request.path})"))
+      case path: java.nio.file.Path if !Files.exists(path) => ZIO.fail(DMScreenError(s"NotFound(${request.path})"))
       case path: java.nio.file.Path                        => ZIO.succeed(path.toFile.nn)
-      case null => ZIO.fail(Exception(s"HttpError.InternalServerError(Could not find file $fileName))"))
+      case null => ZIO.fail(DMScreenError(s"HttpError.InternalServerError(Could not find file $fileName))"))
     }
   }
   private def file(
     fileName: String
-  ): IO[Exception, java.io.File] = {
+  ): IO[DMScreenError, java.io.File] = {
     JPaths.get(fileName) match {
-      case path: java.nio.file.Path if !Files.exists(path) => ZIO.fail(Exception(s"NotFound($fileName)"))
+      case path: java.nio.file.Path if !Files.exists(path) => ZIO.fail(DMScreenError(s"NotFound($fileName)"))
       case path: java.nio.file.Path                        => ZIO.succeed(path.toFile.nn)
-      case null => ZIO.fail(Exception(s"HttpError.InternalServerError(Could not find file $fileName))"))
+      case null => ZIO.fail(DMScreenError(s"HttpError.InternalServerError(Could not find file $fileName))"))
     }
   }
 
-  val unauthRoute: Routes[ConfigurationService, Throwable] = Routes(
-    Method.GET / "loginForm" -> handler { (request: Request) =>
-      Handler.fromFileZIO {
-        for {
-          config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
-          staticContentDir = config.dmscreen.http.staticContentDir
-          file <- file(s"$staticContentDir/login.html", request)
-        } yield file
-      }
-    }.flatten,
-    Method.ANY / trailing -> handler {
-      (
-        path: Path,
-        _:    Request
-      ) =>
-        val somethingElse = path.toString
-        println(somethingElse)
-
-        if (authNotRequired(somethingElse)) {
+  /** These do not require a session
+    */
+  override def unauth: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
+    ZIO.succeed(
+      Routes(
+        Method.GET / "loginForm" -> handler { (request: Request) =>
           Handler.fromFileZIO {
             for {
               config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
               staticContentDir = config.dmscreen.http.staticContentDir
-              file <- file(s"$staticContentDir/$somethingElse")
+              file <- file(s"$staticContentDir/login.html", request)
             } yield file
-          }
-        } else {
-          Handler.error(Status.Unauthorized)
-        }
-    }.flatten
-  )
+          }.mapError(DMScreenError(_))
+        }.flatten,
+        Method.ANY / "unauth" / trailing -> handler {
+          (
+            path: Path,
+            _:    Request
+          ) =>
+            val somethingElse = path.toString
 
-  val authRoute: Routes[ConfigurationService & DMScreenSession, Throwable] =
-    Routes(
-      Method.GET / "index.html" -> handler { (request: Request) =>
-        Handler.fromFileZIO {
-          for {
-            config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
-            staticContentDir = config.dmscreen.http.staticContentDir
-            file <- file(s"$staticContentDir/index.html", request)
-          } yield file
-        }
-      }.flatten,
-      Method.GET / "" -> handler { (request: Request) =>
-        Handler.fromFileZIO {
-          for {
-            config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
-            staticContentDir = config.dmscreen.http.staticContentDir
-            file <- file(s"$staticContentDir/index.html", request)
-          } yield file
-        }
-      }.flatten,
-      Method.GET / trailing -> handler {
-        (
-          path:    Path,
-          request: Request
-        ) =>
-          Handler.fromFileZIO {
-            val somethingElse = path.toString.trim.nn
-
-            if (somethingElse == "/" || somethingElse.isEmpty) {
-              for {
-                config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
-                staticContentDir = config.dmscreen.http.staticContentDir
-                file <- file(s"$staticContentDir/index.html", request)
-              } yield file
+            if (authNotRequired(somethingElse)) {
+              Handler.fromFileZIO {
+                for {
+                  config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
+                  staticContentDir = config.dmscreen.http.staticContentDir
+                  file <- file(s"$staticContentDir/$somethingElse")
+                } yield file
+              }.mapError(DMScreenError(_))
             } else {
-              for {
-                config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
-                staticContentDir = config.dmscreen.http.staticContentDir
-                file <- file(s"$staticContentDir/$somethingElse", request)
-              } yield file
+              Handler.error(Status.Unauthorized)
             }
-          }
-      }.flatten
+        }.flatten
+      )
+    )
+
+  /** These routes that bring up resources that require authentication (an existing session)
+    */
+  override def auth: ZIO[
+    DMScreenServerEnvironment,
+    DMScreenError,
+    Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+  ] =
+    ZIO.succeed(
+      Routes(
+        Method.GET / "index.html" -> handler { (request: Request) =>
+          Handler.fromFileZIO {
+            for {
+              config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
+              staticContentDir = config.dmscreen.http.staticContentDir
+              file <- file(s"$staticContentDir/index.html", request)
+            } yield file
+          }.mapError(DMScreenError(_))
+        }.flatten,
+        Method.GET / "" -> handler { (request: Request) =>
+          Handler.fromFileZIO {
+            for {
+              config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
+              staticContentDir = config.dmscreen.http.staticContentDir
+              file <- file(s"$staticContentDir/index.html", request)
+            } yield file
+          }.mapError(DMScreenError(_))
+        }.flatten,
+        Method.GET / trailing -> handler {
+          (
+            path:    Path,
+            request: Request
+          ) =>
+            Handler.fromFileZIO {
+              val somethingElse = path.toString.trim.nn
+
+              if (somethingElse == "/" || somethingElse.isEmpty) {
+                for {
+                  config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
+                  staticContentDir = config.dmscreen.http.staticContentDir
+                  file <- file(s"$staticContentDir/index.html", request)
+                } yield file
+              } else {
+                for {
+                  config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
+                  staticContentDir = config.dmscreen.http.staticContentDir
+                  file <- file(s"$staticContentDir/$somethingElse", request)
+                } yield file
+              }
+            }.mapError(DMScreenError(_))
+        }.flatten
 //      Method.GET / trailing -> handler {
 //        (
 //          path:    Path,
@@ -165,6 +176,7 @@ object StaticRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession
 //            }
 //          }
 //      }.flatten
+      )
     )
 
 }

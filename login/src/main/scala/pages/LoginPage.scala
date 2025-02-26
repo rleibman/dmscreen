@@ -109,7 +109,7 @@ object LoginPage {
           Form
             .style(CSSProperties().set("width", 800.px))
             .method("post")
-            .action("doLogin")
+            .action("/doLogin")
             .onSubmit(
               (
                 e,

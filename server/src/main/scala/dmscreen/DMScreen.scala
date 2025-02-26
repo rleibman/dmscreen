@@ -71,7 +71,7 @@ object DMScreen extends ZIOApp {
       : ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
       ZIO.succeed(
         Routes(
-          Method.GET / "unauthtest.html" -> handler((_: Request) =>
+          Method.GET / "unauth" / "unauthtest.html" -> handler((_: Request) =>
             Handler.html(s"<html>Test Unauth Ok!</html>")
           ).flatten
         )
@@ -80,25 +80,46 @@ object DMScreen extends ZIOApp {
   }
 
   object AllTogether extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
+    private val ignoreUnauth: Middleware[Any] = new Middleware[Any] {
+      def apply[Env1 <: Any, Err](routes: Routes[Env1, Err]): Routes[Env1, Err] =
+        routes.transform[Env1] { h =>
+          handler { (req: Request) =>
+            if (req.path.toString.startsWith("/unauth")) {
+              // What should go here in order to ignore it
+              ZIO.fail(Response.notFound)
+            } else {
+              // What should go here in order to process it?
+              h(req)
+            }
+          }
+        }
+    }
 
     private val routes: Seq[AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError]] =
-      Seq(AuthRoutes, StaticRoutes, DMScreenRoutes, DND5eRoutes, STARoutes, TestRoutes)
+      Seq(
+        DMScreenRoutes,
+        DND5eRoutes,
+        STARoutes,
+        TestRoutes,
+        AuthRoutes,
+        StaticRoutes
+      )
 
     override def api: ZIO[
       DMScreenServerEnvironment,
       DMScreenError,
       Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
-    ] = ZIO.foreach(routes)(_.api).map(_.reduce(_ ++ _))
+    ] = ZIO.foreach(routes)(_.api).map(_.reduce(_ ++ _) @@ ignoreUnauth @@ Middleware.debug)
 
     override def auth: ZIO[
       DMScreenServerEnvironment,
       DMScreenError,
       Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
-    ] = ZIO.foreach(routes)(_.auth).map(_.reduce(_ ++ _))
+    ] = ZIO.foreach(routes)(_.auth).map(_.reduce(_ ++ _) @@ ignoreUnauth @@ Middleware.debug)
 
     override def unauth
       : ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
-      ZIO.foreach(routes)(_.unauth).map(_.reduce(_ ++ _))
+      ZIO.foreach(routes)(_.unauth).map(_.reduce(_ ++ _) @@ Middleware.debug)
 
   }
 
@@ -117,8 +138,8 @@ object DMScreen extends ZIOApp {
     }"""
     val status = squashed match {
       case e: RepositoryError if e.isTransient => Status.BadGateway
-      case e: DMScreenError                    => Status.InternalServerError
-      case e => Status.InternalServerError
+      case _: DMScreenError                    => Status.InternalServerError
+      case _ => Status.InternalServerError
     }
     ZIO
       .logErrorCause("Error in DMScreen", original).as(
@@ -126,16 +147,17 @@ object DMScreen extends ZIOApp {
       )
   }
 
+
   lazy val zapp: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, Nothing]] = for {
     _                <- ZIO.log("Initializing Routes")
     sessionTransport <- ZIO.service[SessionTransport[DMScreenSession]]
-    auth             <- AllTogether.auth
     unauth           <- AllTogether.unauth
+    auth             <- AllTogether.auth
     api              <- AllTogether.api
-  } yield (unauth.nest("unauth") ++
+  } yield (unauth ++
     ((auth @@ sessionTransport.resourceSessionProvider) ++
-      (api.nest("api")) @@ sessionTransport.apiSessionProvider))
-    .handleErrorCauseZIO(mapError) @@ Middleware.debug
+      (api @@ sessionTransport.apiSessionProvider)))
+    .handleErrorCauseZIO(mapError)
 
   override def run: ZIO[Environment & ZIOAppArgs & Scope, DMScreenError, ExitCode] = {
     // Configure thread count using CLI

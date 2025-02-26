@@ -42,7 +42,7 @@ object PasswordRecoveryPage {
   class Backend($ : BackendScope[Unit, State]) {
 
     def onSubmitEmailAddress(email: String) =
-      Ajax("POST", s"/passwordRecoveryRequest")
+      Ajax("POST", s"/unauth/passwordRecoveryRequest")
         .and(_.withCredentials = true)
         .setRequestContentTypeJson
         .send(email.toJson)

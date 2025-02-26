@@ -40,13 +40,13 @@ object DMScreenRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSessi
       interpreter <- interpreter
     } yield {
       Routes(
-        Method.ANY / "dmscreen" ->
+        Method.ANY / "api" / "dmscreen" ->
           QuickAdapter(interpreter).handlers.api,
-        Method.ANY / "dmscreen" / "graphiql" ->
+        Method.ANY / "api" / "dmscreen" / "graphiql" ->
           GraphiQLHandler.handler(apiPath = "/api/dmscreen"),
-        Method.GET / "dmscreen" / "schema" ->
+        Method.GET / "api" / "dmscreen" / "schema" ->
           Handler.fromBody(Body.fromCharSequence(DMScreenAPI.api.render)),
-        Method.POST / "dmscreen" / "upload" ->
+        Method.POST / "api" / "dmscreen" / "upload" ->
           QuickAdapter(interpreter).handlers.upload
       )
     }).mapError(DMScreenError(_))
