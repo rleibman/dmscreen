@@ -185,21 +185,17 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
             sessionTransport <- ZIO.service[SessionTransport[DMScreenSession]]
             loginFormBadUrl  <- ZIO.fromEither(URL.decode("/loginForm?bad=true")).mapError(DMScreenError(_))
             res <- login.fold(ZIO.succeed(Response(Status.SeeOther, Headers(Header.Location(loginFormBadUrl))))) { user =>
-              sessionTransport.refreshSession(
-                req,
+              sessionTransport.addTokens(
+                DMScreenSession(user),
                 Response.ok
               )
             }
           } yield res).mapError(DMScreenError(_))
 
         },
-        Method.POST / "refresh" -> handler { (req: Request) =>
+        Method.GET / "refresh" -> handler { (req: Request) =>
           // This may need to be a special case, we don't want to treat refresh like a resource or an auth required
-          for {
-            // Need to see if the session has been revoked
-            sessionTransport <- ZIO.service[SessionTransport[DMScreenSession]]
-            res              <- sessionTransport.refreshSession(req, Response.ok)
-          } yield res
+          ZIO.serviceWithZIO[SessionTransport[DMScreenSession]](_.refreshSession(req, Response.ok))
         }
       )
     )

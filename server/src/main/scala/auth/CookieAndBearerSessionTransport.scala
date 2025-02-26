@@ -35,17 +35,18 @@ case class CookieAndBearerSessionTransport(
     ttl:     Duration
   ): UIO[TokenString] =
     for {
-      now <- Clock.instant
+      javaClock <- Clock.javaClock
     } yield {
       val claim = JwtClaim(session.toJson)
-        .issuedAt(now.getEpochSecond)
-        .expiresAt(now.getEpochSecond + ttl.toSeconds)
+        .issuedNow(javaClock)
+        .expiresIn(ttl.toSeconds)(javaClock)
       TokenString(Jwt.encode(claim, config.secretKey.key, JwtAlgorithm.HS512))
     }
 
   private def jwtDecode(token: String): Task[JwtClaim] =
     for {
-      tok <- ZIO.fromTry(Jwt.decode(token, config.secretKey.key, Seq(JwtAlgorithm.HS512)))
+      javaClock <- Clock.javaClock
+      tok       <- ZIO.fromTry(Jwt(javaClock).decode(token, config.secretKey.key, Seq(JwtAlgorithm.HS512)))
     } yield tok
 
   extension (claim: JwtClaim) {
@@ -146,6 +147,15 @@ case class CookieAndBearerSessionTransport(
         case e:        Throwable => ZIO.fail(Response.badRequest(e.getMessage))
         case response: Response  => ZIO.fail(response)
       }
+      withTokens <- addTokens(session, response)
+    } yield withTokens).catchAll(ZIO.succeed)
+  }
+
+  def addTokens(
+    session:  DMScreenSession,
+    response: Response
+  ): UIO[Response] =
+    for {
       accessToken  <- jwtEncode(session, config.accessTTL)
       refreshToken <- jwtEncode(session, config.refreshTTL)
     } yield response
@@ -161,7 +171,6 @@ case class CookieAndBearerSessionTransport(
           isHttpOnly = config.sessionIsHttpOnly,
           sameSite = config.sessionSameSite
         )
-      )).catchAll(ZIO.succeed)
-  }
+      )
 
 }

@@ -84,7 +84,7 @@ object TestCreator extends ZIOApp {
 
   val createMonsters
     : ZIO[SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter, DMScreenError, List[Monster]] = {
-    val file = File("/home/rleibman/projects/dmscreen/common/shared/src/main/resources/5e-SRD-Monsters.json")
+    val file = File("/home/rleibman/projects/dmscreen/model/shared/src/main/resources/5e-SRD-Monsters.json")
     for {
       _        <- ZIO.fail(DMScreenError(s"File ${file.getAbsolutePath} does not exist")).when(!file.exists())
       importer <- ZIO.service[SRDImporter]

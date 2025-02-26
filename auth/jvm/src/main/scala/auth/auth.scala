@@ -121,4 +121,9 @@ trait SessionTransport[SessionType] {
     response: Response
   ): UIO[Response]
 
+  def addTokens(
+    session:  SessionType,
+    response: Response
+  ): UIO[Response]
+
 }

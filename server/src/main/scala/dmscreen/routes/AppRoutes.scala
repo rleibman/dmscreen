@@ -9,14 +9,14 @@ import zio.json.ast.Json
 
 trait AppRoutes[-R, -SessionType, +E] {
 
-  protected def seeOther(location: String): IO[DMScreenError, Response] =
+  final protected def seeOther(location: String): IO[DMScreenError, Response] =
     for {
       url <- ZIO.fromEither(URL.decode(location)).mapError(e => DMScreenError(e))
     } yield Response(Status.SeeOther, Headers(Header.Location(url)))
 
-  protected def json(value: Json): Response = Response.json(value.toString)
+  final protected def json(value: Json): Response = Response.json(value.toString)
 
-  protected def json[A: JsonEncoder](value: A): Response = Response.json(value.toJson)
+  final protected def json[A: JsonEncoder](value: A): Response = Response.json(value.toJson)
 
   /** These routes represent the api, the are intended to be used thorough ajax-type calls they require a session
     */

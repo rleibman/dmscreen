@@ -57,7 +57,7 @@ val tapirVersion = "1.10.8"
 val testContainerVersion = "0.41.8"
 val zioConfigVersion = "4.0.3"
 val zioHttpVersion = "3.0.1+104-f3012d3e-SNAPSHOT"
-val zioJsonVersion = "0.7.31"
+val zioJsonVersion = "0.7.33"
 val zioVersion = "2.1.15"
 
 lazy val commonSettings = Seq(
@@ -156,7 +156,7 @@ lazy val db = project
       "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.2" withSources (),
       "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
       // Log
-      "ch.qos.logback" % "logback-classic" % "1.5.16" withSources (),
+      "ch.qos.logback" % "logback-classic" % "1.5.17" withSources (),
       // ZIO
       "dev.zio"                %% "zio"                   % zioVersion withSources (),
       "dev.zio"                %% "zio-nio"               % "2.0.2" withSources (),
@@ -201,7 +201,7 @@ lazy val server = project
       "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.2" withSources (),
       "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
       // Log
-      "ch.qos.logback" % "logback-classic" % "1.5.16" withSources (),
+      "ch.qos.logback" % "logback-classic" % "1.5.17" withSources (),
       // ZIO
       "dev.zio"                %% "zio"                   % zioVersion withSources (),
       "dev.zio"                %% "zio-nio"               % "2.0.2" withSources (),
@@ -272,7 +272,7 @@ lazy val ai = project
       "dev.langchain4j"    % "langchain4j-qdrant"        % langchainVersion withSources (),
       // Other random utilities
       "com.github.pathikrit" %% "better-files"    % "3.9.2" withSources (),
-      "ch.qos.logback"        % "logback-classic" % "1.5.16" withSources (),
+      "ch.qos.logback"        % "logback-classic" % "1.5.17" withSources (),
       // Testing
       "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
       "dev.zio" %% "zio-test-sbt" % zioVersion % "test" withSources ()

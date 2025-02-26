@@ -10,3 +10,5 @@ CREATE TABLE `token`
   DEFAULT CHARSET = utf8;
 
 alter table dmscreenUser add column `active` tinyint(4) NOT NULL DEFAULT '0';
+
+update dmscreenUser set `active` = 1; -- By default all existing users are active

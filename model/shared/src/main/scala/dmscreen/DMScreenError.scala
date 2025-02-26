@@ -24,8 +24,9 @@ package dmscreen
 import scala.language.unsafeNulls
 
 class DMScreenError(
-  val msg:   String,
-  val cause: Option[Throwable] = None
+  val msg:         String,
+  val cause:       Option[Throwable] = None,
+  val isTransient: Boolean = false
 ) extends Exception(msg, cause.orNull) {
 
   def this(message: String) = this(message, None)
