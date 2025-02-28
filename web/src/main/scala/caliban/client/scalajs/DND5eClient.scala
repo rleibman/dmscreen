@@ -28,6 +28,157 @@ import caliban.client.__Value._
 
 object DND5eClient {
 
+  sealed trait ChallengeRating extends scala.Product with scala.Serializable { def value: String }
+  object ChallengeRating {
+
+    case object _0 extends ChallengeRating { val value: String = "_0" }
+    case object _eight extends ChallengeRating { val value: String = "_eight" }
+    case object _quarter extends ChallengeRating { val value: String = "_quarter" }
+    case object _half extends ChallengeRating { val value: String = "_half" }
+    case object _1 extends ChallengeRating { val value: String = "_1" }
+    case object _2 extends ChallengeRating { val value: String = "_2" }
+    case object _3 extends ChallengeRating { val value: String = "_3" }
+    case object _4 extends ChallengeRating { val value: String = "_4" }
+    case object _5 extends ChallengeRating { val value: String = "_5" }
+    case object _6 extends ChallengeRating { val value: String = "_6" }
+    case object _7 extends ChallengeRating { val value: String = "_7" }
+    case object _8 extends ChallengeRating { val value: String = "_8" }
+    case object _9 extends ChallengeRating { val value: String = "_9" }
+    case object _10 extends ChallengeRating { val value: String = "_10" }
+    case object _11 extends ChallengeRating { val value: String = "_11" }
+    case object _12 extends ChallengeRating { val value: String = "_12" }
+    case object _13 extends ChallengeRating { val value: String = "_13" }
+    case object _14 extends ChallengeRating { val value: String = "_14" }
+    case object _15 extends ChallengeRating { val value: String = "_15" }
+    case object _16 extends ChallengeRating { val value: String = "_16" }
+    case object _17 extends ChallengeRating { val value: String = "_17" }
+    case object _18 extends ChallengeRating { val value: String = "_18" }
+    case object _19 extends ChallengeRating { val value: String = "_19" }
+    case object _20 extends ChallengeRating { val value: String = "_20" }
+    case object _21 extends ChallengeRating { val value: String = "_21" }
+    case object _22 extends ChallengeRating { val value: String = "_22" }
+    case object _23 extends ChallengeRating { val value: String = "_23" }
+    case object _24 extends ChallengeRating { val value: String = "_24" }
+    case object _25 extends ChallengeRating { val value: String = "_25" }
+    case object _26 extends ChallengeRating { val value: String = "_26" }
+    case object _27 extends ChallengeRating { val value: String = "_27" }
+    case object _28 extends ChallengeRating { val value: String = "_28" }
+    case object _29 extends ChallengeRating { val value: String = "_29" }
+    case object _30 extends ChallengeRating { val value: String = "_30" }
+
+    implicit val decoder: ScalarDecoder[ChallengeRating] = {
+      case __StringValue("_0")       => Right(ChallengeRating._0)
+      case __StringValue("_eight")   => Right(ChallengeRating._eight)
+      case __StringValue("_quarter") => Right(ChallengeRating._quarter)
+      case __StringValue("_half")    => Right(ChallengeRating._half)
+      case __StringValue("_1")       => Right(ChallengeRating._1)
+      case __StringValue("_2")       => Right(ChallengeRating._2)
+      case __StringValue("_3")       => Right(ChallengeRating._3)
+      case __StringValue("_4")       => Right(ChallengeRating._4)
+      case __StringValue("_5")       => Right(ChallengeRating._5)
+      case __StringValue("_6")       => Right(ChallengeRating._6)
+      case __StringValue("_7")       => Right(ChallengeRating._7)
+      case __StringValue("_8")       => Right(ChallengeRating._8)
+      case __StringValue("_9")       => Right(ChallengeRating._9)
+      case __StringValue("_10")      => Right(ChallengeRating._10)
+      case __StringValue("_11")      => Right(ChallengeRating._11)
+      case __StringValue("_12")      => Right(ChallengeRating._12)
+      case __StringValue("_13")      => Right(ChallengeRating._13)
+      case __StringValue("_14")      => Right(ChallengeRating._14)
+      case __StringValue("_15")      => Right(ChallengeRating._15)
+      case __StringValue("_16")      => Right(ChallengeRating._16)
+      case __StringValue("_17")      => Right(ChallengeRating._17)
+      case __StringValue("_18")      => Right(ChallengeRating._18)
+      case __StringValue("_19")      => Right(ChallengeRating._19)
+      case __StringValue("_20")      => Right(ChallengeRating._20)
+      case __StringValue("_21")      => Right(ChallengeRating._21)
+      case __StringValue("_22")      => Right(ChallengeRating._22)
+      case __StringValue("_23")      => Right(ChallengeRating._23)
+      case __StringValue("_24")      => Right(ChallengeRating._24)
+      case __StringValue("_25")      => Right(ChallengeRating._25)
+      case __StringValue("_26")      => Right(ChallengeRating._26)
+      case __StringValue("_27")      => Right(ChallengeRating._27)
+      case __StringValue("_28")      => Right(ChallengeRating._28)
+      case __StringValue("_29")      => Right(ChallengeRating._29)
+      case __StringValue("_30")      => Right(ChallengeRating._30)
+      case other                     => Left(DecodingError(s"Can't build ChallengeRating from input $other"))
+    }
+    implicit val encoder: ArgEncoder[ChallengeRating] = {
+      case ChallengeRating._0       => __EnumValue("_0")
+      case ChallengeRating._eight   => __EnumValue("_eight")
+      case ChallengeRating._quarter => __EnumValue("_quarter")
+      case ChallengeRating._half    => __EnumValue("_half")
+      case ChallengeRating._1       => __EnumValue("_1")
+      case ChallengeRating._2       => __EnumValue("_2")
+      case ChallengeRating._3       => __EnumValue("_3")
+      case ChallengeRating._4       => __EnumValue("_4")
+      case ChallengeRating._5       => __EnumValue("_5")
+      case ChallengeRating._6       => __EnumValue("_6")
+      case ChallengeRating._7       => __EnumValue("_7")
+      case ChallengeRating._8       => __EnumValue("_8")
+      case ChallengeRating._9       => __EnumValue("_9")
+      case ChallengeRating._10      => __EnumValue("_10")
+      case ChallengeRating._11      => __EnumValue("_11")
+      case ChallengeRating._12      => __EnumValue("_12")
+      case ChallengeRating._13      => __EnumValue("_13")
+      case ChallengeRating._14      => __EnumValue("_14")
+      case ChallengeRating._15      => __EnumValue("_15")
+      case ChallengeRating._16      => __EnumValue("_16")
+      case ChallengeRating._17      => __EnumValue("_17")
+      case ChallengeRating._18      => __EnumValue("_18")
+      case ChallengeRating._19      => __EnumValue("_19")
+      case ChallengeRating._20      => __EnumValue("_20")
+      case ChallengeRating._21      => __EnumValue("_21")
+      case ChallengeRating._22      => __EnumValue("_22")
+      case ChallengeRating._23      => __EnumValue("_23")
+      case ChallengeRating._24      => __EnumValue("_24")
+      case ChallengeRating._25      => __EnumValue("_25")
+      case ChallengeRating._26      => __EnumValue("_26")
+      case ChallengeRating._27      => __EnumValue("_27")
+      case ChallengeRating._28      => __EnumValue("_28")
+      case ChallengeRating._29      => __EnumValue("_29")
+      case ChallengeRating._30      => __EnumValue("_30")
+    }
+
+    val values: scala.collection.immutable.Vector[ChallengeRating] = scala.collection.immutable.Vector(
+      _0,
+      _eight,
+      _quarter,
+      _half,
+      _1,
+      _2,
+      _3,
+      _4,
+      _5,
+      _6,
+      _7,
+      _8,
+      _9,
+      _10,
+      _11,
+      _12,
+      _13,
+      _14,
+      _15,
+      _16,
+      _17,
+      _18,
+      _19,
+      _20,
+      _21,
+      _22,
+      _23,
+      _24,
+      _25,
+      _26,
+      _27,
+      _28,
+      _29,
+      _30
+    )
+
+  }
+
   sealed trait Alignment extends scala.Product with scala.Serializable { def value: String }
   object Alignment {
 
@@ -497,7 +648,7 @@ object DND5eClient {
       monsterType:      MonsterType,
       biome:            scala.Option[Biome],
       alignment:        scala.Option[Alignment],
-      cr:               Double,
+      cr:               ChallengeRating,
       xp:               Long,
       armorClass:       Int,
       maximumHitPoints: Int,
@@ -550,7 +701,8 @@ object DND5eClient {
       _root_.caliban.client.SelectionBuilder.Field("biome", OptionOf(Scalar()))
     def alignment: SelectionBuilder[MonsterHeader, scala.Option[Alignment]] =
       _root_.caliban.client.SelectionBuilder.Field("alignment", OptionOf(Scalar()))
-    def cr: SelectionBuilder[MonsterHeader, Double] = _root_.caliban.client.SelectionBuilder.Field("cr", Scalar())
+    def cr: SelectionBuilder[MonsterHeader, ChallengeRating] =
+      _root_.caliban.client.SelectionBuilder.Field("cr", Scalar())
     def xp: SelectionBuilder[MonsterHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("xp", Scalar())
     def armorClass: SelectionBuilder[MonsterHeader, Int] =
       _root_.caliban.client.SelectionBuilder.Field("armorClass", Scalar())
@@ -893,7 +1045,7 @@ object DND5eClient {
     monsterType:      MonsterType,
     biome:            scala.Option[Biome] = None,
     alignment:        scala.Option[Alignment] = None,
-    cr:               Double,
+    cr:               ChallengeRating,
     xp:               Long,
     armorClass:       Int,
     maximumHitPoints: Int,
@@ -914,7 +1066,7 @@ object DND5eClient {
             "alignment" -> value.alignment.fold(__NullValue: __Value)(value =>
               implicitly[ArgEncoder[Alignment]].encode(value)
             ),
-            "cr"               -> implicitly[ArgEncoder[Double]].encode(value.cr),
+            "cr"               -> implicitly[ArgEncoder[ChallengeRating]].encode(value.cr),
             "xp"               -> implicitly[ArgEncoder[Long]].encode(value.xp),
             "armorClass"       -> implicitly[ArgEncoder[Int]].encode(value.armorClass),
             "maximumHitPoints" -> implicitly[ArgEncoder[Int]].encode(value.maximumHitPoints),
@@ -1116,7 +1268,7 @@ object DND5eClient {
       )
     def bestiary[A](
       name:            scala.Option[String] = None,
-      challengeRating: scala.Option[Double] = None,
+      challengeRating: scala.Option[ChallengeRating] = None,
       size:            scala.Option[CreatureSize] = None,
       alignment:       scala.Option[Alignment] = None,
       biome:           scala.Option[Biome] = None,
@@ -1130,7 +1282,7 @@ object DND5eClient {
       innerSelection: SelectionBuilder[MonsterSearchResults, A]
     )(implicit
       encoder0:  ArgEncoder[scala.Option[String]],
-      encoder1:  ArgEncoder[scala.Option[Double]],
+      encoder1:  ArgEncoder[scala.Option[ChallengeRating]],
       encoder2:  ArgEncoder[scala.Option[CreatureSize]],
       encoder3:  ArgEncoder[scala.Option[Alignment]],
       encoder4:  ArgEncoder[scala.Option[Biome]],
@@ -1146,7 +1298,7 @@ object DND5eClient {
         OptionOf(Obj(innerSelection)),
         arguments = List(
           Argument("name", name, "String")(encoder0),
-          Argument("challengeRating", challengeRating, "Float")(encoder1),
+          Argument("challengeRating", challengeRating, "ChallengeRating")(encoder1),
           Argument("size", size, "CreatureSize")(encoder2),
           Argument("alignment", alignment, "Alignment")(encoder3),
           Argument("biome", biome, "Biome")(encoder4),

@@ -89,7 +89,7 @@ case class ScalaJSClientAdapter(endpoint: String) extends TimerSupport {
   given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
 
   def getToken: Option[String] = {
-    Option(window.localStorage.getItem("authToken"))
+    Option(window.localStorage.getItem("accessToken"))
   }
 
   // Enhancement error management switch this, insteaf of returning AsyncCallback, return an Either[Throwable, A]

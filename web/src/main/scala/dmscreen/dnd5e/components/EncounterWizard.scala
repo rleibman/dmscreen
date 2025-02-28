@@ -648,7 +648,7 @@ object EncounterWizard {
                     .placeholder("All")
                     .options(
                       ChallengeRating.values
-                        .map(s => DropdownItemProps().setValue(s.toString).setText(s.toString)).toJSArray
+                        .map(s => DropdownItemProps().setValue(s.toString).setText(s.value)).toJSArray
                     )
                     .onChange {
                       (

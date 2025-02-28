@@ -97,7 +97,7 @@ class XLSImporter extends DND5eImporter[File, File, File, File] {
               monsterType = monsterType, // MonsterType,
               biome = biome, // Option[Biome],
               alignment = None, // Option[Alignment],
-              cr = cr.getOrElse(ChallengeRating.`0`), // ChallengeRating,
+              cr = cr.getOrElse(ChallengeRating._0), // ChallengeRating,
               xp = 0, // Int,
               armorClass = ac, // Int,
               maximumHitPoints = maximumHitPoints, // Int,

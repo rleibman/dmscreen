@@ -41,13 +41,13 @@ object DND5eRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession,
       interpreter <- interpreter
     } yield {
       Routes(
-        Method.ANY / "dnd5e" ->
+        Method.ANY / "api" / "dnd5e" ->
           QuickAdapter(interpreter).handlers.api,
-        Method.ANY / "dnd5e" / "graphiql" ->
+        Method.ANY / "api" / "dnd5e" / "graphiql" ->
           GraphiQLHandler.handler(apiPath = "/api/dnd5e"),
-        Method.GET / "dnd5e" / "schema" ->
+        Method.GET / "api" / "dnd5e" / "schema" ->
           Handler.fromBody(Body.fromCharSequence(DND5eAPI.api.render)),
-        Method.POST / "dnd5e" / "upload" ->
+        Method.POST / "api" / "dnd5e" / "upload" ->
           QuickAdapter(interpreter).handlers.upload
       )
     }).mapError(DMScreenError(_))

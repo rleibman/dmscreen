@@ -26,6 +26,7 @@ import caliban.client.__Value.__ObjectValue
 import caliban.client.scalajs.DND5eClient.{
   Alignment as CalibanAlignment,
   Biome as CalibanBiome,
+  ChallengeRating as CalibanChallengeRating,
   CreatureSize as CalibanCreatureSize,
   Encounter as CalibanEncounter,
   EncounterHeader as CalibanEncounterHeader,
@@ -85,6 +86,16 @@ given biomeConv: Conversion[Option[Biome], Option[CalibanBiome]] =
 
 given alignmentConv: Conversion[Option[Alignment], Option[CalibanAlignment]] =
   alignmentOpt => alignmentOpt.flatMap(alignment => CalibanAlignment.values.find(_.toString == alignment.toString))
+
+given challengeRatingOptConv: Conversion[Option[ChallengeRating], Option[CalibanChallengeRating]] =
+  challengeRatingOpt =>
+    challengeRatingOpt.flatMap(challengeRating =>
+      CalibanChallengeRating.values.find(_.toString == challengeRating.toString)
+    )
+
+given challengeRatingConv: Conversion[ChallengeRating, CalibanChallengeRating] =
+  challengeRating =>
+    CalibanChallengeRating.values.find(_.toString == challengeRating.toString).getOrElse(CalibanChallengeRating._0)
 
 given creatureSizeConv: Conversion[Option[CreatureSize], Option[CalibanCreatureSize]] =
   creatureSizeOpt =>

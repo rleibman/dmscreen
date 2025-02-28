@@ -153,11 +153,11 @@ object DND5eAPI {
   private given Schema[Any, SceneId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, RandomTableId] = Schema.longSchema.contramap(_.value)
 
-  private given Schema[Any, ChallengeRating] = Schema.doubleSchema.contramap(_.value)
   private given Schema[Any, SourceId] = Schema.stringSchema.contramap(_.value)
   private given Schema[Any, EncounterStatus] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, DMScreenEvent] = Schema.gen[Any, DMScreenEvent]
   private given Schema[Any, Source] = Schema.gen[Any, Source]
+  private given Schema[Any, ChallengeRating] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, MonsterSearch] = Schema.gen[Any, MonsterSearch]
   private given Schema[Any, MonsterSearchResults] = Schema.gen[Any, MonsterSearchResults]
   private given Schema[Any, Scene] = Schema.gen[Any, Scene]
@@ -182,7 +182,6 @@ object DND5eAPI {
   private given ArgBuilder[MonsterId] = ArgBuilder.long.map(MonsterId.apply)
   private given ArgBuilder[CampaignId] = ArgBuilder.long.map(CampaignId.apply)
   private given ArgBuilder[EncounterId] = ArgBuilder.long.map(EncounterId.apply)
-  private given ArgBuilder[ChallengeRating] = ArgBuilder.double.map(n => ChallengeRating.fromDouble(n).get)
   private given ArgBuilder[EntityType[?]] =
     ArgBuilder.string.flatMap(s =>
       DND5eEntityType.values.find(_.name == s).toRight(ExecutionError(s"Invalid DND5eEntityType $s"))

@@ -251,7 +251,7 @@ object MonsterEditor {
                   Form
                     .Select(
                       ChallengeRating.values
-                        .map(value => DropdownItemProps().setValue(value.ordinal).setText(value.toString)).toJSArray
+                        .map(value => DropdownItemProps().setValue(value.ordinal).setText(value.value)).toJSArray
                     )
                     .fluid(true)
                     .label("Challenge Rating")

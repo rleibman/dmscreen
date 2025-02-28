@@ -80,10 +80,10 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
   override def unauth: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
     ZIO.succeed(
       Routes(
-        Method.GET /"unauth" / "serverVersion" -> handler {
+        Method.GET / "unauth" / "serverVersion" -> handler {
           Response.json(BuildInfo.version)
         },
-        Method.POST /"unauth" / "passwordReset" -> handler { (req: Request) =>
+        Method.POST / "unauth" / "passwordReset" -> handler { (req: Request) =>
           (for {
             formData <- req.formData
             token = formData.get("token").map(TokenString.apply)
@@ -102,7 +102,7 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
             .mapError(DMScreenError(_))
             .provideSomeLayer[DMScreenServerEnvironment](DMScreenSession.adminSession.toLayer)
         },
-        Method.POST /"unauth" / "passwordRecoveryRequest" -> handler { (req: Request) =>
+        Method.POST / "unauth" / "passwordRecoveryRequest" -> handler { (req: Request) =>
           (for {
             emailJson <- req.body.asString
             email     <- ZIO.fromEither(emailJson.fromJson[String]).mapError(DMScreenError(_))
@@ -118,7 +118,7 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
             .mapError(DMScreenError(_))
             .provideSomeLayer[DMScreenServerEnvironment](DMScreenSession.adminSession.toLayer)
         },
-        Method.PUT /"unauth" / "userCreation" -> handler { (req: Request) =>
+        Method.PUT / "unauth" / "userCreation" -> handler { (req: Request) =>
           (for {
             postman             <- ZIO.service[Postman]
             userOps             <- ZIO.service[UserRepository[DMScreenTask]]
@@ -157,7 +157,7 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
             .mapError(DMScreenError(_))
             .provideSomeLayer[DMScreenServerEnvironment](DMScreenSession.adminSession.toLayer)
         },
-        Method.GET /"unauth" / "confirmRegistration" -> handler { (req: Request) =>
+        Method.GET / "unauth" / "confirmRegistration" -> handler { (req: Request) =>
           (for {
             formData <- req.formData
             token <- ZIO
@@ -193,7 +193,7 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
           } yield res).mapError(DMScreenError(_))
 
         },
-        Method.GET / "  refresh" -> handler { (req: Request) =>
+        Method.GET / "refresh" -> handler { (req: Request) =>
           // This may need to be a special case, we don't want to treat refresh like a resource or an auth required
           ZIO.serviceWithZIO[SessionTransport[DMScreenSession]](_.refreshSession(req, Response.ok))
         }

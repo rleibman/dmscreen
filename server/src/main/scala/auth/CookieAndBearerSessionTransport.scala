@@ -114,7 +114,7 @@ case class CookieAndBearerSessionTransport(
       if (request.path.toString.startsWith("/unauth") || request.path.toString.startsWith("/api")) {
         ZIO.succeed((request, DMScreenSession.empty)) // No authentication needed
       } else {
-        val sessionCookieOpt = request.cookies.find(_.name == config.accessTokenName).map(_.content)
+        val sessionCookieOpt = request.cookies.find(_.name == config.refreshTokenName).map(_.content)
         val loginURL = URL.decode("/loginForm").toOption.get
         (for {
           claim      <- ZIO.foreach(sessionCookieOpt)(jwtDecode)
@@ -153,7 +153,7 @@ case class CookieAndBearerSessionTransport(
     request:  Request,
     response: Response
   ): UIO[Response] = {
-    val sessionCookieOpt = request.cookies.find(_.name == config.accessTokenName).map(_.content)
+    val sessionCookieOpt = request.cookies.find(_.name == config.refreshTokenName).map(_.content)
     (for {
       // Check to see if the refresh token exists AND is valid, otherwise you can't refresh
       session <- (for {

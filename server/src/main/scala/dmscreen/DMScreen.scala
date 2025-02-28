@@ -80,6 +80,7 @@ object DMScreen extends ZIOApp {
   }
 
   object AllTogether extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
+
     private val ignoreUnauth: Middleware[Any] = new Middleware[Any] {
       def apply[Env1 <: Any, Err](routes: Routes[Env1, Err]): Routes[Env1, Err] =
         routes.transform[Env1] { h =>
@@ -146,7 +147,6 @@ object DMScreen extends ZIOApp {
         Response.apply(body = Body.fromString(body), status = status, headers = contentTypeJson)
       )
   }
-
 
   lazy val zapp: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, Nothing]] = for {
     _                <- ZIO.log("Initializing Routes")

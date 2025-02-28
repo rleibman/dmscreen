@@ -55,7 +55,7 @@ object LoginPage {
     def handleSubmit(e: ReactEventFromHtml): Callback = {
       e.preventDefaultCB >>
         $.state.flatMap { state =>
-          window.localStorage.removeItem("token")
+          window.localStorage.removeItem("accessToken")
 
           given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
           import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
@@ -74,10 +74,12 @@ object LoginPage {
                   Callback.log(s"Headers ${response.headers.map(_.name).mkString(",")}") >>
                     (response.headers.find(_.name.equalsIgnoreCase("authorization")) match {
                       case Some(authHeader) =>
-                        val token = authHeader.value.stripPrefix("Bearer ")
-                        window.localStorage.setItem("authToken", token)
-                        window.location.href = "/" // Redirect
-                        Callback.log("Authentication successful, token received")
+                        Callback {
+                          val token = authHeader.value.stripPrefix("Bearer ")
+                          window.localStorage.setItem("accessToken", token)
+                          window.location.href = "/" // Redirect
+                        } >>
+                          Callback.log("Authentication successful, token received")
                       case None =>
                         $.props.flatMap(_.changeMessage("Login successful, but no token received."))
                     })

@@ -219,7 +219,7 @@ case class EncounterInfo(
         )
       ).map { npc =>
         npc.info.challengeRating
-          .orElse(ChallengeRating.fromDouble(npc.info.totalLevel * 0.5)).fold(ChallengeRating.`1`.xp)(_.xp)
+          .orElse(ChallengeRating.fromDouble(npc.info.totalLevel * 0.5)).fold(ChallengeRating._1.xp)(_.xp)
       }.sum
 
     monsterXP + npcXP

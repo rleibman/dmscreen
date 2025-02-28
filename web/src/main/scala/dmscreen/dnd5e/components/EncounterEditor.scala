@@ -715,7 +715,7 @@ object EncounterEditor {
                               .placeholder("All")
                               .options(
                                 ChallengeRating.values
-                                  .map(s => DropdownItemProps().setValue(s.toString).setText(s.toString)).toJSArray
+                                  .map(s => DropdownItemProps().setValue(s.toString).setText(s.name)).toJSArray
                               )
                               .onChange {
                                 (

@@ -22,7 +22,6 @@
 package dmscreen.dnd5e
 
 import dmscreen.*
-import dmscreen.dnd5e.ChallengeRating.`1/2`
 import just.semver.SemVer
 import zio.json.*
 import zio.json.ast.*
@@ -64,10 +63,10 @@ object ChallengeRating {
 
   def fromString(value: String): ChallengeRating = {
     value match {
-      case "0.125" => `1/8`
-      case "0.25"  => `1/4`
-      case "0.5"   => `1/2`
-      case "0"     => `0`
+      case "0.125" => _eigth
+      case "0.25"  => _quarter
+      case "0.5"   => _half
+      case "0"     => _0
       case s       => valueOf(s)
     }
   }
@@ -77,44 +76,45 @@ object ChallengeRating {
 }
 
 enum ChallengeRating(
+  val name:  String,
   val value: Double,
   val xp:    Long
 ) {
 
-  case `0` extends ChallengeRating(0.0, 10)
-  case `1/8` extends ChallengeRating(0.125, 25)
-  case `1/4` extends ChallengeRating(0.25, 50)
-  case `1/2` extends ChallengeRating(0.5, 100)
-  case `1` extends ChallengeRating(1.0, 200)
-  case `2` extends ChallengeRating(2.0, 450)
-  case `3` extends ChallengeRating(3.0, 700)
-  case `4` extends ChallengeRating(4.0, 1100)
-  case `5` extends ChallengeRating(5.0, 1800)
-  case `6` extends ChallengeRating(6.0, 2300)
-  case `7` extends ChallengeRating(7.0, 2900)
-  case `8` extends ChallengeRating(8.0, 3900)
-  case `9` extends ChallengeRating(9.0, 5000)
-  case `10` extends ChallengeRating(10.0, 5900)
-  case `11` extends ChallengeRating(11.0, 7200)
-  case `12` extends ChallengeRating(12.0, 8400)
-  case `13` extends ChallengeRating(13.0, 10000)
-  case `14` extends ChallengeRating(14.0, 11500)
-  case `15` extends ChallengeRating(15.0, 13000)
-  case `16` extends ChallengeRating(16.0, 15000)
-  case `17` extends ChallengeRating(17.0, 18000)
-  case `18` extends ChallengeRating(18.0, 20000)
-  case `19` extends ChallengeRating(19.0, 22000)
-  case `20` extends ChallengeRating(20.0, 25000)
-  case `21` extends ChallengeRating(21.0, 33000)
-  case `22` extends ChallengeRating(22.0, 41000)
-  case `23` extends ChallengeRating(23.0, 50000)
-  case `24` extends ChallengeRating(24.0, 62000)
-  case `25` extends ChallengeRating(25.0, 75000)
-  case `26` extends ChallengeRating(26.0, 90000)
-  case `27` extends ChallengeRating(27.0, 105000)
-  case `28` extends ChallengeRating(28.0, 120000)
-  case `29` extends ChallengeRating(29.0, 135000)
-  case `30` extends ChallengeRating(30.0, 155000)
+  case _0 extends ChallengeRating("0", 0.0, 10)
+  case _eigth extends ChallengeRating("1/8", 0.125, 25)
+  case _quarter extends ChallengeRating("1/4", 0.25, 50)
+  case _half extends ChallengeRating("1/2", 0.5, 100)
+  case _1 extends ChallengeRating("1", 1.0, 200)
+  case _2 extends ChallengeRating("2", 2.0, 450)
+  case _3 extends ChallengeRating("3", 3.0, 700)
+  case _4 extends ChallengeRating("4", 4.0, 1100)
+  case _5 extends ChallengeRating("5", 5.0, 1800)
+  case _6 extends ChallengeRating("6", 6.0, 2300)
+  case _7 extends ChallengeRating("7", 7.0, 2900)
+  case _8 extends ChallengeRating("8", 8.0, 3900)
+  case _9 extends ChallengeRating("9", 9.0, 5000)
+  case _10 extends ChallengeRating("10", 10.0, 5900)
+  case _11 extends ChallengeRating("11", 11.0, 7200)
+  case _12 extends ChallengeRating("12", 12.0, 8400)
+  case _13 extends ChallengeRating("13", 13.0, 10000)
+  case _14 extends ChallengeRating("14", 14.0, 11500)
+  case _15 extends ChallengeRating("15", 15.0, 13000)
+  case _16 extends ChallengeRating("16", 16.0, 15000)
+  case _17 extends ChallengeRating("17", 17.0, 18000)
+  case _18 extends ChallengeRating("18", 18.0, 20000)
+  case _19 extends ChallengeRating("19", 19.0, 22000)
+  case _20 extends ChallengeRating("20", 20.0, 25000)
+  case _21 extends ChallengeRating("21", 21.0, 33000)
+  case _22 extends ChallengeRating("22", 22.0, 41000)
+  case _23 extends ChallengeRating("23", 23.0, 50000)
+  case _24 extends ChallengeRating("24", 24.0, 62000)
+  case _25 extends ChallengeRating("25", 25.0, 75000)
+  case _26 extends ChallengeRating("26", 26.0, 90000)
+  case _27 extends ChallengeRating("27", 27.0, 105000)
+  case _28 extends ChallengeRating("28", 28.0, 120000)
+  case _29 extends ChallengeRating("29", 29.0, 135000)
+  case _30 extends ChallengeRating("30", 30.0, 155000)
 
 }
 
@@ -292,7 +292,7 @@ object Monster {
         monsterType = MonsterType.Unknown,
         biome = None,
         alignment = None,
-        cr = ChallengeRating.`1/2`,
+        cr = ChallengeRating._half,
         xp = 100,
         armorClass = 10,
         maximumHitPoints = 10,

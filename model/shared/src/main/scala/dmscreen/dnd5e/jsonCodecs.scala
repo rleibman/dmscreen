@@ -55,7 +55,6 @@ given JsonCodec[SpellId] = JsonCodec.long.transform(SpellId.apply, _.value)
 given JsonCodec[SceneId] = JsonCodec.long.transform(SceneId.apply, _.value)
 
 //Enums
-given JsonCodec[ChallengeRating] = JsonCodec.string.transform(ChallengeRating.valueOf, _.toString)
 given JsonCodec[ProficiencyLevel] = JsonCodec.string.transform(ProficiencyLevel.valueOf, _.toString)
 given JsonCodec[CreatureSize] = JsonCodec.string.transform(CreatureSize.valueOf, _.toString)
 given JsonCodec[SkillType] = JsonCodec.string.transform(SkillType.valueOf, _.toString)
@@ -63,6 +62,7 @@ given JsonCodec[AdvantageDisadvantage] = JsonCodec.string.transform(AdvantageDis
 given JsonCodec[MonsterType] = JsonCodec.string.transform(MonsterType.valueOf, _.toString)
 given JsonCodec[Biome] = JsonCodec.string.transform(Biome.valueOf, _.toString)
 given JsonCodec[Alignment] = JsonCodec.string.transform(Alignment.valueOf, _.toString)
+given JsonCodec[ChallengeRating] = JsonCodec.string.transform(ChallengeRating.valueOf, _.toString)
 given JsonCodec[Lifestyle] = JsonCodec.string.transform(Lifestyle.valueOf, _.toString)
 given JsonCodec[AbilityType] = JsonCodec.string.transform(AbilityType.valueOf, _.toString)
 given JsonCodec[Condition] = JsonCodec.string.transform(Condition.valueOf, _.toString)
