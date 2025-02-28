@@ -23,17 +23,20 @@ package dmscreen.routes
 
 import caliban.*
 import caliban.schema.GenericSchema
-import dmscreen.DMScreenServerEnvironment
-import dmscreen.DMScreenAPI
+import dmscreen.{DMScreenAPI, DMScreenError, DMScreenServerEnvironment, DMScreenSession}
 import zio.http.*
 import zio.{IO, ZIO}
 
-object DMScreenRoutes {
+object DMScreenRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
 
   lazy private val interpreter = DMScreenAPI.api.interpreter
 
-  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment, Nothing]] =
-    for {
+  override def api: ZIO[
+    DMScreenServerEnvironment,
+    DMScreenError,
+    Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+  ] =
+    (for {
       interpreter <- interpreter
     } yield {
       Routes(
@@ -46,6 +49,6 @@ object DMScreenRoutes {
         Method.POST / "api" / "dmscreen" / "upload" ->
           QuickAdapter(interpreter).handlers.upload
       )
-    }
+    }).mapError(DMScreenError(_))
 
 }

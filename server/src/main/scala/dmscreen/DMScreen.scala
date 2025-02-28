@@ -21,76 +21,145 @@
 
 package dmscreen
 
+import _root_.auth.{SessionConfig, SessionTransport}
+import dmscreen.db.RepositoryError
 import dmscreen.routes.*
 import zio.*
 import zio.http.*
 
+import java.io.{PrintWriter, StringWriter}
 import java.util.concurrent.TimeUnit
 
 object DMScreen extends ZIOApp {
 
-  override type Environment = DMScreenServerEnvironment & ConfigurationService
+  override type Environment = DMScreenServerEnvironment
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
-  override def bootstrap: ULayer[DMScreenServerEnvironment & ConfigurationService] = EnvironmentBuilder.live
-//    EnvironmentBuilder.withContainer
+  override def bootstrap: ULayer[DMScreenServerEnvironment] = EnvironmentBuilder.live
 
-  private val defaultRouteZio: ZIO[ConfigurationService, ConfigurationError, Routes[ConfigurationService, Throwable]] =
-    for {
-      _ <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
+  object TestRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
 
-    } yield Routes(Method.ANY / trailing -> handler {
-      (
-        path: Path,
-        _:    Request
-      ) =>
-        ZIO.logWarning(s"Path $path not found") *>
-          ZIO.attempt(Response.notFound(path.toString))
-    })
+    /** These routes represent the api, the are intended to be used thorough ajax-type calls they require a session
+      */
+    override def api: ZIO[
+      DMScreenServerEnvironment,
+      DMScreenError,
+      Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+    ] =
+      ZIO.succeed(
+        Routes(
+          Method.GET / "test" -> handler((_: Request) => Handler.html(s"<html>Test API Ok!</html>")).flatten
+        )
+      )
 
-  def mapError(e: Cause[Throwable]): UIO[Response] = {
-    lazy val contentTypeJson: Headers = Headers(Header.ContentType(MediaType.application.json).untyped)
-    e.squash match {
-      case e: DMScreenError =>
-        val body =
-          s"""{
-            "exceptionMessage": ${e.getMessage},
-            "stackTrace": [${e.getStackTrace.nn.map(s => s"\"${s.toString}\"").mkString(",")}]
-          }"""
+    /** These routes that bring up resources that require authentication (an existing session)
+      */
+    override def auth: ZIO[
+      DMScreenServerEnvironment,
+      DMScreenError,
+      Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+    ] =
+      ZIO.succeed(
+        Routes(
+          Method.GET / "test.html" -> handler((_: Request) => Handler.html(s"<html>Test Auth Ok!</html>")).flatten
+        )
+      )
 
-        ZIO
-          .logError(body).as(
-            Response.apply(body = Body.fromString(body), status = Status.BadGateway, headers = contentTypeJson)
-          )
-      case e =>
-        val body =
-          s"""{
-            "exceptionMessage": ${e.getMessage},
-            "stackTrace": [${e.getStackTrace.nn.map(s => s"\"${s.toString}\"").mkString(",")}]
-          }"""
-        ZIO
-          .logError(body).as(
-            Response.apply(body = Body.fromString(body), status = Status.InternalServerError, headers = contentTypeJson)
-          )
+    /** These do not require a session
+      */
+    override def unauth
+      : ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
+      ZIO.succeed(
+        Routes(
+          Method.GET / "unauth" / "unauthtest.html" -> handler((_: Request) =>
+            Handler.html(s"<html>Test Unauth Ok!</html>")
+          ).flatten
+        )
+      )
 
-    }
   }
 
-  val zapp: ZIO[Environment, Throwable, Routes[Environment, Nothing]] = for {
-    _             <- ZIO.log("Initializing Routes")
-    defaultRoutes <- defaultRouteZio
-    dmScreenRoute <- DMScreenRoutes.route
-    dnd5eRoute    <- DND5eRoutes.route
-    staRoute      <- STARoutes.route
-  } yield (dmScreenRoute ++
-    dnd5eRoute ++
-    staRoute ++
-    StaticRoutes.unauthRoute /*Move this to after there's a user*/ ++
-    StaticRoutes.authRoute ++
-    defaultRoutes)
+  object AllTogether extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
+
+    private val ignoreUnauth: Middleware[Any] = new Middleware[Any] {
+      def apply[Env1 <: Any, Err](routes: Routes[Env1, Err]): Routes[Env1, Err] =
+        routes.transform[Env1] { h =>
+          handler { (req: Request) =>
+            if (req.path.toString.startsWith("/unauth")) {
+              // What should go here in order to ignore it
+              ZIO.fail(Response.notFound)
+            } else {
+              // What should go here in order to process it?
+              h(req)
+            }
+          }
+        }
+    }
+
+    private val routes: Seq[AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError]] =
+      Seq(
+        DMScreenRoutes,
+        DND5eRoutes,
+        STARoutes,
+        TestRoutes,
+        AuthRoutes,
+        StaticRoutes
+      )
+
+    override def api: ZIO[
+      DMScreenServerEnvironment,
+      DMScreenError,
+      Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+    ] = ZIO.foreach(routes)(_.api).map(_.reduce(_ ++ _) @@ ignoreUnauth @@ Middleware.debug)
+
+    override def auth: ZIO[
+      DMScreenServerEnvironment,
+      DMScreenError,
+      Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+    ] = ZIO.foreach(routes)(_.auth).map(_.reduce(_ ++ _) @@ ignoreUnauth @@ Middleware.debug)
+
+    override def unauth
+      : ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
+      ZIO.foreach(routes)(_.unauth).map(_.reduce(_ ++ _) @@ Middleware.debug)
+
+  }
+
+  def mapError(original: Cause[Throwable]): UIO[Response] = {
+    lazy val contentTypeJson: Headers = Headers(Header.ContentType(MediaType.application.json).untyped)
+
+    val squashed = original.squash
+    val sw = StringWriter()
+    val pw = PrintWriter(sw)
+    squashed.printStackTrace(pw)
+
+    val body =
+      s"""{
+      "exceptionMessage": ${squashed.getMessage},
+      "stackTrace": ${sw.toString}
+    }"""
+    val status = squashed match {
+      case e: RepositoryError if e.isTransient => Status.BadGateway
+      case _: DMScreenError                    => Status.InternalServerError
+      case _ => Status.InternalServerError
+    }
+    ZIO
+      .logErrorCause("Error in DMScreen", original).as(
+        Response.apply(body = Body.fromString(body), status = status, headers = contentTypeJson)
+      )
+  }
+
+  lazy val zapp: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, Nothing]] = for {
+    _                <- ZIO.log("Initializing Routes")
+    sessionTransport <- ZIO.service[SessionTransport[DMScreenSession]]
+    unauth           <- AllTogether.unauth
+    auth             <- AllTogether.auth
+    api              <- AllTogether.api
+  } yield (unauth ++
+    ((auth @@ sessionTransport.resourceSessionProvider) ++
+      (api @@ sessionTransport.apiSessionProvider)))
     .handleErrorCauseZIO(mapError)
 
-  override def run: ZIO[Environment & ZIOAppArgs & Scope, Throwable, ExitCode] = {
+  override def run: ZIO[Environment & ZIOAppArgs & Scope, DMScreenError, ExitCode] = {
     // Configure thread count using CLI
     for {
       config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
@@ -99,13 +168,13 @@ object DMScreen extends ZIOApp {
       server <- {
         val serverConfig = ZLayer.succeed(
           Server.Config.default
-            .binding(config.dmscreen.host, config.dmscreen.port)
+            .binding(config.dmscreen.http.hostName, config.dmscreen.http.port)
         )
 
         Server
           .serve(app)
-          .zipLeft(ZIO.logDebug(s"Server Started on ${config.dmscreen.port}"))
-          .tapErrorCause(ZIO.logErrorCause(s"Server on port ${config.dmscreen.port} has unexpectedly stopped", _))
+          .zipLeft(ZIO.logDebug(s"Server Started on ${config.dmscreen.http.port}"))
+          .tapErrorCause(ZIO.logErrorCause(s"Server on port ${config.dmscreen.http.port} has unexpectedly stopped", _))
           .provideSome[Environment](serverConfig, Server.live)
           .foldCauseZIO(
             cause => ZIO.logErrorCause("err when booting server", cause).exitCode,

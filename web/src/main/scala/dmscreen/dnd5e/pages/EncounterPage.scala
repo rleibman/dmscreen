@@ -199,7 +199,7 @@ object EncounterPage extends DMScreenTab {
                                     encounterMode = EncounterMode.wizard
                                   )
                                 )
-                            )("Random Encounter Wizard")
+                            )("Encounter Wizard")
                         ),
                         Accordion.Accordion
                           .styled(true)

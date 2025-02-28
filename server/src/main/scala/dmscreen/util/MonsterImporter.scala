@@ -29,7 +29,7 @@ import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
 import dmscreen.dnd5e.fifthEditionCharacterSheet.FifthEditionCharacterSheetImporter
 import dmscreen.dnd5e.otherImporters.XLSImporter
 import dmscreen.dnd5e.srd.SRDImporter
-import dmscreen.{ConfigurationService, DMScreenError, EnvironmentBuilder}
+import dmscreen.{ConfigurationService, DMScreenError, DMScreenSession, EnvironmentBuilder}
 import zio.{EnvironmentTag, ULayer, ZIO, ZIOApp, ZIOAppArgs, ZLayer}
 
 import java.io.File
@@ -37,13 +37,18 @@ import java.io.File
 object MonsterImporter extends ZIOApp {
 
   override type Environment = STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter &
-    SRDImporter & XLSImporter
+    SRDImporter & XLSImporter & DMScreenSession
   override def environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
   override def bootstrap: ULayer[
-    STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter & SRDImporter & XLSImporter
-  ] = {
-    ZLayer.make[Environment](EnvironmentBuilder.live, SRDImporter.live, XLSImporter.live)
-  }
+    STAZIORepository & DND5eZIORepository & ConfigurationService & DNDBeyondImporter & SRDImporter & XLSImporter &
+      DMScreenSession
+  ] =
+    ZLayer.make[Environment](
+      EnvironmentBuilder.live,
+      SRDImporter.live,
+      XLSImporter.live,
+      DMScreenSession.adminSession.toLayer
+    )
 
   override def run: ZIO[Environment, DMScreenError, Unit] = {
     for {

@@ -35,7 +35,7 @@ import ai.{
 }
 import dev.langchain4j.data.document.{Document, Metadata}
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor
-import dmscreen.{Campaign, DMScreenError}
+import dmscreen.{Campaign, DMScreenError, DMScreenSession}
 import dmscreen.db.DMScreenZIORepository
 import dmscreen.db.dnd5e.DND5eZIORepository
 import dmscreen.dnd5e.{*, given}
@@ -46,7 +46,7 @@ import zio.json.ast.*
 trait DND5eAIServer {
 
   def generateEncounterDescription(encounter: Encounter)
-    : ZIO[DND5eZIORepository & DMScreenZIORepository, DMScreenError, String]
+    : ZIO[DMScreenSession & DND5eZIORepository & DMScreenZIORepository, DMScreenError, String]
 
 }
 
@@ -86,6 +86,7 @@ object DND5eAIServer {
       storeWrapper <- ZIO.service[EmbeddingStoreWrapper]
       res <- ZIO.foreachPar(monsters) { monster =>
         ZIO.attemptBlocking {
+
           EmbeddingStoreIngestor.ingest(
             monster.toDocument,
             storeWrapper.store
@@ -147,8 +148,9 @@ object DND5eAIServer {
     ] =
       ZLayer.fromZIO {
         for {
-          repo      <- ZIO.service[DND5eZIORepository]
-          monsters  <- repo.fullBestiary(MonsterSearch(pageSize = 500)) // Bring some monsters in
+          repo <- ZIO.service[DND5eZIORepository]
+          monsters <- repo
+            .fullBestiary(MonsterSearch(pageSize = 500)).provideLayer(DMScreenSession.adminSession.toLayer) // Bring default monsters in
           _         <- ZIO.logInfo(s"Got ${monsters.results.size} monsters")
           qdrant    <- ZIO.service[QdrantContainer]
           _         <- qdrant.createCollectionAsync("monsters")
@@ -156,18 +158,14 @@ object DND5eAIServer {
           assistant <- ZIO.service[ChatAssistant]
         } yield new DND5eAIServer {
           def generateEncounterDescription(encounter: Encounter)
-            : ZIO[DND5eZIORepository & DMScreenZIORepository, DMScreenError, String] = {
+            : ZIO[DMScreenSession & DND5eZIORepository & DMScreenZIORepository, DMScreenError, String] = {
             for {
               campaign  <- ZIO.serviceWithZIO[DMScreenZIORepository](_.campaign(encounter.header.campaignId))
               dnd5eRepo <- ZIO.service[DND5eZIORepository]
               scene     <- ZIO.foreach(encounter.header.sceneId)(id => dnd5eRepo.scene(id))
               template = createTemplate(campaign.get, scene.flatten, encounter)
               res <- chat(template).provideLayer(ZLayer.succeed(assistant))
-            } yield {
-              println(template)
-              println(res)
-              res
-            }
+            } yield res
           }.mapError(e => DMScreenError("", Some(e)))
         }
       }

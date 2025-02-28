@@ -22,6 +22,7 @@
 package dmscreen
 
 import _root_.components.{Confirm, Toast}
+import auth.UserId
 import caliban.ScalaJSClientAdapter.*
 import caliban.client.CalibanClientError.DecodingError
 import caliban.client.Operations.RootQuery
@@ -74,13 +75,13 @@ object Content {
       // Here's where the magic happens, we need to check if anything needs to be saved, if it does, we save it
       // Pick up the change stack from the state
       // We might want to stop the ticker while we do the save
-      val ajax = for {
+      val async = for {
         state <- $.state.map(_.dmScreenState).asAsyncCallback
         state <- AsyncCallback.traverse(state.campaignState)(_.saveChanges())
         _     <- stopSaveTicker.asAsyncCallback
       } yield $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(campaignState = state.headOption)))
 
-      ajax.completeWith(_.get)
+      async.completeWith(_.get)
 
     }
 
@@ -135,7 +136,7 @@ object Content {
         )
         .getOrElse(CampaignId(1)) // Change this, we'll need to load campaigns from the server and select the first one)
 
-      val ajax = for {
+      val async = for {
         _ <- $.state.asAsyncCallback
         _ <- AsyncCallback.pure(window.sessionStorage.setItem("currentCampaignId", id.value.toString)) // Store the current campaign Id in the session storage for next time
         _ <- Callback.log(s"Loading campaign data (campaign = $id) from server...").asAsyncCallback
@@ -164,7 +165,7 @@ object Content {
         )
       } >> Callback.traverse(campaignLogs)(l => Callback.log(l.message))
 
-      ajax.completeWith(_.get) >>
+      async.completeWith(_.get) >>
         // We need to add the methods to the state
         $.modState(s =>
           s.copy(dmScreenState =

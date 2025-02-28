@@ -275,8 +275,7 @@ object NPCPage extends DMScreenTab {
             <.div(
               ^.className := "pageContainer",
               ^.key       := "pageContainer",
-              state
-                .ncpsInScene
+              state.ncpsInScene
                 .filter(npc => if (state.filterDead) !npc.info.health.isDead else true)
                 .map(npc =>
                   NPCEditComponent( // Internally, make sure each item has a key!

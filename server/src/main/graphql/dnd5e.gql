@@ -1,301 +1,338 @@
 schema {
-  query: Queries
-  mutation: Mutations
+    query: Queries
+    mutation: Mutations
 }
 scalar Json
 scalar Long
 scalar Unit
 
+enum ChallengeRating {
+    _0
+    _eight
+    _quarter
+    _half
+    _1
+    _2
+    _3
+    _4
+    _5
+    _6
+    _7
+    _8
+    _9
+    _10
+    _11
+    _12
+    _13
+    _14
+    _15
+    _16
+    _17
+    _18
+    _19
+    _20
+    _21
+    _22
+    _23
+    _24
+    _25
+    _26
+    _27
+    _28
+    _29
+    _30
+}
+
 enum Alignment {
-  chaoticEvil
-  chaoticGood
-  chaoticNeutral
-  lawfulEvil
-  lawfulGood
-  lawfulNeutral
-  neutralEvil
-  neutralGood
-  trueNeutral
-  unaligned
-  unknown
+    chaoticEvil
+    chaoticGood
+    chaoticNeutral
+    lawfulEvil
+    lawfulGood
+    lawfulNeutral
+    neutralEvil
+    neutralGood
+    trueNeutral
+    unaligned
+    unknown
 }
 
 enum Biome {
-  Arctic
-  Coastal
-  Desert
-  Forest
-  Grassland
-  Hill
-  Mountain
-  Swamp
-  Underdark
-  Underwater
-  Unimportant
-  Unknown
-  Urban
+    Arctic
+    Coastal
+    Desert
+    Forest
+    Grassland
+    Hill
+    Mountain
+    Swamp
+    Underdark
+    Underwater
+    Unimportant
+    Unknown
+    Urban
 }
 
 enum CreatureSize {
-  gargantuan
-  huge
-  large
-  medium
-  small
-  tiny
-  unknown
+    gargantuan
+    huge
+    large
+    medium
+    small
+    tiny
+    unknown
 }
 
 enum MonsterSearchOrder {
-  alignment
-  biome
-  challengeRating
-  monsterType
-  name
-  random
-  size
+    alignment
+    biome
+    challengeRating
+    monsterType
+    name
+    random
+    size
 }
 
 enum MonsterType {
-  Aberration
-  Beast
-  Celestial
-  Construct
-  Dragon
-  Elemental
-  Fey
-  Fiend
-  Giant
-  Humanoid
-  Monstrosity
-  Ooze
-  Plant
-  Swarm
-  Undead
-  Unknown
+    Aberration
+    Beast
+    Celestial
+    Construct
+    Dragon
+    Elemental
+    Fey
+    Fiend
+    Giant
+    Humanoid
+    Monstrosity
+    Ooze
+    Plant
+    Swarm
+    Undead
+    Unknown
 }
 
 enum OrderDirection {
-  asc
-  desc
+    asc
+    desc
 }
 
 enum RandomTableType {
-  adventure
-  encounter
-  environment
-  npcs
-  other
-  treasure
+    adventure
+    encounter
+    environment
+    npcs
+    other
+    treasure
 }
 
 input EncounterHeaderInput {
-  id: Long!
-  campaignId: Long!
-  name: String!
-  status: String!
-  sceneId: Long
-  orderCol: Int!
+    id: Long!
+    campaignId: Long!
+    name: String!
+    status: String!
+    sceneId: Long
+    orderCol: Int!
 }
 
 input MonsterHeaderInput {
-  id: Long!
-  sourceId: String!
-  name: String!
-  monsterType: MonsterType!
-  biome: Biome
-  alignment: Alignment
-  cr: Float!
-  xp: Long!
-  armorClass: Int!
-  maximumHitPoints: Int!
-  size: CreatureSize!
-  initiativeBonus: Int!
+    id: Long!
+    sourceId: String!
+    name: String!
+    monsterType: MonsterType!
+    biome: Biome
+    alignment: Alignment
+    cr: ChallengeRating!
+    xp: Long!
+    armorClass: Int!
+    maximumHitPoints: Int!
+    size: CreatureSize!
+    initiativeBonus: Int!
 }
 
 input NonPlayerCharacterHeaderInput {
-  id: Long!
-  campaignId: Long!
-  name: String!
+    id: Long!
+    campaignId: Long!
+    name: String!
 }
 
 input PlayerCharacterHeaderInput {
-  id: Long!
-  campaignId: Long!
-  name: String!
-  source: String!
-  playerName: String
+    id: Long!
+    campaignId: Long!
+    name: String!
+    source: String!
+    playerName: String
 }
 
 input PlayerCharacterSearchInput {
-  dndBeyondId: String
+    dndBeyondId: String
 }
 
 input SceneHeaderInput {
-  id: Long!
-  campaignId: Long!
-  name: String!
-  orderCol: Int!
-  isActive: Boolean!
+    id: Long!
+    campaignId: Long!
+    name: String!
+    orderCol: Int!
+    isActive: Boolean!
 }
 
 input SourceInput {
-  name: String!
-  id: String!
-  url: String
+    name: String!
+    id: String!
+    url: String
 }
 
 type Background {
-  name: String!
+    name: String!
 }
 
 type CharacterClass {
-  id: String!
-  hitDice: DiceRoll!
+    id: String!
+    hitDice: DiceRoll!
 }
 
 type DiceRoll {
-  roll: String!
+    roll: String!
 }
 
 type Encounter {
-  header: EncounterHeader!
-  jsonInfo: Json!
-  version: String!
+    header: EncounterHeader!
+    jsonInfo: Json!
+    version: String!
 }
 
 type EncounterHeader {
-  id: Long!
-  campaignId: Long!
-  name: String!
-  status: String!
-  sceneId: Long
-  orderCol: Int!
+    id: Long!
+    campaignId: Long!
+    name: String!
+    status: String!
+    sceneId: Long
+    orderCol: Int!
 }
 
 type Monster {
-  header: MonsterHeader!
-  jsonInfo: Json!
-  version: String!
+    header: MonsterHeader!
+    jsonInfo: Json!
+    version: String!
 }
 
 type MonsterHeader {
-  id: Long!
-  sourceId: String!
-  name: String!
-  monsterType: MonsterType!
-  biome: Biome
-  alignment: Alignment
-  cr: Float!
-  xp: Long!
-  armorClass: Int!
-  maximumHitPoints: Int!
-  size: CreatureSize!
-  initiativeBonus: Int!
+    id: Long!
+    sourceId: String!
+    name: String!
+    monsterType: MonsterType!
+    biome: Biome
+    alignment: Alignment
+    cr: ChallengeRating!
+    xp: Long!
+    armorClass: Int!
+    maximumHitPoints: Int!
+    size: CreatureSize!
+    initiativeBonus: Int!
 }
 
 type MonsterSearchResults {
-  results: [MonsterHeader!]!
-  total: Long!
+    results: [MonsterHeader!]!
+    total: Long!
 }
 
 type Mutations {
-  upsertScene(header: SceneHeaderInput!, jsonInfo: Json!, version: String!): Long
-  upsertPlayerCharacter(header: PlayerCharacterHeaderInput!, jsonInfo: Json!, version: String!): Long
-  upsertNonPlayerCharacter(header: NonPlayerCharacterHeaderInput!, jsonInfo: Json!, version: String!): Long
-  upsertMonster(header: MonsterHeaderInput!, jsonInfo: Json!, version: String!): Long
-  upsertEncounter(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): Long
-  deleteEntity(entityType: String!, id: Long!, softDelete: Boolean!): Unit
-  importCharacterDNDBeyond(campaignId: Long!, dndBeyondId: String!, fresh: Boolean!): PlayerCharacter
+    upsertScene(header: SceneHeaderInput!, jsonInfo: Json!, version: String!): Long
+    upsertPlayerCharacter(header: PlayerCharacterHeaderInput!, jsonInfo: Json!, version: String!): Long
+    upsertNonPlayerCharacter(header: NonPlayerCharacterHeaderInput!, jsonInfo: Json!, version: String!): Long
+    upsertMonster(header: MonsterHeaderInput!, jsonInfo: Json!, version: String!): Long
+    upsertEncounter(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): Long
+    deleteEntity(entityType: String!, id: Long!, softDelete: Boolean!): Unit
+    importCharacterDNDBeyond(campaignId: Long!, dndBeyondId: String!, fresh: Boolean!): PlayerCharacter
 }
 
 type NonPlayerCharacter {
-  header: NonPlayerCharacterHeader!
-  jsonInfo: Json!
-  version: String!
+    header: NonPlayerCharacterHeader!
+    jsonInfo: Json!
+    version: String!
 }
 
 type NonPlayerCharacterHeader {
-  id: Long!
-  campaignId: Long!
-  name: String!
+    id: Long!
+    campaignId: Long!
+    name: String!
 }
 
 type PlayerCharacter {
-  header: PlayerCharacterHeader!
-  jsonInfo: Json!
-  version: String!
+    header: PlayerCharacterHeader!
+    jsonInfo: Json!
+    version: String!
 }
 
 type PlayerCharacterHeader {
-  id: Long!
-  campaignId: Long!
-  name: String!
-  source: String!
-  playerName: String
+    id: Long!
+    campaignId: Long!
+    name: String!
+    source: String!
+    playerName: String
 }
 
 type Queries {
-  monster(value: Long!): Monster
-  playerCharacters(campaignId: Long!, playerCharacterSearch: PlayerCharacterSearchInput!): [PlayerCharacter!]
-  scenes(value: Long!): [Scene!]
-  nonPlayerCharacters(value: Long!): [NonPlayerCharacter!]
-  playerCharacter(value: Long!): PlayerCharacter
-  nonPlayerCharacter(value: Long!): NonPlayerCharacter
-  encounters(value: Long!): [Encounter!]
-  encounter(campaignId: Long!, encounterId: Long!): Encounter
-  bestiary(name: String, challengeRating: Float, size: CreatureSize, alignment: Alignment, biome: Biome, monsterType: MonsterType, source: SourceInput, orderCol: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): MonsterSearchResults
-  sources: [Source!]
-  classes: [CharacterClass!]
-  races: [Race!]
-  backgrounds: [Background!]
-  subclasses(value: String!): [SubClass!]
-  randomTables(randomTableType: RandomTableType): [RandomTable!]
-  randomTable(value: Long!): RandomTable
-  generateEncounterDescription(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): String
+    monster(value: Long!): Monster
+    playerCharacters(campaignId: Long!, playerCharacterSearch: PlayerCharacterSearchInput!): [PlayerCharacter!]
+    scenes(value: Long!): [Scene!]
+    nonPlayerCharacters(value: Long!): [NonPlayerCharacter!]
+    playerCharacter(value: Long!): PlayerCharacter
+    nonPlayerCharacter(value: Long!): NonPlayerCharacter
+    encounters(value: Long!): [Encounter!]
+    encounter(campaignId: Long!, encounterId: Long!): Encounter
+    bestiary(name: String, challengeRating: String, size: CreatureSize, alignment: Alignment, biome: Biome, monsterType: MonsterType, source: SourceInput, orderCol: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): MonsterSearchResults
+    sources: [Source!]
+    classes: [CharacterClass!]
+    races: [Race!]
+    backgrounds: [Background!]
+    subclasses(value: String!): [SubClass!]
+    randomTables(randomTableType: RandomTableType): [RandomTable!]
+    randomTable(value: Long!): RandomTable
+    generateEncounterDescription(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): String
 }
 
 type Race {
-  name: String!
+    name: String!
 }
 
 type RandomTable {
-  id: Long!
-  name: String!
-  tableType: RandomTableType!
-  subType: String!
-  diceRoll: DiceRoll!
-  entries: [RandomTableEntry!]!
+    id: Long!
+    name: String!
+    tableType: RandomTableType!
+    subType: String!
+    diceRoll: DiceRoll!
+    entries: [RandomTableEntry!]!
 }
 
 type RandomTableEntry {
-  randomTableId: Long!
-  rangeLow: Int!
-  rangeHigh: Int!
-  name: String!
-  description: String!
+    randomTableId: Long!
+    rangeLow: Int!
+    rangeHigh: Int!
+    name: String!
+    description: String!
 }
 
 type Scene {
-  header: SceneHeader!
-  jsonInfo: Json!
-  version: String!
+    header: SceneHeader!
+    jsonInfo: Json!
+    version: String!
 }
 
 type SceneHeader {
-  id: Long!
-  campaignId: Long!
-  name: String!
-  orderCol: Int!
-  isActive: Boolean!
+    id: Long!
+    campaignId: Long!
+    name: String!
+    orderCol: Int!
+    isActive: Boolean!
 }
 
 type Source {
-  name: String!
-  id: String!
-  url: String
+    name: String!
+    id: String!
+    url: String
 }
 
 type SubClass {
-  name: String!
+    name: String!
 }

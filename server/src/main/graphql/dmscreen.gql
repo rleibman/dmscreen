@@ -80,7 +80,6 @@ type Move {
 type Mutations {
     upsertCampaign(header: CampaignHeaderInput!, jsonInfo: Json!, version: String!): Long
     campaignLog(campaignId: Long!, message: String!): Unit
-    deleteEntity(entityType: String!, id: Long!, softDelete: Boolean!): Unit
 }
 
 type Queries {

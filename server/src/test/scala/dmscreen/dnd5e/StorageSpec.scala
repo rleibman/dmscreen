@@ -22,6 +22,7 @@
 package dmscreen.dnd5e
 
 import dmscreen.{*, given}
+import _root_.auth.UserId
 import dmscreen.GameSystem.dnd5e
 import dmscreen.db.DMScreenZIORepository
 import dmscreen.db.dnd5e.DND5eZIORepository
@@ -56,7 +57,7 @@ object StorageSpec extends ZIOSpecDefault {
           insertedObject   <- dmScreenRepo.campaign(newId)
           listAfterUpdates <- dmScreenRepo.campaigns
           updatedCampaign  <- dmScreenRepo.campaign(newId)
-          _                <- dmScreenRepo.deleteEntity(entityType = CampaignEntityType, id = newId)
+          _                <- dmScreenRepo.deleteCampaign(id = newId)
           listAfterDelete  <- dmScreenRepo.campaigns
           deletedObject    <- dmScreenRepo.campaign(newId)
         } yield {

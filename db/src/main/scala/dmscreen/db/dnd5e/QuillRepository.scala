@@ -59,7 +59,7 @@ object DND5eSchema {
   given MappedEncoding[String, SourceId] = MappedEncoding[String, SourceId](SourceId.apply)
   given MappedEncoding[SourceId, String] = MappedEncoding[SourceId, String](_.value)
   given MappedEncoding[ChallengeRating, String] = MappedEncoding[ChallengeRating, String](_.toString)
-  given MappedEncoding[String, ChallengeRating] = MappedEncoding[String, ChallengeRating](ChallengeRating.fromString)
+  given MappedEncoding[String, ChallengeRating] = MappedEncoding[String, ChallengeRating](ChallengeRating.valueOf)
   given MappedEncoding[Alignment, String] = MappedEncoding[Alignment, String](_.toString)
   given MappedEncoding[String, Alignment] = MappedEncoding[String, Alignment](Alignment.valueOf)
   given MappedEncoding[MonsterType, String] = MappedEncoding[MonsterType, String](_.toString)

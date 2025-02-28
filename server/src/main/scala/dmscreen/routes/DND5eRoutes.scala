@@ -23,17 +23,21 @@ package dmscreen.routes
 
 import caliban.*
 import caliban.schema.GenericSchema
-import dmscreen.DMScreenServerEnvironment
+import dmscreen.{DMScreenError, DMScreenServerEnvironment, DMScreenSession}
 import dmscreen.dnd5e.{DND5eAPI, DND5eRepository}
 import zio.http.*
 import zio.{IO, ZIO}
 
-object DND5eRoutes {
+object DND5eRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
 
   lazy private val interpreter = DND5eAPI.api.interpreter
 
-  lazy val route: IO[CalibanError.ValidationError, Routes[DMScreenServerEnvironment, Nothing]] =
-    for {
+  override def api: ZIO[
+    DMScreenServerEnvironment,
+    DMScreenError,
+    Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+  ] =
+    (for {
       interpreter <- interpreter
     } yield {
       Routes(
@@ -46,6 +50,6 @@ object DND5eRoutes {
         Method.POST / "api" / "dnd5e" / "upload" ->
           QuickAdapter(interpreter).handlers.upload
       )
-    }
+    }).mapError(DMScreenError(_))
 
 }

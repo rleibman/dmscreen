@@ -23,16 +23,22 @@ package dmscreen.db
 
 import dmscreen.DMScreenError
 
+import java.sql.{SQLNonTransientException, SQLTransientException}
+
 object RepositoryError {
 
   def apply(cause: Throwable): RepositoryError = {
-    cause.printStackTrace()
-    new RepositoryError("", Some(cause))
+    cause match {
+      case e: SQLTransientException    => new RepositoryError("", Some(cause), true)
+      case e: SQLNonTransientException => new RepositoryError("", Some(cause), false)
+      case _ => new RepositoryError("", Some(cause))
+    }
   }
 
 }
 
 case class RepositoryError(
-  override val msg:   String = "",
-  override val cause: Option[Throwable] = None
-) extends DMScreenError(msg, cause)
+  override val msg:       String = "",
+  override val cause:     Option[Throwable] = None,
+  override val isTransient: Boolean = false
+) extends DMScreenError(msg, cause, isTransient)

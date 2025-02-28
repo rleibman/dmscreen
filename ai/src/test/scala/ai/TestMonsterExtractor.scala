@@ -4,6 +4,7 @@ import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.model.chat.request.*
 import dev.langchain4j.model.chat.request.json.*
 import dev.langchain4j.model.ollama.OllamaChatModel
+import dmscreen.DMScreenSession
 import zio.{EnvironmentTag, Scope, ULayer, ZIO, ZIOApp, ZIOAppArgs, ZLayer}
 
 import scala.jdk.CollectionConverters.*

@@ -21,13 +21,16 @@
 
 package dmscreen.sta
 
+import auth.{User, UserId, given}
 import caliban.*
+import caliban.CalibanError.ExecutionError
 import caliban.interop.zio.*
 import caliban.interop.zio.json.*
 import caliban.introspection.adt.__Type
 import caliban.schema.*
 import caliban.schema.ArgBuilder.auto.*
 import caliban.schema.Schema.auto.*
+import caliban.wrappers.Wrappers.printErrors
 import dmscreen.*
 import dmscreen.db.sta.STAZIORepository
 import just.semver.SemVer
@@ -64,6 +67,7 @@ object STAAPI {
   private given Schema[Any, SceneId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, NonPlayerCharacterId] = Schema.longSchema.contramap(_.value)
 
+  private given Schema[Any, User] = Schema.gen[Any, User]
   private given Schema[Any, CharacterHeader] = Schema.gen[Any, CharacterHeader]
   private given Schema[Any, StarshipHeader] = Schema.gen[Any, StarshipHeader]
   private given Schema[Any, SceneHeader] = Schema.gen[Any, SceneHeader]
@@ -73,16 +77,20 @@ object STAAPI {
   private given Schema[Any, Starship] = Schema.gen[Any, Starship]
   private given Schema[Any, Scene] = Schema.gen[Any, Scene]
   private given Schema[Any, NonPlayerCharacter] = Schema.gen[Any, NonPlayerCharacter]
+  private given Schema[Any, DMScreenSession] = Schema.gen[Any, DMScreenSession]
 
   private given ArgBuilder[SemVer] = ArgBuilder.string.map(SemVer.unsafeParse)
   private given ArgBuilder[EntityType[?]] = ArgBuilder.string.map(STAEntityType.valueOf)
 
+  private given ArgBuilder[UserId] = ArgBuilder.long.map(UserId.apply)
   private given ArgBuilder[CampaignId] = ArgBuilder.long.map(CampaignId.apply)
   private given ArgBuilder[CharacterId] = ArgBuilder.long.map(CharacterId.apply)
   private given ArgBuilder[StarshipId] = ArgBuilder.long.map(StarshipId.apply)
   private given ArgBuilder[SceneId] = ArgBuilder.long.map(SceneId.apply)
   private given ArgBuilder[NonPlayerCharacterId] = ArgBuilder.long.map(NonPlayerCharacterId.apply)
 
+  private given ArgBuilder[User] = ArgBuilder.gen[User]
+  private given ArgBuilder[DMScreenSession] = ArgBuilder.gen[DMScreenSession]
   private given ArgBuilder[CharacterHeader] = ArgBuilder.gen[CharacterHeader]
   private given ArgBuilder[StarshipHeader] = ArgBuilder.gen[StarshipHeader]
   private given ArgBuilder[SceneHeader] = ArgBuilder.gen[SceneHeader]
@@ -94,22 +102,26 @@ object STAAPI {
   private given ArgBuilder[NonPlayerCharacter] = ArgBuilder.gen[NonPlayerCharacter]
 
   case class Queries(
-    characters:          CampaignId => ZIO[STAZIORepository, DMScreenError, Seq[Character]],
-    ships:               CampaignId => ZIO[STAZIORepository, DMScreenError, Seq[Starship]],
-    scenes:              CampaignId => ZIO[STAZIORepository, DMScreenError, Seq[Scene]],
-    nonPlayerCharacters: CampaignId => ZIO[STAZIORepository, DMScreenError, Seq[NonPlayerCharacter]]
+    characters:          CampaignId => ZIO[STAZIORepository & DMScreenSession, DMScreenError, Seq[Character]],
+    ships:               CampaignId => ZIO[STAZIORepository & DMScreenSession, DMScreenError, Seq[Starship]],
+    scenes:              CampaignId => ZIO[STAZIORepository & DMScreenSession, DMScreenError, Seq[Scene]],
+    nonPlayerCharacters: CampaignId => ZIO[STAZIORepository & DMScreenSession, DMScreenError, Seq[NonPlayerCharacter]]
   )
   case class Mutations(
-    upsertCharacter:          Character => ZIO[STAZIORepository, DMScreenError, CharacterId],
-    upsertStarship:           Starship => ZIO[STAZIORepository, DMScreenError, StarshipId],
-    upsertScene:              Scene => ZIO[STAZIORepository, DMScreenError, SceneId],
-    upsertNonPlayerCharacter: NonPlayerCharacter => ZIO[STAZIORepository, DMScreenError, NonPlayerCharacterId],
-    deleteEntity:             EntityDeleteArgs => ZIO[STAZIORepository, DMScreenError, Unit]
+    upsertCharacter: Character => ZIO[STAZIORepository & DMScreenSession, DMScreenError, CharacterId],
+    upsertStarship:  Starship => ZIO[STAZIORepository & DMScreenSession, DMScreenError, StarshipId],
+    upsertScene:     Scene => ZIO[STAZIORepository & DMScreenSession, DMScreenError, SceneId],
+    upsertNonPlayerCharacter: NonPlayerCharacter => ZIO[
+      STAZIORepository & DMScreenSession,
+      DMScreenError,
+      NonPlayerCharacterId
+    ],
+    deleteEntity: EntityDeleteArgs => ZIO[STAZIORepository & DMScreenSession, DMScreenError, Unit]
   )
 
-  lazy val api: GraphQL[DMScreenServerEnvironment] =
+  lazy val api: GraphQL[DMScreenServerEnvironment & DMScreenSession] =
     graphQL[
-      DMScreenServerEnvironment,
+      DMScreenServerEnvironment & DMScreenSession,
       Queries,
       Mutations,
       Unit
@@ -139,6 +151,6 @@ object STAAPI {
             )
         )
       )
-    )
+    ) @@ printErrors
 
 }
