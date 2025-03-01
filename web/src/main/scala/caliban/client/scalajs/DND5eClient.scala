@@ -32,7 +32,7 @@ object DND5eClient {
   object ChallengeRating {
 
     case object _0 extends ChallengeRating { val value: String = "_0" }
-    case object _eight extends ChallengeRating { val value: String = "_eight" }
+    case object _eigth extends ChallengeRating { val value: String = "_eigth" }
     case object _quarter extends ChallengeRating { val value: String = "_quarter" }
     case object _half extends ChallengeRating { val value: String = "_half" }
     case object _1 extends ChallengeRating { val value: String = "_1" }
@@ -68,7 +68,7 @@ object DND5eClient {
 
     implicit val decoder: ScalarDecoder[ChallengeRating] = {
       case __StringValue("_0")       => Right(ChallengeRating._0)
-      case __StringValue("_eight")   => Right(ChallengeRating._eight)
+      case __StringValue("_eigth")   => Right(ChallengeRating._eigth)
       case __StringValue("_quarter") => Right(ChallengeRating._quarter)
       case __StringValue("_half")    => Right(ChallengeRating._half)
       case __StringValue("_1")       => Right(ChallengeRating._1)
@@ -105,7 +105,7 @@ object DND5eClient {
     }
     implicit val encoder: ArgEncoder[ChallengeRating] = {
       case ChallengeRating._0       => __EnumValue("_0")
-      case ChallengeRating._eight   => __EnumValue("_eight")
+      case ChallengeRating._eigth   => __EnumValue("_eigth")
       case ChallengeRating._quarter => __EnumValue("_quarter")
       case ChallengeRating._half    => __EnumValue("_half")
       case ChallengeRating._1       => __EnumValue("_1")
@@ -142,7 +142,7 @@ object DND5eClient {
 
     val values: scala.collection.immutable.Vector[ChallengeRating] = scala.collection.immutable.Vector(
       _0,
-      _eight,
+      _eigth,
       _quarter,
       _half,
       _1,

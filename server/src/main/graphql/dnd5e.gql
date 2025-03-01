@@ -8,7 +8,7 @@ scalar Unit
 
 enum ChallengeRating {
     _0
-    _eight
+    _eigth
     _quarter
     _half
     _1

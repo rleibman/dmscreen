@@ -144,28 +144,28 @@ object LoginPage {
                     d
                   ) => $.modState(_.copy(password = d.value.get.asInstanceOf[String]))
                 ),
-              Button().compact(true).basic(true).`type`(submit)("Go!")
-            ),
-          Button()
-            .compact(true)
-            .basic(true)
-            .onClick {
-              (
-                _,
-                _
-              ) =>
-                context.onModeChanged(Mode.registration, None)
-            }("Register"),
-          Button()
-            .compact(true)
-            .basic(true)
-            .onClick {
-              (
-                _,
-                _
-              ) =>
-                context.onModeChanged(Mode.passwordRecoveryRequest, None)
-            }("Lost my password")
+              Button.compact(true).basic(true).`type`(submit)("Go!"),
+              Button
+                .compact(true)
+                .basic(true)
+                .onClick {
+                  (
+                    _,
+                    _
+                  ) =>
+                    context.onModeChanged(Mode.registration, None)
+                }("Register"),
+              Button
+                .compact(true)
+                .basic(true)
+                .onClick {
+                  (
+                    _,
+                    _
+                  ) =>
+                    context.onModeChanged(Mode.passwordRecoveryRequest, None)
+                }("Lost my password")
+            )
         )
       }
     }

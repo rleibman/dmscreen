@@ -234,8 +234,8 @@ lazy val debianSettings =
   Seq(
     Debian / name               := "dmscreen",
     Debian / normalizedName     := "dmscreen",
-    Debian / packageDescription := "The game of dmscreen",
-    Debian / packageSummary     := "The game of dmscreen",
+    Debian / packageDescription := "Dungeons & Dragons Dungeon Master Screen",
+    Debian / packageSummary     := "Dungeons & Dragons Dungeon Master Screen",
     Linux / maintainer          := "Roberto Leibman <roberto@leibman.net>",
     Linux / daemonUser          := "dmscreen",
     Linux / daemonGroup         := "dmscreen",

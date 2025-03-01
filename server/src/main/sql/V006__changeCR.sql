@@ -4,7 +4,7 @@ update DND5eMonster set `cr` = '1/4' where `cr` = '0.25';
 update DND5eMonster set `cr` = '1/8' where `cr` = '0.125';
 
 
-update DND5eMonster set cr = '_eight' where cr = '1/8';
+update DND5eMonster set cr = '_eigth' where cr = '1/8';
 update DND5eMonster set cr = '_quarter' where cr = '1/4';
 update DND5eMonster set cr = '_half' where cr = '1/2';
 update DND5eMonster set cr = '_0' where cr = '0';

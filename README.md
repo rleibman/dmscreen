@@ -5,7 +5,30 @@
 | [![Project stage][Badge-Stage]][Link-Stage-Page] | [![Build Status][Badge-Circle]][Link-Circle] | [![Release Artifacts][Badge-SonatypeReleases]][Link-SonatypeReleases] | [![Snapshot Artifacts][Badge-SonatypeSnapshots]][Link-SonatypeSnapshots] | [![Badge-Discord]][Link-Discord] |
 
 # Summary
-TODO: Tagline
+This project, dmscreen, is a tool designed to assist Dungeon Masters (DMs) in managing and running Dungeons & Dragons 5th Edition (D&D 5e) encounters. It provides a user-friendly interface for organizing and editing encounters, managing monsters, and tracking various aspects of gameplay.  
+Key Features:
+- Encounter Management: Create, edit, and run encounters with ease.
+- PC Dashboard: Track player character (PC) stats and initiative order.
+- Monster Database: Search and filter a database of D&D 5e monsters.
+- Random Table Generator: Create custom random tables for use in your campaign.
+- Dice Roller: Roll dice and calculate results with a built-in dice roller.
+- AI Generated Encounter descriptions
+
+# Technologies used
+- Scala
+- ZIO
+  - zio-http
+  - zio-json
+  - zio-logging
+  - zio-prelude
+  - zio-quill
+  - zio-config
+  - zio-cache
+- Caliban (GraphQL)
+- React (through scalajs-react)
+- Scala.js
+- Semantic UI
+- ScalablyTyped
 
 # Documentation
 [dmscreen Microsite](https://zio.github.io/dmscreen/)
@@ -48,8 +71,9 @@ Example here: https://codesandbox.io/s/react-roller-advanced-notation-v1-0-5-rz0
 http://localhost:8079/api/dnd5e/schema
 
 # Client code generation
+```sbtshell
 calibanGenClient /home/rleibman/projects/dmscreen/server/src/main/graphql/dmscreen.gql /home/rleibman/projects/dmscreen/web/src/main/scala/caliban/client/scalajs/DMScreenClient.scala --genView true --scalarMappings Json:zio.json.ast.Json,LocalDateTime:java.time.LocalDateTime --packageName caliban.client.scalajs
 calibanGenClient /home/rleibman/projects/dmscreen/server/src/main/graphql/dnd5e.gql /home/rleibman/projects/dmscreen/web/src/main/scala/caliban/client/scalajs/DND5eClient.scala --genView true --scalarMappings Json:zio.json.ast.Json,LocalDateTime:java.time.LocalDateTime --packageName caliban.client.scalajs
 calibanGenClient /home/rleibman/projects/dmscreen/server/src/main/graphql/sta.gql /home/rleibman/projects/dmscreen/web/src/main/scala/caliban/client/scalajs/STAClient.scala --genView true --scalarMappings Json:zio.json.ast.Json,LocalDateTime:java.time.LocalDateTime --packageName caliban.client.scalajs
-
+```
 //Remember to ALWAYS put keys on lists in react!
