@@ -62,6 +62,7 @@ object LoginPage {
 
           Callback.future {
             basicRequest
+              .followRedirects(false)
               .post(uri"/doLogin")
               .body(Map("email" -> state.email, "password" -> state.password))
               .response(asStringAlways)

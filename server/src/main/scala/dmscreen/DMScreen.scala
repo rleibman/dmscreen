@@ -48,7 +48,7 @@ object DMScreen extends ZIOApp {
     ] =
       ZIO.succeed(
         Routes(
-          Method.GET / "test" -> handler((_: Request) => Handler.html(s"<html>Test API Ok!</html>")).flatten
+          Method.GET / "api" / "test" -> handler((_: Request) => Handler.html(s"<html>Test API Ok!</html>")).flatten
         )
       )
 

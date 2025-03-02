@@ -21,27 +21,6 @@
 
 package caliban
 
-/*
- * Copyright (c) 2024 Roberto Leibman
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
 import caliban.client.*
 import caliban.client.CalibanClientError.{DecodingError, ServerError}
 import caliban.client.Operations.{IsOperation, RootSubscription}
@@ -51,14 +30,14 @@ import japgolly.scalajs.react.{AsyncCallback, Callback}
 import org.scalajs.dom.{WebSocket, window}
 import sttp.capabilities
 import sttp.client3.*
-import zio.*
+import sttp.model.{HeaderNames, Uri}
 import zio.json.*
 import zio.json.ast.*
 
 import java.net.URI
 import java.time.Instant
-import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.concurrent.duration.*
+import scala.concurrent.{Future, Promise}
 
 trait WebSocketHandler {
 
@@ -84,11 +63,11 @@ given JsonEncoder[GraphQLRequest] = JsonEncoder.derived[GraphQLRequest]
 
 case class ScalaJSClientAdapter(endpoint: String) extends TimerSupport {
 
-  val serverUri = uri"http://${ClientConfiguration.live.host}/api/$endpoint"
+  val serverUri: Uri = uri"http://${ClientConfiguration.live.host}/api/$endpoint"
 
   given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
 
-  def getToken: Option[String] = {
+  def getAccessToken: Option[String] = {
     Option(window.localStorage.getItem("accessToken"))
   }
 
@@ -97,60 +76,13 @@ case class ScalaJSClientAdapter(endpoint: String) extends TimerSupport {
     selectionBuilder: SelectionBuilder[Origin, A]
   )(using ev:         IsOperation[Origin]
   ): AsyncCallback[A] = {
-    val request: Request[Either[CalibanClientError, A], Any] = selectionBuilder.toRequest(serverUri)
-    // ENHANCEMENT add headers as necessary
-    import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
-    import scala.concurrent.duration.*
-
-    AsyncCallback
-      .fromFuture {
-        val noTok = request
-          .copy(options = request.options.copy(readTimeout = 2.minute))
-
-        val tok = getToken.fold(noTok)(noTok.auth.bearer(_))
-        tok.send(backend)
-      }
+    dmscreen.util.ApiClient
+      .apiCall(selectionBuilder.toRequest(serverUri))
       .map { s =>
         s.body match {
           case Left(exception) => throw exception
           case Right(value)    => value
         }
-      }
-  }
-
-  def calibanCall[Origin, A](
-    selectionBuilder: SelectionBuilder[Origin, A],
-    callback:         A => Callback
-  )(using ev:         IsOperation[Origin]
-  ): Callback = {
-    val request: Request[Either[CalibanClientError, A], Any] = selectionBuilder.toRequest(serverUri)
-
-    // ENHANCEMENT add headers as necessary
-    import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
-    import scala.concurrent.duration.*
-
-    AsyncCallback
-      .fromFuture {
-        val noTok = request
-          .copy(options = request.options.copy(readTimeout = 2.minute))
-
-        val tok = getToken.fold(noTok)(noTok.auth.bearer(_))
-        tok.send(backend)
-      }
-      .completeWith {
-        case Success(response) if response.code.isSuccess || response.code.isInformational =>
-          response.body match {
-            case Right(a) =>
-              callback(a)
-            case Left(error) =>
-              Callback.log(s"1 Error: $error") // Enhancement error management switch this, insteaf of returning AsyncCallback, return an Either[Throwable, A]
-
-          }
-        case Failure(exception) =>
-          Callback.throwException(exception)
-        case Success(response) =>
-          Callback.log(s"2 Error: ${response.statusText}") // Enhancement error management switch this, insteaf of returning AsyncCallback, return an Either[Throwable, A]
-
       }
   }
 

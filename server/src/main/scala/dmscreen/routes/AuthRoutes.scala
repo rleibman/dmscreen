@@ -195,7 +195,7 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
         },
         Method.GET / "refresh" -> handler { (req: Request) =>
           // This may need to be a special case, we don't want to treat refresh like a resource or an auth required
-          ZIO.serviceWithZIO[SessionTransport[DMScreenSession]](_.refreshSession(req, Response.ok))
+          ZIO.serviceWithZIO[SessionTransport[DMScreenSession]](_.refreshSession(req, Response.text("authRefreshed")))
         }
       )
     )

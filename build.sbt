@@ -57,7 +57,7 @@ val tapirVersion = "1.10.8"
 val testContainerVersion = "0.41.8"
 val zioConfigVersion = "4.0.3"
 val zioHttpVersion = "3.0.1" // "3.0.1+104-f3012d3e-SNAPSHOT"
-val zioJsonVersion = "0.7.35"
+val zioJsonVersion = "0.7.36"
 val zioVersion = "2.1.16"
 
 lazy val commonSettings = Seq(
@@ -160,7 +160,7 @@ lazy val db = project
       // ZIO
       "dev.zio"                %% "zio"                   % zioVersion withSources (),
       "dev.zio"                %% "zio-nio"               % "2.0.2" withSources (),
-      "dev.zio"                %% "zio-cache"             % "0.2.3" withSources (),
+      "dev.zio"                %% "zio-cache"             % "0.2.4" withSources (),
       "dev.zio"                %% "zio-config"            % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-derivation" % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-magnolia"   % zioConfigVersion withSources (),
@@ -205,7 +205,7 @@ lazy val server = project
       // ZIO
       "dev.zio"                %% "zio"                   % zioVersion withSources (),
       "dev.zio"                %% "zio-nio"               % "2.0.2" withSources (),
-      "dev.zio"                %% "zio-cache"             % "0.2.3" withSources (),
+      "dev.zio"                %% "zio-cache"             % "0.2.4" withSources (),
       "dev.zio"                %% "zio-config"            % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-derivation" % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-magnolia"   % zioConfigVersion withSources (),
