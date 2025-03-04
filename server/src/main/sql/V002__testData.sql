@@ -9,6 +9,12 @@ insert into dmscreenUser (`id`,
                           `deleted`,
                           `hashedPassword`)
 values (2, 'testuser', 'validuser@example.com', 0, SHA2('correctpassword', 512));
+insert into dmscreenUser (`id`,
+                          `name`,
+                          `email`,
+                          `deleted`,
+                          `hashedPassword`)
+values (3, 'testuser', 'validuser2@example.com', 0, SHA2('correctpassword', 512));
 
 
 insert into campaign (`id`,

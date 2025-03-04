@@ -197,7 +197,7 @@ object RegistrationPage {
     def render(state: State): VdomElement =
       LoginControllerState.ctx.consume { context =>
         <.div(
-          <.div(<.img(^.src := "/unauth/images/logo.png", ^.width := 350.px)),
+          <.div(<.img(^.src := "/resources/images/logo.png", ^.width := 350.px)),
           <.h1("Account registration"),
           Form()(
             renderUserInfo(state, context)

@@ -46,35 +46,7 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
     Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
   ] =
     ZIO.succeed(
-      Routes(
-        Method.GET / "isFirstLoginToday" -> handler { (_: Request) =>
-          for {
-            userOps       <- ZIO.service[UserRepository[DMScreenTask]]
-            now           <- Clock.localDateTime
-            firstLoginOpt <- userOps.firstLogin
-          } yield json(firstLoginOpt.fold(true)(_.isAfter(now.minus(java.time.Duration.ofDays(1)))))
-        },
-        Method.GET / "whoami" -> handler { (_: Request) =>
-          ZIO.serviceWith[DMScreenSession](session => json(session.user))
-        },
-        Method.POST / "changePassword" -> handler { (req: Request) =>
-          (for {
-            userOps <- ZIO.service[UserRepository[DMScreenTask]]
-            session <- ZIO.service[DMScreenSession]
-            newPass <- req.body.asString
-            ret     <- userOps.changePassword(session.user, newPass)
-          } yield json(ret)).mapError(DMScreenError(_))
-        },
-        Method.GET / "doLogout" -> handler { (_: Request) =>
-          (for {
-            session          <- ZIO.service[DMScreenSession]
-            sessionTransport <- ZIO.service[SessionTransport[DMScreenSession]]
-            loginFormURL     <- ZIO.fromEither(URL.decode("/loginForm")).mapError(DMScreenError(_))
-            response <- sessionTransport
-              .invalidateSession(session, Response(Status.SeeOther, Headers(Header.Location(loginFormURL))))
-          } yield response).mapError(DMScreenError(_))
-        }
-      ).nest("auth")
+      Routes.empty
     )
 
   override def unauth: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
@@ -94,8 +66,8 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
             userOpt <- ZIO
               .foreach(token)(tok => tokenHolder.validateToken(token.get, TokenPurpose.LostPassword)).map(_.flatten)
             passwordChanged            <- ZIO.foreach(userOpt)(user => userOps.changePassword(user, password.get))
-            passwordChangeSucceededUrl <- seeOther("/loginForm?passwordChangeSucceeded")
-            passwordChangeFailedUrl    <- seeOther("/loginForm?passwordChangeFailed")
+            passwordChangeSucceededUrl <- seeOther("/unauth/loginForm?passwordChangeSucceeded")
+            passwordChangeFailedUrl    <- seeOther("/unuth/loginForm?passwordChangeFailed")
           } yield passwordChanged.fold(passwordChangeFailedUrl)(isChanged =>
             if (isChanged) passwordChangeSucceededUrl else passwordChangeFailedUrl
           ))
@@ -103,6 +75,7 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
             .provideSomeLayer[DMScreenServerEnvironment](DMScreenSession.adminSession.toLayer)
         },
         Method.POST / "unauth" / "passwordRecoveryRequest" -> handler { (req: Request) =>
+          println("Got here")
           (for {
             emailJson <- req.body.asString
             email     <- ZIO.fromEither(emailJson.fromJson[String]).mapError(DMScreenError(_))
@@ -111,9 +84,9 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
             userOpt   <- userOps.userByEmail(email)
             _ <-
               ZIO
-                .foreach(userOpt)(EmailGenerator.lostPasswordEmail(_, "")).flatMap(envelope =>
+                .foreach(userOpt)(EmailGenerator.lostPasswordEmail).flatMap(envelope =>
                   ZIO.foreach(envelope)(postman.deliver)
-                ).forkDaemon
+                )
           } yield Response.ok)
             .mapError(DMScreenError(_))
             .provideSomeLayer[DMScreenServerEnvironment](DMScreenSession.adminSession.toLayer)
@@ -144,9 +117,9 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
             _ <- ZIO.foreachDiscard(saved)(userOps.changePassword(_, userCreationRequest.password))
             _ <- ZIO.logInfo("About to send")
             _ <- ZIO
-              .foreach(saved)(EmailGenerator.registrationEmail(_, ""))
+              .foreach(saved)(EmailGenerator.registrationEmail)
               .flatMap(envelope => ZIO.foreach(envelope)(postman.deliver))
-              .forkDaemon
+
             _ <- ZIO.logInfo("Maybe sent")
           } yield {
             if (exists)
@@ -158,21 +131,20 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
             .provideSomeLayer[DMScreenServerEnvironment](DMScreenSession.adminSession.toLayer)
         },
         Method.GET / "unauth" / "confirmRegistration" -> handler { (req: Request) =>
+          val token = req.queryParam("token")
           (for {
-            formData <- req.formData
-            token <- ZIO
-              .fromOption(formData.get("token")).mapBoth(_ => SessionError("Token not found"), TokenString.apply)
-            userOps                  <- ZIO.service[UserRepository[DMScreenTask]]
-            tokenHolder              <- ZIO.service[TokenHolder[DMScreenTask]]
-            user                     <- tokenHolder.validateToken(token, TokenPurpose.NewUser)
-            activate                 <- ZIO.foreach(user)(user => userOps.upsert(user.copy(active = true)))
-            registrationFailedUrl    <- seeOther("/loginForm?registrationFailed")
-            registrationSucceededUrl <- seeOther("/loginForm?registrationSucceeded")
+            token       <- ZIO.fromOption(token).mapBoth(_ => SessionError("Token not found"), TokenString.apply)
+            userOps     <- ZIO.service[UserRepository[DMScreenTask]]
+            tokenHolder <- ZIO.service[TokenHolder[DMScreenTask]]
+            user        <- tokenHolder.validateToken(token, TokenPurpose.NewUser)
+            activate    <- ZIO.foreach(user)(user => userOps.upsert(user.copy(active = true)))
+            registrationFailedUrl    <- seeOther("/unauth/loginForm?registrationFailed=true")
+            registrationSucceededUrl <- seeOther("/unauth/loginForm?registrationSucceeded=true")
           } yield activate.fold(registrationFailedUrl)(_ => registrationSucceededUrl))
             .mapError(DMScreenError(_))
             .provideSomeLayer[DMScreenServerEnvironment](DMScreenSession.adminSession.toLayer)
         },
-        Method.POST / "doLogin" -> handler { (req: Request) =>
+        Method.POST / "unauth" / "doLogin" -> handler { (req: Request) =>
           (for {
             formData <- req.formData
             email <-
@@ -183,7 +155,7 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
             login   <- userOps.login(email, password).provideLayer(DMScreenSession.adminSession.toLayer)
             _       <- login.fold(ZIO.logDebug(s"Bad login for $email"))(_ => ZIO.logDebug(s"Good Login for $email"))
             sessionTransport <- ZIO.service[SessionTransport[DMScreenSession]]
-            loginFormBadUrl  <- ZIO.fromEither(URL.decode("/loginForm?bad=true")).mapError(DMScreenError(_))
+            loginFormBadUrl  <- ZIO.fromEither(URL.decode("/unauth/loginForm?bad=true")).mapError(DMScreenError(_))
             res <- login.fold(ZIO.succeed(Response(Status.SeeOther, Headers(Header.Location(loginFormBadUrl))))) { user =>
               sessionTransport.addTokens(
                 DMScreenSession(user),
@@ -207,35 +179,22 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
   ] =
     ZIO.succeed(
       Routes(
-        Method.POST / Root -> handler { (req: Request) =>
-          (for {
-            obj <- req.bodyAs[User]
-            _   <- ZIO.logInfo(s"Upserting auth with $obj")
-            res <- ZIO.serviceWithZIO[UserRepository[DMScreenTask]](_.upsert(obj))
-          } yield Response.json(res.toJson)).mapError(DMScreenError(_))
-
+        Method.GET / "api" / "whoami" -> handler { (_: Request) =>
+          ZIO.serviceWith[DMScreenSession](session => json(session.user))
         },
-        Method.PUT / Root -> handler { (req: Request) =>
-          (for {
-            obj <- req.bodyAs[User]
-            _   <- ZIO.logInfo(s"Upserting auth with $obj")
-            res <- ZIO.serviceWithZIO[UserRepository[DMScreenTask]](_.upsert(obj))
-          } yield Response.json(res.toJson)).mapError(DMScreenError(_))
-
-        },
-        Method.POST / "search" -> handler { (req: Request) =>
+        Method.POST / "api" / "user" / "search" -> handler { (req: Request) =>
           (for {
             search <- req.bodyAs[UserSearch]
             res    <- ZIO.serviceWithZIO[UserRepository[DMScreenTask]](_.search(Some(search)))
           } yield Response.json(res.toJson)).mapError(DMScreenError(_))
         },
-        Method.POST / "count" -> handler { (req: Request) =>
+        Method.POST / "api" / "user" / "count" -> handler { (req: Request) =>
           (for {
             search <- req.bodyAs[UserSearch]
             res    <- ZIO.serviceWithZIO[UserRepository[DMScreenTask]](_.count(Some(search)))
           } yield Response.json(res.toJson)).mapError(DMScreenError(_))
         },
-        Method.GET / int("pk") -> handler {
+        Method.GET / "api" / "user" / int("pk") -> handler {
           (
             pk:  Int,
             req: Request
@@ -244,7 +203,7 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
               res <- ZIO.serviceWithZIO[UserRepository[DMScreenTask]](_.get(UserId(pk)))
             } yield Response.json(res.toJson)
         },
-        Method.DELETE / int("pk") -> handler {
+        Method.DELETE / "api" / "user" / int("pk") -> handler {
           (
             pk:  Int,
             req: Request
@@ -253,8 +212,48 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
               res <- ZIO.serviceWithZIO[UserRepository[DMScreenTask]](_.delete(UserId(pk)))
               _   <- ZIO.logInfo(s"Deleted ${pk.toString}")
             } yield Response.json(res.toJson)
+        },
+        Method.POST / "api" / "user" -> handler { (req: Request) =>
+          (for {
+            obj <- req.bodyAs[User]
+            _   <- ZIO.logInfo(s"Upserting auth with $obj")
+            res <- ZIO.serviceWithZIO[UserRepository[DMScreenTask]](_.upsert(obj))
+          } yield Response.json(res.toJson)).mapError(DMScreenError(_))
+
+        },
+        Method.PUT / "api" / "user" -> handler { (req: Request) =>
+          (for {
+            obj <- req.bodyAs[User]
+            _   <- ZIO.logInfo(s"Upserting auth with $obj")
+            res <- ZIO.serviceWithZIO[UserRepository[DMScreenTask]](_.upsert(obj))
+          } yield Response.json(res.toJson)).mapError(DMScreenError(_))
+
+        },
+        Method.GET / "api" / "isFirstLoginToday" -> handler { (_: Request) =>
+          for {
+            userOps       <- ZIO.service[UserRepository[DMScreenTask]]
+            now           <- Clock.localDateTime
+            firstLoginOpt <- userOps.firstLogin
+          } yield json(firstLoginOpt.fold(true)(_.isAfter(now.minus(java.time.Duration.ofDays(1)))))
+        },
+        Method.POST / "api" / "changePassword" -> handler { (req: Request) =>
+          (for {
+            userOps <- ZIO.service[UserRepository[DMScreenTask]]
+            session <- ZIO.service[DMScreenSession]
+            newPass <- req.body.asString
+            ret     <- userOps.changePassword(session.user, newPass)
+          } yield json(ret)).mapError(DMScreenError(_))
+        },
+        Method.GET / "api" / "doLogout" -> handler { (_: Request) =>
+          (for {
+            session          <- ZIO.service[DMScreenSession]
+            sessionTransport <- ZIO.service[SessionTransport[DMScreenSession]]
+            loginFormURL     <- ZIO.fromEither(URL.decode("/unauth/loginForm")).mapError(DMScreenError(_))
+            response <- sessionTransport
+              .invalidateSession(session, Response(Status.SeeOther, Headers(Header.Location(loginFormURL))))
+          } yield response).mapError(DMScreenError(_))
         }
-      ).nest("user")
+      )
     )
 
 }

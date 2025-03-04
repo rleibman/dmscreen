@@ -57,7 +57,7 @@ object EnvironmentBuilder {
 
   case class InitializingLayer()
 
-  private val containerInitializingLayer: ZLayer[
+  val containerInitializingLayer: ZLayer[
     DMScreenSession & SRDImporter & DNDBeyondImporter & FifthEditionCharacterSheetImporter & DND5eZIORepository &
       DMScreenZIORepository,
     DMScreenError,

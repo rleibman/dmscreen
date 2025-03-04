@@ -85,7 +85,7 @@ object DMScreen extends ZIOApp {
       def apply[Env1 <: Any, Err](routes: Routes[Env1, Err]): Routes[Env1, Err] =
         routes.transform[Env1] { h =>
           handler { (req: Request) =>
-            if (req.path.toString.startsWith("/unauth")) {
+            if (req.path.toString.startsWith("/unauth") || req.path.toString.startsWith("/resources")) {
               // What should go here in order to ignore it
               ZIO.fail(Response.notFound)
             } else {
@@ -132,11 +132,15 @@ object DMScreen extends ZIOApp {
     val pw = PrintWriter(sw)
     squashed.printStackTrace(pw)
 
-    val body =
-      s"""{
-      "exceptionMessage": ${squashed.getMessage},
-      "stackTrace": ${sw.toString}
-    }"""
+    val body = "Error in DMScreen"
+    // We really don't want details
+
+//    {
+//      s"""{
+//      "exceptionMessage": ${squashed.getMessage},
+//      "stackTrace": ${sw.toString}
+//    }"""
+//    }
     val status = squashed match {
       case e: RepositoryError if e.isTransient => Status.BadGateway
       case _: DMScreenError                    => Status.InternalServerError

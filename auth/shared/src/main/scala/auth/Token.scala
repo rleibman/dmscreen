@@ -31,8 +31,8 @@ opaque type TokenString = String
 
 object TokenString {
 
-  def random: UIO[TokenString] = Random.nextBytes(8).map(r => new BigInteger(r.toArray).toString(32))
-  
+  def random: UIO[TokenString] = Random.nextBytes(16).map(r => new BigInteger(r.toArray).toString(32))
+
   def apply(str: String): TokenString = str
 
   extension (str: TokenString) {

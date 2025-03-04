@@ -59,7 +59,7 @@ object PasswordRecoveryAfterTokenPage {
       LoginControllerState.ctx.consume { _ =>
         <.div(
           ^.width := 800.px,
-          <.div(<.img(^.src := "/unauth/images/logo.png", ^.width := 350.px)),
+          <.div(<.img(^.src := "/resources/images/logo.png", ^.width := 350.px)),
           <.h1("Recover Password"),
           Form()
             .action("/unauth/passwordReset")

@@ -69,7 +69,7 @@ object AuthSpec extends ZIOSpec[DMScreenServerEnvironment] {
     app.runZIO(
       Request
         .post(
-          URL(Path("/doLogin")),
+          URL(Path("/unauth/doLogin")),
           Body.fromURLEncodedForm(
             Form(
               FormField.simpleField("email", email),
@@ -198,7 +198,7 @@ object AuthSpec extends ZIOSpec[DMScreenServerEnvironment] {
       test("Calling '/unauth/unauthtest.html' with no access token") {
         for {
           app      <- DMScreen.zapp
-          response <- app.runZIO(Request.get(URL(Path("/unauth/unauthtest.html"))))
+          response <- app.runZIO(Request.get(URL(Path("/resources/unauthtest.html"))))
         } yield assertTrue(response.status == Status.Ok)
       },
       test("Calling '/unauth/unauthtest.html' with an expired access token") {
@@ -221,7 +221,7 @@ object AuthSpec extends ZIOSpec[DMScreenServerEnvironment] {
           response <- app.runZIO(Request.get(URL(Path("/test.html"))))
         } yield assertTrue(
           response.status == Status.SeeOther,
-          response.header(Header.Location).exists(_.renderedValue.contains("/loginForm"))
+          response.header(Header.Location).exists(_.renderedValue.contains("/unauth/loginForm"))
         )
       },
       test("Calling '/test.html' (restricted resource) with an expired access token") {
@@ -237,7 +237,7 @@ object AuthSpec extends ZIOSpec[DMScreenServerEnvironment] {
           )
         } yield assertTrue(
           response.status == Status.SeeOther,
-          response.header(Header.Location).exists(_.renderedValue.contains("/loginForm"))
+          response.header(Header.Location).exists(_.renderedValue.contains("/unauth/loginForm"))
         )
       },
       test("Calling '/test.html' (restricted resource) with a valid access token") {

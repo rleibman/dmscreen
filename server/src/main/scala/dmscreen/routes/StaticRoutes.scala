@@ -30,22 +30,28 @@ import java.nio.file.{Files, Paths as JPaths}
 
 object StaticRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
 
-  lazy private val authNotRequired: Set[String] = Set(
-    "login.html",
-    "css/dmscreen.css",
-    "css/sui-dmscreen.css",
-    "dmscreen-login-opt-bundle.js",
-    "dmscreen-login-opt-bundle.js.map",
-    "dmscreen-web-opt-bundle.js",
-    "dmscreen-web-opt-bundle.js.map",
-    "css/app.css",
-    "images/favicon.ico",
-    "images/logo.png",
-    "favicon.ico",
-    "webfonts/fa-solid-900.woff2",
-    "webfonts/fa-solid-900.woff",
-    "webfonts/fa-solid-900.ttf"
-  )
+  def authNotRequired(str: String) = {
+    val set: Set[String] = Set(
+      "login.html",
+      "css/dmscreen.css",
+      "css/sui-dmscreen.css",
+      "dmscreen-login-opt-bundle.js",
+      "dmscreen-login-opt-bundle.js.map",
+      "dmscreen-web-opt-bundle.js",
+      "dmscreen-web-opt-bundle.js.map",
+      "css/app.css",
+      "images/favicon.ico",
+      "images/logo.png",
+      "favicon.ico",
+      "webfonts/fa-solid-900.woff2",
+      "webfonts/fa-solid-900.woff",
+      "webfonts/fa-solid-900.ttf"
+    )
+    val startsWith: List[String] = List(
+//      "confirmRegistration"
+    )
+    set(str) || startsWith.exists(str.startsWith)
+  }
 
   private def file(
     fileName: String,
@@ -72,7 +78,7 @@ object StaticRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession
   override def unauth: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
     ZIO.succeed(
       Routes(
-        Method.GET / "loginForm" -> handler { (request: Request) =>
+        Method.GET / "unauth" / "loginForm" -> handler { (request: Request) =>
           Handler
             .fromFileZIO {
               for {
@@ -82,7 +88,7 @@ object StaticRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession
               } yield file
             }.mapError(DMScreenError(_))
         }.flatten,
-        Method.ANY / "unauth" / trailing -> handler {
+        Method.ANY / "resources" / trailing -> handler {
           (
             path: Path,
             _:    Request

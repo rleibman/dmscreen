@@ -22,18 +22,14 @@
 package dmscreen.db
 
 import auth.*
-import dmscreen.{ConfigurationError, ConfigurationService, DMScreenError, DMScreenSession, DMScreenTask}
+import dmscreen.*
 import io.getquill.*
-import io.getquill.extras.*
 import io.getquill.jdbczio.*
 import zio.*
 import zio.cache.*
 
-import java.math.BigInteger
-import java.sql.Timestamp
 import java.time.LocalDateTime
 import javax.sql.DataSource
-import scala.concurrent.duration
 
 trait QuillAuthService extends UserRepository[DMScreenTask] with TokenHolder[DMScreenTask]
 
@@ -74,8 +70,8 @@ object QuillAuthService {
     ZLayer.fromZIO {
       object ctx extends MysqlZioJdbcContext(MysqlEscape)
 
-      import ctx.*
       import UserSchema.{*, given}
+      import ctx.*
 
       def cleanupTokens: ZIO[DataSource, RepositoryError, Boolean] =
         (for {
@@ -100,7 +96,7 @@ object QuillAuthService {
               )
               .map(_.headOption)
               .provideLayer(dataSourceLayer)
-              .mapError(DMScreenError(_))
+              .mapError(RepositoryError(_))
               .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
           }
         )
@@ -122,14 +118,14 @@ object QuillAuthService {
                u.active = 1 and
                u.email = ${lift(email)} and
                u.hashedpassword = SHA2(${lift(password)}, 512)""".as[Query[Long]])
-               
+
             (for {
               _ <- validateAdmin // Only admin can "log-in" the user (i.e. if the user is already logged in, they shouldn't call this method)
               userId <- ctx.run(sql).map(_.headOption.map(UserId.apply))
               user   <- ZIO.foreach(userId)(cache.get)
             } yield user.flatten)
               .provideSomeLayer[DMScreenSession](dataSourceLayer)
-              .mapError(DMScreenError(_))
+              .mapError(RepositoryError(_))
               .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
           }
 
@@ -138,7 +134,7 @@ object QuillAuthService {
               .run(qUsers.filter(v => !v.deleted && v.email == lift(email)))
               .map(_.headOption)
               .provideLayer(dataSourceLayer)
-              .mapError(DMScreenError(_))
+              .mapError(RepositoryError(_))
               .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
           }
 
@@ -157,19 +153,19 @@ object QuillAuthService {
                 ).map(_ > 0)
             } yield res
           }.provideSomeLayer[DMScreenSession](dataSourceLayer)
-            .mapError(DMScreenError(_))
+            .mapError(RepositoryError(_))
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
           private def validateAdmin: ZIO[DMScreenSession, DMScreenError, Unit] =
             for {
               userId <- ZIO.serviceWith[DMScreenSession](_.user.id)
-              _      <- ZIO.fail(DMScreenError("Unauthorized")).unless(userId == UserId.admin)
+              _      <- ZIO.fail(RepositoryError("Unauthorized")).unless(userId == UserId.admin)
             } yield ()
 
           private def selfOrAdmin(checkId: UserId): DMScreenTask[Unit] = {
             for {
               userId <- ZIO.serviceWith[DMScreenSession](_.user.id)
-              _      <- ZIO.fail(DMScreenError("Unauthorized")).unless(userId == checkId || userId == UserId.admin)
+              _      <- ZIO.fail(RepositoryError("Unauthorized")).unless(userId == checkId || userId == UserId.admin)
             } yield ()
           }
 
@@ -196,7 +192,7 @@ object QuillAuthService {
                 }
             } yield e
           }.provideSomeLayer[DMScreenSession](dataSourceLayer)
-            .mapError(DMScreenError(_))
+            .mapError(RepositoryError(_))
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
           override def get(pk: UserId): DMScreenTask[Option[User]] = selfOrAdmin(pk) *> cache.get(pk)
@@ -226,7 +222,7 @@ object QuillAuthService {
                 }
             } yield res
           }.provideSomeLayer[DMScreenSession](dataSourceLayer)
-            .mapError(DMScreenError(_))
+            .mapError(RepositoryError(_))
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
           override def search(search: Option[UserSearch]): DMScreenTask[Seq[User]] = {
@@ -240,7 +236,7 @@ object QuillAuthService {
                 )
               }
           }.provideSomeLayer[DMScreenSession](dataSourceLayer)
-            .mapError(DMScreenError(_))
+            .mapError(RepositoryError(_))
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
           override def count(search: Option[UserSearch]): DMScreenTask[Long] = {
@@ -248,17 +244,18 @@ object QuillAuthService {
               ctx.run(qUsers.filter(u => (u.email like lift(s"%${s.text}%")) && !u.deleted).size)
             }
           }.provideSomeLayer[DMScreenSession](dataSourceLayer)
-            .mapError(DMScreenError(_))
+            .mapError(RepositoryError(_))
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
           override def validateToken(
             tok:     TokenString,
             purpose: TokenPurpose
           ): DMScreenTask[Option[User]] =
-            (for {
+            ctx.transaction(for {
               user <- peek(tok, purpose)
               _ <- ctx.run(
-                qTokens.filter(t => t.tok == lift(tok) && t.tokenPurpose == lift(purpose)).delete
+                infix"DELETE FROM token WHERE tok = ${lift(tok)} && tokenPurpose = ${lift(purpose)}"
+                  .as[Delete[Token]]
               )
             } yield user)
               .provideSomeLayer[DMScreenSession](dataSourceLayer)

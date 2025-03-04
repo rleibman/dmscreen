@@ -103,17 +103,13 @@ object LoginController {
             onModeChanged = $.backend.onModeChanged,
             messageForScreen =
               if (queryParams.has("registrationFailed"))
-                Option(
-                  "La confirmación del registro fallo, lo sentimos mucho, tendrás que intentar de nuevo"
-                )
+                Option("Registration confirmation failed, sorry, you will have to try again")
               else if (queryParams.has("registrationSucceeded"))
-                Option("Estas registrado! ya puedes usar tu correo y contraseña para ingresar!")
+                Option("You're registered, you can now use your email and password to log in!")
               else if (queryParams.has("passwordChangeFailed"))
-                Option("El cambio de contraseña fallo, lo siento, tendrás que tratar otra vez.")
+                Option("Password change failed, sorry, you will have to try again.")
               else if (queryParams.has("passwordChangeSucceeded"))
-                Option(
-                  "El cambio de contraseña fue exitoso, ya puedes usar tu nueva contraseña para ingresar!"
-                )
+                Option("Password change successful, you can use your new password to log in!")
               else
                 None
           )

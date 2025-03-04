@@ -63,7 +63,7 @@ object LoginPage {
           Callback.future {
             basicRequest
               .followRedirects(false)
-              .post(uri"/doLogin")
+              .post(uri"/unauth/doLogin")
               .body(Map("email" -> state.email, "password" -> state.password))
               .response(asStringAlways)
               .send(backend)
@@ -99,7 +99,7 @@ object LoginPage {
     ): VdomElement = {
       LoginControllerState.ctx.consume { context =>
         <.div(
-          <.div(<.img(^.src := "/unauth/images/logo.png", ^.width := 350.px)),
+          <.div(<.img(^.src := "/resources/images/logo.png", ^.width := 350.px)),
           <.div(
             "Welcome to DMScreen!"
           ),
@@ -112,7 +112,7 @@ object LoginPage {
           Form
             .style(CSSProperties().set("width", 800.px))
             .method("post")
-            .action("/doLogin")
+            .action("/unauth/doLogin")
             .onSubmit(
               (
                 e,

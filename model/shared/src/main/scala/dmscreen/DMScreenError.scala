@@ -23,14 +23,30 @@ package dmscreen
 
 import scala.language.unsafeNulls
 
+object DMScreenError {
+
+  def apply(cause: Throwable): DMScreenError =
+    cause match {
+      case e: DMScreenError => e
+      case e => new DMScreenError(cause.getMessage, Some(cause))
+    }
+  def apply(message: String): DMScreenError = new DMScreenError(message)
+
+  def apply(
+    msg:         String,
+    cause:       Option[Throwable] = None,
+    isTransient: Boolean = false
+  ): DMScreenError = {
+    cause match {
+      case Some(e: DMScreenError) => e
+      case e                      => new DMScreenError(msg, e, isTransient)
+    }
+  }
+
+}
+
 class DMScreenError(
   val msg:         String,
   val cause:       Option[Throwable] = None,
   val isTransient: Boolean = false
-) extends Exception(msg, cause.orNull) {
-
-  def this(message: String) = this(message, None)
-
-  def this(cause: Throwable) = this("", Some(cause))
-
-}
+) extends Exception(msg, cause.orNull) {}

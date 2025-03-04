@@ -81,7 +81,7 @@ case class CookieAndBearerSessionTransport(
   // and either injects the session into the calls, or redirects as needed
   override def apiSessionProvider: HandlerAspect[Any, DMScreenSession] =
     HandlerAspect.interceptIncomingHandler(Handler.fromFunctionZIO[Request] { request =>
-      if (request.path.toString.startsWith("/unauth")) {
+      if (request.path.toString.startsWith("/unauth") || request.path.toString.startsWith("/resources")) {
         ZIO.succeed((request, DMScreenSession.empty)) // No authentication needed
       } else {
         for {
@@ -111,11 +111,14 @@ case class CookieAndBearerSessionTransport(
   // and either injects the session into the calls, or redirects as needed
   override def resourceSessionProvider: HandlerAspect[Any, DMScreenSession] =
     HandlerAspect.interceptIncomingHandler(Handler.fromFunctionZIO[Request] { request =>
-      if (request.path.toString.startsWith("/unauth") || request.path.toString.startsWith("/api")) {
+      if (
+        request.path.toString.startsWith("/unauth") || request.path.toString.startsWith("/api") || request.path.toString
+          .startsWith("/resources")
+      ) {
         ZIO.succeed((request, DMScreenSession.empty)) // No authentication needed
       } else {
         val sessionCookieOpt = request.cookies.find(_.name == config.refreshTokenName).map(_.content)
-        val loginURL = URL.decode("/loginForm").toOption.get
+        val loginURL = URL.decode("/unauth/loginForm").toOption.get
         (for {
           claim      <- ZIO.foreach(sessionCookieOpt)(jwtDecode)
           sessionOpt <- ZIO.foreach(claim)(_.session)
@@ -165,8 +168,10 @@ case class CookieAndBearerSessionTransport(
       } yield session).catchAll {
         case e: JwtExpirationException =>
           ZIO.logInfo(s"Expired refresh token: ${e.getMessage}") *> ZIO.fail(Response.unauthorized)
-        case e:        Throwable => ZIO.fail(Response.badRequest(e.getMessage))
-        case response: Response  => ZIO.fail(response)
+        case e: Throwable =>
+          ZIO.fail(Response.badRequest(e.getMessage))
+        case response: Response =>
+          ZIO.fail(response)
       }
       withTokens <- addTokens(session, response)
     } yield withTokens).catchAll(ZIO.succeed)

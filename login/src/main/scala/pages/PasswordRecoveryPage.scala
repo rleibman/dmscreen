@@ -65,7 +65,7 @@ object PasswordRecoveryPage {
     def render(state: State) =
       LoginControllerState.ctx.consume { _ =>
         <.div(
-          <.div(<.img(^.src := "/unauth/images/logo.png", ^.width := 350.px)),
+          <.div(<.img(^.src := "/resources/images/logo.png", ^.width := 350.px)),
           <.h1("Recover password!"),
           if (state.submitted)
             <.div(

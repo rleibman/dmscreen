@@ -27,6 +27,8 @@ import com.typesafe.config.ConfigFactory
 import dmscreen.db.RepositoryError
 import io.getquill.jdbczio.Quill
 import org.mariadb.jdbc.MariaDbDataSource
+import org.testcontainers.containers.startupcheck.IsRunningStartupCheckStrategy
+import org.testcontainers.containers.wait.strategy.Wait
 import zio.{IO, ZIO, ZLayer}
 
 import java.sql.SQLException
@@ -102,6 +104,7 @@ object DMScreenContainer {
     _ <- ZIO.logDebug("Creating container")
     newContainer <- ZIO.attemptBlocking {
       val c = MariaDBContainer()
+
       c.container.setPortBindings(List("3307:3306").asJava)
       c.container.start()
       c
