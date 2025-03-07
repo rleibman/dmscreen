@@ -44,10 +44,20 @@ object DMScreenRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSessi
           QuickAdapter(interpreter).handlers.api,
         Method.ANY / "api" / "dmscreen" / "graphiql" ->
           GraphiQLHandler.handler(apiPath = "/api/dmscreen"),
-        Method.GET / "api" / "dmscreen" / "schema" ->
-          Handler.fromBody(Body.fromCharSequence(DMScreenAPI.api.render)),
         Method.POST / "api" / "dmscreen" / "upload" ->
           QuickAdapter(interpreter).handlers.upload
+      )
+    }).mapError(DMScreenError(_))
+
+  /** These do not require a session
+    */
+  override def unauth: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
+    (for {
+      interpreter <- interpreter
+    } yield {
+      Routes(
+        Method.GET / "unauth" / "dmscreen" / "schema" ->
+          Handler.fromBody(Body.fromCharSequence(DMScreenAPI.api.render))
       )
     }).mapError(DMScreenError(_))
 

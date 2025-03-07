@@ -36,7 +36,10 @@ object AboutPage extends DMScreenTab {
     def render(state: State) = {
       <.div(
         <.div(s"Version = ${BuildInfo.version}"),
-        <.div("Coming soon")
+        <.div("Coming soon"),
+        <.div(<.a(^.href := "/unauth/dmscreen/schema", "DMScreen Schema")),
+        <.div(<.a(^.href := "/unauth/dnd5e/schema", "DND5E Schema")),
+        <.div(<.a(^.href := "/unauth/sta/schema", "STA Schema"))
       )
     }
 

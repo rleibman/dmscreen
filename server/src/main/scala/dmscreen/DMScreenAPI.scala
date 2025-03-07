@@ -72,7 +72,8 @@ object DMScreenAPI {
   case class Mutations(
     // All these mutations are temporary, eventually, only the headers will be saved, and the infos will be saved in the events
     upsertCampaign: Campaign => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, CampaignId],
-    campaignLog:    CampaignLogInsertRequest => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Unit]
+    campaignLog:    CampaignLogInsertRequest => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Unit],
+    deleteCampaign: CampaignId => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Unit]
   )
 
   case class Subscriptions(
@@ -118,7 +119,8 @@ object DMScreenAPI {
           upsertCampaign =
             campaign => ZIO.serviceWithZIO[DMScreenZIORepository](_.upsert(campaign.header, campaign.jsonInfo)),
           campaignLog =
-            request => ZIO.serviceWithZIO[DMScreenZIORepository](_.campaignLog(request.campaignId, request.message))
+            request => ZIO.serviceWithZIO[DMScreenZIORepository](_.campaignLog(request.campaignId, request.message)),
+          deleteCampaign = id => ZIO.serviceWithZIO[DMScreenZIORepository](_.deleteCampaign(id, softDelete = true)) // Force soft delete
         ),
         Subscriptions(campaignStream = operationArgs => ???)
       )

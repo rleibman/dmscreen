@@ -25,6 +25,7 @@ import caliban.client.*
 import caliban.client.CalibanClientError.{DecodingError, ServerError}
 import caliban.client.Operations.{IsOperation, RootSubscription}
 import dmscreen.ClientConfiguration
+import dmscreen.util.ApiClient
 import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.{AsyncCallback, Callback}
 import org.scalajs.dom.{WebSocket, window}
@@ -68,7 +69,7 @@ case class ScalaJSClientAdapter(endpoint: String) extends TimerSupport {
   given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
 
   def getAccessToken: Option[String] = {
-    Option(window.localStorage.getItem("accessToken"))
+    Option(window.localStorage.getItem(ApiClient.accessTokenName))
   }
 
   // Enhancement error management switch this, insteaf of returning AsyncCallback, return an Either[Throwable, A]

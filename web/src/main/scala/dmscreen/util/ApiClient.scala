@@ -28,13 +28,21 @@ import sttp.client3.*
 import sttp.model.{HeaderNames, Uri}
 
 import scala.concurrent.{Future, Promise}
+import scala.scalajs.js.Object.keys
 
 object ApiClient {
+
+  val accessTokenName = "accessToken"
 
   val backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
 
   def getAccessToken: Option[String] = {
-    Option(window.localStorage.getItem("accessToken"))
+    Option(window.localStorage.getItem(accessTokenName))
+  }
+
+  def clearAccessToken: Callback = {
+    Callback(window.localStorage.removeItem(accessTokenName)) >>
+      Callback(window.sessionStorage.clear())
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +67,7 @@ object ApiClient {
           val authHeaderOpt = response.headers.find(_.name.equalsIgnoreCase("authorization"))
           authHeaderOpt.foreach { authHeader =>
             val token = authHeader.value.stripPrefix("Bearer ")
-            window.localStorage.setItem("accessToken", token)
+            window.localStorage.setItem(accessTokenName, token)
           }
           response
         }

@@ -22,11 +22,10 @@
 package dmscreen.routes
 
 import caliban.*
-import caliban.schema.GenericSchema
+import dmscreen.sta.STAAPI
 import dmscreen.{DMScreenError, DMScreenServerEnvironment, DMScreenSession}
-import dmscreen.sta.{STAAPI, STARepository}
+import zio.ZIO
 import zio.http.*
-import zio.{IO, ZIO}
 
 object STARoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
 
@@ -45,10 +44,20 @@ object STARoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, D
           QuickAdapter(interpreter).handlers.api,
         Method.ANY / "api" / "sta" / "graphiql" ->
           GraphiQLHandler.handler(apiPath = "/api/sta"),
-        Method.GET / "api" / "sta" / "schema" ->
-          Handler.fromBody(Body.fromCharSequence(STAAPI.api.render)),
         Method.POST / "api" / "sta" / "upload" ->
           QuickAdapter(interpreter).handlers.upload
+      )
+    }).mapError(DMScreenError(_))
+
+  /** These do not require a session
+    */
+  override def unauth: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
+    (for {
+      interpreter <- interpreter
+    } yield {
+      Routes(
+        Method.GET / "unauth" / "sta" / "schema" ->
+          Handler.fromBody(Body.fromCharSequence(STAAPI.api.render))
       )
     }).mapError(DMScreenError(_))
 

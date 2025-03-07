@@ -21,7 +21,7 @@
 
 package dmscreen
 
-import auth.UserId
+import auth.{User, UserId, given}
 import caliban.client.scalajs.DMScreenClient.{
   Campaign as CalibanCampaign,
   CampaignHeader as CalibanCampaignHeader,
@@ -35,14 +35,47 @@ import caliban.client.scalajs.DMScreenClient.{
 import caliban.client.scalajs.{DMScreenClient, given}
 import caliban.client.{ArgEncoder, SelectionBuilder}
 import dmscreen.*
+import dmscreen.util.*
+import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.callback.AsyncCallback
+import org.scalajs.dom.window
+import sttp.client3.*
+import sttp.model.Uri
 import zio.*
 import zio.json.*
 import zio.json.ast.Json
 
 object DMScreenGraphQLRepository {
 
-  trait ExtendedRepository extends DMScreenRepository[AsyncCallback] {}
+  trait ExtendedRepository extends DMScreenRepository[AsyncCallback] {
+
+    def typedApiGet[Thing: JsonDecoder](uri: Uri): AsyncCallback[Thing] = {
+      val request:  Request[Either[String, String], Any] = basicRequest.get(uri)
+      val response: AsyncCallback[Response[Either[String, String]]] = ApiClient.apiCall(request)
+
+      response.flatMap { either =>
+        either.body match {
+          case Left(e) => AsyncCallback.throwException(new RuntimeException(s"Error calling ${uri.toString}"))
+          case Right(str) =>
+            str.fromJson[Thing] match {
+              case Left(e) => AsyncCallback.throwException(new RuntimeException(s"Error parsing response from $str"))
+              case Right(thing) => AsyncCallback.pure(thing)
+            }
+        }
+      }
+    }
+
+    def whoami: AsyncCallback[User] = {
+      typedApiGet[User](uri"/api/whoami")
+    }
+
+    def logout: Callback = {
+      ApiClient.clearAccessToken >> Callback {
+        window.location.href = "/unauth/loginForm"
+      }
+    }
+
+  }
 
   val live: ExtendedRepository = new ExtendedRepository {
     private val calibanClient = caliban.ScalaJSClientAdapter("dmscreen")
@@ -152,10 +185,9 @@ object DMScreenGraphQLRepository {
     override def deleteCampaign(
       id:         CampaignId,
       softDelete: Boolean = true
-    ) = {
-//      val sb = Mutations.deleteCampaign(id.asInstanceOf[Long], softDelete)
-//      calibanClient.asyncCalibanCall(sb).map(_.get)
-      ???
+    ): AsyncCallback[Unit] = {
+      val sb = Mutations.deleteCampaign(id.value)
+      calibanClient.asyncCalibanCall(sb).map(_ => ())
     }
 
   }

@@ -22,7 +22,7 @@
 package dmscreen
 
 import _root_.components.{Confirm, Toast}
-import auth.UserId
+import auth.{User, UserId}
 import caliban.ScalaJSClientAdapter.*
 import caliban.client.CalibanClientError.DecodingError
 import caliban.client.Operations.RootQuery
@@ -125,22 +125,31 @@ object Content {
       }
     }
 
-    def loadState(argCampaignId: Option[CampaignId] = None): Callback = {
+    def loadState(
+      argCampaignId: Option[CampaignId] = None,
+      force:         Boolean = false
+    ): Callback = {
       // If the campaign is in the URL, use it, otherwise use the one in the session storage if it exist, otherwise, for now use 1
       // But in the future, we just shouldn't show the other tabs and only show the home tab
-      val id = argCampaignId
-        .orElse(
-          Option(window.sessionStorage.getItem("currentCampaignId"))
-            .flatMap(_.toLongOption)
-            .map(CampaignId.apply)
-        )
-        .getOrElse(CampaignId(1)) // Change this, we'll need to load campaigns from the server and select the first one)
+      val idOpt =
+        if (force) argCampaignId
+        else
+          argCampaignId
+            .orElse(
+              Option(window.sessionStorage.getItem("currentCampaignId"))
+                .flatMap(_.toLongOption)
+                .map(CampaignId.apply)
+            )
 
       val async = for {
-        _ <- $.state.asAsyncCallback
-        _ <- AsyncCallback.pure(window.sessionStorage.setItem("currentCampaignId", id.value.toString)) // Store the current campaign Id in the session storage for next time
-        _ <- Callback.log(s"Loading campaign data (campaign = $id) from server...").asAsyncCallback
-        campaignOpt <- DMScreenGraphQLRepository.live.campaign(id) // First load the campaign, this will allow us to ask for the GameSystem-specific data
+        _ <- AsyncCallback.traverse(idOpt)(id =>
+          AsyncCallback.pure(window.sessionStorage.setItem("currentCampaignId", id.value.toString)) // Store the current campaign Id in the session storage for next time
+        )
+        _ <- Callback.log(s"Loading campaign data (campaign = $idOpt) from server...").asAsyncCallback
+        campaignOpt <- AsyncCallback
+          .traverse(idOpt)(id =>
+            DMScreenGraphQLRepository.live.campaign(id) // First load the campaign, this will allow us to ask for the GameSystem-specific data
+          ).map(_.headOption.flatten)
         campaignLogs <- AsyncCallback
           .traverseOption(campaignOpt)(c => DMScreenGraphQLRepository.live.campaignLogs(c.header.id, 20)).map(
             _.toSeq.flatten
@@ -154,10 +163,13 @@ object Content {
           }
         }
         _ <- Callback.log(s"Campaign data (${campaignOpt.fold("")(_.header.name)}) loaded from server").asAsyncCallback
+        whoami <- DMScreenGraphQLRepository.live.whoami
+        _      <- Callback.log(s"Currently ${whoami.name}").asAsyncCallback
       } yield $.modState { s =>
         s.copy(dmScreenState =
           s.dmScreenState
             .copy(
+              user = Some(whoami),
               campaignState = campaignState,
               changeDialogMode =
                 newMode => $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(dialogMode = newMode)))
@@ -170,7 +182,7 @@ object Content {
         $.modState(s =>
           s.copy(dmScreenState =
             s.dmScreenState.copy(
-              onSelectCampaign = campaign => loadState(campaign.map(_.id)),
+              onSelectCampaign = campaign => loadState(campaign.map(_.id), true),
               onModifyCampaignState = (
                 newState,
                 log
@@ -227,7 +239,7 @@ object Content {
 
   // Note, we don't want to update while a dialog is open
   given Reusability[DMScreenState] =
-    Reusability.by((s: DMScreenState) => (s.dialogMode == DialogMode.closed, s.campaignState))
+    Reusability.by((s: DMScreenState) => (s.dialogMode == DialogMode.closed, s.campaignState, s.user.isDefined))
   given Reusability[State] = Reusability.by((s: State) => s.dmScreenState)
 
   private val component = ScalaComponent

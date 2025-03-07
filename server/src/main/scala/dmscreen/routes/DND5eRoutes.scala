@@ -22,11 +22,10 @@
 package dmscreen.routes
 
 import caliban.*
-import caliban.schema.GenericSchema
+import dmscreen.dnd5e.DND5eAPI
 import dmscreen.{DMScreenError, DMScreenServerEnvironment, DMScreenSession}
-import dmscreen.dnd5e.{DND5eAPI, DND5eRepository}
+import zio.ZIO
 import zio.http.*
-import zio.{IO, ZIO}
 
 object DND5eRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
 
@@ -45,10 +44,20 @@ object DND5eRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession,
           QuickAdapter(interpreter).handlers.api,
         Method.ANY / "api" / "dnd5e" / "graphiql" ->
           GraphiQLHandler.handler(apiPath = "/api/dnd5e"),
-        Method.GET / "api" / "dnd5e" / "schema" ->
-          Handler.fromBody(Body.fromCharSequence(DND5eAPI.api.render)),
         Method.POST / "api" / "dnd5e" / "upload" ->
           QuickAdapter(interpreter).handlers.upload
+      )
+    }).mapError(DMScreenError(_))
+
+  /** These do not require a session
+    */
+  override def unauth: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
+    (for {
+      interpreter <- interpreter
+    } yield {
+      Routes(
+        Method.GET / "unauth" / "dnd5e" / "schema" ->
+          Handler.fromBody(Body.fromCharSequence(DND5eAPI.api.render))
       )
     }).mapError(DMScreenError(_))
 

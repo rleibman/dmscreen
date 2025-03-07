@@ -53,7 +53,7 @@ given MappedEncoding[Long, UserId] = MappedEncoding[Long, UserId](UserId.apply)
 
 given MappedEncoding[UserId, Long] = MappedEncoding[UserId, Long](_.value)
 
-given MappedEncoding[SemVer, String] = MappedEncoding[SemVer, String](_.toString)
+given MappedEncoding[SemVer, String] = MappedEncoding[SemVer, String](_.render)
 
 given MappedEncoding[String, SemVer] =
   MappedEncoding[String, SemVer](SemVer.parse(_).getOrElse(SemVer.unsafeParse("0.0.0")))

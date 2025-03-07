@@ -31,6 +31,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
+import org.scalajs.dom.window
 import zio.json.*
 
 import scala.scalajs.js
@@ -139,6 +140,13 @@ object HomePage extends DMScreenTab {
 
         VdomArray(
           Header.as("h1")(
+            s"Welcome ${dmScreenState.user.fold("")(_.name)}",
+            Button.onClick {
+              (
+                _,
+                _
+              ) => DMScreenGraphQLRepository.live.logout
+            }("Logout"),
             Button.onClick {
               (
                 _,
@@ -172,8 +180,23 @@ object HomePage extends DMScreenTab {
           ),
           ConfirmDelete(
             open = state.confirmDeleteOpen,
-            onConfirm =
-              dmScreenState.onSelectCampaign(None) >> $.modState(_.copy(confirmDeleteOpen = false, deleteMe = None)),
+            onConfirm = {
+              val async = for {
+                _ <- AsyncCallback.pure {
+                  import scala.language.unsafeNulls
+                  window.sessionStorage.setItem("currentCampaignId", null)
+                  window.sessionStorage.clear()
+                }
+                _ <- AsyncCallback
+                  .traverse(state.deleteMe)(id =>
+                    DMScreenGraphQLRepository.live
+                      .deleteCampaign(state.deleteMe.get)
+                  )
+              } yield loadState >> dmScreenState.onSelectCampaign(None) >> $.modState(
+                _.copy(confirmDeleteOpen = false, deleteMe = None)
+              )
+              async.completeWith(_.get)
+            },
             onCancel = $.modState(_.copy(confirmDeleteOpen = false, deleteMe = None))
           ),
           state.newCampaign.fold(EmptyVdom) { newCampaign =>
@@ -317,7 +340,10 @@ object HomePage extends DMScreenTab {
                       (
                         _,
                         _
-                      ) => $.modState(_.copy(newCampaign = Some(CampaignHeader.empty(UserId(1)))))
+                      ) =>
+                        $.modState(
+                          _.copy(newCampaign = Some(CampaignHeader.empty(dmScreenState.user.fold(UserId.empty)(_.id))))
+                        )
                     )
                   )
                 )

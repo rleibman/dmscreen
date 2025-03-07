@@ -411,6 +411,10 @@ object DMScreenClient {
           Argument("message", message, "String!")(encoder1)
         )
       )
+    def deleteCampaign(value: Long)(implicit encoder0: ArgEncoder[Long])
+      : SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Unit]] =
+      _root_.caliban.client.SelectionBuilder
+        .Field("deleteCampaign", OptionOf(Scalar()), arguments = List(Argument("value", value, "Long!")(encoder0)))
 
   }
 

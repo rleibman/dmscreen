@@ -186,7 +186,7 @@ case class EncounterInfo(
 ) {
 
   def xpBudget(pcs: Seq[PlayerCharacter]): ThresholdRow =
-    pcs.map(pc => thresholdTable(pc.info.totalLevel - 1)).foldLeft(ThresholdRow(0, 0, 0))(_ + _)
+    pcs.map(pc => thresholdTable(Math.max(0, pc.info.totalLevel - 1))).foldLeft(ThresholdRow(0, 0, 0))(_ + _)
 
   def calculateDifficulty(
     pcs:  Seq[PlayerCharacter],

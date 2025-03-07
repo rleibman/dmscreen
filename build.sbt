@@ -57,7 +57,7 @@ val tapirVersion = "1.10.8"
 val testContainerVersion = "0.41.8"
 val zioConfigVersion = "4.0.3"
 val zioHttpVersion = "3.0.1" // "3.0.1+104-f3012d3e-SNAPSHOT"
-val zioJsonVersion = "0.7.38"
+val zioJsonVersion = "0.7.39"
 val zioVersion = "2.1.16"
 
 lazy val commonSettings = Seq(
@@ -264,7 +264,7 @@ lazy val ai = project
       "dev.zio" %% "zio-nio" % "2.0.2" withSources (),
       // AI stuff
       "com.dimafeng"      %% "testcontainers-scala-core" % testContainerVersion withSources (),
-      "org.testcontainers" % "qdrant"                    % "1.20.5" withSources (),
+      "org.testcontainers" % "qdrant"                    % "1.20.6" withSources (),
       "dev.langchain4j"    % "langchain4j-core"          % langchainVersion withSources (),
       "dev.langchain4j"    % "langchain4j"               % langchainVersion withSources (),
       "dev.langchain4j"    % "langchain4j-ollama"        % langchainVersion withSources (),
