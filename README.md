@@ -77,3 +77,4 @@ calibanGenClient /home/rleibman/projects/dmscreen/server/src/main/graphql/dnd5e.
 calibanGenClient /home/rleibman/projects/dmscreen/server/src/main/graphql/sta.gql /home/rleibman/projects/dmscreen/web/src/main/scala/caliban/client/scalajs/STAClient.scala --genView true --scalarMappings Json:zio.json.ast.Json,LocalDateTime:java.time.LocalDateTime --packageName caliban.client.scalajs
 ```
 //Remember to ALWAYS put keys on lists in react!
+********

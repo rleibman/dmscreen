@@ -123,6 +123,11 @@ object STAGraphQLRepository {
 
     override def nonPlayerCharacter(nonPlayerCharacterId: NonPlayerCharacterId)
       : AsyncCallback[Option[NonPlayerCharacter]] = ???
+
+    override def snapshot(
+      oldId: CampaignId,
+      newId: CampaignId
+    ): AsyncCallback[Unit] = ???
   }
 
 }

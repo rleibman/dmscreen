@@ -67,7 +67,7 @@ case class FullMonsterSearchResults(
   total:   Long = 0
 )
 
-trait DND5eRepository[F[_]] extends GameRepository {
+trait DND5eRepository[F[_]] extends GameSystemRepository[F] {
 
   // DND5e specific stuff
 

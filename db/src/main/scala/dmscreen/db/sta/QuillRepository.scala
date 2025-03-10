@@ -565,6 +565,16 @@ object QuillRepository {
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
+        override def snapshot(
+          oldId: CampaignId,
+          newId: CampaignId
+        ): DMScreenTask[Unit] = {
+          //          STACharacter
+          //          STANonPlayerCharacter
+          //          STAScene
+          //          STAStarship
+          ???
+        }
       }
     }
 

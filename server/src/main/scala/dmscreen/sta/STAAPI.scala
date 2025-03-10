@@ -30,7 +30,7 @@ import caliban.introspection.adt.__Type
 import caliban.schema.*
 import caliban.schema.ArgBuilder.auto.*
 import caliban.schema.Schema.auto.*
-import caliban.wrappers.Wrappers.printErrors
+import caliban.wrappers.Wrappers.*
 import dmscreen.*
 import dmscreen.db.sta.STAZIORepository
 import just.semver.SemVer
@@ -151,6 +151,8 @@ object STAAPI {
             )
         )
       )
-    ) @@ printErrors
+    ) @@ maxFields(200)
+      @@ maxDepth(30)
+      @@ printErrors
 
 }

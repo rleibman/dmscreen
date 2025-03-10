@@ -27,7 +27,7 @@ import zio.json.ast.Json
 
 import scala.reflect.ClassTag
 
-trait STARepository[F[_]] extends GameRepository {
+trait STARepository[F[_]] extends GameSystemRepository[F] {
 
   def deleteEntity[IDType](
     entityType: EntityType[IDType],

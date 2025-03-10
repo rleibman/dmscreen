@@ -21,4 +21,11 @@
 
 package dmscreen
 
-trait GameRepository
+trait GameSystemRepository[F[_]] {
+
+  def snapshot(
+    oldId: CampaignId,
+    newId: CampaignId
+  ): F[Unit]
+
+}

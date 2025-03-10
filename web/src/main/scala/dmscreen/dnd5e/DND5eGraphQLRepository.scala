@@ -168,6 +168,10 @@ object SelectionBuilderRepository {
       info:   Json
     ): SelectionBuilder[RootMutation, SceneId] = ???
 
+    override def snapshot(
+      oldId: CampaignId,
+      newId: CampaignId
+    ): QueryOrMutationSelectionBuilder[Unit] = ???
   }
 
 }
@@ -690,6 +694,10 @@ object DND5eGraphQLRepository {
       )
     }
 
+    override def snapshot(
+      oldId: CampaignId,
+      newId: CampaignId
+    ): AsyncCallback[Unit] = ???
   }
 
 }

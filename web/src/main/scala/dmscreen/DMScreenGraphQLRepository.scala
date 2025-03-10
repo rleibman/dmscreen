@@ -22,6 +22,7 @@
 package dmscreen
 
 import auth.{User, UserId, given}
+import caliban.client.Operations.RootMutation
 import caliban.client.scalajs.DMScreenClient.{
   Campaign as CalibanCampaign,
   CampaignHeader as CalibanCampaignHeader,
@@ -80,31 +81,31 @@ object DMScreenGraphQLRepository {
   val live: ExtendedRepository = new ExtendedRepository {
     private val calibanClient = caliban.ScalaJSClientAdapter("dmscreen")
 
-    override def campaigns: AsyncCallback[Seq[CampaignHeader]] = {
-      val sb = (
-        CalibanCampaignHeader.id ~
-          CalibanCampaignHeader.dmUserId ~
-          CalibanCampaignHeader.name ~
-          CalibanCampaignHeader.gameSystem ~
-          CalibanCampaignHeader.campaignStatus
-      ).map {
-        case (
-              id:             Long,
-              dmUserId:       Long,
-              name:           String,
-              gameSystem:     CalibanGameSystem,
-              campaignStatus: CalibanCampaignStatus
-            ) =>
-          CampaignHeader(
-            id = CampaignId(id),
-            dmUserId = UserId(dmUserId),
-            name = name,
-            gameSystem = GameSystem.valueOf(gameSystem.value),
-            campaignStatus = CampaignStatus.valueOf(campaignStatus.value)
-          )
-      }
+    val campaignHeaderSB: SelectionBuilder[CalibanCampaignHeader, CampaignHeader] = (
+      CalibanCampaignHeader.id ~
+        CalibanCampaignHeader.dmUserId ~
+        CalibanCampaignHeader.name ~
+        CalibanCampaignHeader.gameSystem ~
+        CalibanCampaignHeader.campaignStatus
+    ).map {
+      case (
+            id:             Long,
+            dmUserId:       Long,
+            name:           String,
+            gameSystem:     CalibanGameSystem,
+            campaignStatus: CalibanCampaignStatus
+          ) =>
+        CampaignHeader(
+          id = CampaignId(id),
+          dmUserId = UserId(dmUserId),
+          name = name,
+          gameSystem = GameSystem.valueOf(gameSystem.value),
+          campaignStatus = CampaignStatus.valueOf(campaignStatus.value)
+        )
+    }
 
-      calibanClient.asyncCalibanCall(Queries.campaigns(sb)).map(_.toSeq.flatten)
+    override def campaigns: AsyncCallback[Seq[CampaignHeader]] = {
+      calibanClient.asyncCalibanCall(Queries.campaigns(campaignHeaderSB)).map(_.toSeq.flatten)
     }
 
     override def campaign(campaignId: CampaignId): AsyncCallback[Option[Campaign]] = {
@@ -190,6 +191,13 @@ object DMScreenGraphQLRepository {
       calibanClient.asyncCalibanCall(sb).map(_ => ())
     }
 
+    override def snapshotCampaign(id: CampaignId): AsyncCallback[CampaignHeader] = {
+      val sb: SelectionBuilder[RootMutation, Option[CampaignHeader]] =
+        Mutations.snapshotCampaign(id.value)(campaignHeaderSB)
+      calibanClient.asyncCalibanCall(sb).map { calibanHeader =>
+        calibanHeader.getOrElse(throw new RuntimeException(s"Error getting a snapshot campaign header for $id"))
+      }
+    }
   }
 
 }

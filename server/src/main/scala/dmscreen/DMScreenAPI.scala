@@ -30,7 +30,10 @@ import caliban.introspection.adt.__Type
 import caliban.schema.*
 import caliban.schema.ArgBuilder.auto.*
 import caliban.schema.Schema.auto.*
+import caliban.wrappers.Wrappers.*
 import dmscreen.db.DMScreenZIORepository
+import dmscreen.dnd5e.DND5eRepository
+import dmscreen.sta.STARepository
 import just.semver.SemVer
 import zio.ZIO
 import zio.json.*
@@ -38,6 +41,17 @@ import zio.json.ast.Json
 import zio.stream.*
 
 object DMScreenAPI {
+
+  private def gameSystemRepository(gameSystem: GameSystem): ZIO[
+    DND5eRepository[DMScreenTask] & STARepository[DMScreenTask],
+    DMScreenError,
+    GameSystemRepository[DMScreenTask]
+  ] =
+    gameSystem match {
+      case GameSystem.dnd5e              => ZIO.service[DND5eRepository[DMScreenTask]]
+      case GameSystem.starTrekAdventures => ZIO.service[STARepository[DMScreenTask]]
+      case _                             => ZIO.fail(DMScreenError(s"Unsupported game system: $gameSystem"))
+    }
 
   case class CampaignEventsArgs(
     entityType: EntityType[?],
@@ -73,7 +87,13 @@ object DMScreenAPI {
     // All these mutations are temporary, eventually, only the headers will be saved, and the infos will be saved in the events
     upsertCampaign: Campaign => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, CampaignId],
     campaignLog:    CampaignLogInsertRequest => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Unit],
-    deleteCampaign: CampaignId => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Unit]
+    deleteCampaign: CampaignId => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Unit],
+    snapshotCampaign: CampaignId => ZIO[
+      dmscreen.dnd5e.DND5eRepository[dmscreen.DMScreenTask] & dmscreen.sta.STARepository[dmscreen.DMScreenTask] &
+        DMScreenZIORepository & DMScreenSession,
+      DMScreenError,
+      CampaignHeader
+    ]
   )
 
   case class Subscriptions(
@@ -120,10 +140,18 @@ object DMScreenAPI {
             campaign => ZIO.serviceWithZIO[DMScreenZIORepository](_.upsert(campaign.header, campaign.jsonInfo)),
           campaignLog =
             request => ZIO.serviceWithZIO[DMScreenZIORepository](_.campaignLog(request.campaignId, request.message)),
-          deleteCampaign = id => ZIO.serviceWithZIO[DMScreenZIORepository](_.deleteCampaign(id, softDelete = true)) // Force soft delete
+          deleteCampaign = id => ZIO.serviceWithZIO[DMScreenZIORepository](_.deleteCampaign(id, softDelete = true)), // Force soft delete
+          snapshotCampaign = id =>
+            for {
+              newCampaignHeader <- ZIO.serviceWithZIO[DMScreenZIORepository](_.snapshotCampaign(id))
+              gameSystemRepo    <- gameSystemRepository(newCampaignHeader.gameSystem)
+              gameSystemRepo    <- gameSystemRepo.snapshot(id, newCampaignHeader.id)
+            } yield newCampaignHeader
         ),
         Subscriptions(campaignStream = operationArgs => ???)
       )
-    )
+    ) @@ maxFields(200)
+      @@ maxDepth(30)
+      @@ printErrors
 
 }

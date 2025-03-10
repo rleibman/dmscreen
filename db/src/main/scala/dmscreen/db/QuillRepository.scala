@@ -23,16 +23,19 @@ package dmscreen.db
 
 import auth.UserId
 import dmscreen.*
+import dmscreen.dnd5e.DND5eRepository
+import dmscreen.sta.STARepository
 import io.getquill.*
 import io.getquill.jdbczio.Quill
 import just.semver.SemVer
 import zio.*
-import zio.json.*
 import zio.cache.*
+import zio.json.*
 import zio.json.ast.Json
 
 import java.sql.SQLException
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.sql.DataSource
 import scala.reflect.ClassTag
 
@@ -76,8 +79,8 @@ object QuillRepository {
     ZLayer.fromZIO {
       object ctx extends MysqlZioJdbcContext(MysqlEscape)
 
-      import ctx.*
       import DMScreenSchema.{*, given}
+      import ctx.*
 
       for {
         config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
@@ -256,6 +259,24 @@ object QuillRepository {
           .provideSomeLayer[DMScreenSession](dataSourceLayer)
           .mapError(RepositoryError.apply)
           .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+
+        def snapshotCampaign(campaignId: CampaignId): DMScreenTask[CampaignHeader] = {
+          ctx.transaction(for {
+            oldCampaignOpt <- campaign(campaignId)
+            campaign       <- oldCampaignOpt.fold(ZIO.fail(RepositoryError("Campaign not found")))(e => ZIO.succeed(e))
+            now            <- Clock.localDateTime.map(_.format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm")))
+            newId <- upsert(
+              campaign.header.copy(
+                id = CampaignId.empty,
+                name = s"${campaign.header.name.replaceAll("\\s*\\(snapshot \\d{8}_\\d{4}\\)", "")} (snapshot ${now})"
+              ),
+              campaign.jsonInfo
+            )
+          } yield campaign.header.copy(id = newId))
+        }.provideSomeLayer[DMScreenSession](dataSourceLayer)
+          .mapError(RepositoryError.apply)
+          .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+
       }
     }
 

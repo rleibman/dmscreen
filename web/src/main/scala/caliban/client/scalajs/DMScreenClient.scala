@@ -415,6 +415,17 @@ object DMScreenClient {
       : SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Unit]] =
       _root_.caliban.client.SelectionBuilder
         .Field("deleteCampaign", OptionOf(Scalar()), arguments = List(Argument("value", value, "Long!")(encoder0)))
+    def snapshotCampaign[A](
+      value: Long
+    )(
+      innerSelection:    SelectionBuilder[CampaignHeader, A]
+    )(implicit encoder0: ArgEncoder[Long]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "snapshotCampaign",
+        OptionOf(Obj(innerSelection)),
+        arguments = List(Argument("value", value, "Long!")(encoder0))
+      )
 
   }
 

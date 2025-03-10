@@ -24,9 +24,9 @@ package dmscreen.db.dnd5e
 import dmscreen.db.{*, given}
 import dmscreen.dnd5e.{*, given}
 import dmscreen.{*, given}
-import io.getquill.{Action as QuillAction, *}
 import io.getquill.extras.*
 import io.getquill.jdbczio.Quill
+import io.getquill.{Action as QuillAction, *}
 import just.semver.SemVer
 import zio.*
 import zio.json.*
@@ -34,9 +34,7 @@ import zio.json.ast.Json
 import zio.nio.file.*
 
 import java.sql.SQLException
-import java.time.LocalDateTime
 import javax.sql.DataSource
-import scala.annotation.nowarn
 import scala.reflect.ClassTag
 
 trait DND5eZIORepository extends DND5eRepository[DMScreenTask]
@@ -303,7 +301,7 @@ object QuillRepository {
 
         override def playerCharacters(
           campaignId: CampaignId,
-          search:     PlayerCharacterSearch
+          search:     PlayerCharacterSearch = PlayerCharacterSearch()
         ): DMScreenTask[Seq[PlayerCharacter]] = {
           val q0: Quoted[EntityQuery[DBObject[PlayerCharacter]]] =
             qPlayerCharacters.filter(v => !v.deleted && v.value.header.campaignId == lift(campaignId))
@@ -925,6 +923,72 @@ object QuillRepository {
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
+        override def snapshot(
+          oldCampaignId: CampaignId,
+          newCampaignId: CampaignId
+        ): DMScreenTask[Unit] = {
+          for {
+            // PCs
+            oldPCs <- playerCharacters(oldCampaignId)
+            newPCs <- ZIO
+              .foreach(oldPCs) { case pc =>
+                upsert(pc.header.copy(campaignId = newCampaignId, id = PlayerCharacterId.empty), pc.jsonInfo)
+                  .map(pc.header.id -> _)
+              }.map(_.toMap)
+
+            // NPCs
+            oldNPCs <- nonPlayerCharacters(oldCampaignId)
+            newNPCs <- ZIO
+              .foreach(oldNPCs) { case npc =>
+                upsert(npc.header.copy(campaignId = newCampaignId, id = NonPlayerCharacterId.empty), npc.jsonInfo)
+                  .map(npc.header.id -> _)
+              }.map(_.toMap)
+
+            // Scenes
+            oldScenes <- scenes(oldCampaignId)
+            newScenes <- ZIO
+              .foreach(oldScenes) { case scene =>
+                upsert(scene.header.copy(campaignId = newCampaignId, id = SceneId.empty), scene.jsonInfo)
+                  .map(scene.header.id -> _)
+              }.map(_.toMap)
+
+            // Encounters
+            oldEncounters <- encounters(oldCampaignId)
+            newEncounters <- ZIO
+              .foreach(oldEncounters) { case encounter =>
+                val newInfo = encounter.info.copy(
+                  combatants = encounter.info.combatants.map {
+                    case pc: PlayerCharacterCombatant =>
+                      pc.copy(playerCharacterId = newPCs(pc.playerCharacterId))
+                    case npc: NonPlayerCharacterCombatant =>
+                      npc.copy(nonPlayerCharacterId = newNPCs(npc.nonPlayerCharacterId))
+                    case other => other
+                  }
+                )
+                
+                upsert(
+                  encounter.header.copy(
+                    campaignId = newCampaignId,
+                    id = EncounterId.empty,
+                    sceneId = encounter.header.sceneId.map(newScenes(_))
+                  ),
+                  newInfo.toJsonAST.toOption.get
+                ).map(encounter.header.id -> _)
+              }.map(_.toMap)
+          } yield (())
+
+
+          // All these tables are not campaign specific
+          //          DND5eBackground
+          //          DND5eCharacterClass
+          //          DND5eMonster
+          //          DND5eRace
+          //          DND5eRandomTable
+          //          DND5eRandomTableEntry
+          //          DND5eSource
+          //          DND5eSubclass
+
+        }
       }
     }
 

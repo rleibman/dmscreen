@@ -31,7 +31,7 @@ import caliban.introspection.adt.__Type
 import caliban.schema.*
 import caliban.schema.ArgBuilder.auto.*
 import caliban.schema.Schema.auto.*
-import caliban.wrappers.Wrappers.printErrors
+import caliban.wrappers.Wrappers.*
 import dmscreen.*
 import dmscreen.db.DMScreenZIORepository
 import dmscreen.db.dnd5e.DND5eZIORepository
@@ -310,6 +310,8 @@ object DND5eAPI {
           importCharacterDNDBeyond = request => doImportCharacterDNDBeyond(request)
         )
       )
-    ) @@ printErrors
+    ) @@ maxFields(200)
+      @@ maxDepth(30)
+      @@ printErrors
 
 }

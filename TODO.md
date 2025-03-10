@@ -138,14 +138,14 @@ DONE - Start combat is not showing the PCs.
 DONE - Next is still not working
 - Killing the current combatant sets the "currentCombatant" back to the top of the round
 - Combat: next round after rolling initiative
-- Delete campaign
+DONE - Delete campaign
 DONE Auth stuff
 DONE - Edit user profile
 DONE - Change password
 DONE - Whoami
 DONE - Logout
 DONE - Test Login
-DONE - Test Register
-DONE - Test Forgot password
-DONE - Test Reset password
-DONE - Bearer token
+- Test Register
+- Test Forgot password
+- Test Reset password
+- Bearer token

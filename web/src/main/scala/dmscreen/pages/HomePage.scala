@@ -316,7 +316,11 @@ object HomePage extends DMScreenTab {
                             (
                               _,
                               _
-                            ) => Callback.empty // ENHANCEMENT snapshot
+                            ) =>
+                              DMScreenGraphQLRepository.live
+                                .snapshotCampaign(campaign.id)
+                                .map(_ => dmScreenState.onSelectCampaign(Some(campaign)))
+                                .completeWith(_.get)
                           ),
                         Button
                           .title("Archive this campaign")

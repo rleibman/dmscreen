@@ -21,10 +21,11 @@
 
 package dmscreen
 
+import dmscreen.sta.STARepository
 import zio.*
 import zio.json.ast.Json
 
-trait DMScreenRepository[F[_]] extends GameRepository {
+trait DMScreenRepository[F[_]] {
 
   // Generic stuff, this belongs in it's own repository
   def deleteCampaign(
@@ -50,5 +51,7 @@ trait DMScreenRepository[F[_]] extends GameRepository {
     campaignId: CampaignId,
     message:    String
   ): F[Unit]
+
+  def snapshotCampaign(campaignId: CampaignId): F[CampaignHeader]
 
 }
