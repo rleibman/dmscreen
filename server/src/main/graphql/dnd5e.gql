@@ -210,6 +210,14 @@ type EncounterHeader {
     orderCol: Int!
 }
 
+"A key-value pair of Long and ListOfLong"
+type KVLongListOfLong {
+    "Key"
+    key: Long!
+    "Value"
+    value: [Long!]!
+}
+
 type Monster {
     header: MonsterHeader!
     jsonInfo: Json!
@@ -244,6 +252,8 @@ type Mutations {
     upsertEncounter(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): Long
     deleteEntity(entityType: String!, id: Long!, softDelete: Boolean!): Unit
     importCharacterDNDBeyond(campaignId: Long!, dndBeyondId: String!, fresh: Boolean!): PlayerCharacter
+    addNpcToScene(sceneId: Long!, npcId: Long!): Unit
+    removeNpcFromScene(sceneId: Long!, npcId: Long!): Unit
 }
 
 type NonPlayerCharacter {
@@ -290,6 +300,7 @@ type Queries {
     randomTables(randomTableType: RandomTableType): [RandomTable!]
     randomTable(value: Long!): RandomTable
     generateEncounterDescription(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): String
+    npcsForScene(value: Long!): [KVLongListOfLong!]
 }
 
 type Race {

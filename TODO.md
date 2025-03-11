@@ -129,7 +129,7 @@ Next in encounter is broken
 DONE No edit for monsters, need to fix that
 
 Features:
-- Add snapshot to campaign
+TODO - Add snapshot to campaign
 - Add NPCs to scenes outside of encounters
 - Add text generator to encounter editor
 - Monsters need to be added to embedding database dynamically.

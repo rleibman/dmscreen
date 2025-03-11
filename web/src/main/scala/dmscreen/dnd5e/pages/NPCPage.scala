@@ -46,6 +46,7 @@ object NPCPage extends DMScreenTab {
     editingMode:       EditingMode = EditingMode.view,
     dndBeyondImportId: Option[String] = None,
     scenes:            Seq[Scene] = Seq.empty,
+    sceneNpcMap:       Map[SceneId, Seq[NonPlayerCharacterId]] = Map.empty,
     encounters:        Seq[Encounter] = Seq.empty,
     filterScene:       Option[Scene] = None,
     // Used to select a monster to create a new NPC
@@ -62,7 +63,9 @@ object NPCPage extends DMScreenTab {
           .filter(_.header.sceneId.fold(-1)(_.value) == scene.id.value)
           .flatMap(encounter => encounter.info.npcs.map(_.nonPlayerCharacterId))
           .distinct
-        npcs.filter(npc => npcsIds.contains(npc.header.id))
+        npcs.filter(npc =>
+          npcsIds.contains(npc.header.id) || sceneNpcMap.getOrElse(scene.id, Seq.empty).contains(npc.header.id)
+        )
       }
 
   }
@@ -71,10 +74,12 @@ object NPCPage extends DMScreenTab {
 
     def loadState(campaignId: CampaignId): Callback = {
       (for {
-        npcs       <- DND5eGraphQLRepository.live.nonPlayerCharacters(campaignId)
-        scenes     <- DND5eGraphQLRepository.live.scenes(campaignId)
-        encounters <- DND5eGraphQLRepository.live.encounters(campaignId)
-      } yield $.modState(_.copy(npcs = npcs, scenes = scenes, encounters = encounters))).completeWith(_.get)
+        npcs        <- DND5eGraphQLRepository.live.nonPlayerCharacters(campaignId)
+        scenes      <- DND5eGraphQLRepository.live.scenes(campaignId)
+        encounters  <- DND5eGraphQLRepository.live.encounters(campaignId)
+        sceneNpcMap <- DND5eGraphQLRepository.live.npcsForScene(campaignId)
+      } yield $.modState(_.copy(npcs = npcs, scenes = scenes, encounters = encounters, sceneNpcMap = sceneNpcMap)))
+        .completeWith(_.get)
     }
 
     def render(state: State): VdomNode = {

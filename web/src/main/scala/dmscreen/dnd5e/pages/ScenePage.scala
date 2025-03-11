@@ -42,17 +42,21 @@ import scala.util.Random
 object ScenePage extends DMScreenTab {
 
   case class State(
+    npcs:         Seq[NonPlayerCharacter] = Seq.empty,
     scenes:       Seq[Scene] = Seq.empty,
+    sceneNpcMap:  Map[SceneId, Seq[NonPlayerCharacterId]] = Map.empty,
     editingScene: Option[Scene] = None
   )
 
   class Backend($ : BackendScope[CampaignId, State]) {
 
     def loadState(campaignId: CampaignId): Callback = {
-      DND5eGraphQLRepository.live
-        .scenes(campaignId)
-        .map(scenes => $.modState(_.copy(scenes = scenes)))
-        .completeWith(_.get)
+      (for {
+        scenes      <- DND5eGraphQLRepository.live.scenes(campaignId)
+        npcs        <- DND5eGraphQLRepository.live.nonPlayerCharacters(campaignId)
+        sceneNpcMap <- DND5eGraphQLRepository.live.npcsForScene(campaignId)
+      } yield $.modState(_.copy(npcs = npcs, scenes = scenes, sceneNpcMap = sceneNpcMap))).completeWith(_.get)
+
     }
 
     def render(state: State): VdomNode = {
@@ -88,6 +92,48 @@ object ScenePage extends DMScreenTab {
                 Modal.Header(Header.as("h1")(s"Scene Details"), Header.as("h2")(scene.header.name)),
                 Modal.Content(
                   Form(
+                    Form.Field(
+                      Label("NCPs"),
+                      state.npcs.map { npc =>
+                        <.div(
+                          ^.key := s"${npc.header.id.value}_${scene.header.id.value}",
+                          <.span(
+                            Checkbox
+                              .checked(state.sceneNpcMap.exists(t => t._1 == scene.id && t._2.contains(npc.header.id)))
+                              .onChange {
+                                (
+                                  _,
+                                  changedData
+                                ) =>
+                                  (if (changedData.checked.getOrElse(false))
+                                     DND5eGraphQLRepository.live.addNpcToScene(scene.header.id, npc.header.id)
+                                   else
+                                     DND5eGraphQLRepository.live.removeNpcFromScene(scene.header.id, npc.header.id))
+                                    .map(_ =>
+                                      $.modState(
+                                        s =>
+                                          s.copy(
+                                            sceneNpcMap = s.sceneNpcMap
+                                              .updated(
+                                                scene.id,
+                                                if (changedData.checked.getOrElse(false))
+                                                  s.sceneNpcMap.getOrElse(scene.id, Seq.empty) :+ npc.header.id
+                                                else
+                                                  s.sceneNpcMap
+                                                    .getOrElse(scene.id, Seq.empty).filterNot(_ == npc.header.id)
+                                              )
+                                          ),
+                                        dmScreenState.log(s"Added ${npc.header.name} to scene ${scene.header.name}")
+                                      )
+                                    ).completeWith(_.get)
+                              }
+                          ),
+                          <.span(
+                            s"${npc.header.name} (${(npc.info.race.name +: npc.info.classes.map(_.characterClass.name)).distinct.mkString(", ")})"
+                          )
+                        )
+                      }.toVdomArray
+                    ),
                     ReactQuill
                       .defaultValue(scene.info.notes)
                       .onChange(
@@ -150,7 +196,7 @@ object ScenePage extends DMScreenTab {
                                 $.modState(
                                   s =>
                                     s.copy(
-                                      s.scenes :+ newScene.copy(header = newScene.header.copy(id = id)),
+                                      scenes = s.scenes :+ newScene.copy(header = newScene.header.copy(id = id)),
                                       editingScene = Some(newScene.copy(header = newScene.header.copy(id = id)))
                                     ),
                                   dmScreenState.log(s"Added a new scene")

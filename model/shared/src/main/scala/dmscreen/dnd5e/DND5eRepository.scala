@@ -151,4 +151,14 @@ trait DND5eRepository[F[_]] extends GameSystemRepository[F] {
     info:   Json
   ): F[SceneId]
 
+  def npcsForScene(campaignId: CampaignId): F[Map[SceneId, Seq[NonPlayerCharacterId]]]
+  def addNpcToScene(
+    sceneId: SceneId,
+    npcId:   NonPlayerCharacterId
+  ): F[Unit]
+  def removeNpcFromScene(
+    sceneId: SceneId,
+    npcId:   NonPlayerCharacterId
+  ): F[Unit]
+
 }

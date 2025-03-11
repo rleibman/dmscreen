@@ -83,6 +83,15 @@ object DND5eSchema {
   given MappedEncoding[RandomTableType, String] = MappedEncoding[RandomTableType, String](_.toString)
   given MappedEncoding[String, RandomTableType] = MappedEncoding[String, RandomTableType](RandomTableType.valueOf)
 
+  inline def qSceneXNpc =
+    quote {
+      querySchema[(SceneId, NonPlayerCharacterId)](
+        "DND5eSceneNPC",
+        _._1 -> "sceneId",
+        _._2 -> "npcId"
+      )
+    }
+
   inline def qScenes =
     quote {
       querySchema[DBObject[Scene]](
@@ -947,7 +956,7 @@ object QuillRepository {
             // Scenes
             oldScenes <- scenes(oldCampaignId)
             newScenes <- ZIO
-              .foreach(oldScenes) { case scene =>
+              .foreach(oldScenes) { scene =>
                 upsert(scene.header.copy(campaignId = newCampaignId, id = SceneId.empty), scene.jsonInfo)
                   .map(scene.header.id -> _)
               }.map(_.toMap)
@@ -965,7 +974,7 @@ object QuillRepository {
                     case other => other
                   }
                 )
-                
+
                 upsert(
                   encounter.header.copy(
                     campaignId = newCampaignId,
@@ -975,8 +984,20 @@ object QuillRepository {
                   newInfo.toJsonAST.toOption.get
                 ).map(encounter.header.id -> _)
               }.map(_.toMap)
-          } yield (())
 
+            npcsXScene <- npcsForScene(oldCampaignId)
+
+            _ <- ZIO.foreachDiscard(npcsXScene.toSeq) {
+              (
+                sceneId,
+                npcs
+              ) =>
+                val newSceneId = newScenes(sceneId)
+                ZIO.foreachDiscard(npcs) { npcId =>
+                  addNpcToScene(newSceneId, newNPCs(npcId))
+                }
+            }
+          } yield (())
 
           // All these tables are not campaign specific
           //          DND5eBackground
@@ -989,6 +1010,42 @@ object QuillRepository {
           //          DND5eSubclass
 
         }
+
+        override def npcsForScene(campaignId: CampaignId): DMScreenTask[Map[SceneId, Seq[NonPlayerCharacterId]]] = {
+          ctx.transaction(for {
+            scenes <- scenes(campaignId)
+            npcs <- ZIO.foreach(scenes) { scene =>
+              ctx.run(
+                qSceneXNpc
+                  .filter(v => v._1 == lift(scene.header.id))
+              )
+            }
+          } yield npcs.flatten.groupBy(_._1).view.mapValues(_.map(_._2)).toMap)
+        }.provideLayer(dataSourceLayer)
+          .mapError(RepositoryError.apply)
+          .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+
+        override def addNpcToScene(
+          sceneId: SceneId,
+          npcId:   NonPlayerCharacterId
+        ): DMScreenTask[Unit] =
+          ctx
+            .run(qSceneXNpc.insertValue(lift((sceneId, npcId))).onConflictIgnore)
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+            .unit
+
+        override def removeNpcFromScene(
+          sceneId: SceneId,
+          npcId:   NonPlayerCharacterId
+        ): DMScreenTask[Unit] =           ctx
+          .run(qSceneXNpc.filter(a => a._1 == lift(sceneId) && a._2 == lift(npcId)).delete)
+          .provideLayer(dataSourceLayer)
+          .mapError(RepositoryError.apply)
+          .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+          .unit
+
       }
     }
 

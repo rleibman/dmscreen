@@ -129,6 +129,11 @@ object DND5eAPI {
     encounterId: EncounterId
   )
 
+  case class NpcBySceneIdRequest(
+    sceneId: SceneId,
+    npcId:   NonPlayerCharacterId
+  )
+
   case class PlayerCharacterSearchRequest(
     campaignId:            CampaignId,
     playerCharacterSearch: PlayerCharacterSearch
@@ -168,6 +173,7 @@ object DND5eAPI {
   private given Schema[Any, NonPlayerCharacter] = Schema.gen[Any, NonPlayerCharacter]
   private given Schema[Any, Encounter] = Schema.gen[Any, Encounter]
   private given Schema[Any, EncounterByIdRequest] = Schema.gen[Any, EncounterByIdRequest]
+  private given Schema[Any, NpcBySceneIdRequest] = Schema.gen[Any, NpcBySceneIdRequest]
 
   private given ArgBuilder[RandomTableId] = ArgBuilder.long.map(RandomTableId.apply)
   private given ArgBuilder[PlayerCharacterId] = ArgBuilder.long.map(PlayerCharacterId.apply)
@@ -203,6 +209,7 @@ object DND5eAPI {
   private given ArgBuilder[Encounter] = ArgBuilder.gen[Encounter]
   private given ArgBuilder[ImportCharacterRequest] = ArgBuilder.gen[ImportCharacterRequest]
   private given ArgBuilder[EncounterByIdRequest] = ArgBuilder.gen[EncounterByIdRequest]
+  private given ArgBuilder[NpcBySceneIdRequest] = ArgBuilder.gen[NpcBySceneIdRequest]
 
   case class Queries(
     monster: MonsterId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Option[Monster]],
@@ -233,7 +240,10 @@ object DND5eAPI {
       DND5eZIORepository & DMScreenSession & DMScreenZIORepository & DND5eAIServer,
       DMScreenError,
       String
-    ]
+    ],
+    npcsForScene: CampaignId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Map[SceneId, Seq[
+      NonPlayerCharacterId
+    ]]]
   )
   case class Mutations(
     // All these mutations are temporary, eventually, only the headers will be saved, and the infos will be saved in the events
@@ -255,6 +265,12 @@ object DND5eAPI {
       DND5eZIORepository & DMScreenSession & DNDBeyondImporter & ConfigurationService,
       DMScreenError,
       PlayerCharacter
+    ],
+    addNpcToScene: NpcBySceneIdRequest => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Unit],
+    removeNpcFromScene: NpcBySceneIdRequest => ZIO[
+      DND5eZIORepository & DMScreenSession,
+      DMScreenError,
+      Unit
     ]
   )
 
@@ -288,7 +304,8 @@ object DND5eAPI {
           randomTables = tableType => ZIO.serviceWithZIO[DND5eZIORepository](_.randomTables(tableType.randomTableType)),
           randomTable = id => ZIO.serviceWithZIO[DND5eZIORepository](_.randomTable(id)),
           generateEncounterDescription =
-            encounter => ZIO.serviceWithZIO[DND5eAIServer](_.generateEncounterDescription(encounter))
+            encounter => ZIO.serviceWithZIO[DND5eAIServer](_.generateEncounterDescription(encounter)),
+          npcsForScene = campaignId => ZIO.serviceWithZIO[DND5eZIORepository](_.npcsForScene(campaignId))
         ),
         Mutations(
           upsertScene = scene => ZIO.serviceWithZIO[DND5eZIORepository](_.upsert(scene.header, scene.jsonInfo)),
@@ -307,7 +324,10 @@ object DND5eAPI {
                 deleteArgs.softDelete
               )
             ),
-          importCharacterDNDBeyond = request => doImportCharacterDNDBeyond(request)
+          importCharacterDNDBeyond = request => doImportCharacterDNDBeyond(request),
+          addNpcToScene = req => ZIO.serviceWithZIO[DND5eZIORepository](_.addNpcToScene(req.sceneId, req.npcId)),
+          removeNpcFromScene =
+            req => ZIO.serviceWithZIO[DND5eZIORepository](_.removeNpcFromScene(req.sceneId, req.npcId))
         )
       )
     ) @@ maxFields(200)

@@ -613,6 +613,29 @@ object DND5eClient {
 
   }
 
+  type KVLongListOfLong
+  object KVLongListOfLong {
+
+    final case class KVLongListOfLongView(
+      key:   Long,
+      value: List[Long]
+    )
+
+    type ViewSelection = SelectionBuilder[KVLongListOfLong, KVLongListOfLongView]
+
+    def view: ViewSelection = (key ~ value).map { case (key, value) => KVLongListOfLongView(key, value) }
+
+    /** Key
+      */
+    def key: SelectionBuilder[KVLongListOfLong, Long] = _root_.caliban.client.SelectionBuilder.Field("key", Scalar())
+
+    /** Value
+      */
+    def value: SelectionBuilder[KVLongListOfLong, List[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field("value", ListOf(Scalar()))
+
+  }
+
   type Monster
   object Monster {
 
@@ -1373,6 +1396,17 @@ object DND5eClient {
           Argument("version", version, "String!")(encoder2)
         )
       )
+    def npcsForScene[A](
+      value: Long
+    )(
+      innerSelection:    SelectionBuilder[KVLongListOfLong, A]
+    )(implicit encoder0: ArgEncoder[Long]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[List[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "npcsForScene",
+        OptionOf(ListOf(Obj(innerSelection))),
+        arguments = List(Argument("value", value, "Long!")(encoder0))
+      )
 
   }
 
@@ -1506,6 +1540,30 @@ object DND5eClient {
           Argument("dndBeyondId", dndBeyondId, "String!")(encoder1),
           Argument("fresh", fresh, "Boolean!")(encoder2)
         )
+      )
+    def addNpcToScene(
+      sceneId: Long,
+      npcId:   Long
+    )(implicit
+      encoder0: ArgEncoder[Long],
+      encoder1: ArgEncoder[Long]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Unit]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "addNpcToScene",
+        OptionOf(Scalar()),
+        arguments = List(Argument("sceneId", sceneId, "Long!")(encoder0), Argument("npcId", npcId, "Long!")(encoder1))
+      )
+    def removeNpcFromScene(
+      sceneId: Long,
+      npcId:   Long
+    )(implicit
+      encoder0: ArgEncoder[Long],
+      encoder1: ArgEncoder[Long]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Unit]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "removeNpcFromScene",
+        OptionOf(Scalar()),
+        arguments = List(Argument("sceneId", sceneId, "Long!")(encoder0), Argument("npcId", npcId, "Long!")(encoder1))
       )
 
   }

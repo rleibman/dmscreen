@@ -34,6 +34,7 @@ import caliban.client.scalajs.DND5eClient.{
   Encounter as CalibanEncounter,
   EncounterHeader as CalibanEncounterHeader,
   EncounterHeaderInput,
+  KVLongListOfLong,
   Monster as CalibanMonster,
   MonsterHeader as CalibanMonsterHeader,
   MonsterHeaderInput,
@@ -80,98 +81,6 @@ object SelectionBuilderRepository {
 
   def mutation[A](sb: SelectionBuilder[RootMutation, A]): AsyncCallback[A] = {
     calibanClient.asyncCalibanCall(sb)
-  }
-
-  val live = new DND5eRepository[QueryOrMutationSelectionBuilder] {
-    override def randomTables(tableTypeOpt: Option[RandomTableType])
-      : QueryOrMutationSelectionBuilder[Seq[RandomTable]] = ???
-
-    override def randomTable(id: RandomTableId): QueryOrMutationSelectionBuilder[Option[RandomTable]] = ???
-
-    override def monster(monsterId: MonsterId): SelectionBuilder[RootQuery, Option[Monster]] = ???
-
-    override def deleteEntity[IDType](
-      entityType: EntityType[IDType],
-      id:         IDType,
-      softDelete: Boolean
-    ): SelectionBuilder[RootMutation, Unit] = {
-      Mutations.deleteEntity(entityType.name, id.asInstanceOf[Long], softDelete).map(_.get)
-    }
-
-    override def playerCharacters(
-      campaignId: CampaignId,
-      search:     PlayerCharacterSearch
-    ): SelectionBuilder[RootQuery, Seq[PlayerCharacter]] = ???
-
-    override def playerCharacter(playerCharacterId: PlayerCharacterId)
-      : SelectionBuilder[RootQuery, Option[PlayerCharacter]] = ???
-
-    override def nonPlayerCharacter(nonPlayerCharacterId: NonPlayerCharacterId)
-      : SelectionBuilder[RootQuery, Option[NonPlayerCharacter]] = ???
-
-    override def scenes(campaignId: CampaignId): SelectionBuilder[RootQuery, Seq[Scene]] = ???
-
-    override def scene(id: SceneId): QueryOrMutationSelectionBuilder[Option[Scene]] = ???
-
-    override def nonPlayerCharacters(campaignId: CampaignId): SelectionBuilder[RootQuery, Seq[NonPlayerCharacter]] = ???
-
-    override def encounters(campaignId: CampaignId): SelectionBuilder[RootQuery, Seq[Encounter]] = ???
-
-    override def encounter(
-      campaignId:  CampaignId,
-      encounterId: EncounterId
-    ): SelectionBuilder[RootQuery, Option[Encounter]] = ???
-
-    override def bestiary(search: MonsterSearch): SelectionBuilder[RootQuery, MonsterSearchResults] = ???
-
-    override def fullBestiary(search: MonsterSearch): SelectionBuilder[RootQuery, FullMonsterSearchResults] = ???
-
-    override def sources: SelectionBuilder[RootQuery, Seq[Source]] = ???
-
-    override def classes: SelectionBuilder[RootQuery, Seq[CharacterClass]] = ???
-
-    override def races: SelectionBuilder[RootQuery, Seq[Race]] = ???
-
-    override def backgrounds: SelectionBuilder[RootQuery, Seq[Background]] = ???
-
-    override def subClasses(characterClass: CharacterClassId): SelectionBuilder[RootQuery, Seq[SubClass]] = ???
-
-    override def spells: SelectionBuilder[RootQuery, Seq[Spell]] = ???
-
-    override def upsert(
-      header: PlayerCharacterHeader,
-      info:   Json
-    ): SelectionBuilder[RootMutation, PlayerCharacterId] = ???
-
-    override def upsert(
-      header: NonPlayerCharacterHeader,
-      info:   Json
-    ): SelectionBuilder[RootMutation, NonPlayerCharacterId] = ???
-
-    override def upsert(
-      header: MonsterHeader,
-      info:   Json
-    ): SelectionBuilder[RootMutation, MonsterId] = ???
-
-    override def upsert(
-      header: SpellHeader,
-      info:   Json
-    ): SelectionBuilder[RootMutation, SpellId] = ???
-
-    override def upsert(
-      header: EncounterHeader,
-      info:   Json
-    ): SelectionBuilder[RootMutation, EncounterId] = ???
-
-    override def upsert(
-      header: SceneHeader,
-      info:   Json
-    ): SelectionBuilder[RootMutation, SceneId] = ???
-
-    override def snapshot(
-      oldId: CampaignId,
-      newId: CampaignId
-    ): QueryOrMutationSelectionBuilder[Unit] = ???
   }
 
 }
@@ -697,7 +606,35 @@ object DND5eGraphQLRepository {
     override def snapshot(
       oldId: CampaignId,
       newId: CampaignId
-    ): AsyncCallback[Unit] = ???
+    ): AsyncCallback[Unit] = ??? // Don't implement, not necessary
+
+    override def npcsForScene(campaignId: CampaignId): AsyncCallback[Map[SceneId, Seq[NonPlayerCharacterId]]] = {
+      calibanClient.asyncCalibanCall(
+        Queries
+          .npcsForScene(campaignId.value)(KVLongListOfLong.view.map { a =>
+            (SceneId(a._1), a._2.map(NonPlayerCharacterId.apply))
+          })
+          .map(a => a.toSeq.flatten.toMap)
+      )
+    }
+
+    override def addNpcToScene(
+      sceneId: SceneId,
+      npcId:   NonPlayerCharacterId
+    ): AsyncCallback[Unit] =
+      calibanClient
+        .asyncCalibanCall(
+          Mutations.addNpcToScene(sceneId.value, npcId.value)
+        ).map(_ => ())
+
+    override def removeNpcFromScene(
+      sceneId: SceneId,
+      npcId:   NonPlayerCharacterId
+    ): AsyncCallback[Unit] =
+      calibanClient
+        .asyncCalibanCall(
+          Mutations.removeNpcFromScene(sceneId.value, npcId.value)
+        ).map(_ => ())
   }
 
 }
