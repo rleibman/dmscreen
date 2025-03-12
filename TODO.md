@@ -85,7 +85,7 @@ TEMPDONE - Modal headers are black on black, change color!
 DONE - Hide "current button" if the campaign is already current
 Super ugly if there's no campaigns.
 # PlayerCharacterPage/Component
-DONE: Allow other subclasses
+DONE Allow other subclasses
 DONE - Hit point up/down isn't working
 - When increasing HP past the max, increase the max?
 - Import from DND Beyond text
@@ -110,15 +110,15 @@ WON'T DO - Need to be able to edit encounter name (Not necessary, just go to edi
 DONE - Initiative is totally broken
 DONE - Filter out dead NPCs/Monsters
 DONE - Healing of PCs needs to get add full healing, not just the difference
-DONE: Don't pass initiative to dead creatures
-DONE: HP color is messed up
-DONE: Same characters same initiative
-DONE:  Hunter's mark is not working for NPCs
+DONE Don't pass initiative to dead creatures
+DONE HP color is messed up
+DONE Same characters same initiative
+DONE  Hunter's mark is not working for NPCs
 ## CSS
-- Heal/Damage buttons look ugly, maybe switch the whole table to white background
+DONE - Heal/Damage buttons look ugly, maybe switch the whole table to white background
 # StatBlock
 ## CSS
-TEMPDONE: Notes should be black on white
+TEMPDONE Notes should be black on white
 
 
 ------------------
@@ -129,8 +129,8 @@ Next in encounter is broken
 DONE No edit for monsters, need to fix that
 
 Features:
-TODO - Add snapshot to campaign
-- Add NPCs to scenes outside of encounters
+DONE - Add snapshot to campaign
+DONE - Add NPCs to scenes outside of encounters
 - Add text generator to encounter editor
 - Monsters need to be added to embedding database dynamically.
 - Toast is showing up behind the menu

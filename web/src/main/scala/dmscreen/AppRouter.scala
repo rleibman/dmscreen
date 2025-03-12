@@ -35,8 +35,8 @@ import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsCollectionsMenuMenuItemMod.MenuItemProps
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticCOLORS, SemanticWIDTHS}
 import net.leibman.dmscreen.std.*
-import org.scalajs.dom.{HTMLAnchorElement, window}
 import org.scalajs.dom.html.Paragraph
+import org.scalajs.dom.{HTMLAnchorElement, window}
 
 object AppRouter {
 
@@ -44,11 +44,17 @@ object AppRouter {
 
     case home extends CommonPages with AppPageType
     case about extends CommonPages with AppPageType
+    case logout extends CommonPages with AppPageType
 
   }
 
   private val homePage = PageAppMenuItem(CommonPages.home, "Home", _ => HomePage())
   private val aboutPage = PageAppMenuItem(CommonPages.about, "About", _ => AboutPage())
+  private val logoutPage = ButtonAppMenuItem(
+    CommonPages.logout,
+    title = "Logout",
+    onClick = _ => DMScreenGraphQLRepository.live.logout
+  )
 
   private def layout(
     campaignId: Option[CampaignId],
@@ -59,8 +65,8 @@ object AppRouter {
   ) = {
     val allPageMenuItems: Seq[AppMenuItem] =
       homePage +:
-        gameUI.map(_.menuItems).toSeq.flatten :+
-        aboutPage
+        (gameUI.map(_.menuItems).toSeq.flatten ++
+          Seq(aboutPage, logoutPage))
 
     def renderMenu = {
       Menu.Menu
@@ -85,7 +91,7 @@ object AppRouter {
 
                 }(menuItemInfo.title): VdomNode
             case menuItemInfo: ButtonAppMenuItem =>
-              campaignId.fold(EmptyVdom) { id =>
+              {
                 Menu.Item
                   .withKey(menuItemInfo.pageType.toString)
                   .active(resolution.page == menuItemInfo.pageType)
@@ -94,7 +100,7 @@ object AppRouter {
                       _,
                       _
                     ) =>
-                      menuItemInfo.onClick(id)
+                      menuItemInfo.onClick(campaignId.getOrElse(CampaignId.empty))
 
                   }(menuItemInfo.title)
               }: VdomNode
@@ -138,11 +144,6 @@ object AppRouter {
             .fold(trimSlashes)(_ | _)
         )
       }
-
-      // TODO def handleLogout(): Unit = {
-      //  dom.window.localStorage.removeItem("token") // Remove the token
-      //  dom.window.location.href = "/loginForm" // Redirect to login page
-      // }
 
       (trimSlashes
         | staticRoute(root, homePage.pageType) ~> renderR(_ =>

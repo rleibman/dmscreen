@@ -92,48 +92,51 @@ object ScenePage extends DMScreenTab {
                 Modal.Header(Header.as("h1")(s"Scene Details"), Header.as("h2")(scene.header.name)),
                 Modal.Content(
                   Form(
-                    Form.Field(
-                      Label("NCPs"),
-                      state.npcs.map { npc =>
-                        <.div(
-                          ^.key := s"${npc.header.id.value}_${scene.header.id.value}",
-                          <.span(
-                            Checkbox
-                              .checked(state.sceneNpcMap.exists(t => t._1 == scene.id && t._2.contains(npc.header.id)))
-                              .onChange {
-                                (
-                                  _,
-                                  changedData
-                                ) =>
-                                  (if (changedData.checked.getOrElse(false))
-                                     DND5eGraphQLRepository.live.addNpcToScene(scene.header.id, npc.header.id)
-                                   else
-                                     DND5eGraphQLRepository.live.removeNpcFromScene(scene.header.id, npc.header.id))
-                                    .map(_ =>
-                                      $.modState(
-                                        s =>
-                                          s.copy(
-                                            sceneNpcMap = s.sceneNpcMap
-                                              .updated(
-                                                scene.id,
-                                                if (changedData.checked.getOrElse(false))
-                                                  s.sceneNpcMap.getOrElse(scene.id, Seq.empty) :+ npc.header.id
-                                                else
-                                                  s.sceneNpcMap
-                                                    .getOrElse(scene.id, Seq.empty).filterNot(_ == npc.header.id)
-                                              )
-                                          ),
-                                        dmScreenState.log(s"Added ${npc.header.name} to scene ${scene.header.name}")
-                                      )
-                                    ).completeWith(_.get)
-                              }
-                          ),
-                          <.span(
-                            s"${npc.header.name} (${(npc.info.race.name +: npc.info.classes.map(_.characterClass.name)).distinct.mkString(", ")})"
+                    Form
+                      .Field(
+                        Label("Non Player Characters"),
+                        state.npcs.map { npc =>
+                          <.div(
+                            ^.key := s"${npc.header.id.value}_${scene.header.id.value}",
+                            <.span(
+                              Checkbox
+                                .checked(
+                                  state.sceneNpcMap.exists(t => t._1 == scene.id && t._2.contains(npc.header.id))
+                                )
+                                .onChange {
+                                  (
+                                    _,
+                                    changedData
+                                  ) =>
+                                    (if (changedData.checked.getOrElse(false))
+                                       DND5eGraphQLRepository.live.addNpcToScene(scene.header.id, npc.header.id)
+                                     else
+                                       DND5eGraphQLRepository.live.removeNpcFromScene(scene.header.id, npc.header.id))
+                                      .map(_ =>
+                                        $.modState(
+                                          s =>
+                                            s.copy(
+                                              sceneNpcMap = s.sceneNpcMap
+                                                .updated(
+                                                  scene.id,
+                                                  if (changedData.checked.getOrElse(false))
+                                                    s.sceneNpcMap.getOrElse(scene.id, Seq.empty) :+ npc.header.id
+                                                  else
+                                                    s.sceneNpcMap
+                                                      .getOrElse(scene.id, Seq.empty).filterNot(_ == npc.header.id)
+                                                )
+                                            ),
+                                          dmScreenState.log(s"Added ${npc.header.name} to scene ${scene.header.name}")
+                                        )
+                                      ).completeWith(_.get)
+                                }
+                            ),
+                            <.span(
+                              s"${npc.header.name} (${(npc.info.race.name +: npc.info.classes.map(_.characterClass.name)).distinct.mkString(", ")})"
+                            )
                           )
-                        )
-                      }.toVdomArray
-                    ),
+                        }.toVdomArray
+                      ).when(state.npcs.nonEmpty),
                     ReactQuill
                       .defaultValue(scene.info.notes)
                       .onChange(

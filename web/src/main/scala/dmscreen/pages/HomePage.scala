@@ -141,33 +141,27 @@ object HomePage extends DMScreenTab {
         VdomArray(
           Header.as("h1")(
             s"Welcome ${dmScreenState.user.fold("")(_.name)}",
-            Button.onClick {
-              (
-                _,
-                _
-              ) => DMScreenGraphQLRepository.live.logout
-            }("Logout"),
-            Button.onClick {
-              (
-                _,
-                _
-              ) =>
-                import sttp.client3.*
-
-                val request = basicRequest.get(uri"/api/test")
-
-                dmscreen.util.ApiClient
-                  .apiCall[String, String](
-                    request
-                  ).map { response =>
-                    response.body match {
-                      case Left(e)    => Callback.log(s"Error: $e")
-                      case Right(str) => Callback.log(s"Success: $str")
-                    }
-                  }
-                  .completeWith(_.get)
-
-            }("Test"),
+//            Button.onClick {
+//              (
+//                _,
+//                _
+//              ) =>
+//                import sttp.client3.*
+//
+//                val request = basicRequest.get(uri"/api/test")
+//
+//                dmscreen.util.ApiClient
+//                  .apiCall[String, String](
+//                    request
+//                  ).map { response =>
+//                    response.body match {
+//                      case Left(e)    => Callback.log(s"Error: $e")
+//                      case Right(str) => Callback.log(s"Success: $str")
+//                    }
+//                  }
+//                  .completeWith(_.get)
+//
+//            }("Test Refresh"),
             Checkbox
               .checked(state.hideArchived)
               .onClick(

@@ -149,7 +149,7 @@ object NPCPage extends DMScreenTab {
                         _
                       ) =>
                         val monster = state.monsterSelected.get
-                        val monsterNPC = NonPlayerCharacter(
+                        val newNPC = NonPlayerCharacter(
                           header = NonPlayerCharacterHeader(
                             id = NonPlayerCharacterId.empty,
                             campaignId = campaign.header.id,
@@ -180,21 +180,27 @@ object NPCPage extends DMScreenTab {
                           ).toJsonAST.toOption.get
                         )
 
-                        Callback.log(s"Saving NPC: $monsterNPC") >>
-                          DND5eGraphQLRepository.live
-                            .upsert(header = monsterNPC.header, info = monsterNPC.jsonInfo)
-                            .map { id =>
-                              Callback.log(s"Saved NPC with id: $id") >>
-                                $.modState(s =>
-                                  s.copy(
-                                    npcs = s.npcs :+ monsterNPC.copy(header = monsterNPC.header.copy(id = id)),
-                                    monsterSelected = None,
-                                    selectMonster = false
-                                  )
-                                ) >>
-                                dmScreenState.log("Added new NPC")
-                            }
-                            .completeWith(_.get)
+                        Callback.log(s"Saving NPC: $newNPC") >>
+                          (for {
+                            newId <- DND5eGraphQLRepository.live
+                              .upsert(header = newNPC.header, info = newNPC.jsonInfo)
+                            _ <- state.filterScene.fold(AsyncCallback.pure(()))(scene =>
+                              DND5eGraphQLRepository.live.addNpcToScene(scene.id, newId)
+                            )
+                          } yield Callback.log(s"Saved NPC with id: $newId") >>
+                            $.modState(s =>
+                              s.copy(
+                                npcs = s.npcs :+ newNPC.copy(header = newNPC.header.copy(id = newId)),
+                                sceneNpcMap = s.sceneNpcMap.updated(
+                                  state.filterScene.fold(SceneId.empty)(_.id),
+                                  s.sceneNpcMap
+                                    .getOrElse(state.filterScene.fold(SceneId.empty)(_.id), Seq.empty) :+ newId
+                                ),
+                                monsterSelected = None,
+                                selectMonster = false
+                              )
+                            ) >>
+                            dmScreenState.log("Added new NPC")).completeWith(_.get)
                     }("Go!")
                 )
               ),
@@ -221,13 +227,25 @@ object NPCPage extends DMScreenTab {
                       ).toJsonAST.toOption.get
                     )
 
-                    DND5eGraphQLRepository.live
-                      .upsert(header = newNPC.header, info = newNPC.jsonInfo)
-                      .map(id =>
-                        $.modState(s => s.copy(npcs = s.npcs :+ newNPC.copy(header = newNPC.header.copy(id = id)))) >>
-                          dmScreenState.log("Added new NPC")
-                      )
-                      .completeWith(_.get)
+                    Callback.log(s"Saving NPC: $newNPC") >>
+                      (for {
+                        newId <- DND5eGraphQLRepository.live.upsert(header = newNPC.header, info = newNPC.jsonInfo)
+                        _ <- state.filterScene.fold(AsyncCallback.pure(()))(scene =>
+                          DND5eGraphQLRepository.live.addNpcToScene(scene.id, newId)
+                        )
+                      } yield Callback.log(s"Saved NPC with id: $newId") >>
+                        $.modState(s =>
+                          s.copy(
+                            npcs = s.npcs :+ newNPC.copy(header = newNPC.header.copy(id = newId)),
+                            sceneNpcMap = s.sceneNpcMap.updated(
+                              state.filterScene.fold(SceneId.empty)(_.id),
+                              s.sceneNpcMap.getOrElse(state.filterScene.fold(SceneId.empty)(_.id), Seq.empty) :+ newId
+                            ),
+                            monsterSelected = None,
+                            selectMonster = false
+                          )
+                        ) >>
+                        dmScreenState.log("Added new NPC")).completeWith(_.get)
                   }
                 )("Add NPC"),
               Button

@@ -23,4 +23,4 @@ insert into campaign (`id`,
                       info,
                       version,
                       gameSystem)
-values (1, 1, 'test', '{"notes": "test Notes"}', '0.0.1', 'dnd5e');
+values (1, 2, 'test', '{"notes": "test Notes"}', '0.0.1', 'dnd5e');
