@@ -179,6 +179,90 @@ object DND5eClient {
 
   }
 
+  sealed trait AbilityType extends scala.Product with scala.Serializable { def value: String }
+  object AbilityType {
+
+    case object charisma extends AbilityType { val value: String = "charisma" }
+    case object constitution extends AbilityType { val value: String = "constitution" }
+    case object dexterity extends AbilityType { val value: String = "dexterity" }
+    case object intelligence extends AbilityType { val value: String = "intelligence" }
+    case object strength extends AbilityType { val value: String = "strength" }
+    case object wisdom extends AbilityType { val value: String = "wisdom" }
+
+    implicit val decoder: ScalarDecoder[AbilityType] = {
+      case __StringValue("charisma")     => Right(AbilityType.charisma)
+      case __StringValue("constitution") => Right(AbilityType.constitution)
+      case __StringValue("dexterity")    => Right(AbilityType.dexterity)
+      case __StringValue("intelligence") => Right(AbilityType.intelligence)
+      case __StringValue("strength")     => Right(AbilityType.strength)
+      case __StringValue("wisdom")       => Right(AbilityType.wisdom)
+      case other                         => Left(DecodingError(s"Can't build AbilityType from input $other"))
+    }
+    implicit val encoder: ArgEncoder[AbilityType] = {
+      case AbilityType.charisma     => __EnumValue("charisma")
+      case AbilityType.constitution => __EnumValue("constitution")
+      case AbilityType.dexterity    => __EnumValue("dexterity")
+      case AbilityType.intelligence => __EnumValue("intelligence")
+      case AbilityType.strength     => __EnumValue("strength")
+      case AbilityType.wisdom       => __EnumValue("wisdom")
+    }
+
+    val values: scala.collection.immutable.Vector[AbilityType] =
+      scala.collection.immutable.Vector(charisma, constitution, dexterity, intelligence, strength, wisdom)
+
+  }
+
+  sealed trait ActionType extends scala.Product with scala.Serializable { def value: String }
+  object ActionType {
+
+    case object Ability extends ActionType { val value: String = "Ability" }
+    case object Melee extends ActionType { val value: String = "Melee" }
+    case object Ranged extends ActionType { val value: String = "Ranged" }
+    case object Spell extends ActionType { val value: String = "Spell" }
+
+    implicit val decoder: ScalarDecoder[ActionType] = {
+      case __StringValue("Ability") => Right(ActionType.Ability)
+      case __StringValue("Melee")   => Right(ActionType.Melee)
+      case __StringValue("Ranged")  => Right(ActionType.Ranged)
+      case __StringValue("Spell")   => Right(ActionType.Spell)
+      case other                    => Left(DecodingError(s"Can't build ActionType from input $other"))
+    }
+    implicit val encoder: ArgEncoder[ActionType] = {
+      case ActionType.Ability => __EnumValue("Ability")
+      case ActionType.Melee   => __EnumValue("Melee")
+      case ActionType.Ranged  => __EnumValue("Ranged")
+      case ActionType.Spell   => __EnumValue("Spell")
+    }
+
+    val values: scala.collection.immutable.Vector[ActionType] =
+      scala.collection.immutable.Vector(Ability, Melee, Ranged, Spell)
+
+  }
+
+  sealed trait AdvantageDisadvantage extends scala.Product with scala.Serializable { def value: String }
+  object AdvantageDisadvantage {
+
+    case object advantage extends AdvantageDisadvantage { val value: String = "advantage" }
+    case object disadvantage extends AdvantageDisadvantage { val value: String = "disadvantage" }
+    case object neither extends AdvantageDisadvantage { val value: String = "neither" }
+
+    implicit val decoder: ScalarDecoder[AdvantageDisadvantage] = {
+      case __StringValue("advantage")    => Right(AdvantageDisadvantage.advantage)
+      case __StringValue("disadvantage") => Right(AdvantageDisadvantage.disadvantage)
+      case __StringValue("neither")      => Right(AdvantageDisadvantage.neither)
+      case other                         => Left(DecodingError(s"Can't build AdvantageDisadvantage from input $other"))
+    }
+    implicit val encoder: ArgEncoder[AdvantageDisadvantage] = {
+      case AdvantageDisadvantage.advantage    => __EnumValue("advantage")
+      case AdvantageDisadvantage.disadvantage => __EnumValue("disadvantage")
+      case AdvantageDisadvantage.neither      => __EnumValue("neither")
+    }
+
+    val values: scala.collection.immutable.Vector[AdvantageDisadvantage] =
+      scala.collection.immutable.Vector(advantage, disadvantage, neither)
+
+  }
+
   sealed trait Alignment extends scala.Product with scala.Serializable { def value: String }
   object Alignment {
 
@@ -305,6 +389,81 @@ object DND5eClient {
 
   }
 
+  sealed trait Condition extends scala.Product with scala.Serializable { def value: String }
+  object Condition {
+
+    case object blinded extends Condition { val value: String = "blinded" }
+    case object charmed extends Condition { val value: String = "charmed" }
+    case object deafened extends Condition { val value: String = "deafened" }
+    case object exhaustion extends Condition { val value: String = "exhaustion" }
+    case object frightened extends Condition { val value: String = "frightened" }
+    case object grappled extends Condition { val value: String = "grappled" }
+    case object incapacitated extends Condition { val value: String = "incapacitated" }
+    case object invisible extends Condition { val value: String = "invisible" }
+    case object paralyzed extends Condition { val value: String = "paralyzed" }
+    case object petrified extends Condition { val value: String = "petrified" }
+    case object poisoned extends Condition { val value: String = "poisoned" }
+    case object prone extends Condition { val value: String = "prone" }
+    case object restrained extends Condition { val value: String = "restrained" }
+    case object stunned extends Condition { val value: String = "stunned" }
+    case object unconscious extends Condition { val value: String = "unconscious" }
+
+    implicit val decoder: ScalarDecoder[Condition] = {
+      case __StringValue("blinded")       => Right(Condition.blinded)
+      case __StringValue("charmed")       => Right(Condition.charmed)
+      case __StringValue("deafened")      => Right(Condition.deafened)
+      case __StringValue("exhaustion")    => Right(Condition.exhaustion)
+      case __StringValue("frightened")    => Right(Condition.frightened)
+      case __StringValue("grappled")      => Right(Condition.grappled)
+      case __StringValue("incapacitated") => Right(Condition.incapacitated)
+      case __StringValue("invisible")     => Right(Condition.invisible)
+      case __StringValue("paralyzed")     => Right(Condition.paralyzed)
+      case __StringValue("petrified")     => Right(Condition.petrified)
+      case __StringValue("poisoned")      => Right(Condition.poisoned)
+      case __StringValue("prone")         => Right(Condition.prone)
+      case __StringValue("restrained")    => Right(Condition.restrained)
+      case __StringValue("stunned")       => Right(Condition.stunned)
+      case __StringValue("unconscious")   => Right(Condition.unconscious)
+      case other                          => Left(DecodingError(s"Can't build Condition from input $other"))
+    }
+    implicit val encoder: ArgEncoder[Condition] = {
+      case Condition.blinded       => __EnumValue("blinded")
+      case Condition.charmed       => __EnumValue("charmed")
+      case Condition.deafened      => __EnumValue("deafened")
+      case Condition.exhaustion    => __EnumValue("exhaustion")
+      case Condition.frightened    => __EnumValue("frightened")
+      case Condition.grappled      => __EnumValue("grappled")
+      case Condition.incapacitated => __EnumValue("incapacitated")
+      case Condition.invisible     => __EnumValue("invisible")
+      case Condition.paralyzed     => __EnumValue("paralyzed")
+      case Condition.petrified     => __EnumValue("petrified")
+      case Condition.poisoned      => __EnumValue("poisoned")
+      case Condition.prone         => __EnumValue("prone")
+      case Condition.restrained    => __EnumValue("restrained")
+      case Condition.stunned       => __EnumValue("stunned")
+      case Condition.unconscious   => __EnumValue("unconscious")
+    }
+
+    val values: scala.collection.immutable.Vector[Condition] = scala.collection.immutable.Vector(
+      blinded,
+      charmed,
+      deafened,
+      exhaustion,
+      frightened,
+      grappled,
+      incapacitated,
+      invisible,
+      paralyzed,
+      petrified,
+      poisoned,
+      prone,
+      restrained,
+      stunned,
+      unconscious
+    )
+
+  }
+
   sealed trait CreatureSize extends scala.Product with scala.Serializable { def value: String }
   object CreatureSize {
 
@@ -338,6 +497,45 @@ object DND5eClient {
 
     val values: scala.collection.immutable.Vector[CreatureSize] =
       scala.collection.immutable.Vector(gargantuan, huge, large, medium, small, tiny, unknown)
+
+  }
+
+  sealed trait Lifestyle extends scala.Product with scala.Serializable { def value: String }
+  object Lifestyle {
+
+    case object aristocratic extends Lifestyle { val value: String = "aristocratic" }
+    case object comfortable extends Lifestyle { val value: String = "comfortable" }
+    case object modest extends Lifestyle { val value: String = "modest" }
+    case object poor extends Lifestyle { val value: String = "poor" }
+    case object squalid extends Lifestyle { val value: String = "squalid" }
+    case object unknown extends Lifestyle { val value: String = "unknown" }
+    case object wealthy extends Lifestyle { val value: String = "wealthy" }
+    case object wretched extends Lifestyle { val value: String = "wretched" }
+
+    implicit val decoder: ScalarDecoder[Lifestyle] = {
+      case __StringValue("aristocratic") => Right(Lifestyle.aristocratic)
+      case __StringValue("comfortable")  => Right(Lifestyle.comfortable)
+      case __StringValue("modest")       => Right(Lifestyle.modest)
+      case __StringValue("poor")         => Right(Lifestyle.poor)
+      case __StringValue("squalid")      => Right(Lifestyle.squalid)
+      case __StringValue("unknown")      => Right(Lifestyle.unknown)
+      case __StringValue("wealthy")      => Right(Lifestyle.wealthy)
+      case __StringValue("wretched")     => Right(Lifestyle.wretched)
+      case other                         => Left(DecodingError(s"Can't build Lifestyle from input $other"))
+    }
+    implicit val encoder: ArgEncoder[Lifestyle] = {
+      case Lifestyle.aristocratic => __EnumValue("aristocratic")
+      case Lifestyle.comfortable  => __EnumValue("comfortable")
+      case Lifestyle.modest       => __EnumValue("modest")
+      case Lifestyle.poor         => __EnumValue("poor")
+      case Lifestyle.squalid      => __EnumValue("squalid")
+      case Lifestyle.unknown      => __EnumValue("unknown")
+      case Lifestyle.wealthy      => __EnumValue("wealthy")
+      case Lifestyle.wretched     => __EnumValue("wretched")
+    }
+
+    val values: scala.collection.immutable.Vector[Lifestyle] =
+      scala.collection.immutable.Vector(aristocratic, comfortable, modest, poor, squalid, unknown, wealthy, wretched)
 
   }
 
@@ -476,6 +674,33 @@ object DND5eClient {
 
   }
 
+  sealed trait ProficiencyLevel extends scala.Product with scala.Serializable { def value: String }
+  object ProficiencyLevel {
+
+    case object expert extends ProficiencyLevel { val value: String = "expert" }
+    case object half extends ProficiencyLevel { val value: String = "half" }
+    case object none extends ProficiencyLevel { val value: String = "none" }
+    case object proficient extends ProficiencyLevel { val value: String = "proficient" }
+
+    implicit val decoder: ScalarDecoder[ProficiencyLevel] = {
+      case __StringValue("expert")     => Right(ProficiencyLevel.expert)
+      case __StringValue("half")       => Right(ProficiencyLevel.half)
+      case __StringValue("none")       => Right(ProficiencyLevel.none)
+      case __StringValue("proficient") => Right(ProficiencyLevel.proficient)
+      case other                       => Left(DecodingError(s"Can't build ProficiencyLevel from input $other"))
+    }
+    implicit val encoder: ArgEncoder[ProficiencyLevel] = {
+      case ProficiencyLevel.expert     => __EnumValue("expert")
+      case ProficiencyLevel.half       => __EnumValue("half")
+      case ProficiencyLevel.none       => __EnumValue("none")
+      case ProficiencyLevel.proficient => __EnumValue("proficient")
+    }
+
+    val values: scala.collection.immutable.Vector[ProficiencyLevel] =
+      scala.collection.immutable.Vector(expert, half, none, proficient)
+
+  }
+
   sealed trait RandomTableType extends scala.Product with scala.Serializable { def value: String }
   object RandomTableType {
 
@@ -509,6 +734,317 @@ object DND5eClient {
 
   }
 
+  sealed trait RelationToPlayers extends scala.Product with scala.Serializable { def value: String }
+  object RelationToPlayers {
+
+    case object ally extends RelationToPlayers { val value: String = "ally" }
+    case object enemy extends RelationToPlayers { val value: String = "enemy" }
+    case object itsComplicated extends RelationToPlayers { val value: String = "itsComplicated" }
+    case object neutral extends RelationToPlayers { val value: String = "neutral" }
+    case object unknown extends RelationToPlayers { val value: String = "unknown" }
+
+    implicit val decoder: ScalarDecoder[RelationToPlayers] = {
+      case __StringValue("ally")           => Right(RelationToPlayers.ally)
+      case __StringValue("enemy")          => Right(RelationToPlayers.enemy)
+      case __StringValue("itsComplicated") => Right(RelationToPlayers.itsComplicated)
+      case __StringValue("neutral")        => Right(RelationToPlayers.neutral)
+      case __StringValue("unknown")        => Right(RelationToPlayers.unknown)
+      case other                           => Left(DecodingError(s"Can't build RelationToPlayers from input $other"))
+    }
+    implicit val encoder: ArgEncoder[RelationToPlayers] = {
+      case RelationToPlayers.ally           => __EnumValue("ally")
+      case RelationToPlayers.enemy          => __EnumValue("enemy")
+      case RelationToPlayers.itsComplicated => __EnumValue("itsComplicated")
+      case RelationToPlayers.neutral        => __EnumValue("neutral")
+      case RelationToPlayers.unknown        => __EnumValue("unknown")
+    }
+
+    val values: scala.collection.immutable.Vector[RelationToPlayers] =
+      scala.collection.immutable.Vector(ally, enemy, itsComplicated, neutral, unknown)
+
+  }
+
+  sealed trait Sense extends scala.Product with scala.Serializable { def value: String }
+  object Sense {
+
+    case object blindsight extends Sense { val value: String = "blindsight" }
+    case object darkvision extends Sense { val value: String = "darkvision" }
+    case object other extends Sense { val value: String = "other" }
+    case object scent extends Sense { val value: String = "scent" }
+    case object sight extends Sense { val value: String = "sight" }
+    case object tremorsense extends Sense { val value: String = "tremorsense" }
+    case object truesight extends Sense { val value: String = "truesight" }
+
+    implicit val decoder: ScalarDecoder[Sense] = {
+      case __StringValue("blindsight")  => Right(Sense.blindsight)
+      case __StringValue("darkvision")  => Right(Sense.darkvision)
+      case __StringValue("other")       => Right(Sense.other)
+      case __StringValue("scent")       => Right(Sense.scent)
+      case __StringValue("sight")       => Right(Sense.sight)
+      case __StringValue("tremorsense") => Right(Sense.tremorsense)
+      case __StringValue("truesight")   => Right(Sense.truesight)
+      case other                        => Left(DecodingError(s"Can't build Sense from input $other"))
+    }
+    implicit val encoder: ArgEncoder[Sense] = {
+      case Sense.blindsight  => __EnumValue("blindsight")
+      case Sense.darkvision  => __EnumValue("darkvision")
+      case Sense.other       => __EnumValue("other")
+      case Sense.scent       => __EnumValue("scent")
+      case Sense.sight       => __EnumValue("sight")
+      case Sense.tremorsense => __EnumValue("tremorsense")
+      case Sense.truesight   => __EnumValue("truesight")
+    }
+
+    val values: scala.collection.immutable.Vector[Sense] =
+      scala.collection.immutable.Vector(blindsight, darkvision, other, scent, sight, tremorsense, truesight)
+
+  }
+
+  sealed trait SkillType extends scala.Product with scala.Serializable { def value: String }
+  object SkillType {
+
+    case object acrobatics extends SkillType { val value: String = "acrobatics" }
+    case object animalHandling extends SkillType { val value: String = "animalHandling" }
+    case object arcana extends SkillType { val value: String = "arcana" }
+    case object athletics extends SkillType { val value: String = "athletics" }
+    case object deception extends SkillType { val value: String = "deception" }
+    case object history extends SkillType { val value: String = "history" }
+    case object insight extends SkillType { val value: String = "insight" }
+    case object intimidation extends SkillType { val value: String = "intimidation" }
+    case object investigation extends SkillType { val value: String = "investigation" }
+    case object medicine extends SkillType { val value: String = "medicine" }
+    case object nature extends SkillType { val value: String = "nature" }
+    case object perception extends SkillType { val value: String = "perception" }
+    case object performance extends SkillType { val value: String = "performance" }
+    case object persuasion extends SkillType { val value: String = "persuasion" }
+    case object religion extends SkillType { val value: String = "religion" }
+    case object sleightOfHand extends SkillType { val value: String = "sleightOfHand" }
+    case object stealth extends SkillType { val value: String = "stealth" }
+    case object survival extends SkillType { val value: String = "survival" }
+
+    implicit val decoder: ScalarDecoder[SkillType] = {
+      case __StringValue("acrobatics")     => Right(SkillType.acrobatics)
+      case __StringValue("animalHandling") => Right(SkillType.animalHandling)
+      case __StringValue("arcana")         => Right(SkillType.arcana)
+      case __StringValue("athletics")      => Right(SkillType.athletics)
+      case __StringValue("deception")      => Right(SkillType.deception)
+      case __StringValue("history")        => Right(SkillType.history)
+      case __StringValue("insight")        => Right(SkillType.insight)
+      case __StringValue("intimidation")   => Right(SkillType.intimidation)
+      case __StringValue("investigation")  => Right(SkillType.investigation)
+      case __StringValue("medicine")       => Right(SkillType.medicine)
+      case __StringValue("nature")         => Right(SkillType.nature)
+      case __StringValue("perception")     => Right(SkillType.perception)
+      case __StringValue("performance")    => Right(SkillType.performance)
+      case __StringValue("persuasion")     => Right(SkillType.persuasion)
+      case __StringValue("religion")       => Right(SkillType.religion)
+      case __StringValue("sleightOfHand")  => Right(SkillType.sleightOfHand)
+      case __StringValue("stealth")        => Right(SkillType.stealth)
+      case __StringValue("survival")       => Right(SkillType.survival)
+      case other                           => Left(DecodingError(s"Can't build SkillType from input $other"))
+    }
+    implicit val encoder: ArgEncoder[SkillType] = {
+      case SkillType.acrobatics     => __EnumValue("acrobatics")
+      case SkillType.animalHandling => __EnumValue("animalHandling")
+      case SkillType.arcana         => __EnumValue("arcana")
+      case SkillType.athletics      => __EnumValue("athletics")
+      case SkillType.deception      => __EnumValue("deception")
+      case SkillType.history        => __EnumValue("history")
+      case SkillType.insight        => __EnumValue("insight")
+      case SkillType.intimidation   => __EnumValue("intimidation")
+      case SkillType.investigation  => __EnumValue("investigation")
+      case SkillType.medicine       => __EnumValue("medicine")
+      case SkillType.nature         => __EnumValue("nature")
+      case SkillType.perception     => __EnumValue("perception")
+      case SkillType.performance    => __EnumValue("performance")
+      case SkillType.persuasion     => __EnumValue("persuasion")
+      case SkillType.religion       => __EnumValue("religion")
+      case SkillType.sleightOfHand  => __EnumValue("sleightOfHand")
+      case SkillType.stealth        => __EnumValue("stealth")
+      case SkillType.survival       => __EnumValue("survival")
+    }
+
+    val values: scala.collection.immutable.Vector[SkillType] = scala.collection.immutable.Vector(
+      acrobatics,
+      animalHandling,
+      arcana,
+      athletics,
+      deception,
+      history,
+      insight,
+      intimidation,
+      investigation,
+      medicine,
+      nature,
+      perception,
+      performance,
+      persuasion,
+      religion,
+      sleightOfHand,
+      stealth,
+      survival
+    )
+
+  }
+
+  sealed trait SpeedType extends scala.Product with scala.Serializable { def value: String }
+  object SpeedType {
+
+    case object burrow extends SpeedType { val value: String = "burrow" }
+    case object climb extends SpeedType { val value: String = "climb" }
+    case object fly extends SpeedType { val value: String = "fly" }
+    case object swim extends SpeedType { val value: String = "swim" }
+    case object walk extends SpeedType { val value: String = "walk" }
+
+    implicit val decoder: ScalarDecoder[SpeedType] = {
+      case __StringValue("burrow") => Right(SpeedType.burrow)
+      case __StringValue("climb")  => Right(SpeedType.climb)
+      case __StringValue("fly")    => Right(SpeedType.fly)
+      case __StringValue("swim")   => Right(SpeedType.swim)
+      case __StringValue("walk")   => Right(SpeedType.walk)
+      case other                   => Left(DecodingError(s"Can't build SpeedType from input $other"))
+    }
+    implicit val encoder: ArgEncoder[SpeedType] = {
+      case SpeedType.burrow => __EnumValue("burrow")
+      case SpeedType.climb  => __EnumValue("climb")
+      case SpeedType.fly    => __EnumValue("fly")
+      case SpeedType.swim   => __EnumValue("swim")
+      case SpeedType.walk   => __EnumValue("walk")
+    }
+
+    val values: scala.collection.immutable.Vector[SpeedType] =
+      scala.collection.immutable.Vector(burrow, climb, fly, swim, walk)
+
+  }
+
+  type Abilities
+  object Abilities {
+
+    final case class AbilitiesView[
+      StrengthSelection,
+      DexteritySelection,
+      ConstitutionSelection,
+      IntelligenceSelection,
+      WisdomSelection,
+      CharismaSelection
+    ](
+      strength:     StrengthSelection,
+      dexterity:    DexteritySelection,
+      constitution: ConstitutionSelection,
+      intelligence: IntelligenceSelection,
+      wisdom:       WisdomSelection,
+      charisma:     CharismaSelection
+    )
+
+    type ViewSelection[
+      StrengthSelection,
+      DexteritySelection,
+      ConstitutionSelection,
+      IntelligenceSelection,
+      WisdomSelection,
+      CharismaSelection
+    ] = SelectionBuilder[
+      Abilities,
+      AbilitiesView[
+        StrengthSelection,
+        DexteritySelection,
+        ConstitutionSelection,
+        IntelligenceSelection,
+        WisdomSelection,
+        CharismaSelection
+      ]
+    ]
+
+    def view[
+      StrengthSelection,
+      DexteritySelection,
+      ConstitutionSelection,
+      IntelligenceSelection,
+      WisdomSelection,
+      CharismaSelection
+    ](
+      strengthSelection:     SelectionBuilder[Ability, StrengthSelection],
+      dexteritySelection:    SelectionBuilder[Ability, DexteritySelection],
+      constitutionSelection: SelectionBuilder[Ability, ConstitutionSelection],
+      intelligenceSelection: SelectionBuilder[Ability, IntelligenceSelection],
+      wisdomSelection:       SelectionBuilder[Ability, WisdomSelection],
+      charismaSelection:     SelectionBuilder[Ability, CharismaSelection]
+    ): ViewSelection[
+      StrengthSelection,
+      DexteritySelection,
+      ConstitutionSelection,
+      IntelligenceSelection,
+      WisdomSelection,
+      CharismaSelection
+    ] =
+      (strength(strengthSelection) ~ dexterity(dexteritySelection) ~ constitution(constitutionSelection) ~ intelligence(
+        intelligenceSelection
+      ) ~ wisdom(wisdomSelection) ~ charisma(charismaSelection)).map {
+        case (strength, dexterity, constitution, intelligence, wisdom, charisma) =>
+          AbilitiesView(strength, dexterity, constitution, intelligence, wisdom, charisma)
+      }
+
+    def strength[A](innerSelection: SelectionBuilder[Ability, A]): SelectionBuilder[Abilities, A] =
+      _root_.caliban.client.SelectionBuilder.Field("strength", Obj(innerSelection))
+    def dexterity[A](innerSelection: SelectionBuilder[Ability, A]): SelectionBuilder[Abilities, A] =
+      _root_.caliban.client.SelectionBuilder.Field("dexterity", Obj(innerSelection))
+    def constitution[A](innerSelection: SelectionBuilder[Ability, A]): SelectionBuilder[Abilities, A] =
+      _root_.caliban.client.SelectionBuilder.Field("constitution", Obj(innerSelection))
+    def intelligence[A](innerSelection: SelectionBuilder[Ability, A]): SelectionBuilder[Abilities, A] =
+      _root_.caliban.client.SelectionBuilder.Field("intelligence", Obj(innerSelection))
+    def wisdom[A](innerSelection: SelectionBuilder[Ability, A]): SelectionBuilder[Abilities, A] =
+      _root_.caliban.client.SelectionBuilder.Field("wisdom", Obj(innerSelection))
+    def charisma[A](innerSelection: SelectionBuilder[Ability, A]): SelectionBuilder[Abilities, A] =
+      _root_.caliban.client.SelectionBuilder.Field("charisma", Obj(innerSelection))
+
+  }
+
+  type Ability
+  object Ability {
+
+    final case class AbilityView(
+      abilityType:   AbilityType,
+      value:         Int,
+      overrideValue: scala.Option[Int],
+      isProficient:  Boolean
+    )
+
+    type ViewSelection = SelectionBuilder[Ability, AbilityView]
+
+    def view: ViewSelection =
+      (abilityType ~ value ~ overrideValue ~ isProficient).map {
+        case (abilityType, value, overrideValue, isProficient) =>
+          AbilityView(abilityType, value, overrideValue, isProficient)
+      }
+
+    def abilityType: SelectionBuilder[Ability, AbilityType] =
+      _root_.caliban.client.SelectionBuilder.Field("abilityType", Scalar())
+    def value: SelectionBuilder[Ability, Int] = _root_.caliban.client.SelectionBuilder.Field("value", Scalar())
+    def overrideValue: SelectionBuilder[Ability, scala.Option[Int]] =
+      _root_.caliban.client.SelectionBuilder.Field("overrideValue", OptionOf(Scalar()))
+    def isProficient: SelectionBuilder[Ability, Boolean] =
+      _root_.caliban.client.SelectionBuilder.Field("isProficient", Scalar())
+
+  }
+
+  type ActionDC
+  object ActionDC {
+
+    final case class ActionDCView(
+      dcType:  AbilityType,
+      dcValue: Int
+    )
+
+    type ViewSelection = SelectionBuilder[ActionDC, ActionDCView]
+
+    def view: ViewSelection = (dcType ~ dcValue).map { case (dcType, dcValue) => ActionDCView(dcType, dcValue) }
+
+    def dcType: SelectionBuilder[ActionDC, AbilityType] =
+      _root_.caliban.client.SelectionBuilder.Field("dcType", Scalar())
+    def dcValue: SelectionBuilder[ActionDC, Int] = _root_.caliban.client.SelectionBuilder.Field("dcValue", Scalar())
+
+  }
+
   type Background
   object Background {
 
@@ -539,6 +1075,63 @@ object DND5eClient {
     def id: SelectionBuilder[CharacterClass, String] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
     def hitDice[A](innerSelection: SelectionBuilder[DiceRoll, A]): SelectionBuilder[CharacterClass, A] =
       _root_.caliban.client.SelectionBuilder.Field("hitDice", Obj(innerSelection))
+
+  }
+
+  type Creature
+  object Creature {
+
+    final case class CreatureView(
+      name:         String,
+      creatureType: Long
+    )
+
+    type ViewSelection = SelectionBuilder[Creature, CreatureView]
+
+    def view: ViewSelection =
+      (name ~ creatureType).map { case (name, creatureType) => CreatureView(name, creatureType) }
+
+    def name: SelectionBuilder[Creature, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def creatureType: SelectionBuilder[Creature, Long] =
+      _root_.caliban.client.SelectionBuilder.Field("creatureType", Scalar())
+
+  }
+
+  type DamageType
+  object DamageType {
+
+    final case class DamageTypeView(description: String)
+
+    type ViewSelection = SelectionBuilder[DamageType, DamageTypeView]
+
+    def view: ViewSelection = description.map(description => DamageTypeView(description))
+
+    def description: SelectionBuilder[DamageType, String] =
+      _root_.caliban.client.SelectionBuilder.Field("description", Scalar())
+
+  }
+
+  type DeathSave
+  object DeathSave {
+
+    final case class DeathSaveView(
+      fails:        Int,
+      successes:    Int,
+      isStabilized: Boolean
+    )
+
+    type ViewSelection = SelectionBuilder[DeathSave, DeathSaveView]
+
+    def view: ViewSelection =
+      (fails ~ successes ~ isStabilized).map { case (fails, successes, isStabilized) =>
+        DeathSaveView(fails, successes, isStabilized)
+      }
+
+    def fails: SelectionBuilder[DeathSave, Int] = _root_.caliban.client.SelectionBuilder.Field("fails", Scalar())
+    def successes: SelectionBuilder[DeathSave, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("successes", Scalar())
+    def isStabilized: SelectionBuilder[DeathSave, Boolean] =
+      _root_.caliban.client.SelectionBuilder.Field("isStabilized", Scalar())
 
   }
 
@@ -613,6 +1206,70 @@ object DND5eClient {
 
   }
 
+  type Feat
+  object Feat {
+
+    final case class FeatView(name: String)
+
+    type ViewSelection = SelectionBuilder[Feat, FeatView]
+
+    def view: ViewSelection = name.map(name => FeatView(name))
+
+    def name: SelectionBuilder[Feat, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+
+  }
+
+  type Health
+  object Health {
+
+    final case class HealthView[DeathSaveSelection](
+      deathSave:            DeathSaveSelection,
+      currentHitPoints:     Int,
+      maxHitPoints:         Int,
+      overrideMaxHitPoints: scala.Option[Int],
+      temporaryHitPoints:   Int
+    )
+
+    type ViewSelection[DeathSaveSelection] = SelectionBuilder[Health, HealthView[DeathSaveSelection]]
+
+    def view[DeathSaveSelection](deathSaveSelection: SelectionBuilder[DeathSave, DeathSaveSelection])
+      : ViewSelection[DeathSaveSelection] =
+      (deathSave(deathSaveSelection) ~ currentHitPoints ~ maxHitPoints ~ overrideMaxHitPoints ~ temporaryHitPoints)
+        .map { case (deathSave, currentHitPoints, maxHitPoints, overrideMaxHitPoints, temporaryHitPoints) =>
+          HealthView(deathSave, currentHitPoints, maxHitPoints, overrideMaxHitPoints, temporaryHitPoints)
+        }
+
+    def deathSave[A](innerSelection: SelectionBuilder[DeathSave, A]): SelectionBuilder[Health, A] =
+      _root_.caliban.client.SelectionBuilder.Field("deathSave", Obj(innerSelection))
+    def currentHitPoints: SelectionBuilder[Health, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("currentHitPoints", Scalar())
+    def maxHitPoints: SelectionBuilder[Health, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("maxHitPoints", Scalar())
+    def overrideMaxHitPoints: SelectionBuilder[Health, scala.Option[Int]] =
+      _root_.caliban.client.SelectionBuilder.Field("overrideMaxHitPoints", OptionOf(Scalar()))
+    def temporaryHitPoints: SelectionBuilder[Health, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("temporaryHitPoints", Scalar())
+
+  }
+
+  type InventoryItem
+  object InventoryItem {
+
+    final case class InventoryItemView(
+      name:     String,
+      quantity: Int
+    )
+
+    type ViewSelection = SelectionBuilder[InventoryItem, InventoryItemView]
+
+    def view: ViewSelection = (name ~ quantity).map { case (name, quantity) => InventoryItemView(name, quantity) }
+
+    def name: SelectionBuilder[InventoryItem, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def quantity: SelectionBuilder[InventoryItem, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("quantity", Scalar())
+
+  }
+
   type KVLongListOfLong
   object KVLongListOfLong {
 
@@ -633,6 +1290,19 @@ object DND5eClient {
       */
     def value: SelectionBuilder[KVLongListOfLong, List[Long]] =
       _root_.caliban.client.SelectionBuilder.Field("value", ListOf(Scalar()))
+
+  }
+
+  type Language
+  object Language {
+
+    final case class LanguageView(name: String)
+
+    type ViewSelection = SelectionBuilder[Language, LanguageView]
+
+    def view: ViewSelection = name.map(name => LanguageView(name))
+
+    def name: SelectionBuilder[Language, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
 
   }
 
@@ -761,6 +1431,31 @@ object DND5eClient {
 
   }
 
+  type MultiAction
+  object MultiAction {
+
+    final case class MultiActionView[ActionsSelection](
+      name:        String,
+      description: scala.Option[String],
+      actions:     List[ActionsSelection]
+    )
+
+    type ViewSelection[ActionsSelection] = SelectionBuilder[MultiAction, MultiActionView[ActionsSelection]]
+
+    def view[ActionsSelection](actionsSelection: SelectionBuilder[SingleAction, ActionsSelection])
+      : ViewSelection[ActionsSelection] =
+      (name ~ description ~ actions(actionsSelection)).map { case (name, description, actions) =>
+        MultiActionView(name, description, actions)
+      }
+
+    def name: SelectionBuilder[MultiAction, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def description: SelectionBuilder[MultiAction, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("description", OptionOf(Scalar()))
+    def actions[A](innerSelection: SelectionBuilder[SingleAction, A]): SelectionBuilder[MultiAction, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("actions", ListOf(Obj(innerSelection)))
+
+  }
+
   type NonPlayerCharacter
   object NonPlayerCharacter {
 
@@ -811,6 +1506,562 @@ object DND5eClient {
 
   }
 
+  type NonPlayerCharacterInfo
+  object NonPlayerCharacterInfo {
+
+    final case class NonPlayerCharacterInfoView[
+      HealthSelection,
+      ClassesSelection,
+      PhysicalCharacteristicsSelection,
+      AbilitiesSelection,
+      SkillsSelection,
+      BackgroundSelection,
+      RaceSelection,
+      InventorySelection,
+      WalletSelection,
+      FeatsSelection,
+      SpellSlotsSelection,
+      PactMagicSelection,
+      LanguagesSelection,
+      ActionsSelection,
+      ClassSpellsSelection,
+      CreaturesSelection,
+      SpeedsSelection,
+      SensesSelection,
+      DamageVulnerabilitiesSelection,
+      DamageResistancesSelection,
+      DamageImmunitiesSelection,
+      RollplayInfoSelection,
+      TraitsSelection
+    ](
+      health:                  HealthSelection,
+      armorClass:              Int,
+      classes:                 List[ClassesSelection],
+      physicalCharacteristics: PhysicalCharacteristicsSelection,
+      faith:                   scala.Option[String],
+      overrideInitiative:      scala.Option[Int],
+      currentXp:               scala.Option[Long],
+      alignment:               Alignment,
+      lifestyle:               Lifestyle,
+      abilities:               AbilitiesSelection,
+      skills:                  SkillsSelection,
+      background:              scala.Option[BackgroundSelection],
+      race:                    RaceSelection,
+      size:                    CreatureSize,
+      inventory:               List[InventorySelection],
+      wallet:                  WalletSelection,
+      feats:                   List[FeatsSelection],
+      conditions:              List[Condition],
+      spellSlots:              List[SpellSlotsSelection],
+      pactMagic:               List[PactMagicSelection],
+      languages:               List[LanguagesSelection],
+      actions:                 List[ActionsSelection],
+      classSpells:             List[ClassSpellsSelection],
+      creatures:               List[CreaturesSelection],
+      speeds:                  List[SpeedsSelection],
+      senses:                  List[SensesSelection],
+      hair:                    String,
+      skin:                    String,
+      eyes:                    String,
+      height:                  String,
+      weight:                  String,
+      age:                     String,
+      gender:                  String,
+      conditionImmunities:     List[Condition],
+      damageVulnerabilities:   List[DamageVulnerabilitiesSelection],
+      damageResistances:       List[DamageResistancesSelection],
+      damageImmunities:        List[DamageImmunitiesSelection],
+      notes:                   String,
+      rollplayInfo:            RollplayInfoSelection,
+      monster:                 scala.Option[Long],
+      challengeRating:         scala.Option[ChallengeRating],
+      relationToPlayers:       RelationToPlayers,
+      traits:                  TraitsSelection,
+      organizations:           String,
+      allies:                  String,
+      enemies:                 String,
+      backstory:               String
+    )
+
+    final case class NonPlayerCharacterInfoViewSelectionArgs[
+      HealthSelection,
+      ClassesSelection,
+      PhysicalCharacteristicsSelection,
+      AbilitiesSelection,
+      SkillsSelection,
+      BackgroundSelection,
+      RaceSelection,
+      InventorySelection,
+      WalletSelection,
+      FeatsSelection,
+      SpellSlotsSelection,
+      PactMagicSelection,
+      LanguagesSelection,
+      ActionsSelection,
+      ClassSpellsSelection,
+      CreaturesSelection,
+      SpeedsSelection,
+      SensesSelection,
+      DamageVulnerabilitiesSelection,
+      DamageResistancesSelection,
+      DamageImmunitiesSelection,
+      RollplayInfoSelection,
+      TraitsSelection
+    ](
+      healthSelection:                  SelectionBuilder[Health, HealthSelection],
+      classesSelection:                 SelectionBuilder[PlayerCharacterClass, ClassesSelection],
+      physicalCharacteristicsSelection: SelectionBuilder[PhysicalCharacteristics, PhysicalCharacteristicsSelection],
+      abilitiesSelection:               SelectionBuilder[Abilities, AbilitiesSelection],
+      skillsSelection:                  SelectionBuilder[Skills, SkillsSelection],
+      backgroundSelection:              SelectionBuilder[Background, BackgroundSelection],
+      raceSelection:                    SelectionBuilder[Race, RaceSelection],
+      inventorySelection:               SelectionBuilder[InventoryItem, InventorySelection],
+      walletSelection:                  SelectionBuilder[Wallet, WalletSelection],
+      featsSelection:                   SelectionBuilder[Feat, FeatsSelection],
+      spellSlotsSelection:              SelectionBuilder[SpellSlots, SpellSlotsSelection],
+      pactMagicSelection:               SelectionBuilder[SpellSlots, PactMagicSelection],
+      languagesSelection:               SelectionBuilder[Language, LanguagesSelection],
+      actionsSelectionOnMultiAction:    SelectionBuilder[MultiAction, ActionsSelection],
+      actionsSelectionOnSingleAction:   SelectionBuilder[SingleAction, ActionsSelection],
+      classSpellsSelection:             SelectionBuilder[SpellHeader, ClassSpellsSelection],
+      creaturesSelection:               SelectionBuilder[Creature, CreaturesSelection],
+      speedsSelection:                  SelectionBuilder[Speed, SpeedsSelection],
+      sensesSelection:                  SelectionBuilder[SenseRange, SensesSelection],
+      damageVulnerabilitiesSelection:   SelectionBuilder[DamageType, DamageVulnerabilitiesSelection],
+      damageResistancesSelection:       SelectionBuilder[DamageType, DamageResistancesSelection],
+      damageImmunitiesSelection:        SelectionBuilder[DamageType, DamageImmunitiesSelection],
+      rollplayInfoSelection:            SelectionBuilder[RollplayInfo, RollplayInfoSelection],
+      traitsSelection:                  SelectionBuilder[Traits, TraitsSelection]
+    )
+
+    type ViewSelection[
+      HealthSelection,
+      ClassesSelection,
+      PhysicalCharacteristicsSelection,
+      AbilitiesSelection,
+      SkillsSelection,
+      BackgroundSelection,
+      RaceSelection,
+      InventorySelection,
+      WalletSelection,
+      FeatsSelection,
+      SpellSlotsSelection,
+      PactMagicSelection,
+      LanguagesSelection,
+      ActionsSelection,
+      ClassSpellsSelection,
+      CreaturesSelection,
+      SpeedsSelection,
+      SensesSelection,
+      DamageVulnerabilitiesSelection,
+      DamageResistancesSelection,
+      DamageImmunitiesSelection,
+      RollplayInfoSelection,
+      TraitsSelection
+    ] = SelectionBuilder[
+      NonPlayerCharacterInfo,
+      NonPlayerCharacterInfoView[
+        HealthSelection,
+        ClassesSelection,
+        PhysicalCharacteristicsSelection,
+        AbilitiesSelection,
+        SkillsSelection,
+        BackgroundSelection,
+        RaceSelection,
+        InventorySelection,
+        WalletSelection,
+        FeatsSelection,
+        SpellSlotsSelection,
+        PactMagicSelection,
+        LanguagesSelection,
+        ActionsSelection,
+        ClassSpellsSelection,
+        CreaturesSelection,
+        SpeedsSelection,
+        SensesSelection,
+        DamageVulnerabilitiesSelection,
+        DamageResistancesSelection,
+        DamageImmunitiesSelection,
+        RollplayInfoSelection,
+        TraitsSelection
+      ]
+    ]
+
+    def view[
+      HealthSelection,
+      ClassesSelection,
+      PhysicalCharacteristicsSelection,
+      AbilitiesSelection,
+      SkillsSelection,
+      BackgroundSelection,
+      RaceSelection,
+      InventorySelection,
+      WalletSelection,
+      FeatsSelection,
+      SpellSlotsSelection,
+      PactMagicSelection,
+      LanguagesSelection,
+      ActionsSelection,
+      ClassSpellsSelection,
+      CreaturesSelection,
+      SpeedsSelection,
+      SensesSelection,
+      DamageVulnerabilitiesSelection,
+      DamageResistancesSelection,
+      DamageImmunitiesSelection,
+      RollplayInfoSelection,
+      TraitsSelection
+    ](
+      selectionArgs: NonPlayerCharacterInfoViewSelectionArgs[
+        HealthSelection,
+        ClassesSelection,
+        PhysicalCharacteristicsSelection,
+        AbilitiesSelection,
+        SkillsSelection,
+        BackgroundSelection,
+        RaceSelection,
+        InventorySelection,
+        WalletSelection,
+        FeatsSelection,
+        SpellSlotsSelection,
+        PactMagicSelection,
+        LanguagesSelection,
+        ActionsSelection,
+        ClassSpellsSelection,
+        CreaturesSelection,
+        SpeedsSelection,
+        SensesSelection,
+        DamageVulnerabilitiesSelection,
+        DamageResistancesSelection,
+        DamageImmunitiesSelection,
+        RollplayInfoSelection,
+        TraitsSelection
+      ]
+    ): ViewSelection[
+      HealthSelection,
+      ClassesSelection,
+      PhysicalCharacteristicsSelection,
+      AbilitiesSelection,
+      SkillsSelection,
+      BackgroundSelection,
+      RaceSelection,
+      InventorySelection,
+      WalletSelection,
+      FeatsSelection,
+      SpellSlotsSelection,
+      PactMagicSelection,
+      LanguagesSelection,
+      ActionsSelection,
+      ClassSpellsSelection,
+      CreaturesSelection,
+      SpeedsSelection,
+      SensesSelection,
+      DamageVulnerabilitiesSelection,
+      DamageResistancesSelection,
+      DamageImmunitiesSelection,
+      RollplayInfoSelection,
+      TraitsSelection
+    ] =
+      ((health(selectionArgs.healthSelection) ~ armorClass ~ classes(
+        selectionArgs.classesSelection
+      ) ~ physicalCharacteristics(
+        selectionArgs.physicalCharacteristicsSelection
+      ) ~ faith ~ overrideInitiative ~ currentXp ~ alignment ~ lifestyle ~ abilities(
+        selectionArgs.abilitiesSelection
+      ) ~ skills(selectionArgs.skillsSelection) ~ background(selectionArgs.backgroundSelection) ~ race(
+        selectionArgs.raceSelection
+      ) ~ size ~ inventory(selectionArgs.inventorySelection) ~ wallet(selectionArgs.walletSelection) ~ feats(
+        selectionArgs.featsSelection
+      ) ~ conditions ~ spellSlots(selectionArgs.spellSlotsSelection) ~ pactMagic(
+        selectionArgs.pactMagicSelection
+      ) ~ languages(selectionArgs.languagesSelection) ~ actions(
+        selectionArgs.actionsSelectionOnMultiAction,
+        selectionArgs.actionsSelectionOnSingleAction
+      )) ~ (classSpells(selectionArgs.classSpellsSelection) ~ creatures(selectionArgs.creaturesSelection) ~ speeds(
+        selectionArgs.speedsSelection
+      ) ~ senses(
+        selectionArgs.sensesSelection
+      ) ~ hair ~ skin ~ eyes ~ height ~ weight ~ age ~ gender ~ conditionImmunities ~ damageVulnerabilities(
+        selectionArgs.damageVulnerabilitiesSelection
+      ) ~ damageResistances(selectionArgs.damageResistancesSelection) ~ damageImmunities(
+        selectionArgs.damageImmunitiesSelection
+      ) ~ notes ~ rollplayInfo(
+        selectionArgs.rollplayInfoSelection
+      ) ~ monster ~ challengeRating ~ relationToPlayers ~ traits(
+        selectionArgs.traitsSelection
+      ) ~ organizations) ~ (allies ~ enemies ~ backstory)).map {
+        case (
+              (
+                health,
+                armorClass,
+                classes,
+                physicalCharacteristics,
+                faith,
+                overrideInitiative,
+                currentXp,
+                alignment,
+                lifestyle,
+                abilities,
+                skills,
+                background,
+                race,
+                size,
+                inventory,
+                wallet,
+                feats,
+                conditions,
+                spellSlots,
+                pactMagic,
+                languages,
+                actions
+              ),
+              (
+                classSpells,
+                creatures,
+                speeds,
+                senses,
+                hair,
+                skin,
+                eyes,
+                height,
+                weight,
+                age,
+                gender,
+                conditionImmunities,
+                damageVulnerabilities,
+                damageResistances,
+                damageImmunities,
+                notes,
+                rollplayInfo,
+                monster,
+                challengeRating,
+                relationToPlayers,
+                traits,
+                organizations
+              ),
+              (allies, enemies, backstory)
+            ) =>
+          NonPlayerCharacterInfoView(
+            health,
+            armorClass,
+            classes,
+            physicalCharacteristics,
+            faith,
+            overrideInitiative,
+            currentXp,
+            alignment,
+            lifestyle,
+            abilities,
+            skills,
+            background,
+            race,
+            size,
+            inventory,
+            wallet,
+            feats,
+            conditions,
+            spellSlots,
+            pactMagic,
+            languages,
+            actions,
+            classSpells,
+            creatures,
+            speeds,
+            senses,
+            hair,
+            skin,
+            eyes,
+            height,
+            weight,
+            age,
+            gender,
+            conditionImmunities,
+            damageVulnerabilities,
+            damageResistances,
+            damageImmunities,
+            notes,
+            rollplayInfo,
+            monster,
+            challengeRating,
+            relationToPlayers,
+            traits,
+            organizations,
+            allies,
+            enemies,
+            backstory
+          )
+      }
+
+    def health[A](innerSelection: SelectionBuilder[Health, A]): SelectionBuilder[NonPlayerCharacterInfo, A] =
+      _root_.caliban.client.SelectionBuilder.Field("health", Obj(innerSelection))
+    def armorClass: SelectionBuilder[NonPlayerCharacterInfo, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("armorClass", Scalar())
+    def classes[A](innerSelection: SelectionBuilder[PlayerCharacterClass, A])
+      : SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("classes", ListOf(Obj(innerSelection)))
+    def physicalCharacteristics[A](innerSelection: SelectionBuilder[PhysicalCharacteristics, A])
+      : SelectionBuilder[NonPlayerCharacterInfo, A] =
+      _root_.caliban.client.SelectionBuilder.Field("physicalCharacteristics", Obj(innerSelection))
+    def faith: SelectionBuilder[NonPlayerCharacterInfo, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("faith", OptionOf(Scalar()))
+    def overrideInitiative: SelectionBuilder[NonPlayerCharacterInfo, scala.Option[Int]] =
+      _root_.caliban.client.SelectionBuilder.Field("overrideInitiative", OptionOf(Scalar()))
+    def currentXp: SelectionBuilder[NonPlayerCharacterInfo, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field("currentXp", OptionOf(Scalar()))
+    def alignment: SelectionBuilder[NonPlayerCharacterInfo, Alignment] =
+      _root_.caliban.client.SelectionBuilder.Field("alignment", Scalar())
+    def lifestyle: SelectionBuilder[NonPlayerCharacterInfo, Lifestyle] =
+      _root_.caliban.client.SelectionBuilder.Field("lifestyle", Scalar())
+    def abilities[A](innerSelection: SelectionBuilder[Abilities, A]): SelectionBuilder[NonPlayerCharacterInfo, A] =
+      _root_.caliban.client.SelectionBuilder.Field("abilities", Obj(innerSelection))
+    def skills[A](innerSelection: SelectionBuilder[Skills, A]): SelectionBuilder[NonPlayerCharacterInfo, A] =
+      _root_.caliban.client.SelectionBuilder.Field("skills", Obj(innerSelection))
+    def background[A](innerSelection: SelectionBuilder[Background, A])
+      : SelectionBuilder[NonPlayerCharacterInfo, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("background", OptionOf(Obj(innerSelection)))
+    def race[A](innerSelection: SelectionBuilder[Race, A]): SelectionBuilder[NonPlayerCharacterInfo, A] =
+      _root_.caliban.client.SelectionBuilder.Field("race", Obj(innerSelection))
+    def size: SelectionBuilder[NonPlayerCharacterInfo, CreatureSize] =
+      _root_.caliban.client.SelectionBuilder.Field("size", Scalar())
+    def inventory[A](innerSelection: SelectionBuilder[InventoryItem, A])
+      : SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("inventory", ListOf(Obj(innerSelection)))
+    def wallet[A](innerSelection: SelectionBuilder[Wallet, A]): SelectionBuilder[NonPlayerCharacterInfo, A] =
+      _root_.caliban.client.SelectionBuilder.Field("wallet", Obj(innerSelection))
+    def feats[A](innerSelection: SelectionBuilder[Feat, A]): SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("feats", ListOf(Obj(innerSelection)))
+    def conditions: SelectionBuilder[NonPlayerCharacterInfo, List[Condition]] =
+      _root_.caliban.client.SelectionBuilder.Field("conditions", ListOf(Scalar()))
+    def spellSlots[A](innerSelection: SelectionBuilder[SpellSlots, A])
+      : SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("spellSlots", ListOf(Obj(innerSelection)))
+    def pactMagic[A](innerSelection: SelectionBuilder[SpellSlots, A])
+      : SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("pactMagic", ListOf(Obj(innerSelection)))
+    def languages[A](innerSelection: SelectionBuilder[Language, A]): SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("languages", ListOf(Obj(innerSelection)))
+    def actions[A](
+      onMultiAction:  SelectionBuilder[MultiAction, A],
+      onSingleAction: SelectionBuilder[SingleAction, A]
+    ): SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "actions",
+        ListOf(ChoiceOf(Map("MultiAction" -> Obj(onMultiAction), "SingleAction" -> Obj(onSingleAction))))
+      )
+    def classSpells[A](innerSelection: SelectionBuilder[SpellHeader, A])
+      : SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("classSpells", ListOf(Obj(innerSelection)))
+    def creatures[A](innerSelection: SelectionBuilder[Creature, A]): SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("creatures", ListOf(Obj(innerSelection)))
+    def speeds[A](innerSelection: SelectionBuilder[Speed, A]): SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("speeds", ListOf(Obj(innerSelection)))
+    def senses[A](innerSelection: SelectionBuilder[SenseRange, A]): SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("senses", ListOf(Obj(innerSelection)))
+    def hair: SelectionBuilder[NonPlayerCharacterInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("hair", Scalar())
+    def skin: SelectionBuilder[NonPlayerCharacterInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("skin", Scalar())
+    def eyes: SelectionBuilder[NonPlayerCharacterInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("eyes", Scalar())
+    def height: SelectionBuilder[NonPlayerCharacterInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("height", Scalar())
+    def weight: SelectionBuilder[NonPlayerCharacterInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("weight", Scalar())
+    def age: SelectionBuilder[NonPlayerCharacterInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("age", Scalar())
+    def gender: SelectionBuilder[NonPlayerCharacterInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("gender", Scalar())
+    def conditionImmunities: SelectionBuilder[NonPlayerCharacterInfo, List[Condition]] =
+      _root_.caliban.client.SelectionBuilder.Field("conditionImmunities", ListOf(Scalar()))
+    def damageVulnerabilities[A](innerSelection: SelectionBuilder[DamageType, A])
+      : SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("damageVulnerabilities", ListOf(Obj(innerSelection)))
+    def damageResistances[A](innerSelection: SelectionBuilder[DamageType, A])
+      : SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("damageResistances", ListOf(Obj(innerSelection)))
+    def damageImmunities[A](innerSelection: SelectionBuilder[DamageType, A])
+      : SelectionBuilder[NonPlayerCharacterInfo, List[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("damageImmunities", ListOf(Obj(innerSelection)))
+    def notes: SelectionBuilder[NonPlayerCharacterInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("notes", Scalar())
+    def rollplayInfo[A](innerSelection: SelectionBuilder[RollplayInfo, A])
+      : SelectionBuilder[NonPlayerCharacterInfo, A] =
+      _root_.caliban.client.SelectionBuilder.Field("rollplayInfo", Obj(innerSelection))
+    def monster: SelectionBuilder[NonPlayerCharacterInfo, scala.Option[Long]] =
+      _root_.caliban.client.SelectionBuilder.Field("monster", OptionOf(Scalar()))
+    def challengeRating: SelectionBuilder[NonPlayerCharacterInfo, scala.Option[ChallengeRating]] =
+      _root_.caliban.client.SelectionBuilder.Field("challengeRating", OptionOf(Scalar()))
+    def relationToPlayers: SelectionBuilder[NonPlayerCharacterInfo, RelationToPlayers] =
+      _root_.caliban.client.SelectionBuilder.Field("relationToPlayers", Scalar())
+    def traits[A](innerSelection: SelectionBuilder[Traits, A]): SelectionBuilder[NonPlayerCharacterInfo, A] =
+      _root_.caliban.client.SelectionBuilder.Field("traits", Obj(innerSelection))
+    def organizations: SelectionBuilder[NonPlayerCharacterInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("organizations", Scalar())
+    def allies: SelectionBuilder[NonPlayerCharacterInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("allies", Scalar())
+    def enemies: SelectionBuilder[NonPlayerCharacterInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("enemies", Scalar())
+    def backstory: SelectionBuilder[NonPlayerCharacterInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("backstory", Scalar())
+    def actionsOption[A](
+      onMultiAction:  scala.Option[SelectionBuilder[MultiAction, A]] = None,
+      onSingleAction: scala.Option[SelectionBuilder[SingleAction, A]] = None
+    ): SelectionBuilder[NonPlayerCharacterInfo, List[scala.Option[A]]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "actions",
+        ListOf(
+          ChoiceOf(
+            Map(
+              "MultiAction"  -> onMultiAction.fold[FieldBuilder[scala.Option[A]]](NullField)(a => OptionOf(Obj(a))),
+              "SingleAction" -> onSingleAction.fold[FieldBuilder[scala.Option[A]]](NullField)(a => OptionOf(Obj(a)))
+            )
+          )
+        )
+      )
+
+  }
+
+  type PhysicalCharacteristics
+  object PhysicalCharacteristics {
+
+    final case class PhysicalCharacteristicsView(
+      gender: scala.Option[String],
+      age:    scala.Option[Int],
+      hair:   scala.Option[String],
+      eyes:   scala.Option[String],
+      skin:   scala.Option[String],
+      height: scala.Option[String],
+      weight: scala.Option[Int],
+      size:   CreatureSize
+    )
+
+    type ViewSelection = SelectionBuilder[PhysicalCharacteristics, PhysicalCharacteristicsView]
+
+    def view: ViewSelection =
+      (gender ~ age ~ hair ~ eyes ~ skin ~ height ~ weight ~ size).map {
+        case (gender, age, hair, eyes, skin, height, weight, size) =>
+          PhysicalCharacteristicsView(gender, age, hair, eyes, skin, height, weight, size)
+      }
+
+    def gender: SelectionBuilder[PhysicalCharacteristics, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("gender", OptionOf(Scalar()))
+    def age: SelectionBuilder[PhysicalCharacteristics, scala.Option[Int]] =
+      _root_.caliban.client.SelectionBuilder.Field("age", OptionOf(Scalar()))
+    def hair: SelectionBuilder[PhysicalCharacteristics, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("hair", OptionOf(Scalar()))
+    def eyes: SelectionBuilder[PhysicalCharacteristics, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("eyes", OptionOf(Scalar()))
+    def skin: SelectionBuilder[PhysicalCharacteristics, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("skin", OptionOf(Scalar()))
+    def height: SelectionBuilder[PhysicalCharacteristics, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("height", OptionOf(Scalar()))
+    def weight: SelectionBuilder[PhysicalCharacteristics, scala.Option[Int]] =
+      _root_.caliban.client.SelectionBuilder.Field("weight", OptionOf(Scalar()))
+    def size: SelectionBuilder[PhysicalCharacteristics, CreatureSize] =
+      _root_.caliban.client.SelectionBuilder.Field("size", Scalar())
+
+  }
+
   type PlayerCharacter
   object PlayerCharacter {
 
@@ -834,6 +2085,34 @@ object DND5eClient {
       _root_.caliban.client.SelectionBuilder.Field("jsonInfo", Scalar())
     def version: SelectionBuilder[PlayerCharacter, String] =
       _root_.caliban.client.SelectionBuilder.Field("version", Scalar())
+
+  }
+
+  type PlayerCharacterClass
+  object PlayerCharacterClass {
+
+    final case class PlayerCharacterClassView[SubclassSelection](
+      characterClass: String,
+      subclass:       scala.Option[SubclassSelection],
+      level:          Int
+    )
+
+    type ViewSelection[SubclassSelection] =
+      SelectionBuilder[PlayerCharacterClass, PlayerCharacterClassView[SubclassSelection]]
+
+    def view[SubclassSelection](subclassSelection: SelectionBuilder[SubClass, SubclassSelection])
+      : ViewSelection[SubclassSelection] =
+      (characterClass ~ subclass(subclassSelection) ~ level).map { case (characterClass, subclass, level) =>
+        PlayerCharacterClassView(characterClass, subclass, level)
+      }
+
+    def characterClass: SelectionBuilder[PlayerCharacterClass, String] =
+      _root_.caliban.client.SelectionBuilder.Field("characterClass", Scalar())
+    def subclass[A](innerSelection: SelectionBuilder[SubClass, A])
+      : SelectionBuilder[PlayerCharacterClass, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("subclass", OptionOf(Obj(innerSelection)))
+    def level: SelectionBuilder[PlayerCharacterClass, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("level", Scalar())
 
   }
 
@@ -949,6 +2228,120 @@ object DND5eClient {
 
   }
 
+  type RollplayInfo
+  object RollplayInfo {
+
+    final case class RollplayInfoView(
+      occupation:     String,
+      personality:    String,
+      ideal:          String,
+      bond:           String,
+      flaw:           String,
+      characteristic: String,
+      speech:         String,
+      hobby:          String,
+      fear:           String,
+      currently:      String,
+      nickname:       String,
+      weapon:         String,
+      rumor:          String,
+      raisedBy:       String,
+      parent1:        String,
+      parent2:        String,
+      siblingCount:   Int,
+      childhood:      String,
+      children:       String,
+      spouse:         String
+    )
+
+    type ViewSelection = SelectionBuilder[RollplayInfo, RollplayInfoView]
+
+    def view: ViewSelection =
+      (occupation ~ personality ~ ideal ~ bond ~ flaw ~ characteristic ~ speech ~ hobby ~ fear ~ currently ~ nickname ~ weapon ~ rumor ~ raisedBy ~ parent1 ~ parent2 ~ siblingCount ~ childhood ~ children ~ spouse)
+        .map {
+          case (
+                occupation,
+                personality,
+                ideal,
+                bond,
+                flaw,
+                characteristic,
+                speech,
+                hobby,
+                fear,
+                currently,
+                nickname,
+                weapon,
+                rumor,
+                raisedBy,
+                parent1,
+                parent2,
+                siblingCount,
+                childhood,
+                children,
+                spouse
+              ) =>
+            RollplayInfoView(
+              occupation,
+              personality,
+              ideal,
+              bond,
+              flaw,
+              characteristic,
+              speech,
+              hobby,
+              fear,
+              currently,
+              nickname,
+              weapon,
+              rumor,
+              raisedBy,
+              parent1,
+              parent2,
+              siblingCount,
+              childhood,
+              children,
+              spouse
+            )
+        }
+
+    def occupation: SelectionBuilder[RollplayInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("occupation", Scalar())
+    def personality: SelectionBuilder[RollplayInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("personality", Scalar())
+    def ideal: SelectionBuilder[RollplayInfo, String] = _root_.caliban.client.SelectionBuilder.Field("ideal", Scalar())
+    def bond:  SelectionBuilder[RollplayInfo, String] = _root_.caliban.client.SelectionBuilder.Field("bond", Scalar())
+    def flaw:  SelectionBuilder[RollplayInfo, String] = _root_.caliban.client.SelectionBuilder.Field("flaw", Scalar())
+    def characteristic: SelectionBuilder[RollplayInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("characteristic", Scalar())
+    def speech: SelectionBuilder[RollplayInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("speech", Scalar())
+    def hobby: SelectionBuilder[RollplayInfo, String] = _root_.caliban.client.SelectionBuilder.Field("hobby", Scalar())
+    def fear:  SelectionBuilder[RollplayInfo, String] = _root_.caliban.client.SelectionBuilder.Field("fear", Scalar())
+    def currently: SelectionBuilder[RollplayInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("currently", Scalar())
+    def nickname: SelectionBuilder[RollplayInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("nickname", Scalar())
+    def weapon: SelectionBuilder[RollplayInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("weapon", Scalar())
+    def rumor: SelectionBuilder[RollplayInfo, String] = _root_.caliban.client.SelectionBuilder.Field("rumor", Scalar())
+    def raisedBy: SelectionBuilder[RollplayInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("raisedBy", Scalar())
+    def parent1: SelectionBuilder[RollplayInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("parent1", Scalar())
+    def parent2: SelectionBuilder[RollplayInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("parent2", Scalar())
+    def siblingCount: SelectionBuilder[RollplayInfo, Int] =
+      _root_.caliban.client.SelectionBuilder.Field("siblingCount", Scalar())
+    def childhood: SelectionBuilder[RollplayInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("childhood", Scalar())
+    def children: SelectionBuilder[RollplayInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("children", Scalar())
+    def spouse: SelectionBuilder[RollplayInfo, String] =
+      _root_.caliban.client.SelectionBuilder.Field("spouse", Scalar())
+
+  }
+
   type Scene
   object Scene {
 
@@ -1003,6 +2396,320 @@ object DND5eClient {
 
   }
 
+  type SenseRange
+  object SenseRange {
+
+    final case class SenseRangeView(
+      sense: Sense,
+      range: Int
+    )
+
+    type ViewSelection = SelectionBuilder[SenseRange, SenseRangeView]
+
+    def view: ViewSelection = (sense ~ range).map { case (sense, range) => SenseRangeView(sense, range) }
+
+    def sense: SelectionBuilder[SenseRange, Sense] = _root_.caliban.client.SelectionBuilder.Field("sense", Scalar())
+    def range: SelectionBuilder[SenseRange, Int] = _root_.caliban.client.SelectionBuilder.Field("range", Scalar())
+
+  }
+
+  type SingleAction
+  object SingleAction {
+
+    final case class SingleActionView[DamageSelection, DcSelection](
+      actionType:  ActionType,
+      name:        String,
+      description: scala.Option[String],
+      attackBonus: scala.Option[Int],
+      damage:      scala.Option[DamageSelection],
+      dc:          scala.Option[DcSelection]
+    )
+
+    type ViewSelection[DamageSelection, DcSelection] =
+      SelectionBuilder[SingleAction, SingleActionView[DamageSelection, DcSelection]]
+
+    def view[DamageSelection, DcSelection](
+      damageSelection: SelectionBuilder[DiceRoll, DamageSelection],
+      dcSelection:     SelectionBuilder[ActionDC, DcSelection]
+    ): ViewSelection[DamageSelection, DcSelection] =
+      (actionType ~ name ~ description ~ attackBonus ~ damage(damageSelection) ~ dc(dcSelection)).map {
+        case (actionType, name, description, attackBonus, damage, dc) =>
+          SingleActionView(actionType, name, description, attackBonus, damage, dc)
+      }
+
+    def actionType: SelectionBuilder[SingleAction, ActionType] =
+      _root_.caliban.client.SelectionBuilder.Field("actionType", Scalar())
+    def name: SelectionBuilder[SingleAction, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+    def description: SelectionBuilder[SingleAction, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("description", OptionOf(Scalar()))
+    def attackBonus: SelectionBuilder[SingleAction, scala.Option[Int]] =
+      _root_.caliban.client.SelectionBuilder.Field("attackBonus", OptionOf(Scalar()))
+    def damage[A](innerSelection: SelectionBuilder[DiceRoll, A]): SelectionBuilder[SingleAction, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("damage", OptionOf(Obj(innerSelection)))
+    def dc[A](innerSelection: SelectionBuilder[ActionDC, A]): SelectionBuilder[SingleAction, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field("dc", OptionOf(Obj(innerSelection)))
+
+  }
+
+  type Skill
+  object Skill {
+
+    final case class SkillView(
+      skillType:        SkillType,
+      proficiencyLevel: ProficiencyLevel,
+      advantage:        AdvantageDisadvantage
+    )
+
+    type ViewSelection = SelectionBuilder[Skill, SkillView]
+
+    def view: ViewSelection =
+      (skillType ~ proficiencyLevel ~ advantage).map { case (skillType, proficiencyLevel, advantage) =>
+        SkillView(skillType, proficiencyLevel, advantage)
+      }
+
+    def skillType: SelectionBuilder[Skill, SkillType] =
+      _root_.caliban.client.SelectionBuilder.Field("skillType", Scalar())
+    def proficiencyLevel: SelectionBuilder[Skill, ProficiencyLevel] =
+      _root_.caliban.client.SelectionBuilder.Field("proficiencyLevel", Scalar())
+    def advantage: SelectionBuilder[Skill, AdvantageDisadvantage] =
+      _root_.caliban.client.SelectionBuilder.Field("advantage", Scalar())
+
+  }
+
+  type Skills
+  object Skills {
+
+    final case class SkillsView[
+      AcrobaticsSelection,
+      AnimalHandlingSelection,
+      ArcanaSelection,
+      AthleticsSelection,
+      DeceptionSelection,
+      HistorySelection,
+      InsightSelection,
+      IntimidationSelection,
+      InvestigationSelection,
+      MedicineSelection,
+      NatureSelection,
+      PerceptionSelection,
+      PerformanceSelection,
+      PersuasionSelection,
+      ReligionSelection,
+      SleightOfHandSelection,
+      StealthSelection,
+      SurvivalSelection
+    ](
+      acrobatics:     AcrobaticsSelection,
+      animalHandling: AnimalHandlingSelection,
+      arcana:         ArcanaSelection,
+      athletics:      AthleticsSelection,
+      deception:      DeceptionSelection,
+      history:        HistorySelection,
+      insight:        InsightSelection,
+      intimidation:   IntimidationSelection,
+      investigation:  InvestigationSelection,
+      medicine:       MedicineSelection,
+      nature:         NatureSelection,
+      perception:     PerceptionSelection,
+      performance:    PerformanceSelection,
+      persuasion:     PersuasionSelection,
+      religion:       ReligionSelection,
+      sleightOfHand:  SleightOfHandSelection,
+      stealth:        StealthSelection,
+      survival:       SurvivalSelection
+    )
+
+    type ViewSelection[
+      AcrobaticsSelection,
+      AnimalHandlingSelection,
+      ArcanaSelection,
+      AthleticsSelection,
+      DeceptionSelection,
+      HistorySelection,
+      InsightSelection,
+      IntimidationSelection,
+      InvestigationSelection,
+      MedicineSelection,
+      NatureSelection,
+      PerceptionSelection,
+      PerformanceSelection,
+      PersuasionSelection,
+      ReligionSelection,
+      SleightOfHandSelection,
+      StealthSelection,
+      SurvivalSelection
+    ] = SelectionBuilder[
+      Skills,
+      SkillsView[
+        AcrobaticsSelection,
+        AnimalHandlingSelection,
+        ArcanaSelection,
+        AthleticsSelection,
+        DeceptionSelection,
+        HistorySelection,
+        InsightSelection,
+        IntimidationSelection,
+        InvestigationSelection,
+        MedicineSelection,
+        NatureSelection,
+        PerceptionSelection,
+        PerformanceSelection,
+        PersuasionSelection,
+        ReligionSelection,
+        SleightOfHandSelection,
+        StealthSelection,
+        SurvivalSelection
+      ]
+    ]
+
+    def view[
+      AcrobaticsSelection,
+      AnimalHandlingSelection,
+      ArcanaSelection,
+      AthleticsSelection,
+      DeceptionSelection,
+      HistorySelection,
+      InsightSelection,
+      IntimidationSelection,
+      InvestigationSelection,
+      MedicineSelection,
+      NatureSelection,
+      PerceptionSelection,
+      PerformanceSelection,
+      PersuasionSelection,
+      ReligionSelection,
+      SleightOfHandSelection,
+      StealthSelection,
+      SurvivalSelection
+    ](
+      acrobaticsSelection:     SelectionBuilder[Skill, AcrobaticsSelection],
+      animalHandlingSelection: SelectionBuilder[Skill, AnimalHandlingSelection],
+      arcanaSelection:         SelectionBuilder[Skill, ArcanaSelection],
+      athleticsSelection:      SelectionBuilder[Skill, AthleticsSelection],
+      deceptionSelection:      SelectionBuilder[Skill, DeceptionSelection],
+      historySelection:        SelectionBuilder[Skill, HistorySelection],
+      insightSelection:        SelectionBuilder[Skill, InsightSelection],
+      intimidationSelection:   SelectionBuilder[Skill, IntimidationSelection],
+      investigationSelection:  SelectionBuilder[Skill, InvestigationSelection],
+      medicineSelection:       SelectionBuilder[Skill, MedicineSelection],
+      natureSelection:         SelectionBuilder[Skill, NatureSelection],
+      perceptionSelection:     SelectionBuilder[Skill, PerceptionSelection],
+      performanceSelection:    SelectionBuilder[Skill, PerformanceSelection],
+      persuasionSelection:     SelectionBuilder[Skill, PersuasionSelection],
+      religionSelection:       SelectionBuilder[Skill, ReligionSelection],
+      sleightOfHandSelection:  SelectionBuilder[Skill, SleightOfHandSelection],
+      stealthSelection:        SelectionBuilder[Skill, StealthSelection],
+      survivalSelection:       SelectionBuilder[Skill, SurvivalSelection]
+    ): ViewSelection[
+      AcrobaticsSelection,
+      AnimalHandlingSelection,
+      ArcanaSelection,
+      AthleticsSelection,
+      DeceptionSelection,
+      HistorySelection,
+      InsightSelection,
+      IntimidationSelection,
+      InvestigationSelection,
+      MedicineSelection,
+      NatureSelection,
+      PerceptionSelection,
+      PerformanceSelection,
+      PersuasionSelection,
+      ReligionSelection,
+      SleightOfHandSelection,
+      StealthSelection,
+      SurvivalSelection
+    ] =
+      (acrobatics(acrobaticsSelection) ~ animalHandling(animalHandlingSelection) ~ arcana(arcanaSelection) ~ athletics(
+        athleticsSelection
+      ) ~ deception(deceptionSelection) ~ history(historySelection) ~ insight(insightSelection) ~ intimidation(
+        intimidationSelection
+      ) ~ investigation(investigationSelection) ~ medicine(medicineSelection) ~ nature(natureSelection) ~ perception(
+        perceptionSelection
+      ) ~ performance(performanceSelection) ~ persuasion(persuasionSelection) ~ religion(
+        religionSelection
+      ) ~ sleightOfHand(sleightOfHandSelection) ~ stealth(stealthSelection) ~ survival(survivalSelection)).map {
+        case (
+              acrobatics,
+              animalHandling,
+              arcana,
+              athletics,
+              deception,
+              history,
+              insight,
+              intimidation,
+              investigation,
+              medicine,
+              nature,
+              perception,
+              performance,
+              persuasion,
+              religion,
+              sleightOfHand,
+              stealth,
+              survival
+            ) =>
+          SkillsView(
+            acrobatics,
+            animalHandling,
+            arcana,
+            athletics,
+            deception,
+            history,
+            insight,
+            intimidation,
+            investigation,
+            medicine,
+            nature,
+            perception,
+            performance,
+            persuasion,
+            religion,
+            sleightOfHand,
+            stealth,
+            survival
+          )
+      }
+
+    def acrobatics[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("acrobatics", Obj(innerSelection))
+    def animalHandling[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("animalHandling", Obj(innerSelection))
+    def arcana[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("arcana", Obj(innerSelection))
+    def athletics[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("athletics", Obj(innerSelection))
+    def deception[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("deception", Obj(innerSelection))
+    def history[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("history", Obj(innerSelection))
+    def insight[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("insight", Obj(innerSelection))
+    def intimidation[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("intimidation", Obj(innerSelection))
+    def investigation[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("investigation", Obj(innerSelection))
+    def medicine[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("medicine", Obj(innerSelection))
+    def nature[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("nature", Obj(innerSelection))
+    def perception[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("perception", Obj(innerSelection))
+    def performance[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("performance", Obj(innerSelection))
+    def persuasion[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("persuasion", Obj(innerSelection))
+    def religion[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("religion", Obj(innerSelection))
+    def sleightOfHand[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("sleightOfHand", Obj(innerSelection))
+    def stealth[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("stealth", Obj(innerSelection))
+    def survival[A](innerSelection: SelectionBuilder[Skill, A]): SelectionBuilder[Skills, A] =
+      _root_.caliban.client.SelectionBuilder.Field("survival", Obj(innerSelection))
+
+  }
+
   type Source
   object Source {
 
@@ -1023,6 +2730,61 @@ object DND5eClient {
 
   }
 
+  type Speed
+  object Speed {
+
+    final case class SpeedView(
+      speedType: SpeedType,
+      value:     Int
+    )
+
+    type ViewSelection = SelectionBuilder[Speed, SpeedView]
+
+    def view: ViewSelection = (speedType ~ value).map { case (speedType, value) => SpeedView(speedType, value) }
+
+    def speedType: SelectionBuilder[Speed, SpeedType] =
+      _root_.caliban.client.SelectionBuilder.Field("speedType", Scalar())
+    def value: SelectionBuilder[Speed, Int] = _root_.caliban.client.SelectionBuilder.Field("value", Scalar())
+
+  }
+
+  type SpellHeader
+  object SpellHeader {
+
+    final case class SpellHeaderView(
+      id:   Long,
+      name: String
+    )
+
+    type ViewSelection = SelectionBuilder[SpellHeader, SpellHeaderView]
+
+    def view: ViewSelection = (id ~ name).map { case (id, name) => SpellHeaderView(id, name) }
+
+    def id:   SelectionBuilder[SpellHeader, Long] = _root_.caliban.client.SelectionBuilder.Field("id", Scalar())
+    def name: SelectionBuilder[SpellHeader, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+
+  }
+
+  type SpellSlots
+  object SpellSlots {
+
+    final case class SpellSlotsView(
+      level: Int,
+      used:  Int,
+      total: Int
+    )
+
+    type ViewSelection = SelectionBuilder[SpellSlots, SpellSlotsView]
+
+    def view: ViewSelection =
+      (level ~ used ~ total).map { case (level, used, total) => SpellSlotsView(level, used, total) }
+
+    def level: SelectionBuilder[SpellSlots, Int] = _root_.caliban.client.SelectionBuilder.Field("level", Scalar())
+    def used:  SelectionBuilder[SpellSlots, Int] = _root_.caliban.client.SelectionBuilder.Field("used", Scalar())
+    def total: SelectionBuilder[SpellSlots, Int] = _root_.caliban.client.SelectionBuilder.Field("total", Scalar())
+
+  }
+
   type SubClass
   object SubClass {
 
@@ -1033,6 +2795,62 @@ object DND5eClient {
     def view: ViewSelection = name.map(name => SubClassView(name))
 
     def name: SelectionBuilder[SubClass, String] = _root_.caliban.client.SelectionBuilder.Field("name", Scalar())
+
+  }
+
+  type Traits
+  object Traits {
+
+    final case class TraitsView(
+      personalityTraits: scala.Option[String],
+      ideals:            scala.Option[String],
+      bonds:             scala.Option[String],
+      flaws:             scala.Option[String],
+      appearance:        scala.Option[String]
+    )
+
+    type ViewSelection = SelectionBuilder[Traits, TraitsView]
+
+    def view: ViewSelection =
+      (personalityTraits ~ ideals ~ bonds ~ flaws ~ appearance).map {
+        case (personalityTraits, ideals, bonds, flaws, appearance) =>
+          TraitsView(personalityTraits, ideals, bonds, flaws, appearance)
+      }
+
+    def personalityTraits: SelectionBuilder[Traits, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("personalityTraits", OptionOf(Scalar()))
+    def ideals: SelectionBuilder[Traits, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("ideals", OptionOf(Scalar()))
+    def bonds: SelectionBuilder[Traits, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("bonds", OptionOf(Scalar()))
+    def flaws: SelectionBuilder[Traits, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("flaws", OptionOf(Scalar()))
+    def appearance: SelectionBuilder[Traits, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field("appearance", OptionOf(Scalar()))
+
+  }
+
+  type Wallet
+  object Wallet {
+
+    final case class WalletView(
+      pp: Long,
+      gp: Long,
+      ep: Long,
+      sp: Long,
+      cp: Long
+    )
+
+    type ViewSelection = SelectionBuilder[Wallet, WalletView]
+
+    def view: ViewSelection =
+      (pp ~ gp ~ ep ~ sp ~ cp).map { case (pp, gp, ep, sp, cp) => WalletView(pp, gp, ep, sp, cp) }
+
+    def pp: SelectionBuilder[Wallet, Long] = _root_.caliban.client.SelectionBuilder.Field("pp", Scalar())
+    def gp: SelectionBuilder[Wallet, Long] = _root_.caliban.client.SelectionBuilder.Field("gp", Scalar())
+    def ep: SelectionBuilder[Wallet, Long] = _root_.caliban.client.SelectionBuilder.Field("ep", Scalar())
+    def sp: SelectionBuilder[Wallet, Long] = _root_.caliban.client.SelectionBuilder.Field("sp", Scalar())
+    def cp: SelectionBuilder[Wallet, Long] = _root_.caliban.client.SelectionBuilder.Field("cp", Scalar())
 
   }
 
@@ -1378,7 +3196,7 @@ object DND5eClient {
         OptionOf(Obj(innerSelection)),
         arguments = List(Argument("value", value, "Long!")(encoder0))
       )
-    def generateEncounterDescription(
+    def aiGenerateEncounterDescription(
       header:   EncounterHeaderInput,
       jsonInfo: zio.json.ast.Json,
       version:  String
@@ -1388,10 +3206,48 @@ object DND5eClient {
       encoder2: ArgEncoder[String]
     ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[String]] =
       _root_.caliban.client.SelectionBuilder.Field(
-        "generateEncounterDescription",
+        "aiGenerateEncounterDescription",
         OptionOf(Scalar()),
         arguments = List(
           Argument("header", header, "EncounterHeaderInput!")(encoder0),
+          Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
+          Argument("version", version, "String!")(encoder2)
+        )
+      )
+    def aiGenerateNPCDetails[A](
+      header:   NonPlayerCharacterHeaderInput,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )(
+      innerSelection: SelectionBuilder[NonPlayerCharacterInfo, A]
+    )(implicit
+      encoder0: ArgEncoder[NonPlayerCharacterHeaderInput],
+      encoder1: ArgEncoder[zio.json.ast.Json],
+      encoder2: ArgEncoder[String]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "aiGenerateNPCDetails",
+        OptionOf(Obj(innerSelection)),
+        arguments = List(
+          Argument("header", header, "NonPlayerCharacterHeaderInput!")(encoder0),
+          Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
+          Argument("version", version, "String!")(encoder2)
+        )
+      )
+    def aiGenerateNPCDescription(
+      header:   NonPlayerCharacterHeaderInput,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )(implicit
+      encoder0: ArgEncoder[NonPlayerCharacterHeaderInput],
+      encoder1: ArgEncoder[zio.json.ast.Json],
+      encoder2: ArgEncoder[String]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[String]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "aiGenerateNPCDescription",
+        OptionOf(Scalar()),
+        arguments = List(
+          Argument("header", header, "NonPlayerCharacterHeaderInput!")(encoder0),
           Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
           Argument("version", version, "String!")(encoder2)
         )

@@ -453,7 +453,6 @@ type NonPlayerCharacterInfo {
     background: Background
     race: Race!
     size: CreatureSize!
-    traits: Traits!
     inventory: [InventoryItem!]!
     wallet: Wallet!
     feats: [Feat!]!
@@ -482,10 +481,7 @@ type NonPlayerCharacterInfo {
     monster: Long
     challengeRating: ChallengeRating
     relationToPlayers: RelationToPlayers!
-    personalityTraits: String!
-    ideals: String!
-    bonds: String!
-    flaws: String!
+    traits: Traits!
     organizations: String!
     allies: String!
     enemies: String!
