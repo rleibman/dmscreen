@@ -43,6 +43,30 @@ enum ChallengeRating {
     _30
 }
 
+union Action = MultiAction | SingleAction
+
+enum AbilityType {
+    charisma
+    constitution
+    dexterity
+    intelligence
+    strength
+    wisdom
+}
+
+enum ActionType {
+    Ability
+    Melee
+    Ranged
+    Spell
+}
+
+enum AdvantageDisadvantage {
+    advantage
+    disadvantage
+    neither
+}
+
 enum Alignment {
     chaoticEvil
     chaoticGood
@@ -73,6 +97,24 @@ enum Biome {
     Urban
 }
 
+enum Condition {
+    blinded
+    charmed
+    deafened
+    exhaustion
+    frightened
+    grappled
+    incapacitated
+    invisible
+    paralyzed
+    petrified
+    poisoned
+    prone
+    restrained
+    stunned
+    unconscious
+}
+
 enum CreatureSize {
     gargantuan
     huge
@@ -81,6 +123,17 @@ enum CreatureSize {
     small
     tiny
     unknown
+}
+
+enum Lifestyle {
+    aristocratic
+    comfortable
+    modest
+    poor
+    squalid
+    unknown
+    wealthy
+    wretched
 }
 
 enum MonsterSearchOrder {
@@ -117,6 +170,13 @@ enum OrderDirection {
     desc
 }
 
+enum ProficiencyLevel {
+    expert
+    half
+    none
+    proficient
+}
+
 enum RandomTableType {
     adventure
     encounter
@@ -124,6 +184,53 @@ enum RandomTableType {
     npcs
     other
     treasure
+}
+
+enum RelationToPlayers {
+    ally
+    enemy
+    itsComplicated
+    neutral
+    unknown
+}
+
+enum Sense {
+    blindsight
+    darkvision
+    other
+    scent
+    sight
+    tremorsense
+    truesight
+}
+
+enum SkillType {
+    acrobatics
+    animalHandling
+    arcana
+    athletics
+    deception
+    history
+    insight
+    intimidation
+    investigation
+    medicine
+    nature
+    perception
+    performance
+    persuasion
+    religion
+    sleightOfHand
+    stealth
+    survival
+}
+
+enum SpeedType {
+    burrow
+    climb
+    fly
+    swim
+    walk
 }
 
 input EncounterHeaderInput {
@@ -182,6 +289,27 @@ input SourceInput {
     url: String
 }
 
+type Abilities {
+    strength: Ability!
+    dexterity: Ability!
+    constitution: Ability!
+    intelligence: Ability!
+    wisdom: Ability!
+    charisma: Ability!
+}
+
+type Ability {
+    abilityType: AbilityType!
+    value: Int!
+    overrideValue: Int
+    isProficient: Boolean!
+}
+
+type ActionDC {
+    dcType: AbilityType!
+    dcValue: Int!
+}
+
 type Background {
     name: String!
 }
@@ -189,6 +317,21 @@ type Background {
 type CharacterClass {
     id: String!
     hitDice: DiceRoll!
+}
+
+type Creature {
+    name: String!
+    creatureType: Long!
+}
+
+type DamageType {
+    description: String!
+}
+
+type DeathSave {
+    fails: Int!
+    successes: Int!
+    isStabilized: Boolean!
 }
 
 type DiceRoll {
@@ -210,12 +353,33 @@ type EncounterHeader {
     orderCol: Int!
 }
 
+type Feat {
+    name: String!
+}
+
+type Health {
+    deathSave: DeathSave!
+    currentHitPoints: Int!
+    maxHitPoints: Int!
+    overrideMaxHitPoints: Int
+    temporaryHitPoints: Int!
+}
+
+type InventoryItem {
+    name: String!
+    quantity: Int!
+}
+
 "A key-value pair of Long and ListOfLong"
 type KVLongListOfLong {
     "Key"
     key: Long!
     "Value"
     value: [Long!]!
+}
+
+type Language {
+    name: String!
 }
 
 type Monster {
@@ -244,6 +408,12 @@ type MonsterSearchResults {
     total: Long!
 }
 
+type MultiAction {
+    name: String!
+    description: String
+    actions: [SingleAction!]!
+}
+
 type Mutations {
     upsertScene(header: SceneHeaderInput!, jsonInfo: Json!, version: String!): Long
     upsertPlayerCharacter(header: PlayerCharacterHeaderInput!, jsonInfo: Json!, version: String!): Long
@@ -268,10 +438,81 @@ type NonPlayerCharacterHeader {
     name: String!
 }
 
+type NonPlayerCharacterInfo {
+    health: Health!
+    armorClass: Int!
+    classes: [PlayerCharacterClass!]!
+    physicalCharacteristics: PhysicalCharacteristics!
+    faith: String
+    overrideInitiative: Int
+    currentXp: Long
+    alignment: Alignment!
+    lifestyle: Lifestyle!
+    abilities: Abilities!
+    skills: Skills!
+    background: Background
+    race: Race!
+    size: CreatureSize!
+    traits: Traits!
+    inventory: [InventoryItem!]!
+    wallet: Wallet!
+    feats: [Feat!]!
+    conditions: [Condition!]!
+    spellSlots: [SpellSlots!]!
+    pactMagic: [SpellSlots!]!
+    languages: [Language!]!
+    actions: [Action!]!
+    classSpells: [SpellHeader!]!
+    creatures: [Creature!]!
+    speeds: [Speed!]!
+    senses: [SenseRange!]!
+    hair: String!
+    skin: String!
+    eyes: String!
+    height: String!
+    weight: String!
+    age: String!
+    gender: String!
+    conditionImmunities: [Condition!]!
+    damageVulnerabilities: [DamageType!]!
+    damageResistances: [DamageType!]!
+    damageImmunities: [DamageType!]!
+    notes: String!
+    rollplayInfo: RollplayInfo!
+    monster: Long
+    challengeRating: ChallengeRating
+    relationToPlayers: RelationToPlayers!
+    personalityTraits: String!
+    ideals: String!
+    bonds: String!
+    flaws: String!
+    organizations: String!
+    allies: String!
+    enemies: String!
+    backstory: String!
+}
+
+type PhysicalCharacteristics {
+    gender: String
+    age: Int
+    hair: String
+    eyes: String
+    skin: String
+    height: String
+    weight: Int
+    size: CreatureSize!
+}
+
 type PlayerCharacter {
     header: PlayerCharacterHeader!
     jsonInfo: Json!
     version: String!
+}
+
+type PlayerCharacterClass {
+    characterClass: String!
+    subclass: SubClass
+    level: Int!
 }
 
 type PlayerCharacterHeader {
@@ -291,7 +532,7 @@ type Queries {
     nonPlayerCharacter(value: Long!): NonPlayerCharacter
     encounters(value: Long!): [Encounter!]
     encounter(campaignId: Long!, encounterId: Long!): Encounter
-    bestiary(name: String, challengeRating: String, size: CreatureSize, alignment: Alignment, biome: Biome, monsterType: MonsterType, source: SourceInput, orderCol: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): MonsterSearchResults
+    bestiary(name: String, challengeRating: ChallengeRating, size: CreatureSize, alignment: Alignment, biome: Biome, monsterType: MonsterType, source: SourceInput, orderCol: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): MonsterSearchResults
     sources: [Source!]
     classes: [CharacterClass!]
     races: [Race!]
@@ -299,7 +540,9 @@ type Queries {
     subclasses(value: String!): [SubClass!]
     randomTables(randomTableType: RandomTableType): [RandomTable!]
     randomTable(value: Long!): RandomTable
-    generateEncounterDescription(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): String
+    aiGenerateEncounterDescription(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): String
+    aiGenerateNPCDetails(header: NonPlayerCharacterHeaderInput!, jsonInfo: Json!, version: String!): NonPlayerCharacterInfo
+    aiGenerateNPCDescription(header: NonPlayerCharacterHeaderInput!, jsonInfo: Json!, version: String!): String
     npcsForScene(value: Long!): [KVLongListOfLong!]
 }
 
@@ -324,6 +567,29 @@ type RandomTableEntry {
     description: String!
 }
 
+type RollplayInfo {
+    occupation: String!
+    personality: String!
+    ideal: String!
+    bond: String!
+    flaw: String!
+    characteristic: String!
+    speech: String!
+    hobby: String!
+    fear: String!
+    currently: String!
+    nickname: String!
+    weapon: String!
+    rumor: String!
+    raisedBy: String!
+    parent1: String!
+    parent2: String!
+    siblingCount: Int!
+    childhood: String!
+    children: String!
+    spouse: String!
+}
+
 type Scene {
     header: SceneHeader!
     jsonInfo: Json!
@@ -338,12 +604,85 @@ type SceneHeader {
     isActive: Boolean!
 }
 
+type SenseRange {
+    sense: Sense!
+    range: Int!
+}
+
+type SingleAction {
+    actionType: ActionType!
+    name: String!
+    description: String
+    attackBonus: Int
+    damage: DiceRoll
+    dc: ActionDC
+}
+
+type Skill {
+    skillType: SkillType!
+    proficiencyLevel: ProficiencyLevel!
+    advantage: AdvantageDisadvantage!
+}
+
+type Skills {
+    acrobatics: Skill!
+    animalHandling: Skill!
+    arcana: Skill!
+    athletics: Skill!
+    deception: Skill!
+    history: Skill!
+    insight: Skill!
+    intimidation: Skill!
+    investigation: Skill!
+    medicine: Skill!
+    nature: Skill!
+    perception: Skill!
+    performance: Skill!
+    persuasion: Skill!
+    religion: Skill!
+    sleightOfHand: Skill!
+    stealth: Skill!
+    survival: Skill!
+}
+
 type Source {
     name: String!
     id: String!
     url: String
 }
 
+type Speed {
+    speedType: SpeedType!
+    value: Int!
+}
+
+type SpellHeader {
+    id: Long!
+    name: String!
+}
+
+type SpellSlots {
+    level: Int!
+    used: Int!
+    total: Int!
+}
+
 type SubClass {
     name: String!
+}
+
+type Traits {
+    personalityTraits: String
+    ideals: String
+    bonds: String
+    flaws: String
+    appearance: String
+}
+
+type Wallet {
+    pp: Long!
+    gp: Long!
+    ep: Long!
+    sp: Long!
+    cp: Long!
 }
