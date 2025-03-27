@@ -37,7 +37,7 @@ import zio.json.*
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.*
 
-object HomePage extends DMScreenTab {
+object HomePage extends DMScreenPage {
 
   case class State(
     hideArchived:      Boolean = true,

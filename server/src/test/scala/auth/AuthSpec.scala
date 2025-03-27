@@ -65,7 +65,7 @@ object AuthSpec extends ZIOSpec[DMScreenServerEnvironment] {
     app:      Routes[DMScreenServerEnvironment, Nothing],
     email:    String,
     password: String
-  ): URIO[DMScreenServerEnvironment, Response] =
+  ): ZIO[Scope & DMScreenServerEnvironment, Nothing, Response] =
     app.runZIO(
       Request
         .post(
@@ -81,7 +81,7 @@ object AuthSpec extends ZIOSpec[DMScreenServerEnvironment] {
 
   def goodLogin(
     app: Routes[DMScreenServerEnvironment, Nothing]
-  ): URIO[DMScreenServerEnvironment, (TokenString, TokenString)] = {
+  ): ZIO[Scope & DMScreenServerEnvironment, Nothing, (TokenString, TokenString)] = {
     for {
       response <- doLogin(app, goodEmail, goodPassword)
     } yield (

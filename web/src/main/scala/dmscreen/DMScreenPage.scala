@@ -21,4 +21,4 @@
 
 package dmscreen
 
-trait DMScreenTab {}
+trait DMScreenPage {}

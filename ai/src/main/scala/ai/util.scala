@@ -21,11 +21,11 @@
 
 package ai
 
-import dev.langchain4j.data.message.AiMessage
+import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.data.segment.TextSegment
 import dev.langchain4j.memory.chat.MessageWindowChatMemory
+import dev.langchain4j.model.chat.request.{ChatRequest, ChatRequestParameters, ResponseFormat}
 import dev.langchain4j.model.ollama.{OllamaChatModel, OllamaStreamingChatModel}
-import dev.langchain4j.model.output.Response
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever
 import dev.langchain4j.service.{AiServices, TokenStream}
 import dev.langchain4j.store.embedding.EmbeddingStore
@@ -33,16 +33,18 @@ import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore
 import zio.*
 import zio.stream.ZStream
 
-import java.util
-
-//val MODEL = "llama3.2:3b"
-val MODEL = "gemma2:2b"
+val MODEL = "llama3.2:3b" // Good, but too big (3.7 minutes)
+//val MODEL = "gemma3:1b" // Tame, a bit better with higher temperature
+//val MODEL = "phi" //Super bad
+//val MODEL = "openhermes" //Way too slow (but it did complete in 2.3 minutes) and hallucinated
+//val MODEL = "tinyllama:latest" //Broken, and hallucinates
+//val MODEL = "gemma3:4b" //A bit too big (times out)
 //val MODEL = "llama3.2:1b"
 //val MODEL = "gemma2" //Decent, but too big (and slow)"
 //val MODEL = "llama3.1" //Not bad
 //val MODEL = "llama3.3" //Too big
 val BASE_URL = "http://localhost:11434"
-val timeout = 120.seconds
+val timeout = 240.seconds
 
 trait StreamAssistant {
 
@@ -90,7 +92,9 @@ object LangChainServiceBuilder {
           .baseUrl(BASE_URL)
           .modelName(MODEL)
           .timeout(timeout)
-          .temperature(0.0)
+          .temperature(1.1)
+          .topK(40)
+          .topP(0.9)
           .build
       )
     )
@@ -103,7 +107,9 @@ object LangChainServiceBuilder {
           .baseUrl(BASE_URL)
           .modelName(MODEL)
           .timeout(timeout)
-          .temperature(0.0)
+          .temperature(1.1)
+          .topK(40)
+          .topP(0.9)
           .build
       )
     )
@@ -196,8 +202,18 @@ def streamedChat(message: String): ZStream[StreamAssistant, Throwable, String] =
       .start()
   })
 
-def chat(question: String): URIO[ChatAssistant, String] = {
+def chat(
+  question:       String,
+  responseFormat: Option[ResponseFormat] = None
+): ZIO[ChatLanguageModel, Throwable, String] = {
+  val request = responseFormat
+    .fold(ChatRequest.builder())(fmt =>
+      ChatRequest.builder().parameters(ChatRequestParameters.builder().responseFormat(fmt).build())
+    )
+    .messages(UserMessage.from(question))
+    .build();
   for {
-    assistant <- ZIO.service[ChatAssistant]
-  } yield assistant.chat(question)
+    model <- ZIO.service[ChatLanguageModel]
+    res   <- ZIO.attemptBlocking(model.chat(request).aiMessage().text())
+  } yield res
 }

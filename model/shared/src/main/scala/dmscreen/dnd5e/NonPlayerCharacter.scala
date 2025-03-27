@@ -42,6 +42,8 @@ object NonPlayerCharacterId {
 
   }
 
+  given CanEqual[NonPlayerCharacterId, NonPlayerCharacterId] = CanEqual.derived
+
 }
 
 enum RelationToPlayers {
@@ -71,7 +73,6 @@ case class NonPlayerCharacterInfo(
   background:                         Option[Background] = None,
   race:                               Race = Race("Human"),
   size:                               CreatureSize = CreatureSize.medium,
-  traits:                             Traits = Traits(),
   inventory:                          List[InventoryItem] = List.empty,
   wallet:                             Wallet = Wallet.empty,
   feats:                              List[Feat] = List.empty,
@@ -84,6 +85,13 @@ case class NonPlayerCharacterInfo(
   creatures:                          List[Creature] = List.empty,
   speeds:                             List[Speed] = List(Speed(SpeedType.walk, 30)),
   senses:                             List[SenseRange] = List(SenseRange(Sense.sight, 10560)), // Normal sight, 2 miles
+  hair:                               String = "",
+  skin:                               String = "",
+  eyes:                               String = "",
+  height:                             String = "",
+  weight:                             String = "",
+  age:                                String = "",
+  gender:                             String = "",
   override val conditionImmunities:   Seq[Condition] = Seq.empty,
   override val damageVulnerabilities: Seq[DamageType] = Seq.empty,
   override val damageResistances:     Seq[DamageType] = Seq.empty,
@@ -92,7 +100,12 @@ case class NonPlayerCharacterInfo(
   rollplayInfo:                       RollplayInfo = RollplayInfo(),
   monster:                            Option[MonsterId] = None,
   challengeRating:                    Option[ChallengeRating] = None,
-  relationToPlayers:                  RelationToPlayers = RelationToPlayers.unknown // TODO add this to editor
+  relationToPlayers:                  RelationToPlayers = RelationToPlayers.unknown, // TODO add this to editor
+  traits:                             Traits = Traits(),
+  organizations:                      String = "",
+  allies:                             String = "",
+  enemies:                            String = "",
+  backstory:                          String = ""
 ) extends CharacterInfo {
 
   def initiativeTuple: (Int, Int, Int, Int, Int, Int) =
@@ -116,6 +129,12 @@ case class NonPlayerCharacterInfo(
     skillModifiers:   Boolean = false,
     level:            Boolean = false
   ): NonPlayerCharacterInfo = this.copy()
+
+}
+
+object RollplayInfo {
+
+  given CanEqual[RollplayInfo, RollplayInfo] = CanEqual.derived
 
 }
 

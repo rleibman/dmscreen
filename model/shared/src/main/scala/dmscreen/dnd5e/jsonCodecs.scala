@@ -22,11 +22,11 @@
 package dmscreen.dnd5e
 
 import dmscreen.{CampaignId, DiceRoll, given}
+import just.semver.SemVer
 import zio.json.*
 import zio.json.ast.Json
 
 import java.net.URI
-import javax.management.relation.InvalidRelationIdException
 
 //Field encoders
 given JsonFieldEncoder[CharacterClassId] = JsonFieldEncoder[String].contramap(_.toString)
@@ -53,6 +53,8 @@ given JsonCodec[PlayerCharacterId] = JsonCodec.long.transform(PlayerCharacterId.
 given JsonCodec[MonsterId] = JsonCodec.long.transform(MonsterId.apply, _.value)
 given JsonCodec[SpellId] = JsonCodec.long.transform(SpellId.apply, _.value)
 given JsonCodec[SceneId] = JsonCodec.long.transform(SceneId.apply, _.value)
+
+given JsonCodec[SemVer] = JsonCodec.string.transformOrFail(SemVer.parse(_).left.map(_.render), _.render)
 
 //Enums
 given JsonCodec[ProficiencyLevel] = JsonCodec.string.transform(ProficiencyLevel.valueOf, _.toString)
@@ -121,6 +123,7 @@ given JsonCodec[SpellInfo] = JsonCodec.derived[SpellInfo]
 
 given JsonCodec[NonPlayerCharacterHeader] = JsonCodec.derived[NonPlayerCharacterHeader]
 given JsonCodec[PlayerCharacterHeader] = JsonCodec.derived[PlayerCharacterHeader]
+given JsonCodec[NonPlayerCharacter] = JsonCodec.derived[NonPlayerCharacter]
 given JsonCodec[MonsterHeader] = JsonCodec.derived[MonsterHeader]
 given JsonCodec[SceneHeader] = JsonCodec.derived[SceneHeader]
 given JsonCodec[SceneInfo] = JsonCodec.derived[SceneInfo]

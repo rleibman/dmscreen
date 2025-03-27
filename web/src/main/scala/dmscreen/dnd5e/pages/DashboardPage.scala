@@ -68,7 +68,7 @@ extension [A, CC[_], C](a: StrictOptimizedIterableOps[A, CC, C]) {
 
 }
 
-object DashboardPage extends DMScreenTab {
+object DashboardPage extends DMScreenPage {
 
   case class State(
     campaignNotes: String = "",

@@ -26,7 +26,7 @@ import dmscreen.components.DiceRoller
 import dmscreen.components.EditableComponent.EditingMode
 import dmscreen.dnd5e.components.PCEditComponent
 import dmscreen.dnd5e.{*, given}
-import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
+import dmscreen.{CampaignId, DMScreenPage, DMScreenState}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
@@ -40,7 +40,7 @@ import zio.json.*
 import scala.scalajs.js
 import scala.util.Random
 
-object RandomTablePage extends DMScreenTab {
+object RandomTablePage extends DMScreenPage {
 
   case class State(
     randomTables:  List[RandomTable] = List.empty,

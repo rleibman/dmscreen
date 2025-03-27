@@ -1,13 +1,13 @@
 package auth
 
-import ai.dnd5e.DND5eAIServer
+import ai.dnd5e.{AIIO, DND5eAIServer}
 import courier.*
 import dmscreen.db.DMScreenZIORepository
 import dmscreen.db.dnd5e.DND5eZIORepository
-import dmscreen.dnd5e.Encounter
 import dmscreen.dnd5e.dndbeyond.DNDBeyondImporter
 import dmscreen.dnd5e.fifthEditionCharacterSheet.FifthEditionCharacterSheetImporter
 import dmscreen.dnd5e.srd.SRDImporter
+import dmscreen.dnd5e.{Encounter, NonPlayerCharacter, NonPlayerCharacterInfo}
 import dmscreen.mail.Postman
 import dmscreen.{*, given}
 import pdi.jwt.*
@@ -56,10 +56,15 @@ object UserLifecycleSpec extends ZIOSpec[DMScreenServerEnvironment] {
     ref <- Ref.make(Map.empty[String, Envelope])
   } yield MockPostman(ref))
 
-  val mockAIServer: ULayer[DND5eAIServer] = ZLayer.succeed(new DND5eAIServer {
+  val mockAIServer: ULayer[DND5eAIServer[AIIO]] = ZLayer.succeed(new DND5eAIServer[AIIO] {
     override def generateEncounterDescription(encounter: Encounter)
       : ZIO[DMScreenSession & DND5eZIORepository & DMScreenZIORepository, DMScreenError, String] =
       ZIO.succeed("Fake Encounter Description")
+
+    override def generateNPCDetails(nonPlayerCharacter: NonPlayerCharacter): AIIO[NonPlayerCharacter] =
+      ZIO.succeed(nonPlayerCharacter)
+
+    override def generateNPCDescription(npc: NonPlayerCharacter): AIIO[String] = ZIO.succeed("Fake NPC Description")
 
   })
 
@@ -132,7 +137,7 @@ object UserLifecycleSpec extends ZIOSpec[DMScreenServerEnvironment] {
     app:      Routes[DMScreenServerEnvironment, Nothing],
     email:    String,
     password: String
-  ): URIO[DMScreenServerEnvironment, Response] =
+  ): ZIO[Scope & DMScreenServerEnvironment, Nothing, Response] =
     app.runZIO(
       Request
         .post(
@@ -150,7 +155,7 @@ object UserLifecycleSpec extends ZIOSpec[DMScreenServerEnvironment] {
     app:      Routes[DMScreenServerEnvironment, Nothing],
     email:    String = goodEmail,
     password: String = goodPassword
-  ): ZIO[DMScreenServerEnvironment, DMScreenError, (TokenString, TokenString)] = {
+  ): ZIO[Scope & DMScreenServerEnvironment, DMScreenError, (TokenString, TokenString)] = {
     for {
       response <- doLogin(app, email, password)
       _ <- ZIO

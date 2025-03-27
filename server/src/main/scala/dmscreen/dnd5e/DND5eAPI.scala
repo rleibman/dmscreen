@@ -21,8 +21,8 @@
 
 package dmscreen.dnd5e
 
-import ai.dnd5e.DND5eAIServer
-import auth.{User, UserId, given}
+import ai.dnd5e.{AIIO, DND5eAIServer}
+import auth.UserId
 import caliban.*
 import caliban.CalibanError.ExecutionError
 import caliban.interop.zio.*
@@ -42,7 +42,6 @@ import zio.http.{Client, Request}
 import zio.json.*
 import zio.json.ast.Json
 import zio.nio.file.Files
-import zio.stream.*
 
 import java.net.URI
 import java.nio.file.StandardOpenOption
@@ -152,17 +151,16 @@ object DND5eAPI {
   private given Schema[Any, DndBeyondId] = Schema.stringSchema.contramap(_.value)
   private given Schema[Any, CharacterClassId] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, MonsterId] = Schema.longSchema.contramap(_.value)
+  private given Schema[Any, SpellId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, PlayerCharacterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, NonPlayerCharacterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, EncounterId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, SceneId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, RandomTableId] = Schema.longSchema.contramap(_.value)
-
   private given Schema[Any, SourceId] = Schema.stringSchema.contramap(_.value)
-  private given Schema[Any, EncounterStatus] = Schema.stringSchema.contramap(_.toString)
+
   private given Schema[Any, DMScreenEvent] = Schema.gen[Any, DMScreenEvent]
   private given Schema[Any, Source] = Schema.gen[Any, Source]
-  private given Schema[Any, ChallengeRating] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, MonsterSearch] = Schema.gen[Any, MonsterSearch]
   private given Schema[Any, MonsterSearchResults] = Schema.gen[Any, MonsterSearchResults]
   private given Schema[Any, Scene] = Schema.gen[Any, Scene]
@@ -170,6 +168,8 @@ object DND5eAPI {
   private given Schema[Any, RandomTable] = Schema.gen[Any, RandomTable]
   private given Schema[Any, ImportSource] = Schema.stringSchema.contramap(_.toJson)
   private given Schema[Any, PlayerCharacter] = Schema.gen[Any, PlayerCharacter]
+  private given Schema[Any, SpellHeader] = Schema.gen[Any, SpellHeader]
+  private given Schema[Any, NonPlayerCharacterInfo] = Schema.gen[Any, NonPlayerCharacterInfo]
   private given Schema[Any, NonPlayerCharacter] = Schema.gen[Any, NonPlayerCharacter]
   private given Schema[Any, Encounter] = Schema.gen[Any, Encounter]
   private given Schema[Any, EncounterByIdRequest] = Schema.gen[Any, EncounterByIdRequest]
@@ -236,10 +236,15 @@ object DND5eAPI {
     subclasses:   CharacterClassId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Seq[SubClass]],
     randomTables: RandomTableSearch => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Seq[RandomTable]],
     randomTable:  RandomTableId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Option[RandomTable]],
-    generateEncounterDescription: Encounter => ZIO[
-      DND5eZIORepository & DMScreenSession & DMScreenZIORepository & DND5eAIServer,
+    aiGenerateEncounterDescription: Encounter => ZIO[
+      DND5eZIORepository & DMScreenSession & DMScreenZIORepository & DND5eAIServer[AIIO],
       DMScreenError,
       String
+    ],
+    aiGenerateNPCDetails: NonPlayerCharacter => ZIO[
+      DND5eZIORepository & DMScreenSession & DMScreenZIORepository & DND5eAIServer[AIIO],
+      DMScreenError,
+      NonPlayerCharacter
     ],
     npcsForScene: CampaignId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Map[SceneId, Seq[
       NonPlayerCharacterId
@@ -303,8 +308,9 @@ object DND5eAPI {
           subclasses = characterClassId => ZIO.serviceWithZIO[DND5eZIORepository](_.subClasses(characterClassId)),
           randomTables = tableType => ZIO.serviceWithZIO[DND5eZIORepository](_.randomTables(tableType.randomTableType)),
           randomTable = id => ZIO.serviceWithZIO[DND5eZIORepository](_.randomTable(id)),
-          generateEncounterDescription =
-            encounter => ZIO.serviceWithZIO[DND5eAIServer](_.generateEncounterDescription(encounter)),
+          aiGenerateEncounterDescription =
+            encounter => ZIO.serviceWithZIO[DND5eAIServer[AIIO]](_.generateEncounterDescription(encounter)),
+          aiGenerateNPCDetails = npc => ZIO.serviceWithZIO[DND5eAIServer[AIIO]](_.generateNPCDetails(npc)),
           npcsForScene = campaignId => ZIO.serviceWithZIO[DND5eZIORepository](_.npcsForScene(campaignId))
         ),
         Mutations(
@@ -330,7 +336,7 @@ object DND5eAPI {
             req => ZIO.serviceWithZIO[DND5eZIORepository](_.removeNpcFromScene(req.sceneId, req.npcId))
         )
       )
-    ) @@ maxFields(200)
+    ) @@ maxFields(300)
       @@ maxDepth(30)
       @@ printErrors
 

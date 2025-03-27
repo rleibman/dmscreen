@@ -1346,7 +1346,7 @@ object EncounterWizard {
                       $.modState(
                         s => s.copy(generating = true),
                         DND5eGraphQLRepository.live
-                          .generateEncounterDescription(
+                          .aiGenerateEncounterDescription(
                             Encounter(header = header, jsonInfo = info.toJsonAST.getOrElse(Json.Null))
                           )
                           .map(str =>

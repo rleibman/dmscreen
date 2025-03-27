@@ -25,7 +25,7 @@ import zio.http.*
 object BrokenApp extends ZIOAppDefault {
 
   lazy private val unauthRoute = Routes(
-    Method.ANY / trailing -> handler {
+    Method.ANY / Root / "unauth" / trailing -> handler {
       (
         path: Path,
         _:    Request
@@ -35,7 +35,7 @@ object BrokenApp extends ZIOAppDefault {
   )
 
   lazy private val authRoute = Routes(
-    Method.GET / trailing -> handler {
+    Method.GET / Root / "blah" / trailing -> handler {
       (
         path: Path,
         _:    Request

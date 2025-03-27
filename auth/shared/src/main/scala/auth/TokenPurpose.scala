@@ -21,6 +21,11 @@
 
 package auth
 
+
+object TokenPurpose {
+  given CanEqual[TokenPurpose, TokenPurpose] = CanEqual.derived
+
+}
 enum TokenPurpose(override val toString: String) {
 
   case NewUser extends TokenPurpose(toString = "NewUser")

@@ -26,6 +26,7 @@ import java.time.{Instant, LocalDateTime}
 opaque type UserId = Long
 
 object UserId {
+  given CanEqual[UserId, UserId] = CanEqual.derived
 
   val empty: UserId = UserId(0)
   val admin: UserId = UserId(1)

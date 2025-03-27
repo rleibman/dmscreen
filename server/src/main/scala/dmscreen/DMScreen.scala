@@ -35,8 +35,7 @@ object DMScreen extends ZIOApp {
   override type Environment = DMScreenServerEnvironment
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
-  override def bootstrap: ULayer[DMScreenServerEnvironment] =
-//     EnvironmentBuilder.live
+  override def bootstrap: ULayer[DMScreenServerEnvironment] = // EnvironmentBuilder.live
     EnvironmentBuilder.withContainer
 
   object TestRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {

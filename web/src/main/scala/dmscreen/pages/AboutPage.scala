@@ -21,12 +21,12 @@
 
 package dmscreen.pages
 
-import dmscreen.{BuildInfo, DMScreenTab}
+import dmscreen.{BuildInfo, DMScreenPage}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
 
-object AboutPage extends DMScreenTab {
+object AboutPage extends DMScreenPage {
 
   case class State(
   )

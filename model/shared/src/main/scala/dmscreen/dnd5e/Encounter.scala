@@ -140,6 +140,12 @@ object EncounterId {
 
 }
 
+object EncounterDifficultyLevel {
+
+  given CanEqual[EncounterDifficultyLevel, EncounterDifficultyLevel] = CanEqual.derived
+
+}
+
 enum EncounterDifficultyLevel {
 
   case Low

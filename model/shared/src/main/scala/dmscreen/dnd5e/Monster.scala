@@ -47,6 +47,8 @@ opaque type MonsterId = Long
 
 object MonsterId {
 
+  given CanEqual[MonsterId, MonsterId] = CanEqual.derived
+
   def empty: MonsterId = MonsterId(0)
 
   def apply(monsterId: Long): MonsterId = monsterId

@@ -22,7 +22,7 @@
 package dmscreen.dnd5e
 
 import caliban.ScalaJSClientAdapter
-import caliban.client.Operations.{RootMutation, RootQuery, RootSubscription}
+import caliban.client.Operations.{RootMutation, RootQuery}
 import caliban.client.scalajs.DND5eClient.{
   Alignment as CalibanAlignment,
   Background as CalibanBackground,
@@ -63,7 +63,6 @@ import caliban.client.scalajs.DND5eClient.{
 import caliban.client.scalajs.{DND5eClient, given}
 import caliban.client.{ArgEncoder, SelectionBuilder}
 import dmscreen.*
-import dmscreen.dnd5e.ImportSource
 import japgolly.scalajs.react.callback.AsyncCallback
 import zio.*
 import zio.json.*
@@ -95,7 +94,8 @@ object DND5eGraphQLRepository {
       fresh:       Boolean = false
     ): AsyncCallback[PlayerCharacter]
 
-    def generateEncounterDescription(encounter: Encounter): AsyncCallback[String]
+    def aiGenerateEncounterDescription(encounter: Encounter):          AsyncCallback[String]
+    def aiGenerateNPCDetails(npc:                 NonPlayerCharacter): AsyncCallback[NonPlayerCharacter]
 
   }
 
@@ -585,24 +585,6 @@ object DND5eGraphQLRepository {
         .mkString
     }
 
-    override def generateEncounterDescription(encounter: Encounter): AsyncCallback[String] = {
-      val calibanEncounterHeader = EncounterHeaderInput(
-        id = encounter.header.id.value,
-        campaignId = encounter.header.campaignId.value,
-        name = encounter.header.name,
-        status = encounter.header.status.toString,
-        sceneId = encounter.header.sceneId.map(_.value),
-        orderCol = encounter.header.orderCol
-      )
-
-      calibanClient.asyncCalibanCall(
-        Queries
-          .generateEncounterDescription(calibanEncounterHeader, encounter.jsonInfo, dmscreen.BuildInfo.version).map(
-            _.fold("")(htmlify)
-          )
-      )
-    }
-
     override def snapshot(
       oldId: CampaignId,
       newId: CampaignId
@@ -635,6 +617,370 @@ object DND5eGraphQLRepository {
         .asyncCalibanCall(
           Mutations.removeNpcFromScene(sceneId.value, npcId.value)
         ).map(_ => ())
+
+    override def aiGenerateEncounterDescription(encounter: Encounter): AsyncCallback[String] = {
+      val calibanEncounterHeader = EncounterHeaderInput(
+        id = encounter.header.id.value,
+        campaignId = encounter.header.campaignId.value,
+        name = encounter.header.name,
+        status = encounter.header.status.toString,
+        sceneId = encounter.header.sceneId.map(_.value),
+        orderCol = encounter.header.orderCol
+      )
+
+      calibanClient.asyncCalibanCall(
+        Queries
+          .aiGenerateEncounterDescription(calibanEncounterHeader, encounter.jsonInfo, dmscreen.BuildInfo.version).map(
+            _.fold("")(htmlify)
+          )
+      )
+    }
+
+//    private val deathSaveSB: SelectionBuilder[CalibanDeathSave, DeathSave] = CalibanDeathSave.view.map(caliban =>
+//      DeathSave(fails = caliban.fails, successes = caliban.successes, isStabilized = caliban.isStabilized)
+//    )
+
+//    private val healthSB: SelectionBuilder[CalibanHealth, Health] = CalibanHealth.view(deathSaveSB).map { caliban =>
+//      Health(
+//        deathSave = caliban.deathSave,
+//        currentHitPoints = caliban.currentHitPoints,
+//        maxHitPoints = caliban.maxHitPoints,
+//        overrideMaxHitPoints = caliban.overrideMaxHitPoints,
+//        temporaryHitPoints = caliban.temporaryHitPoints
+//      )
+//    }
+
+//    private val subclassSB = DND5eClient.SubClass.view.map(caliban => SubClass(caliban.name))
+//    private val classesSB: SelectionBuilder[DND5eClient.PlayerCharacterClass, PlayerCharacterClass] =
+//      DND5eClient.PlayerCharacterClass.view(subclassSB).map { caliban =>
+//        PlayerCharacterClass(
+//          characterClass =
+//            CharacterClassId.values.find(_.toString == caliban.characterClass).getOrElse(CharacterClassId.unknown),
+//          level = caliban.level,
+//          subclass = caliban.subclass
+//        )
+//      }
+
+//    private val physicalCharacteristicsSB =
+//      DND5eClient.PhysicalCharacteristics.view.map(caliban =>
+//        PhysicalCharacteristics(
+//          hair = caliban.hair,
+//          skin = caliban.skin,
+//          eyes = caliban.eyes,
+//          height = caliban.height,
+//          weight = caliban.weight,
+//          age = caliban.age
+//        )
+//      )
+
+//    private val abilitySB = DND5eClient.Ability.view.map(caliban =>
+//      Ability(
+//        abilityType = AbilityType.valueOf(caliban.abilityType.value),
+//        value = caliban.value,
+//        overrideValue = caliban.overrideValue,
+//        isProficient = caliban.isProficient
+//      )
+//    )
+
+//    private val abilitiesSB = DND5eClient.Abilities
+//      .view(
+//        abilitySB,
+//        abilitySB,
+//        abilitySB,
+//        abilitySB,
+//        abilitySB,
+//        abilitySB
+//      ).map(caliban =>
+//        Abilities(
+//          caliban.strength,
+//          caliban.dexterity,
+//          caliban.constitution,
+//          caliban.intelligence,
+//          caliban.wisdom,
+//          caliban.charisma
+//        )
+//      )
+
+//    private val skillSB = DND5eClient.Skill.view.map(caliban =>
+//      Skill(
+//        skillType = SkillType.valueOf(caliban.skillType.value),
+//        proficiencyLevel = ProficiencyLevel.valueOf(caliban.proficiencyLevel.value),
+//        advantage = AdvantageDisadvantage.valueOf(caliban.advantage.value)
+//      )
+//    )
+
+//    private val skillsSB = DND5eClient.Skills
+//      .view(
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB,
+//        skillSB
+//      ).map(caliban =>
+//        Skills(
+//          caliban.acrobatics,
+//          caliban.animalHandling,
+//          caliban.arcana,
+//          caliban.athletics,
+//          caliban.deception,
+//          caliban.history,
+//          caliban.insight,
+//          caliban.intimidation,
+//          caliban.investigation,
+//          caliban.medicine,
+//          caliban.nature,
+//          caliban.perception,
+//          caliban.performance,
+//          caliban.persuasion,
+//          caliban.religion,
+//          caliban.sleightOfHand,
+//          caliban.stealth,
+//          caliban.survival
+//        )
+//      )
+
+    private val backgroundSB =
+      DND5eClient.Background.view.map(caliban => Background(caliban.name))
+
+    private val raceSB = DND5eClient.Race.view.map(caliban => Race(caliban.name))
+
+//    private val traitsSB = DND5eClient.Traits.view.map(caliban =>
+//      Traits(
+//        personalityTraits = caliban.personalityTraits,
+//        ideals = caliban.ideals,
+//        bonds = caliban.bonds,
+//        flaws = caliban.flaws,
+//        appearance = caliban.appearance
+//      )
+//    )
+
+//    private val inventorySB = DND5eClient.InventoryItem.view.map(caliban =>
+//      InventoryItem(
+//        name = caliban.name,
+//        quantity = caliban.quantity
+//      )
+//    )
+
+//    private val walletSB = DND5eClient.Wallet.view.map(caliban =>
+//      Wallet(
+//        cp = caliban.cp,
+//        sp = caliban.sp,
+//        ep = caliban.ep,
+//        gp = caliban.gp,
+//        pp = caliban.pp
+//      )
+//    )
+
+//    private val featSB = DND5eClient.Feat.view.map(caliban =>
+//      Feat(
+//        name = caliban.name
+//      )
+//    )
+
+//    private val spellSlotsSB, pactMagicSB = DND5eClient.SpellSlots.view.map(caliban =>
+//      SpellSlots(level = caliban.level, used = caliban.used, total = caliban.total)
+//    )
+
+//    private val languagesSB = DND5eClient.Language.view.map(caliban => Language(caliban.name))
+
+//    private val damageTypeSB: SelectionBuilder[DND5eClient.DamageType, DamageType] =
+//      DND5eClient.DamageType.view.map(caliban => DamageType.valueOf(caliban.description))
+
+//    private val dcSB = DND5eClient.ActionDC.view.map(caliban =>
+//      ActionDC(
+//        dcType = AbilityType.valueOf(caliban.dcType.value),
+//        dcValue = caliban.dcValue
+//      )
+//    )
+
+    private val diceRollSB: SelectionBuilder[CalibanDiceRoll, DiceRoll] =
+      DND5eClient.DiceRoll.view.map(caliban =>
+        DiceRoll(
+          caliban.roll
+        )
+      )
+
+//    private val singleActionSB: SelectionBuilder[DND5eClient.SingleAction, SingleAction] =
+//      DND5eClient.SingleAction
+//        .view(diceRollSB, dcSB).map(caliban =>
+//          SingleAction(
+//            actionType = ActionType.valueOf(caliban.actionType.value),
+//            name = caliban.name,
+//            description = caliban.description,
+//            attackBonus = caliban.attackBonus,
+//            damage = caliban.damage,
+//            dc = caliban.dc
+//          )
+//        )
+
+//    private val multiActionSB: SelectionBuilder[DND5eClient.MultiAction, MultiAction] = DND5eClient.MultiAction
+//      .view(singleActionSB).map(caliban =>
+//        MultiAction(
+//          name = caliban.name,
+//          description = caliban.description,
+//          actions = caliban.actions
+//        )
+//      )
+
+//    private val spellHeaderSB =
+//      DND5eClient.SpellHeader.view.map(caliban => SpellHeader(id = SpellId(caliban.id), name = caliban.name))
+
+//    private val creaturesSB = DND5eClient.Creature.view.map(caliban =>
+//      Creature(
+//        name = caliban.name,
+//        creatureType = MonsterId(caliban.creatureType)
+//      )
+//    )
+
+//    private val speedsSB = DND5eClient.Speed.view.map(caliban =>
+//      Speed(
+//        speedType = SpeedType.valueOf(caliban.speedType.value),
+//        value = caliban.value
+//      )
+//    )
+
+//    private val sensesSB = DND5eClient.SenseRange.view.map(caliban =>
+//      SenseRange(
+//        sense = Sense.valueOf(caliban.sense.value),
+//        range = caliban.range
+//      )
+//    )
+
+//    private val damageVulnerabilitiesSB =
+//      DND5eClient.DamageType.view.map(caliban => DamageType.valueOf(caliban.description))
+
+//    private val rollplayInfoSB = DND5eClient.RollplayInfo.view.map(caliban =>
+//      RollplayInfo(
+//        occupation = caliban.occupation,
+//        personality = caliban.personality,
+//        ideal = caliban.ideal,
+//        bond = caliban.bond,
+//        flaw = caliban.flaw,
+//        characteristic = caliban.characteristic,
+//        speech = caliban.speech,
+//        hobby = caliban.hobby,
+//        fear = caliban.fear,
+//        currently = caliban.currently,
+//        nickname = caliban.nickname,
+//        weapon = caliban.weapon,
+//        rumor = caliban.rumor,
+//        raisedBy = caliban.raisedBy,
+//        parent1 = caliban.parent1,
+//        parent2 = caliban.parent2,
+//        siblingCount = caliban.siblingCount,
+//        childhood = caliban.childhood,
+//        children = caliban.children,
+//        spouse = caliban.spouse
+//      )
+//    )
+
+//    private val npcInfoSB = DND5eClient.NonPlayerCharacterInfo
+//      .view(
+//        NonPlayerCharacterInfoViewSelectionArgs(
+//          healthSelection = healthSB,
+//          classesSelection = classesSB,
+//          physicalCharacteristicsSelection = physicalCharacteristicsSB,
+//          abilitiesSelection = abilitiesSB,
+//          skillsSelection = skillsSB,
+//          backgroundSelection = backgroundSB,
+//          raceSelection = raceSB,
+//          traitsSelection = traitsSB,
+//          inventorySelection = inventorySB,
+//          walletSelection = walletSB,
+//          featsSelection = featSB,
+//          spellSlotsSelection = spellSlotsSB,
+//          pactMagicSelection = pactMagicSB,
+//          languagesSelection = languagesSB,
+//          actionsSelectionOnMultiAction = multiActionSB,
+//          actionsSelectionOnSingleAction = singleActionSB,
+//          classSpellsSelection = spellHeaderSB,
+//          creaturesSelection = creaturesSB,
+//          speedsSelection = speedsSB,
+//          sensesSelection = sensesSB,
+//          damageVulnerabilitiesSelection = damageTypeSB,
+//          damageResistancesSelection = damageTypeSB,
+//          damageImmunitiesSelection = damageTypeSB,
+//          rollplayInfoSelection = rollplayInfoSB
+//        )
+//      ).map(caliban =>
+//        NonPlayerCharacterInfo(
+//          health = caliban.health,
+//          armorClass = caliban.armorClass,
+//          classes = caliban.classes,
+//          physicalCharacteristics = caliban.physicalCharacteristics,
+//          faith = caliban.faith,
+//          overrideInitiative = caliban.overrideInitiative,
+//          currentXp = caliban.currentXp,
+//          alignment = Alignment.valueOf(caliban.alignment.value),
+//          lifestyle = Lifestyle.valueOf(caliban.lifestyle.value),
+//          abilities = caliban.abilities,
+//          skills = caliban.skills,
+//          background = caliban.background,
+//          race = caliban.race,
+//          size = CreatureSize.valueOf(caliban.size.value),
+//          traits = caliban.traits,
+//          inventory = caliban.inventory,
+//          wallet = caliban.wallet,
+//          feats = caliban.feats,
+//          conditions = caliban.conditions.map(c => Condition.valueOf(c.value)).toSet,
+//          spellSlots = caliban.spellSlots,
+//          pactMagic = caliban.pactMagic,
+//          languages = caliban.languages.toSet,
+//          actions = caliban.actions,
+//          classSpells = caliban.classSpells,
+//          creatures = caliban.creatures,
+//          speeds = caliban.speeds,
+//          senses = caliban.senses,
+//          hair = caliban.hair,
+//          skin = caliban.skin,
+//          eyes = caliban.eyes,
+//          height = caliban.height,
+//          weight = caliban.weight,
+//          age = caliban.age,
+//          gender = caliban.gender,
+//          conditionImmunities = caliban.conditionImmunities.map(c => Condition.valueOf(c.value)),
+//          damageVulnerabilities = caliban.damageVulnerabilities,
+//          damageResistances = caliban.damageResistances,
+//          damageImmunities = caliban.damageImmunities,
+//          notes = caliban.notes,
+//          rollplayInfo = caliban.rollplayInfo,
+//          monster = caliban.monster.map(MonsterId(_)),
+//          challengeRating = caliban.challengeRating.map(cr => ChallengeRating.valueOf(cr.value)),
+//          relationToPlayers = RelationToPlayers.valueOf(caliban.relationToPlayers.value),
+//          organizations = caliban.organizations,
+//          allies = caliban.allies,
+//          enemies = caliban.enemies,
+//          backstory = caliban.backstory
+//        )
+//      )
+
+    override def aiGenerateNPCDetails(npc: NonPlayerCharacter): AsyncCallback[NonPlayerCharacter] = {
+      val calibanNPCHeader = NonPlayerCharacterHeaderInput(
+        id = npc.header.id.value,
+        campaignId = npc.header.campaignId.value,
+        name = npc.header.name
+      )
+
+      calibanClient
+        .asyncCalibanCall(
+          Queries
+            .aiGenerateNPCDetails(calibanNPCHeader, npc.jsonInfo, dmscreen.BuildInfo.version)(npcSB)
+        ).map(_.getOrElse(npc))
+    }
+
   }
 
 }

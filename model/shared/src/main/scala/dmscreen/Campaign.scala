@@ -32,6 +32,8 @@ opaque type CampaignId = Long
 
 object CampaignId {
 
+  given CanEqual[CampaignId, CampaignId] = CanEqual.derived
+
   val empty: CampaignId = CampaignId(0)
 
   def apply(campaignId: Long): CampaignId = campaignId

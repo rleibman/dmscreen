@@ -27,6 +27,8 @@ opaque type RandomTableId = Long
 
 object RandomTableId {
 
+  given CanEqual[RandomTableId, RandomTableId] = CanEqual.derived
+
   def empty: RandomTableId = RandomTableId(0)
 
   def apply(randomTableId: Long): RandomTableId = randomTableId
