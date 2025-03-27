@@ -28,13 +28,19 @@ import scala.collection.SortedMap
 
 sealed trait ImportSource
 
+object ImportSource {
+
+  given CanEqual[ImportSource, ImportSource] = CanEqual.derived
+
+}
+
 case object DMScreenSource extends ImportSource
 
 opaque type DndBeyondId = String
 
 object DndBeyondId {
 
-  val dndBeyondIdRegex = "^[1-9][0-9]{8}$".r
+  private val dndBeyondIdRegex = "^[1-9][0-9]{8}$".r
 
   def apply(dndBeyondId: String): Either[String, DndBeyondId] =
     if (dndBeyondIdRegex.matches(dndBeyondId)) Right(dndBeyondId) else Left(s"Invalid DnD Beyond Id: $dndBeyondId")
@@ -83,6 +89,12 @@ enum CharacterClassId(val name: String) {
   case wizard extends CharacterClassId("Wizard")
   case `blood hunter` extends CharacterClassId("Blood Hunter")
   case unknown extends CharacterClassId("Unknown")
+
+}
+
+object CharacterClassId {
+
+  given CanEqual[CharacterClassId, CharacterClassId] = CanEqual.derived
 
 }
 
@@ -142,19 +154,71 @@ enum Lifestyle {
 
 }
 
-enum Alignment(val name: String) {
+enum Alignment(
+  val name:        String,
+  val description: String
+) {
 
-  case lawfulGood extends Alignment("Lawful Good")
-  case neutralGood extends Alignment("Neutral Good")
-  case chaoticGood extends Alignment("Chaotic Good")
-  case lawfulNeutral extends Alignment("Lawful Neutral")
-  case trueNeutral extends Alignment("True Neutral")
-  case chaoticNeutral extends Alignment("Chaotic Neutral")
-  case lawfulEvil extends Alignment("Lawful Evil")
-  case neutralEvil extends Alignment("Neutral Evil")
-  case chaoticEvil extends Alignment("Chaotic Evil")
-  case unaligned extends Alignment("Unaligned")
-  case unknown extends Alignment("Unknown")
+  case lawfulGood extends Alignment(
+        "Lawful Good",
+        "Acts with compassion and honor, values law, tradition, and doing what is right. A classic hero who believes in justice and helping others through order."
+      )
+
+  case neutralGood extends Alignment(
+        "Neutral Good",
+        "Does the best good they can without regard for or against rules. Guided by conscience, they strive to help others without being bound by laws or chaos."
+      )
+
+  case chaoticGood extends Alignment(
+        "Chaotic Good",
+        "Values personal freedom and kindness. Rebels against oppression and fights for the downtrodden, even if it means breaking the rules."
+      )
+
+  case lawfulNeutral extends Alignment(
+        "Lawful Neutral",
+        "Follows a strict code, tradition, or set of laws, regardless of moral considerations. Believes order is the foundation of society."
+      )
+
+  case trueNeutral extends Alignment(
+        "True Neutral",
+        "Maintains balance and avoids taking sides. May act selfishly or helpfully depending on the situation but avoids extremes of good, evil, law, or chaos."
+      )
+
+  case chaoticNeutral extends Alignment(
+        "Chaotic Neutral",
+        "Follows personal whims and acts unpredictably. Values freedom above all, unconcerned with morality or order. Neither good nor evil."
+      )
+
+  case lawfulEvil extends Alignment(
+        "Lawful Evil",
+        "Uses structure and law to advance selfish or malevolent goals. Manipulative and calculating, they respect power and hierarchy but exploit others mercilessly. Evil characters are real assholes and should not be portrayed sympathetically"
+      )
+
+  case neutralEvil extends Alignment(
+        "Neutral Evil",
+        "Primarily self-serving. Will harm or help others as it suits their interests. Lacks compassion or respect for rules but isn't driven by chaos. Evil characters are real assholes and should not be portrayed sympathetically"
+      )
+
+  case chaoticEvil extends Alignment(
+        "Chaotic Evil",
+        "Driven by cruelty, destruction, and personal gratification. Rejects authority, thrives on violence, and acts with no regard for others. Evil characters are real assholes and should not be portrayed sympathetically. These characters have no desire for redemption, only power, cruelty, and chaos."
+      )
+
+  case unaligned extends Alignment(
+        "Unaligned",
+        "Lacks a moral or ethical framework. Often applies to animals or simple-minded creatures without the capacity for alignment-based decisions."
+      )
+
+  case unknown extends Alignment(
+        "Unknown",
+        "The character’s alignment is not defined or has yet to be revealed. May behave inconsistently or conceal their true nature."
+      )
+
+}
+
+object AbilityType {
+
+  given CanEqual[AbilityType, AbilityType] = CanEqual.derived
 
 }
 
@@ -267,7 +331,7 @@ enum Condition {
 
 object DeathSave {
 
-  val empty = DeathSave(0, 0, true)
+  val empty: DeathSave = DeathSave(0, 0, true)
 
 }
 
@@ -412,9 +476,22 @@ enum AdvantageDisadvantage {
 
 }
 
+object ProficiencyLevel {
+
+  given CanEqual[ProficiencyLevel, ProficiencyLevel] = CanEqual.derived
+
+}
 enum ProficiencyLevel {
 
   case none, half, proficient, expert
+
+  def profStr: String =
+    this match {
+      case ProficiencyLevel.none       => ""
+      case ProficiencyLevel.half       => "½"
+      case ProficiencyLevel.proficient => "*"
+      case ProficiencyLevel.expert     => "**"
+    }
 
 }
 

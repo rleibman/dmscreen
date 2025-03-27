@@ -179,6 +179,90 @@ object DND5eClient {
 
   }
 
+  sealed trait AbilityType extends scala.Product with scala.Serializable { def value: String }
+  object AbilityType {
+
+    case object charisma extends AbilityType { val value: String = "charisma" }
+    case object constitution extends AbilityType { val value: String = "constitution" }
+    case object dexterity extends AbilityType { val value: String = "dexterity" }
+    case object intelligence extends AbilityType { val value: String = "intelligence" }
+    case object strength extends AbilityType { val value: String = "strength" }
+    case object wisdom extends AbilityType { val value: String = "wisdom" }
+
+    implicit val decoder: ScalarDecoder[AbilityType] = {
+      case __StringValue("charisma")     => Right(AbilityType.charisma)
+      case __StringValue("constitution") => Right(AbilityType.constitution)
+      case __StringValue("dexterity")    => Right(AbilityType.dexterity)
+      case __StringValue("intelligence") => Right(AbilityType.intelligence)
+      case __StringValue("strength")     => Right(AbilityType.strength)
+      case __StringValue("wisdom")       => Right(AbilityType.wisdom)
+      case other                         => Left(DecodingError(s"Can't build AbilityType from input $other"))
+    }
+    implicit val encoder: ArgEncoder[AbilityType] = {
+      case AbilityType.charisma     => __EnumValue("charisma")
+      case AbilityType.constitution => __EnumValue("constitution")
+      case AbilityType.dexterity    => __EnumValue("dexterity")
+      case AbilityType.intelligence => __EnumValue("intelligence")
+      case AbilityType.strength     => __EnumValue("strength")
+      case AbilityType.wisdom       => __EnumValue("wisdom")
+    }
+
+    val values: scala.collection.immutable.Vector[AbilityType] =
+      scala.collection.immutable.Vector(charisma, constitution, dexterity, intelligence, strength, wisdom)
+
+  }
+
+  sealed trait ActionType extends scala.Product with scala.Serializable { def value: String }
+  object ActionType {
+
+    case object Ability extends ActionType { val value: String = "Ability" }
+    case object Melee extends ActionType { val value: String = "Melee" }
+    case object Ranged extends ActionType { val value: String = "Ranged" }
+    case object Spell extends ActionType { val value: String = "Spell" }
+
+    implicit val decoder: ScalarDecoder[ActionType] = {
+      case __StringValue("Ability") => Right(ActionType.Ability)
+      case __StringValue("Melee")   => Right(ActionType.Melee)
+      case __StringValue("Ranged")  => Right(ActionType.Ranged)
+      case __StringValue("Spell")   => Right(ActionType.Spell)
+      case other                    => Left(DecodingError(s"Can't build ActionType from input $other"))
+    }
+    implicit val encoder: ArgEncoder[ActionType] = {
+      case ActionType.Ability => __EnumValue("Ability")
+      case ActionType.Melee   => __EnumValue("Melee")
+      case ActionType.Ranged  => __EnumValue("Ranged")
+      case ActionType.Spell   => __EnumValue("Spell")
+    }
+
+    val values: scala.collection.immutable.Vector[ActionType] =
+      scala.collection.immutable.Vector(Ability, Melee, Ranged, Spell)
+
+  }
+
+  sealed trait AdvantageDisadvantage extends scala.Product with scala.Serializable { def value: String }
+  object AdvantageDisadvantage {
+
+    case object advantage extends AdvantageDisadvantage { val value: String = "advantage" }
+    case object disadvantage extends AdvantageDisadvantage { val value: String = "disadvantage" }
+    case object neither extends AdvantageDisadvantage { val value: String = "neither" }
+
+    implicit val decoder: ScalarDecoder[AdvantageDisadvantage] = {
+      case __StringValue("advantage")    => Right(AdvantageDisadvantage.advantage)
+      case __StringValue("disadvantage") => Right(AdvantageDisadvantage.disadvantage)
+      case __StringValue("neither")      => Right(AdvantageDisadvantage.neither)
+      case other                         => Left(DecodingError(s"Can't build AdvantageDisadvantage from input $other"))
+    }
+    implicit val encoder: ArgEncoder[AdvantageDisadvantage] = {
+      case AdvantageDisadvantage.advantage    => __EnumValue("advantage")
+      case AdvantageDisadvantage.disadvantage => __EnumValue("disadvantage")
+      case AdvantageDisadvantage.neither      => __EnumValue("neither")
+    }
+
+    val values: scala.collection.immutable.Vector[AdvantageDisadvantage] =
+      scala.collection.immutable.Vector(advantage, disadvantage, neither)
+
+  }
+
   sealed trait Alignment extends scala.Product with scala.Serializable { def value: String }
   object Alignment {
 
@@ -1378,7 +1462,7 @@ object DND5eClient {
         OptionOf(Obj(innerSelection)),
         arguments = List(Argument("value", value, "Long!")(encoder0))
       )
-    def generateEncounterDescription(
+    def aiGenerateEncounterDescription(
       header:   EncounterHeaderInput,
       jsonInfo: zio.json.ast.Json,
       version:  String
@@ -1388,10 +1472,30 @@ object DND5eClient {
       encoder2: ArgEncoder[String]
     ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[String]] =
       _root_.caliban.client.SelectionBuilder.Field(
-        "generateEncounterDescription",
+        "aiGenerateEncounterDescription",
         OptionOf(Scalar()),
         arguments = List(
           Argument("header", header, "EncounterHeaderInput!")(encoder0),
+          Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
+          Argument("version", version, "String!")(encoder2)
+        )
+      )
+    def aiGenerateNPCDetails[A](
+      header:   NonPlayerCharacterHeaderInput,
+      jsonInfo: zio.json.ast.Json,
+      version:  String
+    )(
+      innerSelection: SelectionBuilder[NonPlayerCharacter, A]
+    )(implicit
+      encoder0: ArgEncoder[NonPlayerCharacterHeaderInput],
+      encoder1: ArgEncoder[zio.json.ast.Json],
+      encoder2: ArgEncoder[String]
+    ): SelectionBuilder[_root_.caliban.client.Operations.RootQuery, scala.Option[A]] =
+      _root_.caliban.client.SelectionBuilder.Field(
+        "aiGenerateNPCDetails",
+        OptionOf(Obj(innerSelection)),
+        arguments = List(
+          Argument("header", header, "NonPlayerCharacterHeaderInput!")(encoder0),
           Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
           Argument("version", version, "String!")(encoder2)
         )

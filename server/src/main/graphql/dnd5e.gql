@@ -43,6 +43,30 @@ enum ChallengeRating {
     _30
 }
 
+union Action = MultiAction | SingleAction
+
+enum AbilityType {
+    charisma
+    constitution
+    dexterity
+    intelligence
+    strength
+    wisdom
+}
+
+enum ActionType {
+    Ability
+    Melee
+    Ranged
+    Spell
+}
+
+enum AdvantageDisadvantage {
+    advantage
+    disadvantage
+    neither
+}
+
 enum Alignment {
     chaoticEvil
     chaoticGood
@@ -291,7 +315,7 @@ type Queries {
     nonPlayerCharacter(value: Long!): NonPlayerCharacter
     encounters(value: Long!): [Encounter!]
     encounter(campaignId: Long!, encounterId: Long!): Encounter
-    bestiary(name: String, challengeRating: String, size: CreatureSize, alignment: Alignment, biome: Biome, monsterType: MonsterType, source: SourceInput, orderCol: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): MonsterSearchResults
+    bestiary(name: String, challengeRating: ChallengeRating, size: CreatureSize, alignment: Alignment, biome: Biome, monsterType: MonsterType, source: SourceInput, orderCol: MonsterSearchOrder!, orderDir: OrderDirection!, page: Int!, pageSize: Int!): MonsterSearchResults
     sources: [Source!]
     classes: [CharacterClass!]
     races: [Race!]
@@ -299,7 +323,8 @@ type Queries {
     subclasses(value: String!): [SubClass!]
     randomTables(randomTableType: RandomTableType): [RandomTable!]
     randomTable(value: Long!): RandomTable
-    generateEncounterDescription(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): String
+    aiGenerateEncounterDescription(header: EncounterHeaderInput!, jsonInfo: Json!, version: String!): String
+    aiGenerateNPCDetails(header: NonPlayerCharacterHeaderInput!, jsonInfo: Json!, version: String!): NonPlayerCharacter
     npcsForScene(value: Long!): [KVLongListOfLong!]
 }
 

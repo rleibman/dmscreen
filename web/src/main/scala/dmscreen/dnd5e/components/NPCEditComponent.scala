@@ -25,12 +25,12 @@ import dmscreen.*
 import dmscreen.components.EditableComponent.EditingMode
 import dmscreen.components.{EditableComponent, EditableText}
 import dmscreen.dnd5e.{*, given}
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
-import japgolly.scalajs.react.vdom.html_<^.*
-import japgolly.scalajs.react.{CtorType, *}
+import japgolly.scalajs.react.vdom.html_<^.{<, *}
 import net.leibman.dmscreen.semanticUiReact.*
-import net.leibman.dmscreen.semanticUiReact.components.*
-import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticSIZES
+import net.leibman.dmscreen.semanticUiReact.components.{Confirm as SConfirm, Dropdown, List as SList, *}
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticCOLORS, SemanticICONS, SemanticSIZES}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
 import zio.json.*
 
@@ -48,7 +48,8 @@ object NPCEditComponent {
     onEditingModeChange: EditableComponent.EditingMode => Callback,
     onChange:            NonPlayerCharacter => Callback,
     onDelete:            NonPlayerCharacter => Callback,
-    onComponentClose:    NonPlayerCharacter => Callback
+    onComponentClose:    NonPlayerCharacter => Callback,
+    onEdit:              NonPlayerCharacter => Callback
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -97,18 +98,6 @@ object NPCEditComponent {
 
           <.div(
             Container.className("characterCard")(
-              Button("Delete")
-                .title("Delete this character")
-                .size(SemanticSIZES.tiny).compact(true).onClick(
-                  (
-                    _,
-                    _
-                  ) =>
-                    _root_.components.Confirm.confirm(
-                      question = "Are you 100% sure you want to delete this character?",
-                      onConfirm = props.onDelete(state.npc)
-                    )
-                ),
               <.div(
                 ^.className := "characterHeader",
                 <.h2(
@@ -119,7 +108,31 @@ object NPCEditComponent {
                         state.npc.copy(header = state.npc.header.copy(name = str))
                       )
                   )
-                )
+                ),
+                Button
+                  .title("Delete this character")
+                  .size(SemanticSIZES.small)
+                  .inverted(true)
+                  .color(SemanticCOLORS.red)
+                  .compact(true).onClick(
+                    (
+                      _,
+                      _
+                    ) =>
+                      _root_.components.Confirm.confirm(
+                        question = "Are you 100% sure you want to delete this character?",
+                        onConfirm = props.onDelete(state.npc)
+                      )
+                  ).icon(true)(Icon.name(SemanticICONS.delete)),
+                Button
+                  .className("customSmallIconButton")
+                  .compact(true)
+                  .title("NPC Wizard").onClick(
+                    (
+                      _,
+                      _
+                    ) => props.onEdit(state.npc)
+                  ).icon(true)(Icon.className("wizardButton"))
               ),
               <.div(
                 ^.className := "characterDetails",
@@ -608,7 +621,8 @@ object NPCEditComponent {
     onEditingModeChange: EditableComponent.EditingMode => Callback,
     onChange:            NonPlayerCharacter => Callback,
     onDelete:            NonPlayerCharacter => Callback,
-    onComponentClose:    NonPlayerCharacter => Callback
+    onComponentClose:    NonPlayerCharacter => Callback,
+    onEdit:              NonPlayerCharacter => Callback
   ): Unmounted[Props, State, Backend] = {
     // Note the "withKey" here, this is to make sure that the component is properly updated when the key changes
     component.withKey(npc.header.id.value.toString)(
@@ -617,7 +631,8 @@ object NPCEditComponent {
         onEditingModeChange = onEditingModeChange,
         onChange = onChange,
         onDelete = onDelete,
-        onComponentClose = onComponentClose
+        onComponentClose = onComponentClose,
+        onEdit = onEdit
       )
     )
   }

@@ -21,6 +21,7 @@
 
 package dmscreen.db.dnd5e
 
+import auth.Token
 import dmscreen.db.{*, given}
 import dmscreen.dnd5e.{*, given}
 import dmscreen.{*, given}
@@ -1039,12 +1040,16 @@ object QuillRepository {
         override def removeNpcFromScene(
           sceneId: SceneId,
           npcId:   NonPlayerCharacterId
-        ): DMScreenTask[Unit] =           ctx
-          .run(qSceneXNpc.filter(a => a._1 == lift(sceneId) && a._2 == lift(npcId)).delete)
-          .provideLayer(dataSourceLayer)
-          .mapError(RepositoryError.apply)
-          .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-          .unit
+        ): DMScreenTask[Unit] =
+          ctx
+            .run(
+              infix"DELETE FROM DND5eSceneNPC WHERE sceneId = ${lift(sceneId)} AND npcId = ${lift(npcId)}"
+                .as[Delete[Unit]]
+            )
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+            .unit
 
       }
     }

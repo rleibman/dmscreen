@@ -27,22 +27,24 @@ lazy val dist = TaskKey[File]("dist")
 lazy val debugDist = TaskKey[File]("debugDist")
 
 lazy val scala3Opts = Seq(
+  "-deprecation", // Emit warning and location for usages of deprecated APIs.
   "-no-indent", // scala3
-  "-old-syntax", // scala3
+  "-old-syntax", // I hate space sensitive languages!
   "-encoding",
   "utf-8", // Specify character encoding used by source files.
   "-feature", // Emit warning and location for usages of features that should be imported explicitly.
   "-language:existentials", // Existential types (besides wildcard types) can be written and inferred
   "-language:implicitConversions",
   "-language:higherKinds", // Allow higher-kinded types
+  //  "-language:strictEquality", //This is cool, but super noisy
   "-unchecked", // Enable additional warnings where generated code depends on assumptions.
+//  "-Wsafe-init", //Great idea, breaks compile though.
   "-Xfatal-warnings", // Fail the compilation if there are any warnings.
-  "-deprecation", // Emit warning and location for usages of deprecated APIs.
+  "-Xmax-inlines",
+  "128",
   //  "-explain-types", // Explain type errors in more detail.
   //  "-explain",
   "-Yexplicit-nulls", // Make reference types non-nullable. Nullable types can be expressed with unions: e.g. String|Null.
-  "-Xmax-inlines",
-  "128",
   "-Yretain-trees" // Retain trees for debugging.,
 )
 
@@ -50,13 +52,13 @@ enablePlugins(
   GitVersioning
 )
 
-val calibanVersion = "2.9.2"
-val langchainVersion = "1.0.0-beta1"
+val calibanVersion = "2.9.2" //This brings in zio-http new "2.10.0"
+val langchainVersion = "1.0.0-beta2"
 val quillVersion = "4.8.6"
 val tapirVersion = "1.10.8"
-val testContainerVersion = "0.41.8"
-val zioConfigVersion = "4.0.3"
-val zioHttpVersion = "3.0.1" // "3.0.1+104-f3012d3e-SNAPSHOT"
+val testContainerVersion = "0.43.0"
+val zioConfigVersion = "4.0.4"
+val zioHttpVersion = "3.0.1" // "3.1.0" // this breaks
 val zioJsonVersion = "0.7.39"
 val zioVersion = "2.1.16"
 
@@ -111,8 +113,8 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
       "dev.zio" %%% "zio-json"                                            % zioJsonVersion withSources (),
       "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC39" withSources (),
       "io.kevinlee" %%% "just-semver-core"                                % "1.1.0" withSources (),
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.33.2",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.33.2"
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.33.3",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.33.3"
     )
   )
 
@@ -156,7 +158,7 @@ lazy val db = project
       "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.2" withSources (),
       "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
       // Log
-      "ch.qos.logback" % "logback-classic" % "1.5.17" withSources (),
+      "ch.qos.logback" % "logback-classic" % "1.5.18" withSources (),
       // ZIO
       "dev.zio"                %% "zio"                   % zioVersion withSources (),
       "dev.zio"                %% "zio-nio"               % "2.0.2" withSources (),
@@ -166,7 +168,7 @@ lazy val db = project
       "dev.zio"                %% "zio-config-magnolia"   % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-typesafe"   % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-logging-slf4j2"    % "2.5.0" withSources (),
-      "dev.zio"                %% "izumi-reflect"         % "2.3.10" withSources (),
+      "dev.zio"                %% "izumi-reflect"         % "3.0.2" withSources (),
       "dev.zio"                %% "zio-json"              % zioJsonVersion withSources (),
       "org.scala-lang.modules" %% "scala-xml"             % "2.3.0" withSources (),
       // Other random utilities
@@ -201,7 +203,7 @@ lazy val server = project
       "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.2" withSources (),
       "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
       // Log
-      "ch.qos.logback" % "logback-classic" % "1.5.17" withSources (),
+      "ch.qos.logback" % "logback-classic" % "1.5.18" withSources (),
       // ZIO
       "dev.zio"                %% "zio"                   % zioVersion withSources (),
       "dev.zio"                %% "zio-nio"               % "2.0.2" withSources (),
@@ -211,7 +213,7 @@ lazy val server = project
       "dev.zio"                %% "zio-config-magnolia"   % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-config-typesafe"   % zioConfigVersion withSources (),
       "dev.zio"                %% "zio-logging-slf4j2"    % "2.5.0" withSources (),
-      "dev.zio"                %% "izumi-reflect"         % "3.0.1" withSources (),
+      "dev.zio"                %% "izumi-reflect"         % "3.0.2" withSources (),
       "com.github.ghostdogpr"  %% "caliban"               % calibanVersion withSources (),
       "com.github.ghostdogpr"  %% "caliban-zio-http"      % calibanVersion withSources (),
       "com.github.ghostdogpr"  %% "caliban-quick"         % calibanVersion withSources (),
@@ -272,7 +274,7 @@ lazy val ai = project
       "dev.langchain4j"    % "langchain4j-qdrant"        % langchainVersion withSources (),
       // Other random utilities
       "com.github.pathikrit" %% "better-files"    % "3.9.2" withSources (),
-      "ch.qos.logback"        % "logback-classic" % "1.5.17" withSources (),
+      "ch.qos.logback"        % "logback-classic" % "1.5.18" withSources (),
       // Testing
       "dev.zio" %% "zio-test"     % zioVersion % "test" withSources (),
       "dev.zio" %% "zio-test-sbt" % zioVersion % "test" withSources ()

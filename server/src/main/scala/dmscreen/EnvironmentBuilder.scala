@@ -21,7 +21,7 @@
 
 package dmscreen
 
-import ai.dnd5e.DND5eAIServer
+import ai.dnd5e.{AIIO, DND5eAIServer}
 import auth.{*, given}
 import dmscreen.db.DMScreenZIORepository
 import dmscreen.db.dnd5e.DND5eZIORepository
@@ -34,7 +34,7 @@ import dmscreen.util.TestCreator
 import zio.*
 
 type DMScreenServerEnvironment = DMScreenZIORepository & STAZIORepository & DND5eZIORepository & DNDBeyondImporter &
-  ConfigurationService & DND5eAIServer & UserRepository[DMScreenTask] & TokenHolder[DMScreenTask] &
+  ConfigurationService & DND5eAIServer[AIIO] & UserRepository[DMScreenTask] & TokenHolder[DMScreenTask] &
   SessionTransport[DMScreenSession] & Postman & SessionConfig
 
 object EnvironmentBuilder {

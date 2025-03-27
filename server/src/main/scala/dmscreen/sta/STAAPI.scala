@@ -151,7 +151,7 @@ object STAAPI {
             )
         )
       )
-    ) @@ maxFields(200)
+    ) @@ maxFields(300)
       @@ maxDepth(30)
       @@ printErrors
 

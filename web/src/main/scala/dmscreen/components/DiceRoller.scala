@@ -21,12 +21,12 @@
 
 package dmscreen.components
 
-import dmscreen.{DMScreenTab, DiceRoll}
+import dmscreen.{DMScreenPage, DiceRoll}
 import dmscreen.dnd5e.*
 import dmscreen.dnd5e.components.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
-import japgolly.scalajs.react.{CtorType, Ref, *}
+import japgolly.scalajs.react.{Ref, *}
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.Confirm.component
@@ -153,7 +153,7 @@ class DiceBoxOptions(
   val onThemeLoaded:       js.UndefOr[js.Function1[ThemeConfig, Unit]] = js.undefined
 ) extends js.Object
 
-object DiceRoller extends DMScreenTab {
+object DiceRoller extends DMScreenPage {
 
   case class State(
     diceBox:        Option[DiceBox] = None,
@@ -195,7 +195,7 @@ object DiceRoller extends DMScreenTab {
         ^.display   := "inline-block",
         <.div(^.id := "dice-box"),
         Button
-          .className("diceButton")
+          .className("customIconButton")
           .color(SemanticCOLORS.black)
           .icon(true)(Icon.className("d4icon"))
           .onClick(
@@ -213,7 +213,7 @@ object DiceRoller extends DMScreenTab {
           )
           .when(props.dieTypes.contains(DieType.d4)),
         Button
-          .className("diceButton")
+          .className("customIconButton")
           .color(SemanticCOLORS.black)
           .icon(true)(Icon.className("d6icon"))
           .onClick(
@@ -230,7 +230,7 @@ object DiceRoller extends DMScreenTab {
               )
           ).when(props.dieTypes.contains(DieType.d6)),
         Button
-          .className("diceButton")
+          .className("customIconButton")
           .color(SemanticCOLORS.black)
           .icon(true)(Icon.className("d8icon"))
           .onClick(
@@ -247,7 +247,7 @@ object DiceRoller extends DMScreenTab {
               )
           ).when(props.dieTypes.contains(DieType.d8)),
         Button
-          .className("diceButton")
+          .className("customIconButton")
           .color(SemanticCOLORS.black)
           .icon(true)(Icon.className("d10icon"))
           .onClick(
@@ -264,7 +264,7 @@ object DiceRoller extends DMScreenTab {
               )
           ).when(props.dieTypes.contains(DieType.d10)),
         Button
-          .className("diceButton")
+          .className("customIconButton")
           .color(SemanticCOLORS.black)
           .icon(true)(Icon.className("d12icon"))
           .onClick(
@@ -281,7 +281,7 @@ object DiceRoller extends DMScreenTab {
               )
           ).when(props.dieTypes.contains(DieType.d12)),
         Button
-          .className("diceButton")
+          .className("customIconButton")
           .color(SemanticCOLORS.black)
           .icon(true)(Icon.className("d20icon"))
           .onClick(

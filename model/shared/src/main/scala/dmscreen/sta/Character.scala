@@ -470,6 +470,8 @@ case class Organization(name: String)
 
 object Organization {
 
+  given CanEqual[Organization, Organization] = CanEqual.derived
+
   val none:                Organization = Organization("none")
   val cardassian:          Organization = Organization("cardassian")
   val federation:          Organization = Organization("federation")

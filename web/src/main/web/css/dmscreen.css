@@ -6,6 +6,16 @@
     height: 100%;
 }
 
+i.icon.wizardButton {
+    width: 40px;
+    vertical-align: inherit !important;
+}
+
+i.icon.wizardButton:before {
+    content: url("/images/wizard.svg");
+    position: relative;
+}
+
 i.icon.d4icon:before {
     content: url("/images/d4.svg");
     position: relative;
@@ -73,7 +83,15 @@ i.icon.d20icon {
     vertical-align: inherit !important;
 }
 
-button.diceButton {
+button.customSmallIconButton {
+    width: 44px;
+    height: 44px;
+    padding: 0px !important;
+    color: white;
+    background-color: black;
+}
+
+button.customIconButton {
     width: 74px;
     height: 74px;
     padding: 0px !important;
@@ -249,3 +267,22 @@ h2.lcars-text-bar>div {
     border-bottom: 1px solid var(--lcars-bar-color);
     padding-bottom: .5rem;
 }
+
+/**************************************************************************/
+
+.responsive-three-column-grid {
+    display:block;
+}
+
+.responsive-three-column-grid > * {
+    padding:1rem;
+}
+
+@media (min-width:768px) {
+    .responsive-three-column-grid {
+        display: grid;
+        grid-auto-rows: 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}
+

@@ -59,7 +59,7 @@ object ApiClient {
     def attempt = {
       val noTok = request
         .followRedirects(true)
-        .readTimeout(2.minute)
+        .readTimeout(4.minute)
       AsyncCallback.fromFuture {
         val tok = getAccessToken.fold(noTok)(noTok.auth.bearer(_))
 

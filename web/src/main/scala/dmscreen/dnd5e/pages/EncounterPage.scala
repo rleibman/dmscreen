@@ -27,10 +27,10 @@ import caliban.client.scalajs.given
 import dmscreen.components.*
 import dmscreen.dnd5e.components.*
 import dmscreen.dnd5e.{*, given}
-import dmscreen.{CampaignId, DMScreenState, DMScreenTab, DialogMode}
+import dmscreen.{CampaignId, DMScreenPage, DMScreenState, DialogMode}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
-import japgolly.scalajs.react.vdom.html_<^.{<, *}
+import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{Button, List as SList, Table, *}
@@ -42,7 +42,7 @@ import zio.json.ast.Json
 
 import scala.scalajs.js.JSConverters.*
 
-object EncounterPage extends DMScreenTab {
+object EncounterPage extends DMScreenPage {
 
   enum EncounterMode {
 

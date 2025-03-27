@@ -26,7 +26,7 @@ import dmscreen.dnd5e.components.PCEditComponent
 import dmscreen.dnd5e.pages.EncounterPage.State
 import dmscreen.dnd5e.pages.NPCPage.State
 import dmscreen.dnd5e.{*, given}
-import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
+import dmscreen.{CampaignId, DMScreenPage, DMScreenState}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -39,7 +39,7 @@ import zio.json.*
 
 import scala.util.Random
 
-object ScenePage extends DMScreenTab {
+object ScenePage extends DMScreenPage {
 
   case class State(
     npcs:         Seq[NonPlayerCharacter] = Seq.empty,

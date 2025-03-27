@@ -24,7 +24,7 @@ package dmscreen.dnd5e.pages
 import dmscreen.components.EditableComponent.EditingMode
 import dmscreen.dnd5e.components.PCEditComponent
 import dmscreen.dnd5e.{*, given}
-import dmscreen.{CampaignId, DMScreenState, DMScreenTab}
+import dmscreen.{CampaignId, DMScreenPage, DMScreenState}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{BackendScope, Callback, ScalaComponent}
@@ -32,7 +32,7 @@ import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
 import zio.json.*
 
-object PCPage extends DMScreenTab {
+object PCPage extends DMScreenPage {
 
   case class State(
     pcs:               Seq[PlayerCharacter] = Seq.empty,
