@@ -21,7 +21,7 @@
 
 package dmscreen.dnd5e
 
-import dmscreen.{BuildInfo, CampaignId, DMScreenEntity, EntityType, HasId}
+import dmscreen.*
 import just.semver.SemVer
 import zio.json.ast.Json
 
@@ -140,11 +140,7 @@ object EncounterId {
 
 }
 
-object EncounterDifficultyLevel {
-
-  given CanEqual[EncounterDifficultyLevel, EncounterDifficultyLevel] = CanEqual.derived
-
-}
+object EncounterDifficultyLevel {}
 
 enum EncounterDifficultyLevel {
 
@@ -191,13 +187,19 @@ case class EncounterInfo(
   generatedDescription: String = ""
 ) {
 
-  def xpBudget(pcs: Seq[PlayerCharacter]): ThresholdRow =
-    pcs.map(pc => thresholdTable(Math.max(0, pc.info.totalLevel - 1))).foldLeft(ThresholdRow(0, 0, 0))(_ + _)
+  def xpBudget(pcs: Seq[PlayerCharacter]): ThresholdRow = {
+    pcs
+      .map { pc =>
+        val pcTotalLevel = Math.min(20, Math.max(1, pc.info.totalLevel)) // Levels better be between 1 and 20
+        level2Threshold(pcTotalLevel)
+      }.foldLeft(ThresholdRow(0, 0, 0))(_ + _)
+  }
 
   def calculateDifficulty(
     pcs:  Seq[PlayerCharacter],
     npcs: Seq[NonPlayerCharacter]
   ): EncounterDifficultyLevel = {
+    // Temporary try/catch to avoid crashing the app
     val playerXP: ThresholdRow = xpBudget(pcs)
 
     val theEnemyXP = enemyXP(npcs)
@@ -252,7 +254,7 @@ private case class ThresholdRow(
     }
 
 }
-lazy private val thresholdTable = {
+lazy private val level2Threshold = {
   Map(
     1  -> ThresholdRow(50, 75, 100),
     2  -> ThresholdRow(100, 150, 200),

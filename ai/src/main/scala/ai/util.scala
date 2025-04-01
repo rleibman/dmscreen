@@ -61,6 +61,7 @@ type StreamingLangChainEnvironment = ChatMemory & StreamingChatLanguageModel & S
 type LangChainEnvironment = ChatMemory & ChatLanguageModel & ChatAssistant & LangChainConfiguration
 
 case class LangChainConfiguration(
+  maxDND5eMonsters: Int = 0 // use 0 to disable, use 5000 or more for no limit
 )
 
 object LangChainConfiguration {

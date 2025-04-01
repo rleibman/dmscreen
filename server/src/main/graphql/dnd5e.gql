@@ -43,30 +43,6 @@ enum ChallengeRating {
     _30
 }
 
-union Action = MultiAction | SingleAction
-
-enum AbilityType {
-    charisma
-    constitution
-    dexterity
-    intelligence
-    strength
-    wisdom
-}
-
-enum ActionType {
-    Ability
-    Melee
-    Ranged
-    Spell
-}
-
-enum AdvantageDisadvantage {
-    advantage
-    disadvantage
-    neither
-}
-
 enum Alignment {
     chaoticEvil
     chaoticGood

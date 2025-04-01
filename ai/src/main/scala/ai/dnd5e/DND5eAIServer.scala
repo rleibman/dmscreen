@@ -64,7 +64,7 @@ object DND5eAIServer {
       metadata.put("name", header.name)
       metadata.put("type", header.monsterType.toString)
       metadata.put("size", header.size.toString)
-      metadata.put("challengeRating", header.cr.toString)
+      metadata.put("challengeRating", header.cr.name)
       metadata.put("armorClass", header.armorClass)
       metadata.put("hitPoints", header.maximumHitPoints)
       metadata.put("xp", header.xp)
@@ -143,14 +143,21 @@ object DND5eAIServer {
     ] =
       ZLayer.fromZIO {
         for {
-          repo <- ZIO.service[DND5eZIORepository]
-          monsters <- repo
-            .fullBestiary(MonsterSearch(pageSize = 500)).provideLayer(DMScreenSession.adminSession.toLayer) // Bring default monsters in
-          _      <- ZIO.logInfo(s"Got ${monsters.results.size} monsters")
-          qdrant <- ZIO.service[QdrantContainer]
-          _      <- qdrant.createCollectionAsync("monsters")
-          _      <- ingestMonsters(monsters.results)
-          model  <- ZIO.service[ChatLanguageModel]
+          repo   <- ZIO.service[DND5eZIORepository]
+          config <- ZIO.service[LangChainConfiguration]
+          _ <- {
+            for {
+              monsters <- repo
+                .fullBestiary(MonsterSearch(pageSize = config.maxDND5eMonsters)) // Bring default monsters in
+                .provideLayer(DMScreenSession.adminSession.toLayer)
+              _      <- ZIO.logInfo(s"Got ${monsters.results.size} monsters")
+              qdrant <- ZIO.service[QdrantContainer]
+              _      <- qdrant.createCollectionAsync("monsters")
+              _      <- ingestMonsters(monsters.results)
+            } yield ()
+          }
+            .when(config.maxDND5eMonsters > 0)
+          model <- ZIO.service[ChatLanguageModel]
         } yield new DND5eAIServer[AIIO] {
           def generateEncounterDescription(encounter: Encounter)
             : ZIO[DMScreenSession & DND5eZIORepository & DMScreenZIORepository, DMScreenError, String] = {
@@ -252,8 +259,6 @@ object DND5eAIServer {
                 | NPC Details (in JSON format):
                 | ${nonPlayerCharacter.toJsonPretty}
                 |""".stripMargin
-
-            println(template)
 
             case class NPCDetails(
               faith:             Option[String],

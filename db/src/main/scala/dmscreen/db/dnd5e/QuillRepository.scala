@@ -459,7 +459,7 @@ object QuillRepository {
 
           val limited = quote(
             q6
-              .drop(lift(search.page * search.pageSize))
+              .drop(lift(Math.max(0, search.page) * search.pageSize))
               .take(lift(search.pageSize))
           )
 

@@ -192,6 +192,7 @@ object NPCWizard {
           selectedMonster = selectedMonster.map(_.header),
           scenes = scenes.toList,
           monsters = monsters.results,
+          monsterCount = monsters.total,
           races = races.toSet,
           classes = classes.toList,
           backgrounds = backgrounds.toSet
@@ -231,10 +232,13 @@ object NPCWizard {
           $.state.flatMap(s =>
             DND5eGraphQLRepository.live
               .bestiary(s.monsterSearch)
-              .map(monsters => $.modState(_.copy(monsters = monsters.results)))
+              .map(monsters => $.modState(_.copy(monsters = monsters.results, monsterCount = monsters.total)))
               .completeWith(_.get)
           )
         )
+
+      println(s"Total Monster Count: ${state.monsterCount}")
+      println(s"Total Monster Pages: ${state.monsterCount / state.monsterSearch.pageSize.toDouble}")
 
       Form(
         Form.Group(
@@ -435,7 +439,7 @@ object NPCWizard {
                   state.monsters.map { header =>
                     Table.Row.withKey(header.id.value.toString)(
                       Table.Cell(
-                        s"${header.name} (${header.monsterType.toString.capitalize}, CR: ${header.cr.toString})"
+                        s"${header.name} (${header.monsterType.toString.capitalize}, CR: ${header.cr.name})"
                       ),
                       Table.Cell(
                         Button

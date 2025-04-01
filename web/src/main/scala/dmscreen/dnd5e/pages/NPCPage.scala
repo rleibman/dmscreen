@@ -91,10 +91,7 @@ object NPCPage extends DMScreenPage {
                   s.copy(
                     npcWizard = false,
                     selectedNPCId = None,
-                    npcs = s.npcs.map {
-                      case npc if npc.header.id == updatedNPC.header.id => updatedNPC
-                      case other                                        => other
-                    }
+                    npcs = s.npcs.filter(_.header.id != updatedNPC.header.id) :+ updatedNPC
                   )
                 ),
               npcId = state.selectedNPCId
@@ -158,6 +155,7 @@ object NPCPage extends DMScreenPage {
                 ^.key       := "pageContainer",
                 state.ncpsInScene
                   .filter(npc => if (state.filterDead) !npc.info.health.isDead else true)
+                  .sortBy(_.header.id.value) // order by order of creation
                   .map(npc =>
                     NPCEditComponent( // Internally, make sure each item has a key!
                       npc = npc,

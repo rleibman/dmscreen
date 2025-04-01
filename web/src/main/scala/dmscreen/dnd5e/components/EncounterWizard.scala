@@ -648,7 +648,7 @@ object EncounterWizard {
                     .placeholder("All")
                     .options(
                       ChallengeRating.values
-                        .map(s => DropdownItemProps().setValue(s.toString).setText(s.value)).toJSArray
+                        .map(s => DropdownItemProps().setValue(s.toString).setText(s.name)).toJSArray
                     )
                     .onChange {
                       (
@@ -707,7 +707,7 @@ object EncounterWizard {
                       state.monsters.map { header =>
                         Table.Row.withKey(header.id.value.toString)(
                           Table.Cell(
-                            s"${header.name} (${header.monsterType.toString.capitalize}, CR: ${header.cr.toString})"
+                            s"${header.name} (${header.monsterType.toString.capitalize}, CR: ${header.cr.name})"
                           ),
                           Table.Cell(
                             Button

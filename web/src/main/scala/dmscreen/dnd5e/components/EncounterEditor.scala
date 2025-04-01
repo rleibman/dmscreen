@@ -442,7 +442,7 @@ object EncounterEditor {
                           Table.Cell(combatant.monsterHeader.monsterType.toString.capitalize),
                           Table.Cell(combatant.monsterHeader.biome.fold("")(_.toString.capitalize)),
                           Table.Cell(combatant.monsterHeader.alignment.fold("")(_.name)),
-                          Table.Cell(combatant.monsterHeader.cr.toString),
+                          Table.Cell(combatant.monsterHeader.cr.name),
                           Table.Cell(combatant.monsterHeader.xp),
                           Table.Cell(
                             EditableNumber(
@@ -809,7 +809,7 @@ object EncounterEditor {
                       Table.Cell(header.monsterType.toString.capitalize),
                       Table.Cell(header.biome.fold("")(_.toString.capitalize)),
                       Table.Cell(header.alignment.fold("")(_.name)),
-                      Table.Cell(header.cr.toString),
+                      Table.Cell(header.cr.name),
                       Table.Cell(header.xp),
                       Table.Cell(header.armorClass),
                       Table.Cell(header.maximumHitPoints),

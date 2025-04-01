@@ -22,7 +22,7 @@
 package dmscreen.dnd5e
 
 import ai.dnd5e.{AIIO, DND5eAIServer}
-import auth.UserId
+import auth.{User, UserId, given}
 import caliban.*
 import caliban.CalibanError.ExecutionError
 import caliban.interop.zio.*
@@ -158,9 +158,10 @@ object DND5eAPI {
   private given Schema[Any, SceneId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, RandomTableId] = Schema.longSchema.contramap(_.value)
   private given Schema[Any, SourceId] = Schema.stringSchema.contramap(_.value)
-
+  private given Schema[Any, EncounterStatus] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, DMScreenEvent] = Schema.gen[Any, DMScreenEvent]
   private given Schema[Any, Source] = Schema.gen[Any, Source]
+  private given Schema[Any, ChallengeRating] = Schema.stringSchema.contramap(_.toString)
   private given Schema[Any, MonsterSearch] = Schema.gen[Any, MonsterSearch]
   private given Schema[Any, MonsterSearchResults] = Schema.gen[Any, MonsterSearchResults]
   private given Schema[Any, Scene] = Schema.gen[Any, Scene]

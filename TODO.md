@@ -119,9 +119,6 @@ DONE - Heal/Damage buttons look ugly, maybe switch the whole table to white back
 # StatBlock
 ## CSS
 TEMPDONE Notes should be black on white
-
-
-------------------
 DONE Edit monster, alignment is broken
 DONE Initiatives for pcs not sorted
 DONE Edit player name in pc is not working
@@ -149,3 +146,19 @@ DONE - Test Login
 - Test Forgot password
 - Test Reset password
 - Bearer token
+DONE - Error in Encounter.scala, line 200 (I put a try in there to catch it temporarily)
+DONE - CR on encounters is showing value instead of label
+DONE - Monster pager is not working
+DONE - NPC is not showing up after saving
+CNR - Monster search is not working after entering a monster name, selecting it  and then removing the name (I'm guessing something is "sticiking" in the search). Could not reproduce
+
+
+TODO 3/29
+Monster editor
+Campaign name editor
+- Combat Editor
+  - Allow name editing
+
+Bugs 3/29
+- NPC Wizard
+- Combat Editor

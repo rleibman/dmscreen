@@ -23,12 +23,13 @@ package dmscreen
 
 import _root_.auth.{SessionConfig, SessionTransport}
 import dmscreen.db.RepositoryError
+import dmscreen.db.dnd5e.DND5eZIORepository
+import dmscreen.dnd5e.EncounterDifficultyLevel
 import dmscreen.routes.*
 import zio.*
 import zio.http.*
 
 import java.io.{PrintWriter, StringWriter}
-import java.util.concurrent.TimeUnit
 
 object DMScreen extends ZIOApp {
 
@@ -153,9 +154,20 @@ object DMScreen extends ZIOApp {
       )
   }
 
+  def testEncounter: ZIO[DMScreenServerEnvironment, DMScreenError, Seq[EncounterDifficultyLevel]] = {
+    val campaignId = CampaignId(3)
+    for {
+      repo         <- ZIO.service[DND5eZIORepository]
+      encounterIds <- repo.encounters(campaignId)
+      pcs          <- repo.playerCharacters(campaignId)
+      npcs         <- repo.nonPlayerCharacters(campaignId)
+    } yield encounterIds.map(_.info.calculateDifficulty(pcs, npcs))
+  }.provideSomeLayer[DMScreenServerEnvironment](DMScreenSession.adminSession.toLayer)
+
   lazy val zapp: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, Nothing]] = for {
     _                <- ZIO.log("Initializing Routes")
     sessionTransport <- ZIO.service[SessionTransport[DMScreenSession]]
+    _                <- testEncounter
     unauth           <- AllTogether.unauth
     auth             <- AllTogether.auth
     api              <- AllTogether.api

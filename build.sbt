@@ -102,7 +102,7 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
       "dev.zio"     %% "zio-prelude"           % "1.0.0-RC39" withSources (),
       "dev.zio"     %% "zio-http"              % zioHttpVersion withSources (),
       "io.getquill" %% "quill-jdbc-zio"        % quillVersion withSources (),
-      "io.kevinlee" %% "just-semver-core"      % "1.1.0" withSources ()
+      "io.kevinlee" %% "just-semver-core"      % "1.1.1" withSources ()
     )
   )
   .jsEnablePlugins(GitVersioning, BuildInfoPlugin)
@@ -112,7 +112,7 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
       "dev.zio" %%% "zio"                                                 % zioVersion withSources (),
       "dev.zio" %%% "zio-json"                                            % zioJsonVersion withSources (),
       "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC39" withSources (),
-      "io.kevinlee" %%% "just-semver-core"                                % "1.1.0" withSources (),
+      "io.kevinlee" %%% "just-semver-core"                                % "1.1.1" withSources (),
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.33.3",
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.33.3"
     )
@@ -155,7 +155,7 @@ lazy val db = project
     name := "dmscreen-db",
     libraryDependencies ++= Seq(
       // DB
-      "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.2" withSources (),
+      "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.3" withSources (),
       "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
       // Log
       "ch.qos.logback" % "logback-classic" % "1.5.18" withSources (),
@@ -200,7 +200,7 @@ lazy val server = project
     name := "dmscreen-server",
     libraryDependencies ++= Seq(
       // DB
-      "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.2" withSources (),
+      "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.3" withSources (),
       "io.getquill"     %% "quill-jdbc-zio"      % quillVersion withSources (),
       // Log
       "ch.qos.logback" % "logback-classic" % "1.5.18" withSources (),
