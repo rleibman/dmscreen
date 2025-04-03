@@ -114,13 +114,13 @@ object PCInitativeEditor {
               )
           ),
           ModalActions(
-            Button("Cancel").onClick {
+            Button.secondary(true)("Cancel").onClick {
               (
                 _,
                 _
               ) => props.onCancel >> $.modState(_.copy(editingMode = EditingMode.closed))
             },
-            Button("OK").onClick {
+            Button.primary(true)("OK").onClick {
               (
                 _,
                 _

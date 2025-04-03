@@ -22,7 +22,8 @@
 package dmscreen.pages
 
 import auth.UserId
-import dmscreen.dnd5e.DND5eUI
+import dmscreen.components.EditableText
+import dmscreen.dnd5e.{DND5eGraphQLRepository, DND5eUI}
 import dmscreen.{*, given}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Generic.UnmountedRaw
@@ -102,18 +103,20 @@ object HomePage extends DMScreenPage {
                 ),
                 Modal.Actions(
                   Button
+                    .secondary(true)("Cancel").onClick(
+                      (
+                        _,
+                        _
+                      ) => onCancel
+                    ),
+                  Button
+                    .primary(true)
                     .disabled(state.value.deleteString != "DELETE")("Ok").onClick(
                       (
                         _,
                         _
                       ) => onConfirm
-                    ),
-                  Button("Cancel").onClick(
-                    (
-                      _,
-                      _
-                    ) => onCancel
-                  )
+                    )
                 )
               )
         }
@@ -238,7 +241,14 @@ object HomePage extends DMScreenPage {
                   )
                 ),
                 Modal.Actions(
-                  Button("Ok").onClick {
+                  Button
+                    .secondary(true)("Cancel").onClick(
+                      (
+                        _,
+                        _
+                      ) => $.modState(_.copy(newCampaign = None))
+                    ),
+                  Button.primary(true)("Ok").onClick {
                     (
                       _,
                       _
@@ -248,13 +258,7 @@ object HomePage extends DMScreenPage {
                           .upsert(newCampaign, CampaignInfo(notes = "").toJsonAST.toOption.get)
                         reloaded <- DMScreenGraphQLRepository.live.campaigns
                       } yield $.modState(_.copy(newCampaign = None, campaigns = reloaded))).completeWith(_.get)
-                  },
-                  Button("Cancel").onClick(
-                    (
-                      _,
-                      _
-                    ) => $.modState(_.copy(newCampaign = None))
-                  )
+                  }
                 )
               )
           },
@@ -281,9 +285,13 @@ object HomePage extends DMScreenPage {
                         else "Not Current"
                       ),
                       Table.Cell(
-                        s"${campaign.name}${
-                            if (campaign.campaignStatus == CampaignStatus.archived) " (Archived)" else ""
-                          }"
+                        EditableText(
+                          value = s"${campaign.name}${
+                              if (campaign.campaignStatus == CampaignStatus.archived) " (Archived)" else ""
+                            }",
+                          allowEditing = true,
+                          onChange = name => modCampaignHeader(campaign.copy(name = name))
+                        )
                       ),
                       Table.Cell(campaign.gameSystem.name),
                       Table.Cell(

@@ -34,6 +34,7 @@ enum DND5eUIPages {
   case pcs extends DND5eUIPages with AppPageType
   case npcs extends DND5eUIPages with AppPageType
   case scenes extends DND5eUIPages with AppPageType
+  case bestiary extends DND5eUIPages with AppPageType
   case randomTables extends DND5eUIPages with AppPageType
   case campaignLog extends DND5eUIPages with AppPageType
 
@@ -48,6 +49,7 @@ case object DND5eUI extends GameUI {
       PageAppMenuItem(DND5eUIPages.encounters, "Encounters", campaignId => EncounterPage(campaignId)),
       PageAppMenuItem(DND5eUIPages.npcs, "NPCs", campaignId => NPCPage(campaignId)),
       PageAppMenuItem(DND5eUIPages.scenes, "Scenes", campaignId => ScenePage(campaignId)),
+      PageAppMenuItem(DND5eUIPages.bestiary, "Bestiary", campaignId => BestiaryPage(campaignId)),
       PageAppMenuItem(DND5eUIPages.randomTables, "Random Tables", _ => RandomTablePage()),
       ButtonAppMenuItem(
         DND5eUIPages.campaignLog,

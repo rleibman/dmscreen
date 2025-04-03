@@ -21,18 +21,16 @@
 
 package dmscreen.dnd5e.components
 
+import dmscreen.CampaignId
 import dmscreen.components.{EditableNumber, EditableText}
 import dmscreen.dnd5e.components.*
 import dmscreen.dnd5e.{*, given}
-import dmscreen.util.*
-import dmscreen.{CampaignId, DMScreenState}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{CtorType, *}
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.{List as SList, *}
-import net.leibman.dmscreen.semanticUiReact.distCommonjsAddonsPaginationPaginationMod.PaginationProps
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
 import net.leibman.dmscreen.semanticUiReact.semanticUiReactStrings.*
@@ -153,341 +151,230 @@ object EncounterEditor {
       state: State
     ): VdomNode = {
 
-      def modEncounter(encounter: Encounter) = {
+      def modEncounter(encounter: Encounter): Callback = {
         props.onChange(encounter)
       }
 
-      DMScreenState.ctx.consume { dmScreenState =>
-        {
-          val encounter = props.encounter
+      val encounter = props.encounter
 
-          Container(
-            state.viewMonsterId.fold(EmptyVdom: VdomNode)(monsterId =>
-              Modal
-                .withKey("monsterStackBlockModal")
-                .style(CSSProperties().set("backgroundColor", "#ffffff"))
-                .open(true)
-                .size(semanticUiReactStrings.tiny)
-                .closeIcon(true)
-                .onClose(
-                  (
-                    _,
-                    _
-                  ) => $.modState(_.copy(viewMonsterId = None))
-                )(
-                  Modal.Content(^.padding := 5.px, MonsterStatBlock(monsterId))
-                ): VdomNode
-            ),
-            state.viewNPCId.fold(EmptyVdom: VdomNode)(npcId =>
-              Modal
-                .withKey("npcBlockModal")
-                .style(CSSProperties().set("backgroundColor", "#ffffff"))
-                .open(true)
-                .size(semanticUiReactStrings.tiny)
-                .closeIcon(true)
-                .onClose(
-                  (
-                    _,
-                    _
-                  ) => $.modState(_.copy(viewNPCId = None))
-                )(
-                  Modal.Content(NPCStatBlock(npcId))
-                ): VdomNode
-            ),
-            Modal
-              .open(state.isAddingNPC)
-              .size(semanticUiReactStrings.tiny)
-              .closeIcon(false)(
-                Modal.Header("Select NPC to add"),
-                Modal.Content(
-                  Dropdown
-                    .fluid(true)
-                    .search(false)
-                    .clearable(true)
-                    .placeholder("Click to Select NPC")
-                    .options(
-                      state.npcs
-                        .filter(npc =>
-                          !encounter.info.combatants.exists(c =>
-                            c.isInstanceOf[NonPlayerCharacterCombatant] && c
-                              .asInstanceOf[NonPlayerCharacterCombatant].nonPlayerCharacterId == npc.id
-                          )
-                        )
-                        .map(npc => DropdownItemProps().setValue(npc.header.id.value.toDouble).setText(npc.header.name))
-                        .toJSArray
-                    )
-                    .onChange {
-                      (
-                        _,
-                        data
-                      ) =>
-                        val newVal = data.value match {
-                          case s: String if s.trim.isEmpty => None
-                          case s: String                   => state.npcs.find(_.id.value == s.toInt)
-                          case s: Double                   => state.npcs.find(_.id.value == s.toInt)
-                          case s => None
-                        }
-
-                        $.modState(_.copy(npcToAdd = newVal))
-                    }
-                    .value(state.npcToAdd.fold(0.0)(_.header.id.value.toDouble))
-                ),
-                Modal.Actions(
-                  Button("Cancel").onClick(
-                    (
-                      _,
-                      _
-                    ) => $.modState(_.copy(isAddingNPC = false, npcToAdd = None))
-                  ),
-                  Button("Ok").onClick {
-                    (
-                      _,
-                      _
-                    ) =>
-                      {
-
-                        val newCombatant = state.npcToAdd.map { npc =>
-                          NonPlayerCharacterCombatant(
-                            id = CombatantId.create,
-                            nonPlayerCharacterId = npc.id,
-                            name = npc.header.name,
-                            notes = "",
-                            initiative = 10,
-                            initiativeBonus = npc.info.initiativeBonus
-                          )
-                        }
-                        modEncounter(
-                          encounter.copy(
-                            jsonInfo = encounter.info
-                              .copy(combatants = encounter.info.combatants ++ newCombatant)
-                              .toJsonAST.toOption.get
-                          )
-                        ) >> $.modState(_.copy(isAddingNPC = false, npcToAdd = None))
-                      }
-                  }
-                )
-              )
-              .when(state.isAddingNPC),
-            state.editingMonster.fold(EmptyVdom)(
+      Container(
+        state.viewMonsterId.fold(EmptyVdom: VdomNode)(monsterId =>
+          Modal
+            .withKey("monsterStackBlockModal")
+            .style(CSSProperties().set("backgroundColor", "#ffffff"))
+            .open(true)
+            .size(semanticUiReactStrings.tiny)
+            .closeIcon(true)
+            .onClose(
               (
-                monsterId,
-                cloneMonster
-              ) =>
-                MonsterEditor(
-                  monsterId,
-                  cloneMonster = cloneMonster == CloneMonster.yes,
-                  onClose = monster =>
-                    $.modState(
-                      _.copy(editingMonster = None),
-                      modMonsterSearch(_.copy(name = Some(monster.header.name)))
-                    )
-                )
-            ),
-            Table
-              .inverted(DND5eUI.tableInverted)
-              .color(DND5eUI.tableColor)(
-                Table.Header(
-                  Table.Row(
-                    Table.HeaderCell.colSpan(3)(<.h2(s"${encounter.header.name}")),
-                    Table.HeaderCell
-                      .colSpan(3).textAlign(semanticUiReactStrings.center)(
-                        s"Difficulty: ${props.difficulty}, XP: ${encounter.info.enemyXP(state.npcs)}"
-                      ),
-                    Table.HeaderCell
-                      .colSpan(4)
-                      .singleLine(true)
-                      .textAlign(semanticUiReactStrings.right)(
-                        Button
-                          .compact(true)
-                          .icon(true)
-                          .title("Add NPC")
-                          .onClick(
-                            (
-                              _,
-                              _
-                            ) =>
-                              if (
-                                state.npcs.exists(npc =>
-                                  !encounter.info.combatants.exists(c =>
-                                    c.isInstanceOf[NonPlayerCharacterCombatant] && c
-                                      .asInstanceOf[NonPlayerCharacterCombatant].nonPlayerCharacterId == npc.id
-                                  )
-                                )
-                              ) {
-                                $.modState(_.copy(isAddingNPC = true))
-                              } else {
-                                Callback.alert("There are no NPCs you can add, create one in the NPC page first!")
-                              }
-                          )(Icon.name(SemanticICONS.`add user`)),
-                        Button
-                          .compact(true)
-                          .icon(true)
-                          .title("Archive this encounter")
-                          .onClick(
-                            (
-                              _,
-                              _
-                            ) =>
-                              modEncounter(
-                                encounter.copy(header = encounter.header.copy(status = EncounterStatus.archived))
-                              )
-                          )(Icon.name(SemanticICONS.`archive`)).when(
-                            encounter.header.status != EncounterStatus.archived
-                          ),
-                        Button
-                          .compact(true)
-                          .icon(true)
-                          .title("Delete this encounter")
-                          .onClick(
-                            (
-                              _,
-                              _
-                            ) =>
-                              _root_.components.Confirm.confirm(
-                                question = "Are you 100% sure you want to delete this encounter?",
-                                onConfirm = props.onDelete(encounter)
-                              )
-                          )(Icon.name(SemanticICONS.`trash`))
+                _,
+                _
+              ) => $.modState(_.copy(viewMonsterId = None))
+            )(
+              Modal.Content(^.padding := 5.px, MonsterStatBlock(monsterId))
+            ): VdomNode
+        ),
+        state.viewNPCId.fold(EmptyVdom: VdomNode)(npcId =>
+          Modal
+            .withKey("npcBlockModal")
+            .style(CSSProperties().set("backgroundColor", "#ffffff"))
+            .open(true)
+            .size(semanticUiReactStrings.tiny)
+            .closeIcon(true)
+            .onClose(
+              (
+                _,
+                _
+              ) => $.modState(_.copy(viewNPCId = None))
+            )(
+              Modal.Content(NPCStatBlock(npcId))
+            ): VdomNode
+        ),
+        Modal
+          .open(state.isAddingNPC)
+          .size(semanticUiReactStrings.tiny)
+          .closeIcon(false)(
+            Modal.Header("Select NPC to add"),
+            Modal.Content(
+              Dropdown
+                .fluid(true)
+                .search(false)
+                .clearable(true)
+                .placeholder("Click to Select NPC")
+                .options(
+                  state.npcs
+                    .filter(npc =>
+                      !encounter.info.combatants.exists(c =>
+                        c.isInstanceOf[NonPlayerCharacterCombatant] && c
+                          .asInstanceOf[NonPlayerCharacterCombatant].nonPlayerCharacterId == npc.id
                       )
-                  ),
-                  Table.Row(
-                    Table.HeaderCell("Name"),
-                    Table.HeaderCell("Type"),
-                    Table.HeaderCell("Biome"),
-                    Table.HeaderCell("Alignment"),
-                    Table.HeaderCell("CR"),
-                    Table.HeaderCell("XP"),
-                    Table.HeaderCell("AC"),
-                    Table.HeaderCell("HP"),
-                    Table.HeaderCell("Size"),
-                    Table.HeaderCell( /*For actions*/ )
+                    )
+                    .map(npc => DropdownItemProps().setValue(npc.header.id.value.toDouble).setText(npc.header.name))
+                    .toJSArray
+                )
+                .onChange {
+                  (
+                    _,
+                    data
+                  ) =>
+                    val newVal = data.value match {
+                      case s: String if s.trim.isEmpty => None
+                      case s: String                   => state.npcs.find(_.id.value == s.toInt)
+                      case s: Double                   => state.npcs.find(_.id.value == s.toInt)
+                      case s => None
+                    }
+
+                    $.modState(_.copy(npcToAdd = newVal))
+                }
+                .value(state.npcToAdd.fold(0.0)(_.header.id.value.toDouble))
+            ),
+            Modal.Actions(
+              Button
+                .secondary(true)("Cancel").onClick(
+                  (
+                    _,
+                    _
+                  ) => $.modState(_.copy(isAddingNPC = false, npcToAdd = None))
+                ),
+              Button.primary(true)("Ok").onClick {
+                (
+                  _,
+                  _
+                ) =>
+                  {
+
+                    val newCombatant = state.npcToAdd.map { npc =>
+                      NonPlayerCharacterCombatant(
+                        id = CombatantId.create,
+                        nonPlayerCharacterId = npc.id,
+                        name = npc.header.name,
+                        notes = "",
+                        initiative = 10,
+                        initiativeBonus = npc.info.initiativeBonus
+                      )
+                    }
+                    modEncounter(
+                      encounter.copy(
+                        jsonInfo = encounter.info
+                          .copy(combatants = encounter.info.combatants ++ newCombatant)
+                          .toJsonAST.toOption.get
+                      )
+                    ) >> $.modState(_.copy(isAddingNPC = false, npcToAdd = None))
+                  }
+              }
+            )
+          )
+          .when(state.isAddingNPC),
+        Table
+          .inverted(DND5eUI.tableInverted)
+          .color(DND5eUI.tableColor)(
+            Table.Header(
+              Table.Row(
+                Table.HeaderCell.colSpan(3)(
+                  <.h2(
+                    EditableText(
+                      value = encounter.header.name,
+                      allowEditing = encounter.header.status != EncounterStatus.archived,
+                      onChange = name =>
+                        modEncounter(
+                          encounter.copy(header = encounter.header.copy(name = name))
+                        )
+                    )
                   )
                 ),
-                Table.Body(
-                  encounter.info.combatants.sortBy(_.name).collect {
-                    case combatant: NonPlayerCharacterCombatant =>
-                      state.npcs
-                        .find(_.id == combatant.nonPlayerCharacterId)
-                        .fold(EmptyVdom) { npc =>
-                          Table.Row
-                            .withKey(s"combatant ${combatant.id.value}")(
-                              Table.Cell(combatant.name),
-                              Table.Cell(
-                                s"NPC (${npc.info.race.name},${npc.info.classes.map(_.characterClass.name).mkString(",")})"
-                              ),
-                              Table.Cell("-"),
-                              Table.Cell(npc.info.alignment.name),
-                              Table.Cell("-"),
-                              Table.Cell("-"),
-                              Table.Cell(npc.info.armorClass),
-                              Table.Cell(npc.info.health.maxHitPoints),
-                              Table.Cell(npc.info.size.toString.capitalize),
-                              Table.Cell.singleLine(true)(
-                                Button
-                                  .compact(true)
-                                  .size(SemanticSIZES.mini)
-                                  .title("Delete this combatant from the encounter")
-                                  .icon(true)
-                                  .onClick {
-                                    (
-                                      _,
-                                      _
-                                    ) =>
-                                      modEncounter(
-                                        encounter
-                                          .copy(jsonInfo =
-                                            encounter.info
-                                              .copy(combatants = encounter.info.combatants.filter(_.id != combatant.id))
-                                              .toJsonAST.toOption.get
-                                          )
-                                      )
-                                  }(Icon.name(SemanticICONS.`trash`))
-                                  .when(encounter.header.status != EncounterStatus.archived),
-                                Button
-                                  .title("View NPC stats")
-                                  .compact(true)
-                                  .size(SemanticSIZES.mini)
-                                  .icon(true)(Icon.name(SemanticICONS.`eye`))
-                                  .onClick(
-                                    (
-                                      _,
-                                      _
-                                    ) => $.modState(_.copy(viewNPCId = Some(npc.header.id)))
-                                  )
+                Table.HeaderCell
+                  .colSpan(3).textAlign(semanticUiReactStrings.center)(
+                    s"Difficulty: ${props.difficulty}, XP: ${encounter.info.enemyXP(state.npcs)}"
+                  ),
+                Table.HeaderCell
+                  .colSpan(4)
+                  .singleLine(true)
+                  .textAlign(semanticUiReactStrings.right)(
+                    Button
+                      .compact(true)
+                      .icon(true)
+                      .title("Add NPC")
+                      .onClick(
+                        (
+                          _,
+                          _
+                        ) =>
+                          if (
+                            state.npcs.exists(npc =>
+                              !encounter.info.combatants.exists(c =>
+                                c.isInstanceOf[NonPlayerCharacterCombatant] && c
+                                  .asInstanceOf[NonPlayerCharacterCombatant].nonPlayerCharacterId == npc.id
                               )
                             )
-                        }
-                    case combatant: MonsterCombatant =>
+                          ) {
+                            $.modState(_.copy(isAddingNPC = true))
+                          } else {
+                            Callback.alert("There are no NPCs you can add, create one in the NPC page first!")
+                          }
+                      )(Icon.name(SemanticICONS.`add user`)),
+                    Button
+                      .compact(true)
+                      .icon(true)
+                      .title("Archive this encounter")
+                      .onClick(
+                        (
+                          _,
+                          _
+                        ) =>
+                          modEncounter(
+                            encounter.copy(header = encounter.header.copy(status = EncounterStatus.archived))
+                          )
+                      )(Icon.name(SemanticICONS.`archive`)).when(
+                        encounter.header.status != EncounterStatus.archived
+                      ),
+                    Button
+                      .compact(true)
+                      .icon(true)
+                      .title("Delete this encounter")
+                      .onClick(
+                        (
+                          _,
+                          _
+                        ) =>
+                          _root_.components.Confirm.confirm(
+                            question = "Are you 100% sure you want to delete this encounter?",
+                            onConfirm = props.onDelete(encounter)
+                          )
+                      )(Icon.name(SemanticICONS.`trash`))
+                  )
+              ),
+              Table.Row(
+                Table.HeaderCell("Name"),
+                Table.HeaderCell("Type"),
+                Table.HeaderCell("Biome"),
+                Table.HeaderCell("Alignment"),
+                Table.HeaderCell("CR"),
+                Table.HeaderCell("XP"),
+                Table.HeaderCell("AC"),
+                Table.HeaderCell("HP"),
+                Table.HeaderCell("Size"),
+                Table.HeaderCell( /*For actions*/ )
+              )
+            ),
+            Table.Body(
+              encounter.info.combatants.sortBy(_.name).collect {
+                case combatant: NonPlayerCharacterCombatant =>
+                  state.npcs
+                    .find(_.id == combatant.nonPlayerCharacterId)
+                    .fold(EmptyVdom) { npc =>
                       Table.Row
                         .withKey(s"combatant ${combatant.id.value}")(
+                          Table.Cell(combatant.name),
                           Table.Cell(
-                            EditableText(
-                              value = combatant.name,
-                              allowEditing = encounter.header.status != EncounterStatus.archived,
-                              onChange = name =>
-                                modEncounter(
-                                  encounter
-                                    .copy(jsonInfo =
-                                      encounter.info
-                                        .copy(combatants = encounter.info.combatants.map {
-                                          case monsterCombatant2: MonsterCombatant
-                                              if monsterCombatant2.id == combatant.id =>
-                                            monsterCombatant2.copy(name = name)
-                                          case c => c
-                                        }).toJsonAST.toOption.get
-                                    )
-                                )
-                            )
+                            s"NPC (${npc.info.race.name},${npc.info.classes.map(_.characterClass.name).mkString(",")})"
                           ),
-                          Table.Cell(combatant.monsterHeader.monsterType.toString.capitalize),
-                          Table.Cell(combatant.monsterHeader.biome.fold("")(_.toString.capitalize)),
-                          Table.Cell(combatant.monsterHeader.alignment.fold("")(_.name)),
-                          Table.Cell(combatant.monsterHeader.cr.name),
-                          Table.Cell(combatant.monsterHeader.xp),
-                          Table.Cell(
-                            EditableNumber(
-                              value = combatant.monsterHeader.armorClass,
-                              allowEditing = encounter.header.status != EncounterStatus.archived,
-                              min = 0,
-                              max = 30,
-                              onChange = v =>
-                                modEncounter {
-                                  encounter
-                                    .copy(jsonInfo =
-                                      encounter.info
-                                        .copy(combatants = encounter.info.combatants.map {
-                                          case monsterCombatant2: MonsterCombatant
-                                              if monsterCombatant2.id == combatant.id =>
-                                            monsterCombatant2.copy(armorClass = v.toInt)
-                                          case c => c
-                                        }).toJsonAST.toOption.get
-                                    )
-                                }
-                            )
-                          ),
-                          Table.Cell(
-                            EditableNumber(
-                              value = combatant.health.maxHitPoints,
-                              allowEditing = encounter.header.status != EncounterStatus.archived,
-                              min = 0,
-                              max = 1000,
-                              onChange = v =>
-                                modEncounter {
-                                  encounter
-                                    .copy(jsonInfo =
-                                      encounter.info
-                                        .copy(combatants = encounter.info.combatants.map {
-                                          case monsterCombatant2: MonsterCombatant
-                                              if monsterCombatant2.id == combatant.id =>
-                                            monsterCombatant2
-                                              .copy(health = monsterCombatant2.health.copy(maxHitPoints = v.toInt))
-                                          case c => c
-                                        }).toJsonAST.toOption.get
-                                    )
-                                }
-                            )
-                          ),
-                          Table.Cell(combatant.monsterHeader.size.toString.capitalize),
+                          Table.Cell("-"),
+                          Table.Cell(npc.info.alignment.name),
+                          Table.Cell("-"),
+                          Table.Cell("-"),
+                          Table.Cell(npc.info.armorClass),
+                          Table.Cell(npc.info.health.maxHitPoints),
+                          Table.Cell(npc.info.size.toString.capitalize),
                           Table.Cell.singleLine(true)(
                             Button
                               .compact(true)
@@ -510,30 +397,7 @@ object EncounterEditor {
                               }(Icon.name(SemanticICONS.`trash`))
                               .when(encounter.header.status != EncounterStatus.archived),
                             Button
-                              .compact(true)
-                              .size(SemanticSIZES.mini)
-                              .title("More of this combatant!")
-                              .onClick {
-                                (
-                                  _,
-                                  _
-                                ) =>
-                                  modEncounter(
-                                    encounter
-                                      .copy(jsonInfo =
-                                        encounter.info
-                                          .copy(combatants =
-                                            encounter.info.combatants :+
-                                              createMonsterCombatant(encounter, combatant.monsterHeader)
-                                          )
-                                          .toJsonAST.toOption.get
-                                      )
-                                  )
-                              }
-                              .icon(true)(Icon.name(SemanticICONS.`clone outline`))
-                              .when(encounter.header.status != EncounterStatus.archived),
-                            Button
-                              .title("View Monster Stat Block")
+                              .title("View NPC stats")
                               .compact(true)
                               .size(SemanticSIZES.mini)
                               .icon(true)(Icon.name(SemanticICONS.`eye`))
@@ -541,311 +405,126 @@ object EncounterEditor {
                                 (
                                   _,
                                   _
-                                ) => $.modState(_.copy(viewMonsterId = Some(combatant.monsterHeader.id)))
+                                ) => $.modState(_.copy(viewNPCId = Some(npc.header.id)))
                               )
                           )
                         )
-                  }*
-                )
-              ),
-            Divider.section(true),
-            // ENHANCEMENT move this into a component of it's own
-            Table
-              .inverted(DND5eUI.tableInverted)
-              .color(DND5eUI.tableColor)
-              .sortable(true)(
-                Table.Header(
-                  Table.Row( // Search Row
-                    Table.Cell.colSpan(10)(
-                      Form(
-                        Form.Group
-                          .inline(true)(
-                            Form.Field(
-                              Input
-                                .size(semanticUiReactStrings.mini)
-                                .label("Name")
-                                .onChange {
-                                  (
-                                    _,
-                                    data
-                                  ) =>
-                                    val newVal = data.value match {
-                                      case s: String if s.trim.isEmpty => None
-                                      case s: String                   => Some(s)
-                                      case _ => None
-
-                                    }
-
-                                    modMonsterSearch(_.copy(name = newVal))
-                                }
-                                .value(state.monsterSearch.name.getOrElse(""))
-                            ),
-                            <.div(^.width := 100.pct, ""), // This is just a spacer
-                            Button
-                              .title("Clear the search criteria")
-                              .compact(true)
-                              .icon(true)
-                              .onClick(
-                                (
-                                  _,
-                                  _
-                                ) => modMonsterSearch(_ => MonsterSearch())
-                              )(
-                                Icon.className("clearIcon")
-                              ),
-                            Button
-                              .compact(true)
-                              .title("Random search based on currently selected criteria")
-                              .icon(true)
-                              .onClick(
-                                (
-                                  _,
-                                  _
-                                ) => modMonsterSearch(_.copy(orderCol = MonsterSearchOrder.random))
-                              )(
-                                Icon.name(SemanticICONS.`random`)
-                              ),
-                            Button
-                              .compact(true)
-                              .title("Brand new Homebrew monster")
-                              .icon(true)
-                              .onClick(
-                                (
-                                  _,
-                                  _
-                                ) =>
-                                  $.modState(_.copy(editingMonster = Some((MonsterId.empty, CloneMonster.no)))) >>
-                                    modMonsterSearch(_ => MonsterSearch()) // Clear the search
-                              )(
-                                Icon.name(SemanticICONS.add)
-                              )
-                          ),
-                        Form.Group(
-                          Form.Field(
-                            Label("Type"),
-                            Dropdown
-                              .fluid(true)
-                              .search(false)
-                              .clearable(true)
-                              .placeholder("All")
-                              .options(
-                                MonsterType.values
-                                  .map(s =>
-                                    DropdownItemProps().setValue(s.toString.capitalize).setText(s.toString.capitalize)
-                                  ).toJSArray
-                              )
-                              .onChange {
-                                (
-                                  _,
-                                  data
-                                ) =>
-                                  val newVal = data.value match {
-                                    case s: String if s.trim.isEmpty => None
-                                    case s: String => MonsterType.values.find(_.toString.equalsIgnoreCase(s))
-                                    case _ => None
-                                  }
-
-                                  modMonsterSearch(_.copy(monsterType = newVal))
-                              }
-                              .value(state.monsterSearch.monsterType.fold("")(_.toString.capitalize))
-                          ),
-                          Form.Field(
-                            Label("Biome"),
-                            Form
-                              .Dropdown()
-                              .fluid(true)
-                              .search(false)
-                              .clearable(true)
-                              .placeholder("All")
-                              .options(
-                                Biome.values
-                                  .map(s =>
-                                    DropdownItemProps().setValue(s.toString.capitalize).setText(s.toString.capitalize)
-                                  ).toJSArray
-                              )
-                              .onChange {
-                                (
-                                  _,
-                                  data
-                                ) =>
-                                  val newVal = data.value match {
-                                    case s: String if s.trim.isEmpty => None
-                                    case s: String => Biome.values.find(_.toString.equalsIgnoreCase(s))
-                                    case _ => None
-                                  }
-
-                                  modMonsterSearch(_.copy(biome = newVal))
-                              }
-                              .value(state.monsterSearch.biome.fold("")(_.toString.capitalize))
-                          ),
-                          Form.Field(
-                            Label("Aligment"),
-                            Form
-                              .Dropdown()
-                              .fluid(true)
-                              .search(false)
-                              .clearable(true)
-                              .placeholder("All")
-                              .options(
-                                Alignment.values
-                                  .map(s => DropdownItemProps().setValue(s.name).setText(s.name)).toJSArray
-                              )
-                              .onChange {
-                                (
-                                  _,
-                                  data
-                                ) =>
-                                  val newVal = data.value match {
-                                    case s: String if s.trim.isEmpty => None
-                                    case s: String => Alignment.values.find(_.name.equalsIgnoreCase(s))
-                                    case _ => None
-                                  }
-
-                                  modMonsterSearch(_.copy(alignment = newVal))
-                              }
-                              .value(state.monsterSearch.alignment.fold("")(_.name))
-                          ),
-                          Form.Field(
-                            Label("CR"),
-                            Form
-                              .Dropdown()
-                              .fluid(true)
-                              .search(false)
-                              .clearable(true)
-                              .placeholder("All")
-                              .options(
-                                ChallengeRating.values
-                                  .map(s => DropdownItemProps().setValue(s.toString).setText(s.name)).toJSArray
-                              )
-                              .onChange {
-                                (
-                                  _,
-                                  data
-                                ) =>
-                                  val newVal = data.value match {
-                                    case s: String if s.trim.isEmpty => None
-                                    case s: String => ChallengeRating.values.find(_.toString.equalsIgnoreCase(s))
-                                    case _ => None
-                                  }
-
-                                  modMonsterSearch(_.copy(challengeRating = newVal))
-                              }
-                              .value(state.monsterSearch.challengeRating.fold("")(_.toString))
-                          ),
-                          Form.Field(
-                            Label("Size"),
-                            Form
-                              .Dropdown()
-                              .fluid(true)
-                              .search(false)
-                              .clearable(true)
-                              .placeholder("All")
-                              .options(
-                                CreatureSize.values
-                                  .map(s =>
-                                    DropdownItemProps().setValue(s.toString.capitalize).setText(s.toString.capitalize)
-                                  ).toJSArray
-                              )
-                              .onChange {
-                                (
-                                  _,
-                                  data
-                                ) =>
-                                  val newVal = data.value match {
-                                    case s: String if s.trim.isEmpty => None
-                                    case s: String => CreatureSize.values.find(_.toString.equalsIgnoreCase(s))
-                                    case _ => None
-                                  }
-
-                                  modMonsterSearch(_.copy(size = newVal))
-                              }
-                              .value(state.monsterSearch.size.fold("")(_.toString.capitalize))
-                          )
-                        )
-                      )
-                    )
-                  ),
-                  Table.Row(
-                    Table.HeaderCell
-                      .sorted(
-                        state.monsterSearch.orderCol
-                          .toReactSortDirection(MonsterSearchOrder.name, state.monsterSearch.orderDir)
-                      ).onClick(_ => changeSort(MonsterSearchOrder.name))("Name"),
-                    Table.HeaderCell
-                      .sorted(
-                        state.monsterSearch.orderCol
-                          .toReactSortDirection(MonsterSearchOrder.monsterType, state.monsterSearch.orderDir)
-                      ).onClick(_ => changeSort(MonsterSearchOrder.monsterType))("Type"),
-                    Table.HeaderCell
-                      .sorted(
-                        state.monsterSearch.orderCol
-                          .toReactSortDirection(MonsterSearchOrder.biome, state.monsterSearch.orderDir)
-                      ).onClick(_ => changeSort(MonsterSearchOrder.biome))("Biome"),
-                    Table.HeaderCell
-                      .sorted(
-                        state.monsterSearch.orderCol
-                          .toReactSortDirection(MonsterSearchOrder.alignment, state.monsterSearch.orderDir)
-                      ).onClick(_ => changeSort(MonsterSearchOrder.alignment))("Alignment"),
-                    Table.HeaderCell
-                      .sorted(
-                        state.monsterSearch.orderCol
-                          .toReactSortDirection(MonsterSearchOrder.challengeRating, state.monsterSearch.orderDir)
-                      ).onClick(_ => changeSort(MonsterSearchOrder.challengeRating))("CR"),
-                    Table.HeaderCell("XP"),
-                    Table.HeaderCell("AC"),
-                    Table.HeaderCell("HP"),
-                    Table.HeaderCell
-                      .sorted(
-                        state.monsterSearch.orderCol
-                          .toReactSortDirection(MonsterSearchOrder.size, state.monsterSearch.orderDir)
-                      ).onClick(_ => changeSort(MonsterSearchOrder.size))("Size"),
-                    Table.HeaderCell( /*For actions*/ )
-                  )
-                ),
-                Table.Body(
-                  state.monsters.map(header =>
-                    Table.Row(
-                      Table.Cell(header.name),
-                      Table.Cell(header.monsterType.toString.capitalize),
-                      Table.Cell(header.biome.fold("")(_.toString.capitalize)),
-                      Table.Cell(header.alignment.fold("")(_.name)),
-                      Table.Cell(header.cr.name),
-                      Table.Cell(header.xp),
-                      Table.Cell(header.armorClass),
-                      Table.Cell(header.maximumHitPoints),
-                      Table.Cell(header.size.toString.capitalize),
+                    }
+                case combatant: MonsterCombatant =>
+                  Table.Row
+                    .withKey(s"combatant ${combatant.id.value}")(
                       Table.Cell(
+                        EditableText(
+                          value = combatant.name,
+                          allowEditing = encounter.header.status != EncounterStatus.archived,
+                          onChange = name =>
+                            modEncounter(
+                              encounter
+                                .copy(jsonInfo =
+                                  encounter.info
+                                    .copy(combatants = encounter.info.combatants.map {
+                                      case monsterCombatant2: MonsterCombatant
+                                          if monsterCombatant2.id == combatant.id =>
+                                        monsterCombatant2.copy(name = name)
+                                      case c => c
+                                    }).toJsonAST.toOption.get
+                                )
+                            )
+                        )
+                      ),
+                      Table.Cell(combatant.monsterHeader.monsterType.toString.capitalize),
+                      Table.Cell(combatant.monsterHeader.biome.fold("")(_.toString.capitalize)),
+                      Table.Cell(combatant.monsterHeader.alignment.fold("")(_.name)),
+                      Table.Cell(combatant.monsterHeader.cr.name),
+                      Table.Cell(combatant.monsterHeader.xp),
+                      Table.Cell(
+                        EditableNumber(
+                          value = combatant.monsterHeader.armorClass,
+                          allowEditing = encounter.header.status != EncounterStatus.archived,
+                          min = 0,
+                          max = 30,
+                          onChange = v =>
+                            modEncounter {
+                              encounter
+                                .copy(jsonInfo =
+                                  encounter.info
+                                    .copy(combatants = encounter.info.combatants.map {
+                                      case monsterCombatant2: MonsterCombatant
+                                          if monsterCombatant2.id == combatant.id =>
+                                        monsterCombatant2.copy(armorClass = v.toInt)
+                                      case c => c
+                                    }).toJsonAST.toOption.get
+                                )
+                            }
+                        )
+                      ),
+                      Table.Cell(
+                        EditableNumber(
+                          value = combatant.health.maxHitPoints,
+                          allowEditing = encounter.header.status != EncounterStatus.archived,
+                          min = 0,
+                          max = 1000,
+                          onChange = v =>
+                            modEncounter {
+                              encounter
+                                .copy(jsonInfo =
+                                  encounter.info
+                                    .copy(combatants = encounter.info.combatants.map {
+                                      case monsterCombatant2: MonsterCombatant
+                                          if monsterCombatant2.id == combatant.id =>
+                                        monsterCombatant2
+                                          .copy(health = monsterCombatant2.health.copy(maxHitPoints = v.toInt))
+                                      case c => c
+                                    }).toJsonAST.toOption.get
+                                )
+                            }
+                        )
+                      ),
+                      Table.Cell(combatant.monsterHeader.size.toString.capitalize),
+                      Table.Cell.singleLine(true)(
                         Button
-                          .size(SemanticSIZES.mini)
                           .compact(true)
-                          .title("Delete this monster")
-                          .onClick(
+                          .size(SemanticSIZES.mini)
+                          .title("Delete this combatant from the encounter")
+                          .icon(true)
+                          .onClick {
                             (
                               _,
                               _
                             ) =>
-                              _root_.components.Confirm.confirm(
-                                question = "Are you 100% sure you want to delete this monster?",
-                                onConfirm = DND5eGraphQLRepository.live
-                                  .deleteEntity(DND5eEntityType.monster, header.id)
-                                  .map(_ => modMonsterSearch(_ => MonsterSearch()))
-                                  .completeWith(_.get)
+                              modEncounter(
+                                encounter
+                                  .copy(jsonInfo =
+                                    encounter.info
+                                      .copy(combatants = encounter.info.combatants.filter(_.id != combatant.id))
+                                      .toJsonAST.toOption.get
+                                  )
                               )
-                          )
-                          .icon(true)(Icon.name(SemanticICONS.`trash`)).when(header.sourceId == SourceId.homebrew),
+                          }(Icon.name(SemanticICONS.`trash`))
+                          .when(encounter.header.status != EncounterStatus.archived),
                         Button
-                          .size(SemanticSIZES.mini)
                           .compact(true)
-                          .title("Create a new monster with this one as template")
-                          .onClick(
+                          .size(SemanticSIZES.mini)
+                          .title("More of this combatant!")
+                          .onClick {
                             (
                               _,
                               _
                             ) =>
-                              $.modState(_.copy(editingMonster = Some((header.id, CloneMonster.yes)))) >>
-                                modMonsterSearch(_ => MonsterSearch()) // Clear the search
-                          )
-                          .icon(true)(Icon.name(SemanticICONS.`clone outline`)),
+                              modEncounter(
+                                encounter
+                                  .copy(jsonInfo =
+                                    encounter.info
+                                      .copy(combatants =
+                                        encounter.info.combatants :+
+                                          createMonsterCombatant(encounter, combatant.monsterHeader)
+                                      )
+                                      .toJsonAST.toOption.get
+                                  )
+                              )
+                          }
+                          .icon(true)(Icon.name(SemanticICONS.`clone outline`))
+                          .when(encounter.header.status != EncounterStatus.archived),
                         Button
                           .title("View Monster Stat Block")
                           .compact(true)
@@ -855,71 +534,39 @@ object EncounterEditor {
                             (
                               _,
                               _
-                            ) => $.modState(_.copy(viewMonsterId = Some(header.id)))
-                          ),
-                        Button
-                          .title("Edit Monster")
-                          .compact(true)
-                          .size(SemanticSIZES.mini)
-                          .icon(true)(Icon.name(SemanticICONS.`edit`))
-                          .onClick(
-                            (
-                              _,
-                              _
-                            ) =>
-                              $.modState(_.copy(editingMonster = Some((header.id, CloneMonster.no)))) >>
-                                modMonsterSearch(_ => MonsterSearch()) // Clear the search
-                          ).when(header.sourceId == SourceId.homebrew),
-                        Button
-                          .size(SemanticSIZES.mini)
-                          .compact(true)
-                          .title("Add this combatant to the encounter")
-                          .onClick(
-                            (
-                              _,
-                              _
-                            ) =>
-                              modEncounter {
-                                encounter
-                                  .copy(jsonInfo =
-                                    encounter.info
-                                      .copy(combatants =
-                                        encounter.info.combatants :+ createMonsterCombatant(encounter, header)
-                                      )
-                                      .toJsonAST.toOption.get
-                                  )
-                              }
+                            ) => $.modState(_.copy(viewMonsterId = Some(combatant.monsterHeader.id)))
                           )
-                          .icon(true)(Icon.name(SemanticICONS.`add`))
                       )
                     )
-                  )*
-                ),
-                Table.Footer(
-                  Table.Row(
-                    Table.Cell.colSpan(10)(
-                      Pagination(state.monsterCount / state.monsterSearch.pageSize.toDouble)
-                        .onPageChange {
-                          (
-                            _,
-                            data
-                          ) =>
-                            val newVal = data.activePage match {
-                              case s: String => s.toInt
-                              case d: Double => d.toInt
-                              case _: Unit   => 1
-                            }
-
-                            modMonsterSearch(_.copy(page = newVal - 1))
-                        }
-                        .activePage(state.monsterSearch.page + 1)
-                    )
-                  )
-                )
-              ).when(encounter.header.status != EncounterStatus.archived)
-          )
-        }
-      }
+              }*
+            )
+          ),
+        Divider.section(true),
+        MonsterTable(
+          campaignId = props.encounter.header.campaignId,
+          extraActions = header =>
+            Button
+              .size(SemanticSIZES.mini)
+              .compact(true)
+              .title("Add this combatant to the encounter")
+              .onClick(
+                (
+                  _,
+                  _
+                ) =>
+                  modEncounter {
+                    encounter
+                      .copy(jsonInfo =
+                        encounter.info
+                          .copy(combatants = encounter.info.combatants :+ createMonsterCombatant(encounter, header))
+                          .toJsonAST.toOption.get
+                      )
+                  }
+              )
+              .icon(true)(Icon.name(SemanticICONS.`add`))
+        )
+          .when(encounter.header.status != EncounterStatus.archived)
+      )
     }
 
   }
