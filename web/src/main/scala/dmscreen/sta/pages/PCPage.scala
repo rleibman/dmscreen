@@ -75,19 +75,21 @@ object PCPage extends DMScreenPage {
                     }
                 ),
                 Modal.Actions(
-                  Button.onClick(
-                    (
-                      _,
-                      _
-                    ) => $.modState(_.copy(fileName = None))
-                  )("Cancel"),
-                  Button.onClick {
-                    (
-                      _,
-                      _
-                    ) =>
-                      Callback.alert("uploading file")
-                  }("Import!")
+                  Button
+                    .secondary(true).onClick(
+                      (
+                        _,
+                        _
+                      ) => $.modState(_.copy(fileName = None))
+                    )("Cancel"),
+                  Button
+                    .primary(true).onClick {
+                      (
+                        _,
+                        _
+                      ) =>
+                        Callback.alert("uploading file")
+                    }("Import!")
                 )
               ),
             <.div(

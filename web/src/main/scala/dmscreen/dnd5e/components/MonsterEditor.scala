@@ -26,7 +26,6 @@ import dmscreen.components.EditableComponent
 import dmscreen.dnd5e.{*, given}
 import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
-import japgolly.scalajs.react.vdom.{Attr, InnerHtmlAttr}
 import japgolly.scalajs.react.{Callback, CtorType, *}
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.reactQuill.components.ReactQuill
@@ -34,7 +33,6 @@ import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticSIZES
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
-import net.leibman.dmscreen.semanticUiReact.semanticUiReactStrings.above
 import zio.json.*
 //import zio.prelude.*
 
@@ -50,7 +48,8 @@ object MonsterEditor {
   case class Props(
     monsterId:    MonsterId,
     cloneMonster: Boolean,
-    onClose:      Monster => Callback
+    onSave:       Monster => Callback,
+    onCancel:     Callback
   )
 
   case class Backend($ : BackendScope[Props, State]) {
@@ -102,23 +101,9 @@ object MonsterEditor {
       state.monster.fold(EmptyVdom) { monster =>
         val info = monster.info
         Modal
-          .onClose(
-            (
-              _,
-              _
-            ) =>
-              DND5eGraphQLRepository.live
-                .upsert(monster.header, monster.jsonInfo)
-                .map(monsterId =>
-                  modMonster(
-                    m => m.copy(header = m.header.copy(id = monsterId)),
-                    $.state.flatMap(s => props.onClose(monster))
-                  )
-                )
-                .completeWith(_.get)
-          )
           .withKey("monsterEditModel")
           .size(SemanticSIZES.small)
+          .closeIcon(false)
           .open(true)(
             Modal.Header.as("h1")(
               if (props.monsterId == MonsterId.empty) "Create Monster"
@@ -451,7 +436,34 @@ object MonsterEditor {
                     )
                 )
               )
-            )
+            ),
+            Modal.Actions(
+              Button
+                .secondary(true)
+                .onClick(
+                  (
+                    _,
+                    _
+                  ) => props.onCancel
+                )("Cancel")
+            ),
+            Button
+              .primary(true)
+              .onClick(
+                (
+                  _,
+                  _
+                ) =>
+                  DND5eGraphQLRepository.live
+                    .upsert(monster.header, monster.jsonInfo)
+                    .map(monsterId =>
+                      modMonster(
+                        m => m.copy(header = m.header.copy(id = monsterId)),
+                        $.state.flatMap(s => s.monster.fold(Callback.empty)(m => props.onSave(m)))
+                      )
+                    )
+                    .completeWith(_.get)
+              )("Save")
           )
       }
     }
@@ -473,7 +485,8 @@ object MonsterEditor {
   def apply(
     monsterId:    MonsterId,
     cloneMonster: Boolean = false,
-    onClose:      Monster => Callback = _ => Callback.empty
-  ): Unmounted[Props, State, Backend] = component(Props(monsterId, cloneMonster, onClose))
+    onSave:       Monster => Callback = _ => Callback.empty,
+    onCancel:     Callback = Callback.empty
+  ): Unmounted[Props, State, Backend] = component(Props(monsterId, cloneMonster, onSave, onCancel))
 
 }

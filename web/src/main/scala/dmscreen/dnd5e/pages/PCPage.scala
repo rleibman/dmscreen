@@ -76,36 +76,38 @@ object PCPage extends DMScreenPage {
                     }
                 ),
                 Modal.Actions(
-                  Button.onClick(
-                    (
-                      _,
-                      _
-                    ) => $.modState(_.copy(dndBeyondImportId = None))
-                  )("Cancel"),
-                  Button.onClick {
-                    (
-                      _,
-                      _
-                    ) =>
-                      val maybeId = DndBeyondId(state.dndBeyondImportId.get)
-                      maybeId.fold(
-                        s => Callback.alert(s),
-                        good =>
-                          DND5eGraphQLRepository.live
-                            .importDndBeyondCharacter(campaign.id, good)
-                            .map(newPC =>
-                              $.modState(
-                                s =>
-                                  s.copy(
-                                    s.pcs.filter(_.header.id != newPC.header.id) :+ newPC,
-                                    dndBeyondImportId = None
-                                  ),
-                                Callback.alert(s"Successfully imported '${newPC.header.name}'!")
+                  Button
+                    .secondary(true).onClick(
+                      (
+                        _,
+                        _
+                      ) => $.modState(_.copy(dndBeyondImportId = None))
+                    )("Cancel"),
+                  Button
+                    .primary(true).onClick {
+                      (
+                        _,
+                        _
+                      ) =>
+                        val maybeId = DndBeyondId(state.dndBeyondImportId.get)
+                        maybeId.fold(
+                          s => Callback.alert(s),
+                          good =>
+                            DND5eGraphQLRepository.live
+                              .importDndBeyondCharacter(campaign.id, good)
+                              .map(newPC =>
+                                $.modState(
+                                  s =>
+                                    s.copy(
+                                      s.pcs.filter(_.header.id != newPC.header.id) :+ newPC,
+                                      dndBeyondImportId = None
+                                    ),
+                                  Callback.alert(s"Successfully imported '${newPC.header.name}'!")
+                                )
                               )
-                            )
-                            .completeWith(_.get)
-                      )
-                  }("Import!")
+                              .completeWith(_.get)
+                        )
+                    }("Import!")
                 )
               ),
             <.div(

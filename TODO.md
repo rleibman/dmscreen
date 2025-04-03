@@ -151,14 +151,5 @@ DONE - CR on encounters is showing value instead of label
 DONE - Monster pager is not working
 DONE - NPC is not showing up after saving
 CNR - Monster search is not working after entering a monster name, selecting it  and then removing the name (I'm guessing something is "sticiking" in the search). Could not reproduce
-
-
-TODO 3/29
-Monster editor
-Campaign name editor
-- Combat Editor
-  - Allow name editing
-
-Bugs 3/29
-- NPC Wizard
-- Combat Editor
+DONE Campaign name editor
+  TODO  - Allow name editing in combat editor
