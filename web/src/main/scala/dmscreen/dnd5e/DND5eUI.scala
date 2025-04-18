@@ -36,6 +36,8 @@ enum DND5eUIPages {
   case scenes extends DND5eUIPages with AppPageType
   case bestiary extends DND5eUIPages with AppPageType
   case randomTables extends DND5eUIPages with AppPageType
+  case reference extends DND5eUIPages with AppPageType
+  case randomNameGenerator extends DND5eUIPages with AppPageType
   case campaignLog extends DND5eUIPages with AppPageType
 
 }
@@ -51,6 +53,8 @@ case object DND5eUI extends GameUI {
       PageAppMenuItem(DND5eUIPages.scenes, "Scenes", campaignId => ScenePage(campaignId)),
       PageAppMenuItem(DND5eUIPages.bestiary, "Bestiary", campaignId => BestiaryPage(campaignId)),
       PageAppMenuItem(DND5eUIPages.randomTables, "Random Tables", _ => RandomTablePage()),
+      PageAppMenuItem(DND5eUIPages.reference, "Reference", _ => ReferencePage()),
+      PageAppMenuItem(DND5eUIPages.randomNameGenerator, "Name Generator", _ => RandomNameGeneratorPage()),
       ButtonAppMenuItem(
         DND5eUIPages.campaignLog,
         VdomArray("Campaign Log", CampaignLog.render()),

@@ -21,22 +21,22 @@
 
 package pages
 
-import java.time.{Instant, LocalDateTime}
 import app.{LoginControllerState, Mode}
 import auth.{User, UserCreationRequest, UserCreationResponse, UserId, given}
-import dmscreen.{*, given}
+import dmscreen.given
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.extra.Ajax
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{ReactMouseEventFrom, *}
-import org.scalajs.dom.HTMLButtonElement
-import org.scalajs.dom.window
-import react.Toast
-import net.leibman.dmscreen.semanticUiReact.distCommonjsElementsButtonButtonMod.ButtonProps
 import net.leibman.dmscreen.semanticUiReact.components.*
-import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticWIDTHS
+import net.leibman.dmscreen.semanticUiReact.distCommonjsElementsButtonButtonMod.ButtonProps
 import net.leibman.dmscreen.semanticUiReact.distCommonjsElementsInputInputMod.InputOnChangeData
+import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticWIDTHS
+import org.scalajs.dom.{HTMLButtonElement, window}
+import react.Toast
 import zio.json.*
+
+import java.time.LocalDateTime
 
 object RegistrationPage {
 

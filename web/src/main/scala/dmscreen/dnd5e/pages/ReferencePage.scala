@@ -19,12 +19,42 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package auth
+package dmscreen.dnd5e.pages
 
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.component.Scala.Unmounted
+import japgolly.scalajs.react.vdom.*
+import japgolly.scalajs.react.vdom.html_<^.*
 
-enum TokenPurpose(override val toString: String) {
+object ReferencePage {
 
-  case NewUser extends TokenPurpose(toString = "NewUser")
-  case LostPassword extends TokenPurpose(toString = "LostPassword")
+  case class State()
+
+  class Backend($ : BackendScope[Unit, State]) {
+
+    def loadState(): Callback = {
+      for {
+        _ <- Callback.log("Loading ReferencePage state")
+      } yield ()
+    }
+
+    def render(state: State): VdomNode = {
+      <.div(
+        <.h1("Quick Reference"),
+        <.h2("Conditions"),
+        <.h2("Actions In Combat"),
+      )
+    }
+
+  }
+
+  private val component = ScalaComponent
+    .builder[Unit]("ReferencePage")
+    .initialState(State())
+    .renderBackend[Backend]
+    .componentDidMount(_.backend.loadState())
+    .build
+
+  def apply(): Unmounted[Unit, State, Backend] = component()
 
 }

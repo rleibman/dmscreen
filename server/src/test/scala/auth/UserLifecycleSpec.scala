@@ -244,13 +244,13 @@ object UserLifecycleSpec extends ZIOSpec[DMScreenServerEnvironment] {
           postman   <- ZIO.serviceWith[Postman](_.asInstanceOf[MockPostman])
           resetLink <- postman.sentEmails.map(l => extractLink(l(goodEmail), regex))
           resetUrl <- ZIO
-            .fromEither(URL.decode(resetLink.replace("http://localhost:8079", ""))).mapError(DMScreenError(_))
+            .fromEither(URL.decode(resetLink.replace("http://localhost:8078", ""))).mapError(DMScreenError(_))
           resetResponse <- app.runZIO(Request.get(resetUrl))
         } yield assertTrue(
           passwordRecoveryResponse.status == Status.Ok, // Redirects to login page where you'll geta  password change request with a token.
           resetResponse.status == Status.Ok
         )
-      }, // http://localhost:8079/unauth/loginForm?passwordReset=true&token=3jqkdbnm4sn0cmu3nrd29fijb8
+      }, // http://localhost:8078/unauth/loginForm?passwordReset=true&token=3jqkdbnm4sn0cmu3nrd29fijb8
       test("user creation and registration confirmation") {
         val email = "roberto1@leibman.net"
         for {
@@ -276,7 +276,7 @@ object UserLifecycleSpec extends ZIOSpec[DMScreenServerEnvironment] {
           postman     <- ZIO.serviceWith[Postman](_.asInstanceOf[MockPostman])
           confirmLink <- postman.sentEmails.map(l => extractLink(l(email), regex))
           confirmUrl = URL(
-            Path(confirmLink.replace("http://localhost:8079", "").replaceAll("\\?token=.*", "")),
+            Path(confirmLink.replace("http://localhost:8078", "").replaceAll("\\?token=.*", "")),
             queryParams = QueryParams("token" -> confirmLink.replaceAll(".*\\?token=", ""))
           )
 
@@ -287,7 +287,7 @@ object UserLifecycleSpec extends ZIOSpec[DMScreenServerEnvironment] {
             )
         } yield assertTrue(
           confirmUrl.toString.nonEmpty,
-          confirmLink.contains(s"http://localhost:8079/unauth/confirmRegistration?token="),
+          confirmLink.contains(s"http://localhost:8078/unauth/confirmRegistration?token="),
           createResponse.status == Status.Ok,
           confirmResponse.status == Status.SeeOther,
           confirmResponse

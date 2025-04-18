@@ -330,7 +330,8 @@ lazy val commonWeb: Project => Project =
       "net.leibman" %%% "dmscreen-stlib"              % "0.8.0-SNAPSHOT" withSources (),
       "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
       "dev.zio" %%% "zio"                             % zioVersion withSources (),
-      "com.softwaremill.sttp.client3" %%% "core"      % "3.10.3" withSources (),
+      "com.softwaremill.sttp.client4" %%% "core"      % "4.0.0" withSources (),
+      "com.softwaremill.sttp.client4" %%% "zio-json"  % "4.0.0" withSources (),
       "io.github.cquiroz" %%% "scala-java-time"       % "2.6.0" withSources (),
       "io.github.cquiroz" %%% "scala-java-time-tzdb"  % "2.6.0" withSources (),
       "org.scala-js" %%% "scalajs-dom"                % "2.8.0" withSources (),
@@ -340,7 +341,6 @@ lazy val commonWeb: Project => Project =
       "com.lihaoyi" %%% "scalatags"                   % "0.13.1" withSources (),
       "com.github.japgolly.scalacss" %%% "core"       % "1.0.0" withSources (),
       "com.github.japgolly.scalacss" %%% "ext-react"  % "1.0.0" withSources ()
-      //      ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13)
     ),
     organizationName := "Roberto Leibman",
     startYear        := Some(2024),

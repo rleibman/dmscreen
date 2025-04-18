@@ -31,7 +31,7 @@ import net.leibman.dmscreen.semanticUiReact.semanticUiReactStrings.submit
 import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticCOLORS
 import sttp.capabilities
-import sttp.client3.*
+import sttp.client4.*
 
 import scala.concurrent.Future
 

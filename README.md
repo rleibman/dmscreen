@@ -68,7 +68,7 @@ Attempting to use this: https://fantasticdice.games/docs/0.6/intro.
 Example here: https://codesandbox.io/s/react-roller-advanced-notation-v1-0-5-rz0nmr?file=/src/App.js
 
 # graphql schema generation
-http://localhost:8079/api/dnd5e/schema
+http://localhost:8078/api/dnd5e/schema
 
 # Client code generation
 ```sbtshell

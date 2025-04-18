@@ -147,10 +147,8 @@ object AuthRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, 
         Method.POST / "unauth" / "doLogin" -> handler { (req: Request) =>
           (for {
             formData <- req.formData
-            email <-
-              ZIO.fromOption(formData.get("email")).orElseFail(SessionError("Missing email"))
+            email <- ZIO.fromOption(formData.get("email")).orElseFail(SessionError("Missing email"))
             password <- ZIO.fromOption(formData.get("password")).orElseFail(SessionError("Missing Password"))
-
             userOps <- ZIO.service[UserRepository[DMScreenTask]]
             login   <- userOps.login(email, password).provideLayer(DMScreenSession.adminSession.toLayer)
             _       <- login.fold(ZIO.logDebug(s"Bad login for $email"))(_ => ZIO.logDebug(s"Good Login for $email"))

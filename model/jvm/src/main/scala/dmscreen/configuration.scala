@@ -57,7 +57,7 @@ case class SmtpConfig(
   user:        String = "",
   password:    String = "",
   startTTLS:   Boolean = false,
-  webHostname: String = "localhost:8079"
+  webHostname: String = "localhost:8078"
 )
 
 case class HttpConfig(
