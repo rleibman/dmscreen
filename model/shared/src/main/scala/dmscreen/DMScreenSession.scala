@@ -21,37 +21,33 @@
 
 package dmscreen
 
-import auth.{User, UserId}
+import _root_.auth.{AuthenticatedSession, Session, UnauthenticatedSession}
 import zio.{ULayer, ZLayer}
 
 import java.time.LocalDateTime
 
+//type Session[User] = _root_.auth.Session[User]
+
 object DMScreenSession {
 
-  val empty: DMScreenSession = DMScreenSession(
-    User(
-      id = UserId.empty,
-      email = "",
-      name = "",
-      created = LocalDateTime.now,
-      active = false
-    )
-  )
+  val empty: Session[User] = UnauthenticatedSession[User]()
 
-  val adminSession: DMScreenSession = DMScreenSession(
-    User(
-      id = UserId.admin,
-      email = "admin@leibmanland.com",
-      name = "admin",
-      created = LocalDateTime.now,
-      active = true
+  val adminSession: Session[User] = AuthenticatedSession(
+    Some(
+      User(
+        id = UserId.admin,
+        email = "admin@leibmanland.com",
+        name = "admin",
+        created = LocalDateTime.now,
+        active = true
+      )
     )
   )
 
 }
 
-case class DMScreenSession(user: User) {
+extension (session: Session[User]) {
 
-  def toLayer: ULayer[DMScreenSession] = ZLayer.succeed(this)
+  def toLayer: ULayer[Session[User]] = ZLayer.succeed(session)
 
 }

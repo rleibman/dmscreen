@@ -26,7 +26,6 @@ import zio.json.ast.Json
 import zio.json.*
 import zio.{IO, ZIO}
 import java.time.LocalDateTime
-import auth.UserId
 
 opaque type CampaignId = Long
 

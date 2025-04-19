@@ -385,6 +385,8 @@ enum Rank {
         )
       case Organization.orion =>
         ???
+      case other: Organization =>
+        ???
     }
 
 }

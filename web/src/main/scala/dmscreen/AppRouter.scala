@@ -21,6 +21,7 @@
 
 package dmscreen
 
+import auth.AuthClient
 import dmscreen.components.DiceRoller
 import dmscreen.dnd5e.*
 import dmscreen.dnd5e.pages.*
@@ -53,7 +54,7 @@ object AppRouter {
   private val logoutPage = ButtonAppMenuItem(
     CommonPages.logout,
     title = "Logout",
-    onClick = _ => DMScreenGraphQLRepository.live.logout
+    onClick = _ => AuthClient.logout().completeWith(_ => Callback.empty)
   )
 
   private def layout(

@@ -22,52 +22,23 @@
 package dmscreen
 
 import _root_.components.{Confirm, Toast}
-import auth.{User, UserId}
-import caliban.ScalaJSClientAdapter.*
-import caliban.client.CalibanClientError.DecodingError
-import caliban.client.Operations.RootQuery
-import caliban.client.scalajs.DMScreenClient.{
-  Campaign as CalibanCampaign,
-  CampaignHeader as CalibanCampaignHeader,
-  CampaignStatus as CalibanCampaignStatus,
-  GameSystem as CalibanGameSystem
-}
-import caliban.client.scalajs.DND5eClient.{
-  Background as CalibanBackground,
-  CharacterClass as CalibanCharacterClass,
-  DiceRoll as CalibanDiceRoll,
-  Encounter as CalibanEncounter,
-  EncounterHeader as CalibanEncounterHeader,
-  PlayerCharacter as CalibanPlayerCharacter,
-  PlayerCharacterHeader as CalibanPlayerCharacterHeader,
-  Queries,
-  Scene as CalibanScene,
-  SceneHeader as CalibanSceneHeader
-}
-import caliban.client.{ScalarDecoder, SelectionBuilder}
 import dmscreen.dnd5e.*
 import dmscreen.sta.STACampaignState
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
-import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.vdom.VdomNode
 import japgolly.scalajs.react.vdom.html_<^.*
 import org.scalajs.dom.*
-import zio.json.*
 import zio.json.ast.Json
 
-import java.net.URI
 import java.util.UUID
 import scala.scalajs.js
-import scala.scalajs.js.UndefOr
 
 object Content {
 
-  private val connectionId = UUID.randomUUID().toString
-
   case class State(dmScreenState: DMScreenState = DMScreenState())
 
-  class Backend($ : BackendScope[Unit, State]) {
+  class Backend($ : BackendScope[User, State]) {
 
     private var interval: js.UndefOr[js.timers.SetIntervalHandle] = js.undefined
 
@@ -106,7 +77,10 @@ object Content {
           cssFiles.map(file => <.link(^.href := file, ^.rel := "stylesheet", ^.`type` := "text/css")).toVdomArray
         }.apply(ui)
 
-    def render(state: State): VdomNode = {
+    def render(
+      user:  User,
+      state: State
+    ): VdomNode = {
       DMScreenState.ctx.provide(state.dmScreenState) {
         <.div(
           ^.key    := "contentDiv",
@@ -126,6 +100,7 @@ object Content {
     }
 
     def loadState(
+      user:          User,
       argCampaignId: Option[CampaignId] = None,
       force:         Boolean = false
     ): Callback = {
@@ -163,13 +138,12 @@ object Content {
           }
         }
         _ <- Callback.log(s"Campaign data (${campaignOpt.fold("")(_.header.name)}) loaded from server").asAsyncCallback
-        whoami <- DMScreenGraphQLRepository.live.whoami
-        _      <- Callback.log(s"Currently ${whoami.name}").asAsyncCallback
+        _ <- Callback.log(s"Currently ${user.name}").asAsyncCallback
       } yield $.modState { s =>
         s.copy(dmScreenState =
           s.dmScreenState
             .copy(
-              user = Some(whoami),
+              user = Some(user),
               campaignState = campaignState,
               changeDialogMode =
                 newMode => $.modState(s => s.copy(dmScreenState = s.dmScreenState.copy(dialogMode = newMode)))
@@ -182,7 +156,7 @@ object Content {
         $.modState(s =>
           s.copy(dmScreenState =
             s.dmScreenState.copy(
-              onSelectCampaign = campaign => loadState(campaign.map(_.id), true),
+              onSelectCampaign = campaign => loadState(user, campaign.map(_.id), true),
               onModifyCampaignState = (
                 newState,
                 log
@@ -241,20 +215,17 @@ object Content {
   given Reusability[DMScreenState] =
     Reusability.by((s: DMScreenState) => (s.dialogMode == DialogMode.closed, s.campaignState, s.user.isDefined))
   given Reusability[State] = Reusability.by((s: State) => s.dmScreenState)
+  given Reusability[User] = Reusability.by(_.id)
 
   private val component = ScalaComponent
-    .builder[Unit]("content")
-    .initialState(State())
+    .builder[User]("content")
+    .initialStateFromProps(_ => State())
     .renderBackend[Backend]
-    .componentDidMount($ => $.backend.loadState())
+    .componentDidMount($ => $.backend.loadState($.props))
     .configure(Reusability.shouldComponentUpdate)
-    .componentWillUnmount($ =>
-      $.backend.stopSaveTicker >> Callback.log("Closing down operationStream")
-//        >>
-//        $.state.dmScreenState.operationStream.fold(Callback.empty)(_.close())
-    )
+    .componentWillUnmount($ => $.backend.stopSaveTicker >> Callback.log("Closing down operationStream"))
     .build
 
-  def apply(): Unmounted[Unit, State, Backend] = component()
+  def apply(user: User): Unmounted[User, State, Backend] = component(user)
 
 }

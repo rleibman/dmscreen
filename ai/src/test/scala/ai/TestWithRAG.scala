@@ -3,17 +3,18 @@ package ai
 import dev.langchain4j.data.document.loader.FileSystemDocumentLoader
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor
 import dev.langchain4j.store.embedding.qdrant.QdrantEmbeddingStore
-import dmscreen.DMScreenSession
+import auth.Session
+import dmscreen.*
 import zio.{Console, EnvironmentTag, Scope, Task, ULayer, ZIO, ZIOApp, ZIOAppArgs, ZLayer}
 
 object TestWithRAG extends ZIOApp {
 
-  override type Environment = StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper & DMScreenSession
+  override type Environment = StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper & Session[User]
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
   override def bootstrap
-    : ULayer[StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper & DMScreenSession] =
-    ZLayer.make[StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper & DMScreenSession](
+    : ULayer[StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper & Session[User]] =
+    ZLayer.make[StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper & Session[User]](
       LangChainServiceBuilder.ollamaStreamingChatModelLayer,
       LangChainServiceBuilder.messageWindowChatMemoryLayer(),
       LangChainServiceBuilder.streamingAssistantLayerWithStore,

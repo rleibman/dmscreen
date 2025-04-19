@@ -21,16 +21,17 @@
 
 package caliban
 
+import auth.AuthClient
 import caliban.client.*
 import caliban.client.CalibanClientError.{DecodingError, ServerError}
 import caliban.client.Operations.{IsOperation, RootSubscription}
 import dmscreen.ClientConfiguration
-import dmscreen.util.ApiClient
+import dmscreen.util.ApiClientSttp3
 import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.{AsyncCallback, Callback}
 import org.scalajs.dom.{WebSocket, window}
-import sttp.capabilities
-import sttp.client3.*
+import sttp.{capabilities, client3}
+import sttp.client4.*
 import sttp.model.{HeaderNames, Uri}
 import zio.json.*
 import zio.json.ast.*
@@ -66,21 +67,21 @@ case class ScalaJSClientAdapter(endpoint: String) extends TimerSupport {
 
   val serverUri: Uri = uri"http://${ClientConfiguration.live.host}/api/$endpoint"
 
-  given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
+//  given backend: SttpBackend[Future, capabilities.WebSockets] = FetchBackend()
 
-  def getAccessToken: Option[String] = {
-    Option(window.localStorage.getItem(ApiClient.accessTokenName))
-  }
+//  def getAccessToken: Option[String] = {
+//    Option(window.localStorage.getItem(ApiClient.accessTokenName))
+//  }
 
   // Enhancement error management switch this, insteaf of returning AsyncCallback, return an Either[Throwable, A]
   def asyncCalibanCall[Origin, A](
     selectionBuilder: SelectionBuilder[Origin, A]
   )(using ev:         IsOperation[Origin]
   ): AsyncCallback[A] = {
-    dmscreen.util.ApiClient
-      .apiCall(selectionBuilder.toRequest(serverUri))
+    dmscreen.util.ApiClientSttp3
+      .withAuth(selectionBuilder.toRequest(serverUri))
       .map { s =>
-        s.body match {
+        s match {
           case Left(exception) => throw exception
           case Right(value)    => value
         }

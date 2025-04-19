@@ -21,16 +21,45 @@
 
 package dmscreen
 
+import auth.{AuthClient, LoginRouter}
+import japgolly.scalajs.react.component.ScalaFn.Component
+import japgolly.scalajs.react.vdom.html_<^.*
+import japgolly.scalajs.react.{CtorType, ScalaFnComponent, *}
 import org.scalajs.dom
 
 import scala.scalajs.js.annotation.JSExport
 
 object DMScreenApp {
 
+  val component = ScalaFnComponent
+    .withHooks[Unit]
+    .useState(None: Option[User])
+    .useEffectOnMountBy {
+      (
+        _,
+        userOpt
+      ) =>
+        AuthClient
+          .whoami[User]()
+          .map(me => userOpt.modState(_ => me))
+          .completeWith(_.get)
+
+    }
+    .render(
+      (
+        _,
+        userOpt
+      ) =>
+        userOpt.value.fold(
+          LoginRouter()()
+        ) { user =>
+          Content(user) // Pass in the user to content
+        }
+    )
+
   @JSExport
   def main(args: Array[String]): Unit = {
-    val component = Content()
-    component.renderIntoDOM(dom.document.getElementById("content"))
+    component().renderIntoDOM(dom.document.getElementById("content"))
     ()
 
   }

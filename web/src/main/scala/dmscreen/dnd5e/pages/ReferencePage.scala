@@ -42,7 +42,7 @@ object ReferencePage {
       <.div(
         <.h1("Quick Reference"),
         <.h2("Conditions"),
-        <.h2("Actions In Combat"),
+        <.h2("Actions In Combat")
       )
     }
 

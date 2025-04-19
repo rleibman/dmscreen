@@ -21,7 +21,6 @@
 
 package dmscreen.pages
 
-import auth.UserId
 import dmscreen.components.EditableText
 import dmscreen.dnd5e.{DND5eGraphQLRepository, DND5eUI}
 import dmscreen.{*, given}
@@ -149,7 +148,7 @@ object HomePage extends DMScreenPage {
 //                _,
 //                _
 //              ) =>
-//                import sttp.client3.*
+//                import sttp.client4.*
 //
 //                val request = basicRequest.get(uri"/api/test")
 //

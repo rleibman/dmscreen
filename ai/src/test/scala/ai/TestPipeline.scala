@@ -9,11 +9,13 @@ import zio.*
 import zio.json.*
 import zio.json.ast.*
 import scala.jdk.CollectionConverters.*
+import dmscreen.User
+import auth.Session
 
 object TestPipeline extends ZIOApp {
 
   override type Environment = StreamingLangChainEnvironment & QdrantContainer & EmbeddingStoreWrapper &
-    TestDMScreenServerEnvironment & DMScreenSession
+    TestDMScreenServerEnvironment & Session[User]
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
   override def bootstrap: ULayer[Environment] =

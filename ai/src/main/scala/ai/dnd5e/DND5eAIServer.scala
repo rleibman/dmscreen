@@ -22,6 +22,8 @@
 package ai.dnd5e
 
 import ai.*
+import auth.*
+import dmscreen.{Campaign, DMScreenError, DMScreenSession, User, given}
 import dev.langchain4j.data.document.{Document, Metadata}
 import dev.langchain4j.model.chat.request.json.{JsonObjectSchema, JsonSchema}
 import dev.langchain4j.model.chat.request.{ResponseFormat, ResponseFormatType}
@@ -29,7 +31,6 @@ import dev.langchain4j.store.embedding.EmbeddingStoreIngestor
 import dmscreen.db.DMScreenZIORepository
 import dmscreen.db.dnd5e.DND5eZIORepository
 import dmscreen.dnd5e.{*, given}
-import dmscreen.{Campaign, DMScreenError, DMScreenSession}
 import zio.*
 import zio.json.*
 import zio.json.ast.*
@@ -44,7 +45,7 @@ trait DND5eAIServer[F[_]] {
 
 }
 
-type AIIO[A] = ZIO[DMScreenSession & DND5eZIORepository & DMScreenZIORepository, DMScreenError, A]
+type AIIO[A] = ZIO[Session[User] & DND5eZIORepository & DMScreenZIORepository, DMScreenError, A]
 
 object DND5eAIServer {
 
@@ -134,6 +135,8 @@ object DND5eAIServer {
     |""".stripMargin
   }
 
+  import dmscreen.toLayer
+
   def live: ZLayer[DND5eZIORepository, Throwable, DND5eAIServer[AIIO]] = {
     val initLayer: ZLayer[
       EmbeddingStoreWrapper & QdrantContainer & DND5eZIORepository & ChatLanguageModel & LangChainConfiguration &
@@ -160,7 +163,7 @@ object DND5eAIServer {
           model <- ZIO.service[ChatLanguageModel]
         } yield new DND5eAIServer[AIIO] {
           def generateEncounterDescription(encounter: Encounter)
-            : ZIO[DMScreenSession & DND5eZIORepository & DMScreenZIORepository, DMScreenError, String] = {
+            : ZIO[Session[User] & DND5eZIORepository & DMScreenZIORepository, DMScreenError, String] = {
             for {
               campaign  <- ZIO.serviceWithZIO[DMScreenZIORepository](_.campaign(encounter.header.campaignId))
               dnd5eRepo <- ZIO.service[DND5eZIORepository]

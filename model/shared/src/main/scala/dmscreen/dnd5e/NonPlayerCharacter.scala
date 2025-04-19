@@ -100,7 +100,7 @@ case class NonPlayerCharacterInfo(
   rollplayInfo:                       RollplayInfo = RollplayInfo(),
   monster:                            Option[MonsterId] = None,
   challengeRating:                    Option[ChallengeRating] = None,
-  relationToPlayers:                  RelationToPlayers = RelationToPlayers.unknown, // TODO add this to editor
+  relationToPlayers:                  RelationToPlayers = RelationToPlayers.unknown,
   traits:                             Traits = Traits(),
   organizations:                      String = "",
   allies:                             String = "",

@@ -19,12 +19,38 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package auth
+package dmscreen
 
+import auth.Session
 
-enum TokenPurpose(override val toString: String) {
+import java.time.{Instant, LocalDateTime}
 
-  case NewUser extends TokenPurpose(toString = "NewUser")
-  case LostPassword extends TokenPurpose(toString = "LostPassword")
+opaque type UserId = Long
+
+object UserId {
+
+  given CanEqual[UserId, UserId] = CanEqual.derived
+
+  val empty: UserId = UserId(0)
+  val admin: UserId = UserId(1)
+
+  def apply(userId: Long): UserId = userId
+
+  extension (userId: UserId) {
+
+    def value:    Long = userId
+    def nonEmpty: Boolean = userId.value != UserId.empty
+
+  }
 
 }
+
+case class User(
+  id:           UserId,
+  email:        String,
+  name:         String,
+  created:      LocalDateTime,
+  lastLoggedIn: Option[LocalDateTime] = None,
+  deleted:      Boolean = false,
+  active:       Boolean = false
+)

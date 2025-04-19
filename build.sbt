@@ -11,7 +11,7 @@ lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time o
 
 ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
-lazy val SCALA = "3.6.3"
+lazy val SCALA = "3.7.0-RC3"
 Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
 Global / scalaVersion         := SCALA
@@ -27,6 +27,7 @@ lazy val dist = TaskKey[File]("dist")
 lazy val debugDist = TaskKey[File]("debugDist")
 
 lazy val scala3Opts = Seq(
+  "-Wconf:msg=Implicit parameters should be provided with a `using` clause:s",
   "-deprecation", // Emit warning and location for usages of deprecated APIs.
   "-no-indent", // scala3
   "-old-syntax", // I hate space sensitive languages!
@@ -52,15 +53,15 @@ enablePlugins(
   GitVersioning
 )
 
-val calibanVersion = "2.9.2" //This brings in zio-http new "2.10.0"
-val langchainVersion = "1.0.0-beta2"
+val calibanVersion = "2.10.0" //This brings in zio-http new "2.10.0"
+val langchainVersion = "1.0.0-beta3"
 val quillVersion = "4.8.6"
 val tapirVersion = "1.10.8"
 val testContainerVersion = "0.43.0"
 val zioConfigVersion = "4.0.4"
-val zioHttpVersion = "3.0.1" // "3.1.0" // this breaks
-val zioJsonVersion = "0.7.39"
-val zioVersion = "2.1.16"
+val zioHttpVersion = "3.2.0"
+val zioJsonVersion = "0.7.42"
+val zioVersion = "2.1.17"
 
 lazy val commonSettings = Seq(
   organization     := "net.leibman",
@@ -77,7 +78,6 @@ lazy val modelJVM = model.jvm
 lazy val modelJS = model.js
 
 lazy val model = crossProject(JSPlatform, JVMPlatform)
-  .dependsOn(auth)
   .enablePlugins(
     AutomateHeaderPlugin,
     GitVersioning,
@@ -86,7 +86,10 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
   .settings(
     name             := "dmscreen-model",
     buildInfoPackage := "dmscreen",
-    commonSettings
+    commonSettings,
+    libraryDependencies ++= Seq(
+      "net.leibman" % "zio-auth_3" % "1.0.0-SNAPSHOT" withSources () // I don't know why %% isn't working.
+    )
   )
   .jvmEnablePlugins(GitVersioning, BuildInfoPlugin)
   .jvmSettings(
@@ -109,48 +112,20 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
   .jsSettings(
     version := gitDescribedVersion.value.getOrElse("0.0.1-SNAPSHOT"),
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio"                                                 % zioVersion withSources (),
+      "net.leibman"       % "zio-auth_sjs1_3" % "1.0.0-SNAPSHOT" withSources (), // I don't know why %% isn't working.
+      "dev.zio" %%% "zio" % zioVersion withSources (),
       "dev.zio" %%% "zio-json"                                            % zioJsonVersion withSources (),
       "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC39" withSources (),
       "io.kevinlee" %%% "just-semver-core"                                % "1.1.1" withSources (),
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.33.3",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.33.3"
-    )
-  )
-
-lazy val authJVM = auth.jvm
-lazy val authJS = auth.js
-
-lazy val auth = crossProject(JSPlatform, JVMPlatform)
-  .enablePlugins(AutomateHeaderPlugin)
-  .jvmSettings(
-    libraryDependencies ++= Seq(
-      "dev.zio"     %% "zio"                   % zioVersion withSources (),
-      "dev.zio"     %% "zio-nio"               % "2.0.2" withSources (),
-      "dev.zio"     %% "zio-config"            % zioConfigVersion withSources (),
-      "dev.zio"     %% "zio-config-derivation" % zioConfigVersion withSources (),
-      "dev.zio"     %% "zio-config-magnolia"   % zioConfigVersion withSources (),
-      "dev.zio"     %% "zio-config-typesafe"   % zioConfigVersion withSources (),
-      "dev.zio"     %% "zio-json"              % zioJsonVersion withSources (),
-      "dev.zio"     %% "zio-prelude"           % "1.0.0-RC39" withSources (),
-      "dev.zio"     %% "zio-http"              % zioHttpVersion withSources (),
-      "io.getquill" %% "quill-jdbc-zio"        % quillVersion withSources (),
-      "io.kevinlee" %% "just-semver-core"      % "1.1.0" withSources ()
-    )
-  )
-  .settings(
-    commonSettings,
-    name := "dmscreen-auth",
-    libraryDependencies ++= Seq(
-      "com.github.jwt-scala" %% "jwt-circe" % "10.0.4" withSources (),
-      "dev.zio"              %% "zio-json"  % zioJsonVersion withSources ()
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.35.0",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.35.0"
     )
   )
 
 lazy val db = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(commonSettings)
-  .dependsOn(modelJVM, authJVM)
+  .dependsOn(modelJVM)
   .settings(
     name := "dmscreen-db",
     libraryDependencies ++= Seq(
@@ -327,11 +302,11 @@ lazy val withCssLoading: Project => Project =
 lazy val commonWeb: Project => Project =
   _.settings(
     libraryDependencies ++= Seq(
-      "net.leibman" %%% "dmscreen-stlib"              % "0.8.0-SNAPSHOT" withSources (),
+      "net.leibman" %%% "dmscreen-stlib"              % "0.9.0-SNAPSHOT" withSources (),
       "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
       "dev.zio" %%% "zio"                             % zioVersion withSources (),
-      "com.softwaremill.sttp.client4" %%% "core"      % "4.0.0" withSources (),
-      "com.softwaremill.sttp.client4" %%% "zio-json"  % "4.0.0" withSources (),
+      "com.softwaremill.sttp.client4" %%% "core"      % "4.0.3" withSources (),
+      "com.softwaremill.sttp.client4" %%% "zio-json"  % "4.0.3" withSources (),
       "io.github.cquiroz" %%% "scala-java-time"       % "2.6.0" withSources (),
       "io.github.cquiroz" %%% "scala-java-time-tzdb"  % "2.6.0" withSources (),
       "org.scala-js" %%% "scalajs-dom"                % "2.8.0" withSources (),
@@ -412,73 +387,11 @@ lazy val web: Project = project
     }
   )
 
-lazy val login: Project = project
-  .dependsOn(modelJS)
-  .settings(commonSettings)
-  .configure(bundlerSettings)
-  .configure(withCssLoading)
-  .configure(commonWeb)
-  .enablePlugins(
-    AutomateHeaderPlugin,
-    GitVersioning,
-    ScalaJSPlugin
-  )
-  .settings(
-    name := "dmscreen-login",
-    libraryDependencies ++= Seq(
-      "dev.zio" %%% "zio"      % zioVersion withSources (),
-      "dev.zio" %%% "zio-json" % zioJsonVersion withSources ()
-    ),
-    debugDist := {
-
-      val assets = (ThisBuild / baseDirectory).value / "login" / "src" / "main" / "web"
-
-      val artifacts = (Compile / fastOptJS / webpack).value
-      val artifactFolder = (Compile / fastOptJS / crossTarget).value
-      val debugFolder = (ThisBuild / baseDirectory).value / "debugDist"
-
-      debugFolder.mkdirs()
-      FileUtils.copyDirectory(assets, debugFolder, true)
-      artifacts.foreach { artifact =>
-        val target = artifact.data.relativeTo(artifactFolder) match {
-          case None          => debugFolder / artifact.data.name
-          case Some(relFile) => debugFolder / relFile.toString
-        }
-
-        //        println(s"Trying to copy ${artifact.data.toPath} to ${target.toPath}")
-        Files.copy(artifact.data.toPath, target.toPath, REPLACE_EXISTING)
-      }
-
-      debugFolder
-    },
-    dist := {
-      val assets = (ThisBuild / baseDirectory).value / "login" / "src" / "main" / "web"
-
-      val artifacts = (Compile / fullOptJS / webpack).value
-      val artifactFolder = (Compile / fullOptJS / crossTarget).value
-      val distFolder = (ThisBuild / baseDirectory).value / "dist"
-
-      distFolder.mkdirs()
-      FileUtils.copyDirectory(assets, distFolder, true)
-      artifacts.foreach { artifact =>
-        val target = artifact.data.relativeTo(artifactFolder) match {
-          case None          => distFolder / artifact.data.name
-          case Some(relFile) => distFolder / relFile.toString
-        }
-
-        //        println(s"Trying to copy ${artifact.data.toPath} to ${target.toPath}")
-        Files.copy(artifact.data.toPath, target.toPath, REPLACE_EXISTING)
-      }
-
-      distFolder
-    }
-  )
-
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Root project
 lazy val root = project
   .in(file("."))
-  .aggregate(modelJVM, modelJS, server, web, login, ai)
+  .aggregate(modelJVM, modelJS, server, web, ai)
   .settings(
     name           := "dmscreen",
     publish / skip := true,

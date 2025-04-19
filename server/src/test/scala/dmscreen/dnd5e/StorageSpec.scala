@@ -22,7 +22,6 @@
 package dmscreen.dnd5e
 
 import dmscreen.{*, given}
-import _root_.auth.UserId
 import dmscreen.GameSystem.dnd5e
 import dmscreen.db.DMScreenZIORepository
 import dmscreen.db.dnd5e.DND5eZIORepository

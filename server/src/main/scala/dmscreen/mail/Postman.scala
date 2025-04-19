@@ -22,60 +22,61 @@
 package dmscreen.mail
 
 import auth.*
+import dmscreen.*
 import courier.{Envelope, Mailer, Multipart}
-import dmscreen.{ConfigurationService, DMScreenSession, DMScreenTask, SmtpConfig}
+import dmscreen.{ConfigurationService, DMScreenTask, SmtpConfig}
 
 import scala.concurrent.duration.*
 import zio.{RIO, Task, ZIO, *}
 
 import javax.mail.internet.InternetAddress
 
-object EmailGenerator {
-
-  def lostPasswordEmail(
-    user: User
-  ): RIO[TokenHolder[DMScreenTask] & DMScreenSession & ConfigurationService, Envelope] =
-    for {
-      tokenHolder <- ZIO.service[TokenHolder[DMScreenTask]]
-      token       <- tokenHolder.createToken(user, TokenPurpose.LostPassword)
-      webHostName <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.smtp.webHostname)
-    } yield {
-      val linkUrl = s"http://$webHostName/unauth/loginForm?passwordReset=true&token=$token"
-      Envelope
-        .from(new InternetAddress("dmscreen@leibman.net", "dmscreen administrator"))
-        .to(new InternetAddress(user.email))
-        .subject("dmscreen.leibman.net, you lost your password")
-        .content(Multipart().html(s"""<html><body>
-                                     | <p>So sorry you lost your password</p>
-                                     | <p>Here's a link to generate a new one.</p>
-                                     | <p>please Click here: <a href="$linkUrl">$linkUrl</a>.</p>
-                                     | <p>Note that this link has a limited time</p>
-                                     |</body></html>""".stripMargin))
-    }
-
-  def registrationEmail(
-    user: User
-  ): RIO[TokenHolder[DMScreenTask] & DMScreenSession & ConfigurationService, Envelope] =
-    for {
-      tokenHolder <- ZIO.service[TokenHolder[DMScreenTask]]
-      token       <- tokenHolder.createToken(user, TokenPurpose.NewUser)
-      webHostName <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.smtp.webHostname)
-    } yield {
-      val linkUrl =
-        s"http://$webHostName/unauth/confirmRegistration?token=$token"
-      Envelope
-        .from(new InternetAddress("dmscreen@leibman.net", "dmscreen administrator"))
-        .to(new InternetAddress(user.email))
-        .subject("Welcome to dmscreen")
-        .content(Multipart().html(s"""<html><body>
-                                     | <p>Thanks for registering!</p>
-                                     | <p>All you have to do now is activate your account.</p>
-                                     | <p>Please click here: <a href="$linkUrl">$linkUrl</a>.</p>
-                                     | <p>Note that this link is time sensitive, eventually it will expire</p>
-                                     |</body></html>""".stripMargin))
-    }
-
-}
+//object EmailGenerator {
+//
+//  def lostPasswordEmail(
+//    user: User
+//  ): RIO[TokenHolder[DMScreenTask] & Session[User] & ConfigurationService, Envelope] =
+//    for {
+//      tokenHolder <- ZIO.service[TokenHolder[DMScreenTask]]
+//      token       <- tokenHolder.createToken(user, TokenPurpose.LostPassword)
+//      webHostName <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.smtp.webHostname)
+//    } yield {
+//      val linkUrl = s"http://$webHostName/unauth/loginForm?passwordReset=true&token=$token"
+//      Envelope
+//        .from(new InternetAddress("dmscreen@leibman.net", "dmscreen administrator"))
+//        .to(new InternetAddress(user.email))
+//        .subject("dmscreen.leibman.net, you lost your password")
+//        .content(Multipart().html(s"""<html><body>
+//                                     | <p>So sorry you lost your password</p>
+//                                     | <p>Here's a link to generate a new one.</p>
+//                                     | <p>please Click here: <a href="$linkUrl">$linkUrl</a>.</p>
+//                                     | <p>Note that this link has a limited time</p>
+//                                     |</body></html>""".stripMargin))
+//    }
+//
+//  def registrationEmail(
+//    user: User
+//  ): RIO[TokenHolder[DMScreenTask] & Session[User] & ConfigurationService, Envelope] =
+//    for {
+//      tokenHolder <- ZIO.service[TokenHolder[DMScreenTask]]
+//      token       <- tokenHolder.createToken(user, TokenPurpose.NewUser)
+//      webHostName <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.smtp.webHostname)
+//    } yield {
+//      val linkUrl =
+//        s"http://$webHostName/unauth/confirmRegistration?token=$token"
+//      Envelope
+//        .from(new InternetAddress("dmscreen@leibman.net", "dmscreen administrator"))
+//        .to(new InternetAddress(user.email))
+//        .subject("Welcome to dmscreen")
+//        .content(Multipart().html(s"""<html><body>
+//                                     | <p>Thanks for registering!</p>
+//                                     | <p>All you have to do now is activate your account.</p>
+//                                     | <p>Please click here: <a href="$linkUrl">$linkUrl</a>.</p>
+//                                     | <p>Note that this link is time sensitive, eventually it will expire</p>
+//                                     |</body></html>""".stripMargin))
+//    }
+//
+//}
 
 trait Postman {
 

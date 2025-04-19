@@ -30,7 +30,7 @@ object RandomNameGeneratorPage {
 
   case class State()
 
-  class Backend($: BackendScope[Unit, State]) {
+  class Backend($ : BackendScope[Unit, State]) {
 
     def loadState(): Callback = {
       for {
@@ -40,7 +40,7 @@ object RandomNameGeneratorPage {
 
     def render(state: State): VdomNode = {
       <.div(
-        <.h1("Quick Reference"),
+        <.h1("Quick Reference")
       )
     }
 

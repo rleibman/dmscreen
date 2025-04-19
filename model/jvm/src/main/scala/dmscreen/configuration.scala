@@ -21,7 +21,7 @@
 
 package dmscreen
 
-import auth.{SecretKey, SessionConfig}
+import auth.{AuthConfig, SecretKey}
 import com.typesafe.config.{Config as TypesafeConfig, ConfigFactory}
 import com.zaxxer.hikari.*
 import zio.*
@@ -71,7 +71,7 @@ case class DMScreenConfiguration(
   db:                 DatabaseConfig,
   smtp:               SmtpConfig,
   http:               HttpConfig,
-  session:            SessionConfig
+  session:            AuthConfig
 )
 
 object AppConfig {

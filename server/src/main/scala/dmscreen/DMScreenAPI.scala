@@ -21,7 +21,7 @@
 
 package dmscreen
 
-import auth.UserId
+import auth.Session
 import caliban.*
 import caliban.CalibanError.ExecutionError
 import caliban.interop.zio.*
@@ -76,28 +76,28 @@ object DMScreenAPI {
   )
 
   case class Queries(
-    campaigns: ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Seq[CampaignHeader]],
-    campaign:  CampaignId => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Option[Campaign]],
-    campaignLogs: CampaignLogRequest => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Seq[
+    campaigns: ZIO[DMScreenZIORepository & Session[User], DMScreenError, Seq[CampaignHeader]],
+    campaign:  CampaignId => ZIO[DMScreenZIORepository & Session[User], DMScreenError, Option[Campaign]],
+    campaignLogs: CampaignLogRequest => ZIO[DMScreenZIORepository & Session[User], DMScreenError, Seq[
       CampaignLogEntry
     ]]
   )
 
   case class Mutations(
     // All these mutations are temporary, eventually, only the headers will be saved, and the infos will be saved in the events
-    upsertCampaign: Campaign => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, CampaignId],
-    campaignLog:    CampaignLogInsertRequest => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Unit],
-    deleteCampaign: CampaignId => ZIO[DMScreenZIORepository & DMScreenSession, DMScreenError, Unit],
+    upsertCampaign: Campaign => ZIO[DMScreenZIORepository & Session[User], DMScreenError, CampaignId],
+    campaignLog:    CampaignLogInsertRequest => ZIO[DMScreenZIORepository & Session[User], DMScreenError, Unit],
+    deleteCampaign: CampaignId => ZIO[DMScreenZIORepository & Session[User], DMScreenError, Unit],
     snapshotCampaign: CampaignId => ZIO[
       dmscreen.dnd5e.DND5eRepository[dmscreen.DMScreenTask] & dmscreen.sta.STARepository[dmscreen.DMScreenTask] &
-        DMScreenZIORepository & DMScreenSession,
+        DMScreenZIORepository & Session[User],
       DMScreenError,
       CampaignHeader
     ]
   )
 
   case class Subscriptions(
-    campaignStream: CampaignEventsArgs => ZStream[DMScreenZIORepository & DMScreenSession, DMScreenError, DMScreenEvent]
+    campaignStream: CampaignEventsArgs => ZStream[DMScreenZIORepository & Session[User], DMScreenError, DMScreenEvent]
   )
 
   private given Schema[Any, EntityType[?]] = Schema.stringSchema.contramap(_.name)
@@ -121,9 +121,9 @@ object DMScreenAPI {
   private given ArgBuilder[CampaignLogRequest] = ArgBuilder.gen[CampaignLogRequest]
   private given ArgBuilder[CampaignLogInsertRequest] = ArgBuilder.gen[CampaignLogInsertRequest]
 
-  lazy val api: GraphQL[DMScreenServerEnvironment & DMScreenSession] =
+  lazy val api: GraphQL[DMScreenServerEnvironment & Session[User]] =
     graphQL[
-      DMScreenServerEnvironment & DMScreenSession,
+      DMScreenServerEnvironment & Session[User],
       Queries,
       Mutations,
       Subscriptions

@@ -23,18 +23,19 @@ package dmscreen.routes
 
 import caliban.*
 import dmscreen.sta.STAAPI
-import dmscreen.{DMScreenError, DMScreenServerEnvironment, DMScreenSession}
+import auth.*
+import dmscreen.*
 import zio.ZIO
 import zio.http.*
 
-object STARoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
+object STARoutes extends AppRoutes[DMScreenServerEnvironment, Session[User], DMScreenError] {
 
   lazy private val interpreter = STAAPI.api.interpreter
 
   override def api: ZIO[
     DMScreenServerEnvironment,
     DMScreenError,
-    Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+    Routes[DMScreenServerEnvironment & Session[User], DMScreenError]
   ] =
     (for {
       interpreter <- interpreter
