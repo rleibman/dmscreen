@@ -21,8 +21,8 @@
 
 package dmscreen.dnd5e
 
+import auth.*
 import ai.dnd5e.{AIIO, DND5eAIServer}
-import auth.UserId
 import caliban.*
 import caliban.CalibanError.ExecutionError
 import caliban.interop.zio.*
@@ -53,7 +53,7 @@ object DND5eAPI {
   private def doImportCharacterDNDBeyond(
     request: ImportCharacterRequest
   ): ZIO[
-    DND5eZIORepository & DNDBeyondImporter & ConfigurationService & DMScreenSession,
+    DND5eZIORepository & DNDBeyondImporter & ConfigurationService & Session[User],
     DMScreenError,
     PlayerCharacter
   ] = {
@@ -102,7 +102,7 @@ object DND5eAPI {
       saveMe = pc.copy(header = pc.header.copy(id = pcId, campaignId = request.campaignId))
       id <- repo.upsert(pc.header, pc.jsonInfo) // Save the character
     } yield pc.copy(header = pc.header.copy(id = id)))
-      .provideSome[DND5eZIORepository & DNDBeyondImporter & ConfigurationService & DMScreenSession](Client.default)
+      .provideSome[DND5eZIORepository & DNDBeyondImporter & ConfigurationService & Session[User]](Client.default)
       .tapError { e =>
         ZIO.logErrorCause(Cause.fail(e))
       }
@@ -215,76 +215,76 @@ object DND5eAPI {
   private given ArgBuilder[NpcBySceneIdRequest] = ArgBuilder.gen[NpcBySceneIdRequest]
 
   case class Queries(
-    monster: MonsterId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Option[Monster]],
-    playerCharacters: PlayerCharacterSearchRequest => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Seq[
+    monster: MonsterId => ZIO[DND5eZIORepository & Session[User], DMScreenError, Option[Monster]],
+    playerCharacters: PlayerCharacterSearchRequest => ZIO[DND5eZIORepository & Session[User], DMScreenError, Seq[
       PlayerCharacter
     ]],
-    scenes: CampaignId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Seq[Scene]],
-    nonPlayerCharacters: CampaignId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Seq[
+    scenes: CampaignId => ZIO[DND5eZIORepository & Session[User], DMScreenError, Seq[Scene]],
+    nonPlayerCharacters: CampaignId => ZIO[DND5eZIORepository & Session[User], DMScreenError, Seq[
       NonPlayerCharacter
     ]],
-    playerCharacter: PlayerCharacterId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Option[
+    playerCharacter: PlayerCharacterId => ZIO[DND5eZIORepository & Session[User], DMScreenError, Option[
       PlayerCharacter
     ]],
-    nonPlayerCharacter: NonPlayerCharacterId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Option[
+    nonPlayerCharacter: NonPlayerCharacterId => ZIO[DND5eZIORepository & Session[User], DMScreenError, Option[
       NonPlayerCharacter
     ]],
-    encounters:   CampaignId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Seq[Encounter]],
-    encounter:    EncounterByIdRequest => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Option[Encounter]],
-    bestiary:     MonsterSearch => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, MonsterSearchResults],
-    sources:      ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Seq[Source]],
-    classes:      ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Seq[CharacterClass]],
-    races:        ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Seq[Race]],
-    backgrounds:  ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Seq[Background]],
-    subclasses:   CharacterClassId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Seq[SubClass]],
-    randomTables: RandomTableSearch => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Seq[RandomTable]],
-    randomTable:  RandomTableId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Option[RandomTable]],
+    encounters:   CampaignId => ZIO[DND5eZIORepository & Session[User], DMScreenError, Seq[Encounter]],
+    encounter:    EncounterByIdRequest => ZIO[DND5eZIORepository & Session[User], DMScreenError, Option[Encounter]],
+    bestiary:     MonsterSearch => ZIO[DND5eZIORepository & Session[User], DMScreenError, MonsterSearchResults],
+    sources:      ZIO[DND5eZIORepository & Session[User], DMScreenError, Seq[Source]],
+    classes:      ZIO[DND5eZIORepository & Session[User], DMScreenError, Seq[CharacterClass]],
+    races:        ZIO[DND5eZIORepository & Session[User], DMScreenError, Seq[Race]],
+    backgrounds:  ZIO[DND5eZIORepository & Session[User], DMScreenError, Seq[Background]],
+    subclasses:   CharacterClassId => ZIO[DND5eZIORepository & Session[User], DMScreenError, Seq[SubClass]],
+    randomTables: RandomTableSearch => ZIO[DND5eZIORepository & Session[User], DMScreenError, Seq[RandomTable]],
+    randomTable:  RandomTableId => ZIO[DND5eZIORepository & Session[User], DMScreenError, Option[RandomTable]],
     aiGenerateEncounterDescription: Encounter => ZIO[
-      DND5eZIORepository & DMScreenSession & DMScreenZIORepository & DND5eAIServer[AIIO],
+      DND5eZIORepository & Session[User] & DMScreenZIORepository & DND5eAIServer[AIIO],
       DMScreenError,
       String
     ],
     aiGenerateNPCDetails: NonPlayerCharacter => ZIO[
-      DND5eZIORepository & DMScreenSession & DMScreenZIORepository & DND5eAIServer[AIIO],
+      DND5eZIORepository & Session[User] & DMScreenZIORepository & DND5eAIServer[AIIO],
       DMScreenError,
       NonPlayerCharacter
     ],
-    npcsForScene: CampaignId => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Map[SceneId, Seq[
+    npcsForScene: CampaignId => ZIO[DND5eZIORepository & Session[User], DMScreenError, Map[SceneId, Seq[
       NonPlayerCharacterId
     ]]]
   )
   case class Mutations(
     // All these mutations are temporary, eventually, only the headers will be saved, and the infos will be saved in the events
-    upsertScene: Scene => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, SceneId],
+    upsertScene: Scene => ZIO[DND5eZIORepository & Session[User], DMScreenError, SceneId],
     upsertPlayerCharacter: PlayerCharacter => ZIO[
-      DND5eZIORepository & DMScreenSession,
+      DND5eZIORepository & Session[User],
       DMScreenError,
       PlayerCharacterId
     ],
     upsertNonPlayerCharacter: NonPlayerCharacter => ZIO[
-      DND5eZIORepository & DMScreenSession,
+      DND5eZIORepository & Session[User],
       DMScreenError,
       NonPlayerCharacterId
     ],
-    upsertMonster:   Monster => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, MonsterId],
-    upsertEncounter: Encounter => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, EncounterId],
-    deleteEntity:    EntityDeleteArgs => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Unit],
+    upsertMonster:   Monster => ZIO[DND5eZIORepository & Session[User], DMScreenError, MonsterId],
+    upsertEncounter: Encounter => ZIO[DND5eZIORepository & Session[User], DMScreenError, EncounterId],
+    deleteEntity:    EntityDeleteArgs => ZIO[DND5eZIORepository & Session[User], DMScreenError, Unit],
     importCharacterDNDBeyond: ImportCharacterRequest => ZIO[
-      DND5eZIORepository & DMScreenSession & DNDBeyondImporter & ConfigurationService,
+      DND5eZIORepository & Session[User] & DNDBeyondImporter & ConfigurationService,
       DMScreenError,
       PlayerCharacter
     ],
-    addNpcToScene: NpcBySceneIdRequest => ZIO[DND5eZIORepository & DMScreenSession, DMScreenError, Unit],
+    addNpcToScene: NpcBySceneIdRequest => ZIO[DND5eZIORepository & Session[User], DMScreenError, Unit],
     removeNpcFromScene: NpcBySceneIdRequest => ZIO[
-      DND5eZIORepository & DMScreenSession,
+      DND5eZIORepository & Session[User],
       DMScreenError,
       Unit
     ]
   )
 
-  lazy val api: GraphQL[DMScreenServerEnvironment & DMScreenSession] =
+  lazy val api: GraphQL[DMScreenServerEnvironment & Session[User]] =
     graphQL[
-      DMScreenServerEnvironment & DMScreenSession,
+      DMScreenServerEnvironment & Session[User],
       Queries,
       Mutations,
       Unit

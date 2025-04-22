@@ -27,16 +27,20 @@ import japgolly.scalajs.react.vdom.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.SemanticCOLORS
 
-enum DND5eUIPages {
+object DND5eUIPages {
 
-  case dashboard extends DND5eUIPages with AppPageType
-  case encounters extends DND5eUIPages with AppPageType
-  case pcs extends DND5eUIPages with AppPageType
-  case npcs extends DND5eUIPages with AppPageType
-  case scenes extends DND5eUIPages with AppPageType
-  case bestiary extends DND5eUIPages with AppPageType
-  case randomTables extends DND5eUIPages with AppPageType
-  case campaignLog extends DND5eUIPages with AppPageType
+  sealed trait DND5eUIPages(override val name: String) extends AppPageType
+
+  case object dashboard extends DND5eUIPages("DND5eDashboard")
+  case object encounters extends DND5eUIPages("DND5eEncounters")
+  case object pcs extends DND5eUIPages("DND5ePcs")
+  case object npcs extends DND5eUIPages("DND5eNpcs")
+  case object scenes extends DND5eUIPages("DND5eScenes")
+  case object bestiary extends DND5eUIPages("DND5eBestiary")
+  case object randomTables extends DND5eUIPages("DND5eRandomTables")
+  case object reference extends DND5eUIPages("DND5eReference")
+  case object randomNameGenerator extends DND5eUIPages("DND5eRandomNameGenerator")
+  case object campaignLog extends DND5eUIPages("DND5eCampaignLog")
 
 }
 
@@ -51,6 +55,8 @@ case object DND5eUI extends GameUI {
       PageAppMenuItem(DND5eUIPages.scenes, "Scenes", campaignId => ScenePage(campaignId)),
       PageAppMenuItem(DND5eUIPages.bestiary, "Bestiary", campaignId => BestiaryPage(campaignId)),
       PageAppMenuItem(DND5eUIPages.randomTables, "Random Tables", _ => RandomTablePage()),
+      PageAppMenuItem(DND5eUIPages.reference, "Reference", _ => ReferencePage()),
+      PageAppMenuItem(DND5eUIPages.randomNameGenerator, "Name Generator", _ => RandomNameGeneratorPage()),
       ButtonAppMenuItem(
         DND5eUIPages.campaignLog,
         VdomArray("Campaign Log", CampaignLog.render()),
@@ -64,9 +70,9 @@ case object DND5eUI extends GameUI {
       "css/statBlock.css"
     )
 
-  val tableColor = SemanticCOLORS.grey
+  val tableColor = SemanticCOLORS.purple
   val tableInverted = true
-  val menuColor = SemanticCOLORS.brown
-  val menuInverted = true
+  val menuColor = SemanticCOLORS.black
+  val menuInverted = false
 
 }

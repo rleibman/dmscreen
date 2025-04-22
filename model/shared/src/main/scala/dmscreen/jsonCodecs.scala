@@ -21,12 +21,21 @@
 
 package dmscreen
 
+import auth.{AuthenticatedSession, Session, UnauthenticatedSession}
 import zio.json.{JsonCodec, JsonDecoder}
-import auth.given
 
 given JsonCodec[CampaignId] = JsonCodec.long.transform(CampaignId.apply, _.value)
 given JsonCodec[CampaignInfo] = JsonCodec.derived[CampaignInfo]
-given JsonCodec[DMScreenSession] = JsonCodec.derived[DMScreenSession]
+given JsonCodec[UserId] = JsonCodec.long.transform(UserId.apply, _.value)
+given JsonCodec[User] = JsonCodec.derived[User]
+given JsonCodec[AuthenticatedSession[User]] =
+  JsonCodec
+    .derived[User].transform(
+      (user: User) => AuthenticatedSession(Some(user)),
+      (session: AuthenticatedSession[User]) => session.user.get
+    )
+given JsonCodec[UnauthenticatedSession[User]] = JsonCodec.derived[UnauthenticatedSession[User]]
+given JsonCodec[Session[User]] = JsonCodec.derived[Session[User]]
 
 extension (json: zio.json.ast.Json.Obj) {
 

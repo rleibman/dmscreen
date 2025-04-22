@@ -21,6 +21,7 @@
 
 package dmscreen
 
+import auth.Session
 import zio.ZIO
 
-type DMScreenTask[+A] = ZIO[DMScreenSession, DMScreenError, A]
+type DMScreenTask[+A] = ZIO[Session[User], DMScreenError, A]

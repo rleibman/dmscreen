@@ -21,7 +21,6 @@
 
 package dmscreen
 
-import auth.User
 import dmscreen.dnd5e.*
 import japgolly.scalajs.react.React.Context
 import japgolly.scalajs.react.callback.AsyncCallback

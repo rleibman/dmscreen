@@ -19,11 +19,38 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package auth
+package dmscreen
 
-import dmscreen.DMScreenError
+import auth.Session
 
-case class SessionError(
-  override val msg:   String,
-  override val cause: Option[Throwable] = None
-) extends DMScreenError(msg, cause)
+import java.time.{Instant, LocalDateTime}
+
+opaque type UserId = Long
+
+object UserId {
+
+  given CanEqual[UserId, UserId] = CanEqual.derived
+
+  val empty: UserId = UserId(0)
+  val admin: UserId = UserId(1)
+
+  def apply(userId: Long): UserId = userId
+
+  extension (userId: UserId) {
+
+    def value:    Long = userId
+    def nonEmpty: Boolean = userId.value != UserId.empty
+
+  }
+
+}
+
+case class User(
+  id:           UserId,
+  email:        String,
+  name:         String,
+  created:      LocalDateTime,
+  lastLoggedIn: Option[LocalDateTime] = None,
+  deleted:      Boolean = false,
+  active:       Boolean = false
+)

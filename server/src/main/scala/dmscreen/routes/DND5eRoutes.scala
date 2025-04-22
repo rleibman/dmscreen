@@ -23,18 +23,19 @@ package dmscreen.routes
 
 import caliban.*
 import dmscreen.dnd5e.DND5eAPI
-import dmscreen.{DMScreenError, DMScreenServerEnvironment, DMScreenSession}
+import auth.*
+import dmscreen.*
 import zio.ZIO
 import zio.http.*
 
-object DND5eRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
+object DND5eRoutes extends AppRoutes[DMScreenServerEnvironment, Session[User], DMScreenError] {
 
   lazy private val interpreter = DND5eAPI.api.interpreter
 
   override def api: ZIO[
     DMScreenServerEnvironment,
     DMScreenError,
-    Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+    Routes[DMScreenServerEnvironment & Session[User], DMScreenError]
   ] =
     (for {
       interpreter <- interpreter

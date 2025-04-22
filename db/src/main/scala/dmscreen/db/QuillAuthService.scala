@@ -31,7 +31,31 @@ import zio.cache.*
 import java.time.LocalDateTime
 import javax.sql.DataSource
 
-trait QuillAuthService extends UserRepository[DMScreenTask] with TokenHolder[DMScreenTask]
+trait UserRepository[F[_]] {
+
+  def login(
+    email:    String,
+    password: String
+  ): F[Option[User]]
+
+  def changePassword(
+    userId:   UserId,
+    password: String
+  ): F[Boolean]
+
+  def userByEmail(email: String): F[Option[User]]
+  def upsert(e:          User):   F[User]
+
+  def get(pk: UserId): F[Option[User]]
+
+  def delete(
+    pk:         UserId,
+    softDelete: Boolean
+  ): F[Boolean]
+
+}
+
+trait QuillAuthService extends UserRepository[DMScreenTask]
 
 object QuillAuthService {
 
@@ -49,21 +73,6 @@ object QuillAuthService {
         )
       }
 
-    inline def qTokens =
-      quote {
-        querySchema[Token]("token")
-      }
-
-    given MappedEncoding[TokenString, String] = MappedEncoding[TokenString, String](_.str)
-    given MappedEncoding[String, TokenString] = MappedEncoding[String, TokenString](TokenString.apply)
-
-    given MappedEncoding[TokenPurpose, String] = MappedEncoding[TokenPurpose, String](_.toString)
-
-    given MappedEncoding[String, TokenPurpose] =
-      MappedEncoding[String, TokenPurpose](s =>
-        TokenPurpose.values.find(_.toString.equalsIgnoreCase(s)).getOrElse(TokenPurpose.NewUser)
-      )
-
   }
 
   val live: ZLayer[ConfigurationService, ConfigurationError, QuillAuthService] = {
@@ -72,16 +81,6 @@ object QuillAuthService {
 
       import UserSchema.{*, given}
       import ctx.*
-
-      def cleanupTokens: ZIO[DataSource, RepositoryError, Boolean] =
-        (for {
-          now <- Clock.localDateTime
-          b <- ctx.run(
-            infix"DELETE FROM token WHERE expireTime >= ${lift(now)}".as[Delete[Token]]
-          )
-        } yield b > 0)
-          .mapError(RepositoryError.apply)
-          .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
       for {
         config <- ZIO.serviceWithZIO[ConfigurationService](_.appConfig)
@@ -100,13 +99,8 @@ object QuillAuthService {
               .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
           }
         )
-        freq = new zio.DurationSyntax(1).hour
-        _ <- (ZIO.logInfo("Cleaning up old tokens") *> cleanupTokens.provide(dataSourceLayer))
-          .repeat(Schedule.spaced(freq).jittered).forkDaemon
       } yield {
         new QuillAuthService {
-          override def firstLogin: DMScreenTask[Option[LocalDateTime]] = ???
-
           override def login(
             email:    String,
             password: String
@@ -124,7 +118,7 @@ object QuillAuthService {
               userId <- ctx.run(sql).map(_.headOption.map(UserId.apply))
               user   <- ZIO.foreach(userId)(cache.get)
             } yield user.flatten)
-              .provideSomeLayer[DMScreenSession](dataSourceLayer)
+              .provideSomeLayer[auth.Session[User]](dataSourceLayer)
               .mapError(RepositoryError(_))
               .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
           }
@@ -139,32 +133,32 @@ object QuillAuthService {
           }
 
           override def changePassword(
-            user:     User,
+            userId:   UserId,
             password: String
           ): DMScreenTask[Boolean] = {
             for {
-              _ <- selfOrAdmin(user.id)
+              _ <- selfOrAdmin(userId)
               res <- ctx
                 .run(
                   quote(
-                    infix"update `dmscreenUser` set hashedPassword=SHA2(${lift(password)}, 512) where id = ${lift(user.id)}"
+                    infix"update `dmscreenUser` set hashedPassword=SHA2(${lift(password)}, 512) where id = ${lift(userId)}"
                       .as[Update[Int]]
                   )
                 ).map(_ > 0)
             } yield res
-          }.provideSomeLayer[DMScreenSession](dataSourceLayer)
+          }.provideSomeLayer[auth.Session[User]](dataSourceLayer)
             .mapError(RepositoryError(_))
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
-          private def validateAdmin: ZIO[DMScreenSession, DMScreenError, Unit] =
+          private def validateAdmin: ZIO[auth.Session[User], DMScreenError, Unit] =
             for {
-              userId <- ZIO.serviceWith[DMScreenSession](_.user.id)
+              userId <- ZIO.serviceWith[auth.Session[User]](_.user.fold(UserId.empty)(_.id))
               _      <- ZIO.fail(RepositoryError("Unauthorized")).unless(userId == UserId.admin)
             } yield ()
 
           private def selfOrAdmin(checkId: UserId): DMScreenTask[Unit] = {
             for {
-              userId <- ZIO.serviceWith[DMScreenSession](_.user.id)
+              userId <- ZIO.serviceWith[auth.Session[User]](_.user.fold(UserId.empty)(_.id))
               _      <- ZIO.fail(RepositoryError("Unauthorized")).unless(userId == checkId || userId == UserId.admin)
             } yield ()
           }
@@ -191,7 +185,7 @@ object QuillAuthService {
                     .map(id => e.copy(id = id))
                 }
             } yield e
-          }.provideSomeLayer[DMScreenSession](dataSourceLayer)
+          }.provideSomeLayer[auth.Session[User]](dataSourceLayer)
             .mapError(RepositoryError(_))
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
@@ -221,86 +215,13 @@ object QuillAuthService {
                     ).map(_ > 0)
                 }
             } yield res
-          }.provideSomeLayer[DMScreenSession](dataSourceLayer)
+          }.provideSomeLayer[auth.Session[User]](dataSourceLayer)
             .mapError(RepositoryError(_))
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-
-          override def search(search: Option[UserSearch]): DMScreenTask[Seq[User]] = {
-            validateAdmin *> search
-              .fold(ctx.run(qUsers.filter(!_.deleted))) { s =>
-                ctx.run(
-                  qUsers
-                    .filter(u => (u.email like lift(s"%${s.text}%")) && !u.deleted)
-                    .drop(lift(s.pageSize * s.pageIndex))
-                    .take(lift(s.pageSize))
-                )
-              }
-          }.provideSomeLayer[DMScreenSession](dataSourceLayer)
-            .mapError(RepositoryError(_))
-            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-
-          override def count(search: Option[UserSearch]): DMScreenTask[Long] = {
-            validateAdmin *> search.fold(ctx.run(qUsers.filter(!_.deleted).size)) { s =>
-              ctx.run(qUsers.filter(u => (u.email like lift(s"%${s.text}%")) && !u.deleted).size)
-            }
-          }.provideSomeLayer[DMScreenSession](dataSourceLayer)
-            .mapError(RepositoryError(_))
-            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-
-          override def validateToken(
-            tok:     TokenString,
-            purpose: TokenPurpose
-          ): DMScreenTask[Option[User]] =
-            ctx.transaction(for {
-              user <- peek(tok, purpose)
-              _ <- ctx.run(
-                infix"DELETE FROM token WHERE tok = ${lift(tok)} && tokenPurpose = ${lift(purpose)}"
-                  .as[Delete[Token]]
-              )
-            } yield user)
-              .provideSomeLayer[DMScreenSession](dataSourceLayer)
-              .mapError(RepositoryError.apply)
-              .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-
-          override def createToken(
-            user:    User,
-            purpose: TokenPurpose,
-            ttl:     Option[Duration]
-          ): DMScreenTask[Token] = {
-            for {
-              tok <- TokenString.random
-              expireTime <- Clock.localDateTime.map(
-                _.plus(java.time.Duration.ofMillis(ttl.fold(Long.MaxValue)(_.toMillis)))
-              )
-              token = Token(
-                tok = tok,
-                tokenPurpose = purpose,
-                expireTime = expireTime,
-                userId = user.id
-              )
-              _ <- ctx.run(qTokens.insertValue(lift(token)))
-            } yield token
-          }.provideSomeLayer[DMScreenSession](dataSourceLayer)
-            .mapError(RepositoryError.apply)
-            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-
-          override def peek(
-            tok:     TokenString,
-            purpose: TokenPurpose
-          ): DMScreenTask[Option[User]] =
-            ctx
-              .run(
-                qTokens
-                  .filter(t => t.tok == lift(tok) && t.tokenPurpose == lift(purpose))
-                  .join(qUsers).on(_.userId == _.id).map(_._2)
-              ).map(_.headOption)
-              .provideSomeLayer[DMScreenSession](dataSourceLayer)
-              .mapError(RepositoryError.apply)
-              .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
-
         }
       }
     }
+
   }
 
 }

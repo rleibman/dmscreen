@@ -21,20 +21,21 @@
 
 package dmscreen.routes
 
+import auth.Session
 import caliban.*
 import caliban.schema.GenericSchema
-import dmscreen.{DMScreenAPI, DMScreenError, DMScreenServerEnvironment, DMScreenSession}
+import dmscreen.{DMScreenAPI, DMScreenError, DMScreenServerEnvironment, User}
 import zio.http.*
 import zio.{IO, ZIO}
 
-object DMScreenRoutes extends AppRoutes[DMScreenServerEnvironment, DMScreenSession, DMScreenError] {
+object DMScreenRoutes extends AppRoutes[DMScreenServerEnvironment, Session[User], DMScreenError] {
 
   lazy private val interpreter = DMScreenAPI.api.interpreter
 
   override def api: ZIO[
     DMScreenServerEnvironment,
     DMScreenError,
-    Routes[DMScreenServerEnvironment & DMScreenSession, DMScreenError]
+    Routes[DMScreenServerEnvironment & Session[User], DMScreenError]
   ] =
     (for {
       interpreter <- interpreter

@@ -340,7 +340,6 @@ object CombatRunner {
             state.viewMonsterId.fold(EmptyVdom: VdomNode)(monsterId =>
               Modal
                 .withKey("monsterStackBlockModal")
-                .style(CSSProperties().set("backgroundColor", "#ffffff"))
                 .open(true)
                 .size(semanticUiReactStrings.tiny)
                 .closeIcon(true)
@@ -356,7 +355,6 @@ object CombatRunner {
             state.viewPCId.fold(EmptyVdom: VdomNode)(pcId =>
               Modal
                 .withKey("monsterStackBlockModal")
-                .style(CSSProperties().set("backgroundColor", "#ffffff"))
                 .open(true)
                 .size(semanticUiReactStrings.tiny)
                 .closeIcon(true)
@@ -372,7 +370,6 @@ object CombatRunner {
             state.viewNPCId.fold(EmptyVdom: VdomNode)(npcId =>
               Modal
                 .withKey("npcBlockModal")
-                .style(CSSProperties().set("backgroundColor", "#ffffff"))
                 .open(true)
                 .size(semanticUiReactStrings.tiny)
                 .closeIcon(true)
@@ -688,143 +685,138 @@ object CombatRunner {
 
                         Table.Row
                           .withKey(pcCombatant.id.value.toString)(
-                            Table.Cell
-                              .style(CSSProperties().set("backgroundColor", "rgb(255,255,255,.15)"))(
-                                Icon
-                                  .name(SemanticICONS.`arrow right`).when(
-                                    pcCombatant.id == encounter.info.currentTurnId
-                                  ),
-                                EditableNumber(
-                                  value = pcCombatant.initiative,
-                                  min = 1,
-                                  max = 30,
-                                  onChange = v =>
-                                    modEncounterInfo(
-                                      info =>
-                                        info.copy(
-                                          currentTurnId = CombatantId.empty, // Need to reset the current turn to the beginning, otherwise things can get woird
-                                          combatants = info.combatants.map {
-                                            case c: PlayerCharacterCombatant if c.id == pcCombatant.id =>
-                                              c.copy(initiative = v.toInt)
-                                            case c => c
-                                          }
-                                        ),
-                                      s"Setting initiative for ${pcCombatant.name} to $v"
-                                    )
-                                )
-                              ),
-                            Table.Cell
-                              .style(CSSProperties().set("backgroundColor", "rgb(255,255,255,.15)"))(
-                                s"${pc.header.name}${pc.header.playerName.fold("")(n => s" ($n)")}"
-                              ),
-                            Table.Cell
-                              .style(CSSProperties().set("backgroundColor", "rgb(255,255,255,.15)"))(
-                                Button("Heal")
-                                  .className("healButton")
-                                  .compact(true)
-                                  .title("Enter points in the damage box and click here to heal")
-                                  .color(SemanticCOLORS.green)
-                                  .size(SemanticSIZES.mini)
-                                  .disabled(!state.healOrDamage.contains(pcCombatant.id))
-                                  .onClick {
-                                    (
-                                      _,
-                                      _
-                                    ) =>
-                                      val fromIncapacitated = pc.info.health.isDead
-                                      val newHitPoints =
-                                        if (fromIncapacitated)
-                                          state.healOrDamage(pcCombatant.id)
-                                        else
-                                          pcInfo.health.currentHitPoints + state.healOrDamage(pcCombatant.id)
-                                      val toIncapacitated = newHitPoints <= 0
-                                      modPC(
-                                        pc.copy(jsonInfo =
-                                          pcInfo
-                                            .copy(health =
-                                              pcInfo.health.copy(
-                                                deathSave = DeathSave.empty, // A bit inefficient, but it's ok
-                                                currentHitPoints = newHitPoints
-                                              )
-                                            ).toJsonAST.toOption.get
-                                        ), {
-                                          if (fromIncapacitated && !toIncapacitated)
-                                            s"${pcCombatant.name} healed ${state.healOrDamage(pcCombatant.id)} points and is no longer incapacitated"
-                                          else
-                                            s"${pcCombatant.name} healed ${state.healOrDamage(pcCombatant.id)} points"
+                            Table.Cell(
+                              Icon
+                                .name(SemanticICONS.`arrow right`).when(
+                                  pcCombatant.id == encounter.info.currentTurnId
+                                ),
+                              EditableNumber(
+                                value = pcCombatant.initiative,
+                                min = 1,
+                                max = 30,
+                                onChange = v =>
+                                  modEncounterInfo(
+                                    info =>
+                                      info.copy(
+                                        currentTurnId = CombatantId.empty, // Need to reset the current turn to the beginning, otherwise things can get woird
+                                        combatants = info.combatants.map {
+                                          case c: PlayerCharacterCombatant if c.id == pcCombatant.id =>
+                                            c.copy(initiative = v.toInt)
+                                          case c => c
                                         }
-                                      ) >> $.modState(s =>
-                                        s.copy(healOrDamage = s.healOrDamage.filter(_._1 != pcCombatant.id))
-                                      )
-
-                                  },
-                                Input
-                                  .id(pcCombatant.id.value.toString)
-                                  .className("damageInput")
-                                  .size(SemanticSIZES.mini)
-                                  .`type`("number")
-                                  .min(0)
-                                  .maxLength(4)
-                                  .value(state.healOrDamage.get(pcCombatant.id).fold("")(identity))
-                                  .onChange {
-                                    (
-                                      _,
-                                      data
-                                    ) =>
-                                      $.modState(s =>
-                                        s.copy(healOrDamage = s.healOrDamage + (pcCombatant.id -> data.value.asInt()))
-                                      )
-                                  },
-                                Button("Damage")
-                                  .className("damageButton")
-                                  .compact(true)
-                                  .title("Enter points in the damage box and click here for damage")
-                                  .color(SemanticCOLORS.red)
-                                  .size(SemanticSIZES.mini)
-                                  .disabled(!state.healOrDamage.contains(pcCombatant.id))
-                                  .onClick {
-                                    (
-                                      _,
-                                      _
-                                    ) =>
-                                      val fromIncapacitated = pc.info.health.isDead
-                                      val newHitPoints =
-                                        pcInfo.health.currentHitPoints - state.healOrDamage(pcCombatant.id)
-                                      val toIncapacitated = newHitPoints <= 0
-                                      modPC(
-                                        pc.copy(jsonInfo =
-                                          pcInfo
-                                            .copy(health =
-                                              pcInfo.health.copy(
-                                                deathSave = pcInfo.health.deathSave
-                                                  .copy(isStabilized = !toIncapacitated),
-                                                currentHitPoints = newHitPoints
-                                              )
-                                            ).toJsonAST.toOption.get
-                                        ),
-                                        if (toIncapacitated && !fromIncapacitated)
-                                          s"${pc.header.name} got ${state.healOrDamage(pcCombatant.id)} points of damage, and is now below zero hitpoints!"
-                                        else
-                                          s"${pc.header.name} got ${state.healOrDamage(pcCombatant.id)} points of damage"
-                                      ) >> $.modState(s =>
-                                        s.copy(healOrDamage = s.healOrDamage.filter(_._1 != pcCombatant.id))
-                                      )
-                                  },
-                                DeathSaveComponent(
-                                  pc.info.health.deathSave,
-                                  onChange = deathSave =>
+                                      ),
+                                    s"Setting initiative for ${pcCombatant.name} to $v"
+                                  )
+                              )
+                            ),
+                            Table.Cell(
+                              s"${pc.header.name}${pc.header.playerName.fold("")(n => s" ($n)")}"
+                            ),
+                            Table.Cell(
+                              Button("Heal")
+                                .className("healButton")
+                                .compact(true)
+                                .title("Enter points in the damage box and click here to heal")
+                                .color(SemanticCOLORS.green)
+                                .size(SemanticSIZES.mini)
+                                .disabled(!state.healOrDamage.contains(pcCombatant.id))
+                                .onClick {
+                                  (
+                                    _,
+                                    _
+                                  ) =>
+                                    val fromIncapacitated = pc.info.health.isDead
+                                    val newHitPoints =
+                                      if (fromIncapacitated)
+                                        state.healOrDamage(pcCombatant.id)
+                                      else
+                                        pcInfo.health.currentHitPoints + state.healOrDamage(pcCombatant.id)
+                                    val toIncapacitated = newHitPoints <= 0
                                     modPC(
                                       pc.copy(jsonInfo =
                                         pcInfo
                                           .copy(health =
-                                            pcInfo.health.copy(deathSave = deathSave)
+                                            pcInfo.health.copy(
+                                              deathSave = DeathSave.empty, // A bit inefficient, but it's ok
+                                              currentHitPoints = newHitPoints
+                                            )
+                                          ).toJsonAST.toOption.get
+                                      ), {
+                                        if (fromIncapacitated && !toIncapacitated)
+                                          s"${pcCombatant.name} healed ${state.healOrDamage(pcCombatant.id)} points and is no longer incapacitated"
+                                        else
+                                          s"${pcCombatant.name} healed ${state.healOrDamage(pcCombatant.id)} points"
+                                      }
+                                    ) >> $.modState(s =>
+                                      s.copy(healOrDamage = s.healOrDamage.filter(_._1 != pcCombatant.id))
+                                    )
+
+                                },
+                              Input
+                                .id(pcCombatant.id.value.toString)
+                                .className("damageInput")
+                                .size(SemanticSIZES.mini)
+                                .`type`("number")
+                                .min(0)
+                                .maxLength(4)
+                                .value(state.healOrDamage.get(pcCombatant.id).fold("")(identity))
+                                .onChange {
+                                  (
+                                    _,
+                                    data
+                                  ) =>
+                                    $.modState(s =>
+                                      s.copy(healOrDamage = s.healOrDamage + (pcCombatant.id -> data.value.asInt()))
+                                    )
+                                },
+                              Button("Damage")
+                                .className("damageButton")
+                                .compact(true)
+                                .title("Enter points in the damage box and click here for damage")
+                                .color(SemanticCOLORS.red)
+                                .size(SemanticSIZES.mini)
+                                .disabled(!state.healOrDamage.contains(pcCombatant.id))
+                                .onClick {
+                                  (
+                                    _,
+                                    _
+                                  ) =>
+                                    val fromIncapacitated = pc.info.health.isDead
+                                    val newHitPoints =
+                                      pcInfo.health.currentHitPoints - state.healOrDamage(pcCombatant.id)
+                                    val toIncapacitated = newHitPoints <= 0
+                                    modPC(
+                                      pc.copy(jsonInfo =
+                                        pcInfo
+                                          .copy(health =
+                                            pcInfo.health.copy(
+                                              deathSave = pcInfo.health.deathSave
+                                                .copy(isStabilized = !toIncapacitated),
+                                              currentHitPoints = newHitPoints
+                                            )
                                           ).toJsonAST.toOption.get
                                       ),
-                                      ""
+                                      if (toIncapacitated && !fromIncapacitated)
+                                        s"${pc.header.name} got ${state.healOrDamage(pcCombatant.id)} points of damage, and is now below zero hitpoints!"
+                                      else
+                                        s"${pc.header.name} got ${state.healOrDamage(pcCombatant.id)} points of damage"
+                                    ) >> $.modState(s =>
+                                      s.copy(healOrDamage = s.healOrDamage.filter(_._1 != pcCombatant.id))
                                     )
-                                )
-                                  .when(pc.info.health.currentHitPoints <= 0)
-                              ),
+                                },
+                              DeathSaveComponent(
+                                pc.info.health.deathSave,
+                                onChange = deathSave =>
+                                  modPC(
+                                    pc.copy(jsonInfo =
+                                      pcInfo
+                                        .copy(health = pcInfo.health.copy(deathSave = deathSave)).toJsonAST.toOption.get
+                                    ),
+                                    ""
+                                  )
+                              )
+                                .when(pc.info.health.currentHitPoints <= 0)
+                            ),
                             Table.Cell
                               .singleLine(true)
                               .style {
@@ -845,7 +837,6 @@ object CombatRunner {
                                 )
                               ),
                             Table.Cell
-                              .style(CSSProperties().set("backgroundColor", "rgb(255,255,255,.15)"))
                               .textAlign(semanticUiReactStrings.center)(
                                 EditableNumber(
                                   value = pcInfo.armorClass,
@@ -859,7 +850,6 @@ object CombatRunner {
                                 )
                               ),
                             Table.Cell
-                              .style(CSSProperties().set("backgroundColor", "rgb(255,255,255,.15)"))
                               .textAlign(semanticUiReactStrings.center)(
                                 EditableComponent(
                                   view = pcInfo.conditions.headOption.fold(
@@ -880,7 +870,6 @@ object CombatRunner {
                                 )
                               ),
                             Table.Cell
-                              .style(CSSProperties().set("backgroundColor", "rgb(255,255,255,.15)"))
                               .textAlign(semanticUiReactStrings.center)(
                                 EditableComponent(
                                   view = pcCombatant.otherMarkers.headOption
@@ -912,7 +901,6 @@ object CombatRunner {
                                 )
                               ),
                             Table.Cell
-                              .style(CSSProperties().set("backgroundColor", "rgb(255,255,255,.15)"))
                               .singleLine(true)(
                                 Button
                                   .title("View character stats")

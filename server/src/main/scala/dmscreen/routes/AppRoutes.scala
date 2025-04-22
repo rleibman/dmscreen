@@ -43,12 +43,6 @@ trait AppRoutes[-R, -SessionType, +E] {
     */
   def api: ZIO[R, E, Routes[R & SessionType, E]] = ZIO.succeed(Routes.empty)
 
-  /** These routes that bring up resources that require authentication (an existing session)
-    */
-  def auth: ZIO[R, E, Routes[R & SessionType, E]] = ZIO.succeed(Routes.empty)
-
-  /** These do not require a session
-    */
   def unauth: ZIO[R, E, Routes[R, E]] = ZIO.succeed(Routes.empty)
 
 }

@@ -21,6 +21,7 @@
 
 package dmscreen
 
+import auth.AuthClient
 import dmscreen.components.DiceRoller
 import dmscreen.dnd5e.*
 import dmscreen.dnd5e.pages.*
@@ -29,6 +30,7 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.extra.router.StaticDsl.RouteB
+import japgolly.scalajs.react.util.DefaultEffects.Sync
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.*
 import net.leibman.dmscreen.semanticUiReact.components.*
@@ -40,11 +42,13 @@ import org.scalajs.dom.{HTMLAnchorElement, window}
 
 object AppRouter {
 
-  private enum CommonPages {
+  private object CommonPages {
 
-    case home extends CommonPages with AppPageType
-    case about extends CommonPages with AppPageType
-    case logout extends CommonPages with AppPageType
+    sealed trait CommonPages(override val name: String) extends AppPageType
+
+    case object home extends CommonPages("home")
+    case object about extends CommonPages("about")
+    case object logout extends CommonPages("logout")
 
   }
 
@@ -53,7 +57,7 @@ object AppRouter {
   private val logoutPage = ButtonAppMenuItem(
     CommonPages.logout,
     title = "Logout",
-    onClick = _ => DMScreenGraphQLRepository.live.logout
+    onClick = _ => AuthClient.logout().completeWith(_ => Callback.empty)
   )
 
   private def layout(
@@ -80,7 +84,7 @@ object AppRouter {
           allPageMenuItems.map {
             case menuItemInfo: PageAppMenuItem =>
               Menu.Item
-                .withKey(menuItemInfo.pageType.toString)
+                .withKey(menuItemInfo.pageType.name)
                 .active(resolution.page == menuItemInfo.pageType)
                 .onClick {
                   (
@@ -93,7 +97,7 @@ object AppRouter {
             case menuItemInfo: ButtonAppMenuItem =>
               {
                 Menu.Item
-                  .withKey(menuItemInfo.pageType.toString)
+                  .withKey(menuItemInfo.pageType.name)
                   .active(resolution.page == menuItemInfo.pageType)
                   .onClick {
                     (
@@ -127,19 +131,21 @@ object AppRouter {
 
   private def config(
     campaignId: Option[CampaignId],
-    gameUI:     Option[GameUI]
+    gameUIOpt:  Option[GameUI]
   ): RouterConfig[AppPageType] =
     RouterConfigDsl[AppPageType].buildConfig { dsl =>
       import dsl.*
 
       val campaignPageRules = {
         campaignId.fold(trimSlashes)(id =>
-          gameUI
+          gameUIOpt
             .map(_.menuItems.collect { case p: PageAppMenuItem => p })
             .toSeq
             .flatten
             .map { page =>
-              staticRoute(s"#${page.pageType.toString}", page.pageType) ~> renderR(_ => page.createComponentFn(id))
+              staticRoute(s"#${page.pageType.name}", page.pageType) ~> renderR { ctl =>
+                page.createComponentFn(id)
+              }
             }
             .fold(trimSlashes)(_ | _)
         )
@@ -150,30 +156,36 @@ object AppRouter {
           homePage.createComponentFn(campaignId.getOrElse(CampaignId.empty))
         )
         | campaignPageRules
-        | staticRoute(s"#${aboutPage.pageType.toString}", aboutPage.pageType) ~> renderR(_ =>
+        | staticRoute(s"#${aboutPage.pageType.name}", aboutPage.pageType) ~> renderR(_ =>
           aboutPage.createComponentFn(campaignId.getOrElse(CampaignId.empty))
         ))
         .notFound { path =>
           println(s"${path.value}")
           // We're possibly getting here because we haven't loaded the campaign yet, so we need to redirect to the home page
-          if (gameUI.isEmpty) {
-            println("the gameUI is empty, redirecting to home, but saving the path")
-            // Let's save the current path so we can redirect to it after the campaign is loaded
-            window.sessionStorage.setItem("redirectPath", path.value)
+          gameUIOpt.fold(
+            // the gameUI is empty, redirecting to home
             redirectToPage(homePage.pageType)(SetRouteVia.HistoryReplace)
-          } else {
-            val savedPath: String = window.sessionStorage.getItem("redirectPath")
+          ) { gameUI =>
+            val savedPath = Option(window.localStorage.getItem("currentPage"))
             println("the gameUI is not empty, get the path from session storage is $savedPath")
             // remove the item from storage to make sure we clear it so we don't end up in an infinite loop
-            window.sessionStorage.removeItem("redirectPath")
-            if (savedPath.trim.nonEmpty) {
+            // window.localStorage.removeItem("redirectPath")
+            savedPath.fold(redirectToPage(homePage.pageType)(SetRouteVia.HistoryReplace)) { savedPath =>
+              println("Redirecting to path $savedPath for game $gameUI")
               redirectToPath(savedPath)(SetRouteVia.HistoryReplace)
-            } else {
-              redirectToPage(homePage.pageType)(SetRouteVia.HistoryReplace)
             }
           }
         }
-        .renderWith(layout(campaignId, gameUI))
+        .renderWith(layout(campaignId, gameUIOpt))
+        .onPostRender(
+          (
+            prev,
+            cur
+          ) =>
+            Callback.log(s"setting current page to ${cur.name}") >> Callback(
+              window.localStorage.setItem("currentPage", cur.name)
+            )
+        )
     }
 
   private val baseUrl: BaseUrl = BaseUrl.fromWindowOrigin_/
@@ -183,8 +195,7 @@ object AppRouter {
     campaignId: Option[CampaignId],
     gameUI:     Option[GameUI]
   ): Router[AppPageType] = {
-    val c: RouterConfig[AppPageType] = config(campaignId, gameUI)
-    Router(baseUrl, c)
+    Router(baseUrl, config(campaignId, gameUI))
   }
 
 }

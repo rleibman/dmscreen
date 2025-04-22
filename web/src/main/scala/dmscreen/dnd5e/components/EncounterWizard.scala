@@ -21,10 +21,9 @@
 
 package dmscreen.dnd5e.components
 
-import components.Toast
-import components.Confirm
+import components.{Confirm, Toast}
 import dmscreen.components.DiceRoller
-import dmscreen.dnd5e.{components, *, given}
+import dmscreen.dnd5e.{*, given}
 import dmscreen.util.*
 import dmscreen.{Campaign, CampaignId, DMScreenState}
 import japgolly.scalajs.react.*
@@ -840,6 +839,7 @@ object EncounterWizard {
                 case (r, _) if r <= 20  => TreasureRarity.rare
                 case (r, _) if r <= 64  => TreasureRarity.veryRare
                 case (r, _) if r <= 100 => TreasureRarity.legendary
+                case (_, _)             => TreasureRarity.common
               }
             }
         }
@@ -1458,7 +1458,7 @@ object EncounterWizard {
         } { case campaignState: DND5eCampaignState =>
           <.div(
 //        ^.className := "ui container",
-            ^.style := CSSProperties().set("backgroundColor", "#ffffff").set("border", "1px solid black"),
+            ^.style := CSSProperties().set("border", "1px solid #ffffff"),
             Step.Group
               .size(mini)
               .ordered(true)(

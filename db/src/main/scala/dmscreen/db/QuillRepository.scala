@@ -21,7 +21,6 @@
 
 package dmscreen.db
 
-import auth.UserId
 import dmscreen.*
 import dmscreen.dnd5e.DND5eRepository
 import dmscreen.sta.STARepository
@@ -109,14 +108,14 @@ object QuillRepository {
 
         override def campaign(campaignId: CampaignId): DMScreenTask[Option[Campaign]] = {
           for {
-            userId <- ZIO.serviceWith[DMScreenSession](_.user.id)
+            userId <- ZIO.serviceWith[auth.Session[User]](_.user.fold(UserId.empty)(_.id))
             res    <- cache.get((campaignId, userId))
           } yield res
         }
 
         override def campaigns: DMScreenTask[Seq[CampaignHeader]] = {
           for {
-            userId <- ZIO.serviceWith[DMScreenSession](_.user.id)
+            userId <- ZIO.serviceWith[auth.Session[User]](_.user.fold(UserId.empty)(_.id))
             res <- ctx
               .run(
                 qCampaigns
@@ -136,7 +135,7 @@ object QuillRepository {
               )
 
           } yield res
-        }.provideSomeLayer[DMScreenSession](dataSourceLayer)
+        }.provideSomeLayer[auth.Session[User]](dataSourceLayer)
           .mapError(RepositoryError.apply)
           .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
@@ -145,7 +144,7 @@ object QuillRepository {
           info:   Json
         ): DMScreenTask[CampaignId] = {
           for {
-            userId <- ZIO.serviceWith[DMScreenSession](_.user.id)
+            userId <- ZIO.serviceWith[auth.Session[User]](_.user.fold(UserId.empty)(_.id))
             res <-
               if (header.id != CampaignId.empty) {
                 cache.invalidate((header.id, userId)) *>
@@ -168,7 +167,7 @@ object QuillRepository {
               }
           } yield res
 
-        }.provideSomeLayer[DMScreenSession](dataSourceLayer)
+        }.provideSomeLayer[auth.Session[User]](dataSourceLayer)
           .mapError(RepositoryError.apply)
           .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
@@ -177,7 +176,7 @@ object QuillRepository {
           maxNum:     Int
         ): DMScreenTask[Seq[CampaignLogEntry]] = {
           for {
-            userId <- ZIO.serviceWith[DMScreenSession](_.user.id)
+            userId <- ZIO.serviceWith[auth.Session[User]](_.user.fold(UserId.empty)(_.id))
             res <- ctx
               .run(
                 qCampaignLog
@@ -197,7 +196,7 @@ object QuillRepository {
                   .take(lift(maxNum))
               )
           } yield res
-        }.provideSomeLayer[DMScreenSession](dataSourceLayer)
+        }.provideSomeLayer[auth.Session[User]](dataSourceLayer)
           .mapError(RepositoryError.apply)
           .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
@@ -211,7 +210,7 @@ object QuillRepository {
             timestamp = LocalDateTime.now()
           )
           ctx.transaction(for {
-            userId <- ZIO.serviceWith[DMScreenSession](_.user.id)
+            userId <- ZIO.serviceWith[auth.Session[User]](_.user.fold(UserId.empty)(_.id))
             campaignExists <- ctx.run(
               qCampaigns
                 .filter(v =>
@@ -228,7 +227,7 @@ object QuillRepository {
               )
           } yield ())
         }.unit
-          .provideSomeLayer[DMScreenSession](dataSourceLayer)
+          .provideSomeLayer[auth.Session[User]](dataSourceLayer)
           .mapError(RepositoryError.apply)
           .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
@@ -237,7 +236,7 @@ object QuillRepository {
           softDelete: Boolean
         ): DMScreenTask[Unit] = {
           ctx.transaction(for {
-            userId <- ZIO.serviceWith[DMScreenSession](_.user.id)
+            userId <- ZIO.serviceWith[auth.Session[User]](_.user.fold(UserId.empty)(_.id))
             _ <-
               if (softDelete) {
                 ctx
@@ -256,7 +255,7 @@ object QuillRepository {
               }
           } yield ())
         }.unit
-          .provideSomeLayer[DMScreenSession](dataSourceLayer)
+          .provideSomeLayer[auth.Session[User]](dataSourceLayer)
           .mapError(RepositoryError.apply)
           .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
@@ -273,7 +272,7 @@ object QuillRepository {
               campaign.jsonInfo
             )
           } yield campaign.header.copy(id = newId))
-        }.provideSomeLayer[DMScreenSession](dataSourceLayer)
+        }.provideSomeLayer[auth.Session[User]](dataSourceLayer)
           .mapError(RepositoryError.apply)
           .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 

@@ -21,9 +21,9 @@
 
 package dmscreen.components
 
-import dmscreen.{DMScreenPage, DiceRoll}
 import dmscreen.dnd5e.*
 import dmscreen.dnd5e.components.*
+import dmscreen.{DMScreenPage, DiceRoll}
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.{Ref, *}
@@ -142,7 +142,7 @@ class DiceBoxOptions(
   val shadowTransparency: Double = 0.8,
   val theme:              String = "default",
   val preloadThemes:      js.Array[String] = js.Array(),
-  val themeColor:         String = "#aa4f4a",
+  val themeColor:         String = "#795793",
   val scale:              Double = 5,
   val suspendSimulation:  Boolean = false,
 //  val origin:              js.UndefOr[String] = js.undefined,
@@ -348,7 +348,8 @@ object DiceRoller extends DMScreenPage {
           throwForce = 6,
           spinForce = 5,
           lightIntensity = 0.9,
-          theme = "theme-rust",
+          theme = "smooth",
+          themeColor = "#795793",
           onRollComplete = (results: js.Array[RollResult]) =>
             ($.props.onRollComplete(results.toSeq) >>
               $.state.diceBox

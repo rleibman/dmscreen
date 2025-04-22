@@ -161,7 +161,6 @@ object EncounterEditor {
         state.viewMonsterId.fold(EmptyVdom: VdomNode)(monsterId =>
           Modal
             .withKey("monsterStackBlockModal")
-            .style(CSSProperties().set("backgroundColor", "#ffffff"))
             .open(true)
             .size(semanticUiReactStrings.tiny)
             .closeIcon(true)
@@ -177,7 +176,6 @@ object EncounterEditor {
         state.viewNPCId.fold(EmptyVdom: VdomNode)(npcId =>
           Modal
             .withKey("npcBlockModal")
-            .style(CSSProperties().set("backgroundColor", "#ffffff"))
             .open(true)
             .size(semanticUiReactStrings.tiny)
             .closeIcon(true)

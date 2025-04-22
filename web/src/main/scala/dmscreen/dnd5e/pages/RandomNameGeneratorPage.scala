@@ -19,25 +19,40 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package app
+package dmscreen.dnd5e.pages
 
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.component.Scala.Unmounted
+import japgolly.scalajs.react.vdom.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import org.scalajs.dom
 
-import scala.scalajs.js.annotation.JSExport
+object RandomNameGeneratorPage {
 
-object LoginApp {
+  case class State()
 
-  @JSExport
-  def main(args: Array[String]): Unit = {
+  class Backend($ : BackendScope[Unit, State]) {
 
-    val component = <.div(
-      LoginController()
-    )
+    def loadState(): Callback = {
+      for {
+        _ <- Callback.log("Loading ReferencePage state")
+      } yield ()
+    }
 
-    component.renderIntoDOM(dom.document.getElementById("content"))
-    ()
+    def render(state: State): VdomNode = {
+      <.div(
+        <.h1("Quick Reference")
+      )
+    }
 
   }
+
+  private val component = ScalaComponent
+    .builder[Unit]("RandomNameGenerator")
+    .initialState(State())
+    .renderBackend[Backend]
+    .componentDidMount(_.backend.loadState())
+    .build
+
+  def apply(): Unmounted[Unit, State, Backend] = component()
 
 }

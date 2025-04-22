@@ -21,7 +21,6 @@
 
 package dmscreen.db.dnd5e
 
-import auth.Token
 import dmscreen.db.{*, given}
 import dmscreen.dnd5e.{*, given}
 import dmscreen.{*, given}
@@ -399,31 +398,31 @@ object QuillRepository {
 
           val sorted: Quoted[Query[DBObject[Monster]]] = (search.orderCol, search.orderDir) match {
             case (MonsterSearchOrder.challengeRating, OrderDirection.asc) =>
-              quote(limited.sortBy(r => r.value.header.cr)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.cr)(using Ord.asc))
             case (MonsterSearchOrder.challengeRating, OrderDirection.desc) =>
-              quote(limited.sortBy(r => r.value.header.cr)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.cr)(using Ord.desc))
             case (MonsterSearchOrder.size, OrderDirection.asc) =>
-              quote(limited.sortBy(r => r.value.header.size)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.size)(using Ord.asc))
             case (MonsterSearchOrder.size, OrderDirection.desc) =>
-              quote(limited.sortBy(r => r.value.header.size)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.size)(using Ord.desc))
             case (MonsterSearchOrder.alignment, OrderDirection.asc) =>
-              quote(limited.sortBy(r => r.value.header.alignment)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.alignment)(using Ord.asc))
             case (MonsterSearchOrder.alignment, OrderDirection.desc) =>
-              quote(limited.sortBy(r => r.value.header.alignment)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.alignment)(using Ord.desc))
             case (MonsterSearchOrder.biome, OrderDirection.asc) =>
-              quote(limited.sortBy(r => r.value.header.biome)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.biome)(using Ord.asc))
             case (MonsterSearchOrder.biome, OrderDirection.desc) =>
-              quote(limited.sortBy(r => r.value.header.biome)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.biome)(using Ord.desc))
             case (MonsterSearchOrder.monsterType, OrderDirection.asc) =>
-              quote(limited.sortBy(r => r.value.header.monsterType)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.monsterType)(using Ord.asc))
             case (MonsterSearchOrder.monsterType, OrderDirection.desc) =>
-              quote(limited.sortBy(r => r.value.header.monsterType)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.monsterType)(using Ord.desc))
             case (MonsterSearchOrder.random, OrderDirection.asc) =>
               quote(limited.sortBy(_ => infix"RAND()"))
             case (_, OrderDirection.asc) =>
-              quote(limited.sortBy(r => r.value.header.name)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.name)(using Ord.asc))
             case (_, OrderDirection.desc) =>
-              quote(limited.sortBy(r => r.value.header.name)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.name)(using Ord.desc))
           }
 
           (for {
@@ -465,31 +464,31 @@ object QuillRepository {
 
           val sorted: Quoted[Query[DBObject[Monster]]] = (search.orderCol, search.orderDir) match {
             case (MonsterSearchOrder.challengeRating, OrderDirection.asc) =>
-              quote(limited.sortBy(r => r.value.header.cr)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.cr)(using Ord.asc))
             case (MonsterSearchOrder.challengeRating, OrderDirection.desc) =>
-              quote(limited.sortBy(r => r.value.header.cr)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.cr)(using Ord.desc))
             case (MonsterSearchOrder.size, OrderDirection.asc) =>
-              quote(limited.sortBy(r => r.value.header.size)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.size)(using Ord.asc))
             case (MonsterSearchOrder.size, OrderDirection.desc) =>
-              quote(limited.sortBy(r => r.value.header.size)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.size)(using Ord.desc))
             case (MonsterSearchOrder.alignment, OrderDirection.asc) =>
-              quote(limited.sortBy(r => r.value.header.alignment)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.alignment)(using Ord.asc))
             case (MonsterSearchOrder.alignment, OrderDirection.desc) =>
-              quote(limited.sortBy(r => r.value.header.alignment)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.alignment)(using Ord.desc))
             case (MonsterSearchOrder.biome, OrderDirection.asc) =>
-              quote(limited.sortBy(r => r.value.header.biome)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.biome)(using Ord.asc))
             case (MonsterSearchOrder.biome, OrderDirection.desc) =>
-              quote(limited.sortBy(r => r.value.header.biome)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.biome)(using Ord.desc))
             case (MonsterSearchOrder.monsterType, OrderDirection.asc) =>
-              quote(limited.sortBy(r => r.value.header.monsterType)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.monsterType)(using Ord.asc))
             case (MonsterSearchOrder.monsterType, OrderDirection.desc) =>
-              quote(limited.sortBy(r => r.value.header.monsterType)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.monsterType)(using Ord.desc))
             case (MonsterSearchOrder.random, OrderDirection.asc) =>
               quote(limited.sortBy(_ => infix"RAND()"))
             case (_, OrderDirection.asc) =>
-              quote(limited.sortBy(r => r.value.header.name)(Ord.asc))
+              quote(limited.sortBy(r => r.value.header.name)(using Ord.asc))
             case (_, OrderDirection.desc) =>
-              quote(limited.sortBy(r => r.value.header.name)(Ord.desc))
+              quote(limited.sortBy(r => r.value.header.name)(using Ord.desc))
           }
 
           (for {

@@ -355,7 +355,7 @@ object DMScreenClient {
       _root_.caliban.client.SelectionBuilder.Field(
         "campaign",
         OptionOf(Obj(innerSelection)),
-        arguments = List(Argument("value", value, "Long!")(encoder0))
+        arguments = List(Argument("value", value, "Long!")(using encoder0))
       )
     def campaignLogs[A](
       campaignId: Long,
@@ -369,8 +369,10 @@ object DMScreenClient {
       _root_.caliban.client.SelectionBuilder.Field(
         "campaignLogs",
         OptionOf(ListOf(Obj(innerSelection))),
-        arguments =
-          List(Argument("campaignId", campaignId, "Long!")(encoder0), Argument("maxNum", maxNum, "Int!")(encoder1))
+        arguments = List(
+          Argument("campaignId", campaignId, "Long!")(using encoder0),
+          Argument("maxNum", maxNum, "Int!")(using encoder1)
+        )
       )
 
   }
@@ -391,9 +393,9 @@ object DMScreenClient {
         "upsertCampaign",
         OptionOf(Scalar()),
         arguments = List(
-          Argument("header", header, "CampaignHeaderInput!")(encoder0),
-          Argument("jsonInfo", jsonInfo, "Json!")(encoder1),
-          Argument("version", version, "String!")(encoder2)
+          Argument("header", header, "CampaignHeaderInput!")(using encoder0),
+          Argument("jsonInfo", jsonInfo, "Json!")(using encoder1),
+          Argument("version", version, "String!")(using encoder2)
         )
       )
     def campaignLog(
@@ -407,14 +409,18 @@ object DMScreenClient {
         "campaignLog",
         OptionOf(Scalar()),
         arguments = List(
-          Argument("campaignId", campaignId, "Long!")(encoder0),
-          Argument("message", message, "String!")(encoder1)
+          Argument("campaignId", campaignId, "Long!")(using encoder0),
+          Argument("message", message, "String!")(using encoder1)
         )
       )
     def deleteCampaign(value: Long)(implicit encoder0: ArgEncoder[Long])
       : SelectionBuilder[_root_.caliban.client.Operations.RootMutation, scala.Option[Unit]] =
       _root_.caliban.client.SelectionBuilder
-        .Field("deleteCampaign", OptionOf(Scalar()), arguments = List(Argument("value", value, "Long!")(encoder0)))
+        .Field(
+          "deleteCampaign",
+          OptionOf(Scalar()),
+          arguments = List(Argument("value", value, "Long!")(using encoder0))
+        )
     def snapshotCampaign[A](
       value: Long
     )(
@@ -424,7 +430,7 @@ object DMScreenClient {
       _root_.caliban.client.SelectionBuilder.Field(
         "snapshotCampaign",
         OptionOf(Obj(innerSelection)),
-        arguments = List(Argument("value", value, "Long!")(encoder0))
+        arguments = List(Argument("value", value, "Long!")(using encoder0))
       )
 
   }
@@ -463,9 +469,9 @@ object DMScreenClient {
           )
         ),
         arguments = List(
-          Argument("entityType", entityType, "String!")(encoder0),
-          Argument("id", id, "Long!")(encoder1),
-          Argument("events", events, "[Json!]!")(encoder2)
+          Argument("entityType", entityType, "String!")(using encoder0),
+          Argument("id", id, "Long!")(using encoder1),
+          Argument("events", events, "[Json!]!")(using encoder2)
         )
       )
 
