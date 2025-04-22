@@ -237,9 +237,6 @@ object NPCWizard {
           )
         )
 
-      println(s"Total Monster Count: ${state.monsterCount}")
-      println(s"Total Monster Pages: ${state.monsterCount / state.monsterSearch.pageSize.toDouble}")
-
       Form(
         Form.Group(
           Radio
@@ -1358,7 +1355,7 @@ object NPCWizard {
 
           <.div(
             //        ^.className := "ui container",
-            ^.style := CSSProperties().set("backgroundColor", "#ffffff").set("border", "1px solid black"),
+            ^.style := CSSProperties().set("border", "1px solid #ffffff"),
             Step.Group
               .size(mini)
               .ordered(true)(

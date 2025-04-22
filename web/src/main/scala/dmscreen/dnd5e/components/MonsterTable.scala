@@ -113,7 +113,6 @@ object MonsterTable {
         case (Some(monsterId), _) =>
           Modal
             .withKey("monsterStackBlockModal")
-            .style(CSSProperties().set("backgroundColor", "#ffffff"))
             .open(true)
             .size(semanticUiReactStrings.tiny)
             .closeIcon(true)

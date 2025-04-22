@@ -31,7 +31,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.semanticUiReact.components.*
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesDropdownDropdownItemMod.DropdownItemProps
-import org.scalajs.dom.window
+import org.scalajs.dom.{StorageEvent, window}
 import zio.json.*
 
 import scala.scalajs.js
@@ -58,8 +58,8 @@ object HomePage extends DMScreenPage {
 
     def ConfirmDelete(
       open:      Boolean,
-      onConfirm: Callback = Callback.empty,
-      onCancel:  Callback = Callback.empty
+      onConfirm: => Callback = Callback.empty,
+      onCancel:  => Callback = Callback.empty
     ): UnmountedRaw = {
       case class ConfirmDeleteState(
         deleteString: String = ""
@@ -177,20 +177,17 @@ object HomePage extends DMScreenPage {
           ConfirmDelete(
             open = state.confirmDeleteOpen,
             onConfirm = {
-              val async = for {
-                _ <- AsyncCallback.pure {
-                  import scala.language.unsafeNulls
-                  window.sessionStorage.setItem("currentCampaignId", null)
-                  window.sessionStorage.clear()
-                }
-                _ <- AsyncCallback
-                  .traverse(state.deleteMe)(id =>
-                    DMScreenGraphQLRepository.live
-                      .deleteCampaign(state.deleteMe.get)
-                  )
-              } yield loadState >> dmScreenState.onSelectCampaign(None) >> $.modState(
-                _.copy(confirmDeleteOpen = false, deleteMe = None)
-              )
+              val async =
+                for {
+                  _ <- AsyncCallback
+                    .traverse(state.deleteMe)(id =>
+                      DMScreenGraphQLRepository.live
+                        .deleteCampaign(state.deleteMe.get)
+                    )
+                } yield Callback(window.localStorage.removeItem("campaignId")) >> loadState >> dmScreenState
+                  .onSelectCampaign(None) >> $.modState(
+                  _.copy(confirmDeleteOpen = false, deleteMe = None)
+                )
               async.completeWith(_.get)
             },
             onCancel = $.modState(_.copy(confirmDeleteOpen = false, deleteMe = None))
@@ -304,12 +301,14 @@ object HomePage extends DMScreenPage {
                         Button
                           .title("Make this the current campaign").icon(true)(
                             Icon.name(SemanticICONS.`check circle outline`)
-                          ).onClick(
+                          ).onClick {
                             (
                               _,
                               _
-                            ) => dmScreenState.onSelectCampaign(Some(campaign))
-                          ).when(dmScreenState.campaignState.fold(true)(_.campaignHeader.id != campaign.id)),
+                            ) =>
+                              window.localStorage.setItem("campaignId", s"${campaign.id.value}")
+                              dmScreenState.onSelectCampaign(Some(campaign))
+                          }.when(dmScreenState.campaignState.fold(true)(_.campaignHeader.id != campaign.id)),
                         Button
                           .title("Take a snapshot of this campaign").icon(true)(
                             Icon.name(SemanticICONS.`camera`)

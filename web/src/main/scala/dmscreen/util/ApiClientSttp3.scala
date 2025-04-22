@@ -63,7 +63,7 @@ object ApiClientSttp3 {
     request: Request[Either[CalibanClientError, A], Any],
     onAuthError: String => AsyncCallback[Any] = msg =>
       AsyncCallback.pure {
-        window.alert(msg)
+        window.console.log(msg)
         window.location.reload()
       }
   ): AsyncCallback[Either[CalibanClientError, A]] = {
@@ -117,7 +117,6 @@ object ApiClientSttp3 {
           AsyncCallback.pure {
             // Clear the token
             window.localStorage.removeItem("jwtToken")
-            window.localStorage.clear()
           } >>
             AsyncCallback.pure(other.body) // Success, or some other "normal" error, pass it along
         case Some(other) =>

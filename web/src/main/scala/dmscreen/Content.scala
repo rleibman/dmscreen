@@ -31,7 +31,6 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import org.scalajs.dom.*
 import zio.json.ast.Json
 
-import java.util.UUID
 import scala.scalajs.js
 
 object Content {
@@ -107,23 +106,22 @@ object Content {
       // If the campaign is in the URL, use it, otherwise use the one in the session storage if it exist, otherwise, for now use 1
       // But in the future, we just shouldn't show the other tabs and only show the home tab
       val idOpt =
-        if (force) argCampaignId
-        else
+        if (force) {
           argCampaignId
-            .orElse(
-              Option(window.sessionStorage.getItem("currentCampaignId"))
+        } else
+          argCampaignId
+            .orElse {
+              Option(window.localStorage.getItem("campaignId"))
                 .flatMap(_.toLongOption)
                 .map(CampaignId.apply)
-            )
+            }
 
       val async = for {
-        _ <- AsyncCallback.traverse(idOpt)(id =>
-          AsyncCallback.pure(window.sessionStorage.setItem("currentCampaignId", id.value.toString)) // Store the current campaign Id in the session storage for next time
-        )
         _ <- Callback.log(s"Loading campaign data (campaign = $idOpt) from server...").asAsyncCallback
         campaignOpt <- AsyncCallback
           .traverse(idOpt)(id =>
-            DMScreenGraphQLRepository.live.campaign(id) // First load the campaign, this will allow us to ask for the GameSystem-specific data
+            // First load the campaign, this will allow us to ask for the GameSystem-specific data
+            DMScreenGraphQLRepository.live.campaign(id)
           ).map(_.headOption.flatten)
         campaignLogs <- AsyncCallback
           .traverseOption(campaignOpt)(c => DMScreenGraphQLRepository.live.campaignLogs(c.header.id, 20)).map(

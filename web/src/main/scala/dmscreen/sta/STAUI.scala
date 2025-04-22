@@ -27,14 +27,16 @@ import japgolly.scalajs.react.callback.Callback
 import japgolly.scalajs.react.vdom.*
 import japgolly.scalajs.react.vdom.html_<^.*
 
-enum STAUIPages {
+object STAUIPages {
 
-  case dashboard extends STAUIPages with AppPageType
-  case characters extends STAUIPages with AppPageType
-  case ships extends STAUIPages with AppPageType
-  case encounters extends STAUIPages with AppPageType
-  case npcs extends STAUIPages with AppPageType
-  case scenes extends STAUIPages with AppPageType
+  sealed trait STAUIPages(override val name: String) extends AppPageType
+
+  case object dashboard extends STAUIPages("STADashboard")
+  case object characters extends STAUIPages("STACharacters")
+  case object ships extends STAUIPages("STAShips")
+  case object encounters extends STAUIPages("STAEncounters")
+  case object npcs extends STAUIPages("STANpcs")
+  case object scenes extends STAUIPages("STAScenes")
 
 }
 

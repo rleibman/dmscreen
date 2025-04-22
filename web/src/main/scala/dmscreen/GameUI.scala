@@ -26,7 +26,11 @@ import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.component.Generic.UnmountedRaw
 import japgolly.scalajs.react.vdom.{TagMod, VdomElement, VdomNode}
 
-trait AppPageType
+trait AppPageType {
+
+  def name: String
+
+}
 
 trait AppMenuItem {
 

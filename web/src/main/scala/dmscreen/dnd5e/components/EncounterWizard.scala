@@ -1458,7 +1458,7 @@ object EncounterWizard {
         } { case campaignState: DND5eCampaignState =>
           <.div(
 //        ^.className := "ui container",
-            ^.style := CSSProperties().set("backgroundColor", "#ffffff").set("border", "1px solid black"),
+            ^.style := CSSProperties().set("border", "1px solid #ffffff"),
             Step.Group
               .size(mini)
               .ordered(true)(

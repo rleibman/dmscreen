@@ -102,7 +102,7 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
       "dev.zio"     %% "zio-config-magnolia"   % zioConfigVersion withSources (),
       "dev.zio"     %% "zio-config-typesafe"   % zioConfigVersion withSources (),
       "dev.zio"     %% "zio-json"              % zioJsonVersion withSources (),
-      "dev.zio"     %% "zio-prelude"           % "1.0.0-RC39" withSources (),
+      "dev.zio"     %% "zio-prelude"           % "1.0.0-RC40" withSources (),
       "dev.zio"     %% "zio-http"              % zioHttpVersion withSources (),
       "io.getquill" %% "quill-jdbc-zio"        % quillVersion withSources (),
       "io.kevinlee" %% "just-semver-core"      % "1.1.1" withSources ()
@@ -115,7 +115,7 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
       "net.leibman"       % "zio-auth_sjs1_3" % "1.0.0-SNAPSHOT" withSources (), // I don't know why %% isn't working.
       "dev.zio" %%% "zio" % zioVersion withSources (),
       "dev.zio" %%% "zio-json"                                            % zioJsonVersion withSources (),
-      "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC39" withSources (),
+      "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC40" withSources (),
       "io.kevinlee" %%% "just-semver-core"                                % "1.1.1" withSources (),
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.35.0",
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.35.0"
@@ -281,7 +281,7 @@ lazy val bundlerSettings: Project => Project =
         "@3d-dice/dice-ui"               -> "^0.5.0",
         "@3d-dice/dice-parser-interface" -> "^0.2.0",
         "@3d-dice/dice-box"              -> "^1.1.0",
-        "@3d-dice/theme-rust"            -> "^0.2.0",
+        "@3d-dice/theme-smooth"          -> "^0.2.0",
         "babylonjs-gltf2interface"       -> "^5.22.0"
       )
     )

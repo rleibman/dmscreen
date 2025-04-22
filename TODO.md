@@ -3,8 +3,7 @@
 DONE  - Work on GraphQL API for Campaign
 DONE  - Work on first app page, retrieve a campaign
 DONE  - Dice: https://www.npmjs.com/package/@3d-dice/dice-box
-  - Modal component CSS
-  - Error handling, errors are not being displayed, logged, or anything!
+DONE  - Modal component CSS
 DONE  - Move the campaign stuff out of the dnd5e module and into a general module
 - StorageSpec 
   - Campaign
@@ -13,20 +12,12 @@ DONE  - Move the campaign stuff out of the dnd5e module and into a general modul
   - NPC
   - Scene
   - Encounter
-- About page
-- Bestiary Page
 DONE- Dashboard Page
 DONE- EncounterPlanner Page
-- Encounter balancing
 DONE - Encounter Page
 DONE - Home Page
 DONE - NPC Page
 DONE - Player Page
- -   conditionImmunities:   Seq[Condition] = Seq.empty,
-     damageVulnerabilities: Seq[DamageType] = Seq.empty,
-     damageResistances:     Seq[DamageType] = Seq.empty,
-     damageImmunities:      Seq[DamageType] = Seq.empty,
-
 DONE - Feats Editor
 DONE - Hitpoints Editor
 DONE - Notes Editor
@@ -36,47 +27,31 @@ DONE - New Player Character
 DONE - Delete Player Character
 DONE - Sync Player Character
 DONE - DNDBeyond Import
-- Fifth Edition Character Sheet Import
-- Short Rest
 DONE - Long Rest (reset all stats)
-- Scene Page
-
-Future (some ideas from Chatgpt)
-- Campaign Management:
-  - Manage multiple campaigns, each with its own set of characters, NPCs, and notes.
-  - Timeline feature to track campaign events chronologically.
-- Session Notes and Log:
-  - Digital notepad for session planning and real-time note-taking.
+DONE- Scene Page
+DONE - Campaign Management:
+DONE  - Manage multiple campaigns, each with its own set of characters, NPCs, and notes.
 DONE  - Automatically log session events, dice rolls, and decisions for future reference.
-- Maps (others do it much better)
-- Audio/video/image library
-- Messaging (others do it much better)
-- Integration with discord
 DONE - Dice roller
-- NPC Automatic Generator
-- Mobile mode
-- DND Beyond plugin
-- Integrate with AI graphic generator
-- Connect everything to it's source (rules, monsters, skills, classes, races, subclasses, spells, etc)
 
 
 BUGS
 # General
 There's no error logging!
 ## CSS
-- Make menu thinner:
-menu column
-```
-   min-width: 200px;
-   width: 10%;
- ```
-content column
-```
-width: 90%;
-```
+WONTDO - Make menu thinner:
+WONTDO menu column
+WONTDO ```
+WONTDO min-width: 200px;
+WONTDO    width: 10%;
+WONTDO  ```
+WONTDO content column
+WONTDO ```
+WONTDO width: 90%;
+WONTDO ```
 TEMPDONE - Modal headers are black on black, change color! 
 ## Functionality
-- Why is it changing pages on refresh and ignoring the # in the URL?
+DONE - Why is it changing pages on refresh and ignoring the # in the URL?
 # Dashboard
 ## Functionality
 - Might want to see if we can fix the campaign notes now without a button.
@@ -95,8 +70,8 @@ DONE - Add NPC from Bestiary
 DONE - Scenes filter
 ## CSS
 - Align pc to top
-TEMPDONE - Conditions bgcolor should be white
-TEMPDONE - Inspiration bgcolor should be white
+DONE - Conditions bgcolor should be white
+DONE - Inspiration bgcolor should be white
 ## Functionality
 DONE - Character name is not sticking
 DONE - Player name is not sticking
@@ -105,7 +80,7 @@ DONE - Languages dialog broken
 DONE - Feats Dialog broken
 # Encounter Editor
 DONE - Add NPC doesn't work (note, turns out it was working, it was just not obvious.)
-WON'T DO - Need to be able to edit encounter name (Not necessary, just go to edit title on left) 
+WONTDO - Need to be able to edit encounter name (Not necessary, just go to edit title on left) 
 # Combat Runner
 DONE - Initiative is totally broken
 DONE - Filter out dead NPCs/Monsters
@@ -118,7 +93,7 @@ DONE  Hunter's mark is not working for NPCs
 DONE - Heal/Damage buttons look ugly, maybe switch the whole table to white background
 # StatBlock
 ## CSS
-TEMPDONE Notes should be black on white
+DONE Notes should be black on white
 DONE Edit monster, alignment is broken
 DONE Initiatives for pcs not sorted
 DONE Edit player name in pc is not working
@@ -128,13 +103,8 @@ DONE No edit for monsters, need to fix that
 Features:
 DONE - Add snapshot to campaign
 DONE - Add NPCs to scenes outside of encounters
-- Add text generator to encounter editor
-- Monsters need to be added to embedding database dynamically.
-- Toast is showing up behind the menu
 DONE - Start combat is not showing the PCs.
 DONE - Next is still not working
-- Killing the current combatant sets the "currentCombatant" back to the top of the round
-- Combat: next round after rolling initiative
 DONE - Delete campaign
 DONE Auth stuff
 DONE - Edit user profile
@@ -142,14 +112,39 @@ DONE - Change password
 DONE - Whoami
 DONE - Logout
 DONE - Test Login
-- Test Register
-- Test Forgot password
-- Test Reset password
-- Bearer token
+DONE - Test Register
+DONE - Test Forgot password
+DONE - Test Reset password
+DONE - Bearer token
 DONE - Error in Encounter.scala, line 200 (I put a try in there to catch it temporarily)
 DONE - CR on encounters is showing value instead of label
 DONE - Monster pager is not working
 DONE - NPC is not showing up after saving
 CNR - Monster search is not working after entering a monster name, selecting it  and then removing the name (I'm guessing something is "sticiking" in the search). Could not reproduce
 DONE Campaign name editor
-  TODO  - Allow name editing in combat editor
+DONE - Bestiary Page
+DONE  - Allow name editing in combat editor
+- Reference (basically, access all of the SRD)
+- About page
+- Killing the current combatant sets the "currentCombatant" back to the top of the round
+- Combat: next round after rolling initiative
+- Name Generator
+- Add text generator to encounter editor
+- Monsters need to be added to embedding database dynamically.
+- Toast is showing up behind the menu
+- Error handling, errors are not being displayed, logged, or anything!
+- Encounter balancing
+- Fifth Edition Character Sheet Import
+- Short Rest
+- Timeline feature to track campaign events chronologically.
+- Session Notes and Log:
+- Digital notepad for session planning and real-time note-taking.
+- Maps (others do it much better)
+- Audio/video/image library
+- Messaging (others do it much better)
+- Integration with discord
+- NPC Automatic Generator
+- Mobile mode
+- DND Beyond plugin
+- Integrate with AI graphic generator
+- Connect everything to it's source (rules, monsters, skills, classes, races, subclasses, spells, etc)
