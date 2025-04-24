@@ -1,8 +1,6 @@
 # dmscreen
 
-| Project Stage | CI | Release | Snapshot | Discord |
-| --- | --- | --- | --- | --- |
-| [![Project stage][Badge-Stage]][Link-Stage-Page] | [![Build Status][Badge-Circle]][Link-Circle] | [![Release Artifacts][Badge-SonatypeReleases]][Link-SonatypeReleases] | [![Snapshot Artifacts][Badge-SonatypeSnapshots]][Link-SonatypeSnapshots] | [![Badge-Discord]][Link-Discord] |
+![](/home/rleibman/projects/dmscreen/web/src/main/web/logo.png "Logo")
 
 # Summary
 This project, dmscreen, is a tool designed to assist Dungeon Masters (DMs) in managing and running Dungeons & Dragons 5th Edition (D&D 5e) encounters. It provides a user-friendly interface for organizing and editing encounters, managing monsters, and tracking various aspects of gameplay.  
@@ -13,6 +11,23 @@ Key Features:
 - Random Table Generator: Create custom random tables for use in your campaign.
 - Dice Roller: Roll dice and calculate results with a built-in dice roller.
 - AI Generated Encounter descriptions
+
+# Running Locally 
+## Prerequisites
+- Java JDK 11+
+- Node.js 16+
+- Scala
+- Rust
+
+## Installation
+1. Clone the repository
+   ```bash
+   git clone https://github.com/yourusername/dmscreen.git
+   cd dmscreen
+   sbt 
+   debugDist
+   project server
+   ~reStart
 
 # Technologies used
 - Scala
@@ -30,34 +45,10 @@ Key Features:
 - Semantic UI
 - ScalablyTyped
 
-# Documentation
-[dmscreen Microsite](https://zio.github.io/dmscreen/)
-
-# Contributing
-[Documentation for contributors](https://zio.github.io/dmscreen/docs/about/about_contributing)
-
-## Code of Conduct
-
-See the [Code of Conduct](https://zio.github.io/dmscreen/docs/about/about_coc)
-
 ## Support
-
-Come chat with us on [![Badge-Discord]][Link-Discord].
-
 
 # License
 [License](LICENSE)
-
-[Badge-SonatypeReleases]: https://img.shields.io/nexus/r/https/oss.sonatype.org/dev.zio/dmscreen_2.12.svg "Sonatype Releases"
-[Badge-SonatypeSnapshots]: https://img.shields.io/nexus/s/https/oss.sonatype.org/dev.zio/dmscreen_2.12.svg "Sonatype Snapshots"
-[Badge-Discord]: https://img.shields.io/discord/629491597070827530?logo=discord "chat on discord"
-[Badge-Circle]: https://circleci.com/gh/zio/dmscreen.svg?style=svg "circleci"
-[Link-Circle]: https://circleci.com/gh/zio/dmscreen "circleci"
-[Link-SonatypeReleases]: https://oss.sonatype.org/content/repositories/releases/dev/zio/dmscreen_2.12/ "Sonatype Releases"
-[Link-SonatypeSnapshots]: https://oss.sonatype.org/content/repositories/snapshots/dev/zio/dmscreen_2.12/ "Sonatype Snapshots"
-[Link-Discord]: https://discord.gg/2ccFBr4 "Discord"
-[Badge-Stage]: https://img.shields.io/badge/Project%20Stage-Concept-red.svg
-[Link-Stage-Page]: https://github.com/zio/zio/wiki/Project-Stages
 
 # stat block css
 We got it from https://codepen.io/retractedhack/pen/gPLpWe
