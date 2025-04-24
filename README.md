@@ -1,6 +1,6 @@
 # dmscreen
 
-![](/home/rleibman/projects/dmscreen/web/src/main/web/logo.png "Logo")
+![](logo.png "Logo")
 
 # Summary
 This project, dmscreen, is a tool designed to assist Dungeon Masters (DMs) in managing and running Dungeons & Dragons 5th Edition (D&D 5e) encounters. It provides a user-friendly interface for organizing and editing encounters, managing monsters, and tracking various aspects of gameplay.  
