@@ -214,6 +214,7 @@ lazy val debianSettings =
     Debian / normalizedName     := "dmscreen",
     Debian / packageDescription := "Dungeons & Dragons Dungeon Master Screen",
     Debian / packageSummary     := "Dungeons & Dragons Dungeon Master Screen",
+    Debian / debianChangelog    := Some(file("templates/debian/changelog")),
     Linux / maintainer          := "Roberto Leibman <roberto@leibman.net>",
     Linux / daemonUser          := "dmscreen",
     Linux / daemonGroup         := "dmscreen",
