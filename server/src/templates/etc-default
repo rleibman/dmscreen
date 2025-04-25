@@ -21,7 +21,7 @@
 # Setting JAVA_OPTS
 # -----------------
 # JAVA_OPTS="-Dpidfile.path=/var/run/${{app_name}}/dmscreen.pid $JAVA_OPTS"
-JAVA_OPTS="-Dconfig.file=/etc/dmscreen/application.conf"
+JAVA_OPTS="-Dconfig.file=/etc/dmscreen-server/application.conf"
 
 # Setting PIDFILE
 # ---------------
