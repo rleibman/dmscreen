@@ -25,7 +25,7 @@ import auth.{AuthServer, Session}
 import dmscreen.db.RepositoryError
 import dmscreen.db.dnd5e.DND5eZIORepository
 import dmscreen.dnd5e.EncounterDifficultyLevel
-import dmscreen.routes.{AppRoutes, *}
+import dmscreen.routes.*
 import zio.*
 import zio.http.*
 
@@ -36,8 +36,8 @@ object DMScreen extends ZIOApp {
   override type Environment = DMScreenServerEnvironment
   override val environmentTag: EnvironmentTag[Environment] = EnvironmentTag[Environment]
 
-  override def bootstrap: ULayer[DMScreenServerEnvironment] = // EnvironmentBuilder.live
-    EnvironmentBuilder.withContainer
+  override def bootstrap: ULayer[DMScreenServerEnvironment] = EnvironmentBuilder.live
+//    EnvironmentBuilder.withContainer
 
   object TestRoutes extends AppRoutes[DMScreenServerEnvironment, Session[User], DMScreenError] {
 

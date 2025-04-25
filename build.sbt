@@ -117,8 +117,8 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
       "dev.zio" %%% "zio-json"                                            % zioJsonVersion withSources (),
       "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC40" withSources (),
       "io.kevinlee" %%% "just-semver-core"                                % "1.1.1" withSources (),
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.35.0",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.35.0"
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.35.1",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.35.1"
     )
   )
 
@@ -161,7 +161,7 @@ lazy val server = project
     AutomateHeaderPlugin,
     GitVersioning,
     LinuxPlugin,
-    JDebPackaging,
+//    JDebPackaging,
     DebianPlugin,
     DebianDeployPlugin,
     JavaServerAppPackaging,
@@ -209,6 +209,7 @@ lazy val server = project
 
 lazy val debianSettings =
   Seq(
+    Compile / mainClass         := Some("dmscreen.DMScreen"),
     Debian / name               := "dmscreen",
     Debian / normalizedName     := "dmscreen",
     Debian / packageDescription := "Dungeons & Dragons Dungeon Master Screen",
@@ -241,7 +242,7 @@ lazy val ai = project
       "dev.zio" %% "zio-nio" % "2.0.2" withSources (),
       // AI stuff
       "com.dimafeng"      %% "testcontainers-scala-core" % testContainerVersion withSources (),
-      "org.testcontainers" % "qdrant"                    % "1.20.6" withSources (),
+      "org.testcontainers" % "qdrant"                    % "1.21.0" withSources (),
       "dev.langchain4j"    % "langchain4j-core"          % langchainVersion withSources (),
       "dev.langchain4j"    % "langchain4j"               % langchainVersion withSources (),
       "dev.langchain4j"    % "langchain4j-ollama"        % langchainVersion withSources (),
