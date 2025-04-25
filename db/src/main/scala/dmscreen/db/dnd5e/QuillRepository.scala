@@ -224,8 +224,11 @@ object QuillRepository {
   private def readFromResource[A: JsonDecoder](resourceName: String): IO[DMScreenError, A] = {
     getClass.getResource(".")
     val uri = getClass.getResource(resourceName).nn.toURI.nn
+    val path = Path(uri)
+
+    path.toAbsolutePath.flatMap(p => ZIO.logInfo(s"reading from ${p.toString}")).ignore *>
     Files
-      .readAllBytes(Path(uri)).map(bytes => new String(bytes.toArray, "UTF-8"))
+      .readAllBytes(path).map(bytes => new String(bytes.toArray, "UTF-8"))
       .mapBoth(
         e => DMScreenError("", Some(e)),
         _.fromJson[A].left.map(DMScreenError(_))

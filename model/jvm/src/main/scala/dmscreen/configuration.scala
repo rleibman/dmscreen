@@ -68,6 +68,7 @@ case class HttpConfig(
 
 case class DMScreenConfiguration(
   dndBeyondFileStore: Path = zio.nio.file.Path("/home/rleibman/projects/dmscreen/fileStore/dndBeyondCharacters"),
+  initialDataStore: Path = zio.nio.file.Path("/home/rleibman/projects/dmscreen/fileStore/dndBeyondCharacters"),
   db:                 DatabaseConfig,
   smtp:               SmtpConfig,
   http:               HttpConfig,
