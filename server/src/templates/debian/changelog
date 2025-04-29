@@ -1,5 +1,5 @@
-dmscreen-server (1.0.4-1) UNRELEASED; urgency=medium
+dmscreen-server (1.0.4) oracular; urgency=medium
 
-  * Initial release. (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+  * Initial release
 
- -- Roberto Leibman <rleibman@unknown>  Sun, 27 Apr 2025 15:30:43 -0700
+ -- Roberto Leibman <roberto@leibman.net>  Tue, 29 Apr 2025 11:56:12 -0700
