@@ -1,0 +1,5 @@
+dmscreen-server (1.0.4-1) UNRELEASED; urgency=medium
+
+  * Initial release. (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Roberto Leibman <rleibman@unknown>  Sun, 27 Apr 2025 15:30:43 -0700
