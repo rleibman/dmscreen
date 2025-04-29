@@ -1,3 +1,159 @@
+dmscreen-server (1.0.4ubuntu1~1.gbpc01d09) UNRELEASED; urgency=medium
+
+  ** SNAPSHOT build @c01d09e1037fe42c7e8468b4a04f04171d61dc99 **
+
+  * Initial commit, started to sketch app
+  * tech refresh and license change
+  * A lot of the service, api, caliban stuff
+  * Working on the mysql container
+  * First spec passed
+  * small updates
+  * Started sketching out screens
+  * A bunch of stuff, mostly in the client
+  * A bunch of stuff, mostly in the client
+  * Everything compiles now
+  * Everything compiles now
+  * Everything compiles now
+  * Filled in a good chunk of the service
+  * Got all the client-server graphql worked out
+  * PlayerCharacterComponent looks pretty good (static currently)
+  * PlayerCharacterComponent looks pretty good (static currently)
+  * dndbeyond character importing
+  * Update ci.yml
+  * Update ci.yml
+  * Mostly PlayerCharacter repo stuff
+  * semantic versoning of objects, a tiny bit of ui
+  * Work mostly on the fiftheditionchararctersheet importer and a bit on the ui
+  * Conditions dialog
+  * hitpoint ui
+  * character classes
+  * Ability Scores
+  * all kind of editors
+  * skills
+  * speeds
+  * senses
+  * notes
+  * Got most of the player character insert and delete, split the react libraries out to improve build performance
+  * Got most of the player character insert and delete, split the react libraries out to improve build performance
+  * Got started with monsters and encounters
+  * A lot of changes, working mostly on the encounters page
+  * A lot of changes, working mostly on the encounters page
+  * pretty much completed skeleton of encounterPage
+  * before moving the encounterEditor to it's own file.
+  * renamed entity to creature, moved EncounterEditor into it's own component
+  * Split out CombatRunner from EncounterPage
+  * This still works
+  * This still works
+  * Monster column sorting
+  * Started ScenePage
+  * Scenes, and started work on ChangeStack
+  * freakin\' cool! I made the repo "free"!, now the same trait can be used in server AND client with different effect libraries!
+  * A lot of stuff regarding combat runner
+  * MonsterStatBlock
+  * DiceRoller
+  * Encounter Editor: Add Homebrew Monster
+  * Encounter Editor: Add Homebrew Monster
+  * Resolved todo in ScenePage
+  * Working on tons of todos
+  * Working on HomePage
+  * Working on HomePage
+  * Almost there with generalizing the ui for different game systems
+  * Almost there with generalizing the ui for different game systems
+  * And there you go, the skeleton for StarTrek Adventures is there
+  * Theme looks decent now, the state is a mess and that comes next
+  * Theme looks decent now, the state is a mess and that comes next
+  * tech refresh
+  * so far so good
+  * PlayerCharacterComponent again
+  * dndbeyond import
+  * playercharater page looks good, encounter page looks better
+  * Copied NonPlayerCharacter stuff from PlayerCharacter
+  * Copied NonPlayerCharacter stuff from PlayerCharacter
+  * Copied NonPlayerCharacter stuff from PlayerCharacter
+  * Adding more stuff about NPCs
+  * Adding more stuff about NPCs
+  * pc and npc stat blocks, added race and size to both
+  * Working on campaingLog
+  * Moving to mariadb, added first xsl monster import, added campaign logs
+  * Got most of the player character insert and delete, split the react libraries out to improve build performance
+  * tech refresh
+  * STA: Bounded the attribute and department ratings, added android.
+  * Separated generic campaign stuff into it's own
+  * finished separating
+  * STA import
+  * update
+  * Latest batch of bug fixes for dnd5e
+  * Latest batch of bug fixes for dnd5e
+  * Latest batch of bug fixes for dnd5e
+  * Added Initative Editor, bug fixes
+  * Skip dead monsters, allow custom subclasses in pc editor
+  * Fix bgcolor for pcs
+  * Initiative Editor wasn't sorting pcs, edit player name in pc editor wasn't working
+  * Some cleanup, trying to get rid of CampaignRow, if that works I'll do it for the rest of the *Row stuff
+  * build
+  * build
+  * Got rid of the Row objects in QuillRepository
+  * before Tech refresh
+  * before Tech refresh
+  * tech refresh
+  * added notes to the monster stat block, pushed version into the entity trait, added printErrors to caliban
+  * Separated db stuff into it's own project
+  * Interim checkin
+  * Most of the encounter wizard.
+  * Good stopping point, the wizard works fine, the combat screen is much better too
+  * Figured out the issue with initiative! It turned out to be a problem in the EditableNumber instead!
+  * tech refresh
+  * tech refresh
+  * This compiles but doesn't yet work
+  * Getting there
+  * That was chatgpt's last chance.
+  * The way claude left it.
+  * Basic tests work
+  * All tests now work!
+  * Tech refresh
+  * wasm
+  * - Added info to combat runner - Made dropdowns look better - Filter dead NPCS in NPC page
+  * wasm
+  * fixed NEXT, fixed NPCs not getting added to encounter
+  * auth
+  * auth
+  * It compiles (ship it)... jk, still needs testing)
+  * Server is now running auth, tests written
+  * nearly tehre
+  * ok, it all seems to be working
+  * minor ui changes
+  * Another round of changes for auth
+  * Tech refresh, and finally got all the user lifecycle tests passing
+  * Tech refresh, and finally got all the user lifecycle tests passing
+  * delete campaign
+  * Snapshot
+  * scenesXNPC
+  * scenesXNPC
+  * Some more ai
+  * Some more ai
+  * NPC Wizard
+  * Fixed some bugs
+  * Bestiary page is done.
+  * stoppingPointPreReskin
+  * Initial tests show the functionality is all there
+  * Initial tests show the functionality is all there
+  * Reskinning done
+  * readme.md
+  * readme.md
+  * Debianized
+  * Debianized
+  * Debianized
+  * Debianized
+  * Debianized
+  * Debianized
+  * debian
+  * add initial changelog
+  * add initial changelog
+  * temp moved debian
+  * temp moved debian
+
+ -- Roberto Leibman <roberto@leibman.net>  Tue, 29 Apr 2025 12:09:13 -0700
+
 dmscreen-server (1.0.4) oracular; urgency=medium
 
   * Initial release
