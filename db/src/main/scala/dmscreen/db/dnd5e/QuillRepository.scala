@@ -24,16 +24,15 @@ package dmscreen.db.dnd5e
 import dmscreen.db.{*, given}
 import dmscreen.dnd5e.{*, given}
 import dmscreen.{*, given}
-import io.getquill.extras.*
 import io.getquill.jdbczio.Quill
 import io.getquill.{Action as QuillAction, *}
 import just.semver.SemVer
 import zio.*
 import zio.json.*
 import zio.json.ast.Json
-import zio.nio.file.*
+import zio.stream.*
 
-import java.sql.SQLException
+import java.io.IOException
 import javax.sql.DataSource
 import scala.reflect.ClassTag
 
@@ -222,19 +221,22 @@ object DND5eSchema {
 object QuillRepository {
 
   private def readFromResource[A: JsonDecoder](resourceName: String): IO[DMScreenError, A] = {
-    getClass.getResource(".")
-    val uri = getClass.getResource(resourceName).nn.toURI.nn
-    val path = Path(uri)
-
-    path.toAbsolutePath.flatMap(p => ZIO.logInfo(s"reading from ${p.toString}")).ignore *>
-    Files
-      .readAllBytes(path).map(bytes => new String(bytes.toArray, "UTF-8"))
+    ZStream
+      .fromInputStreamZIO(
+        ZIO
+          .attempt(getClass.getResourceAsStream(resourceName))
+          .refineToOrDie[IOException]
+      )
+      .runCollect
       .mapBoth(
-        e => DMScreenError("", Some(e)),
-        _.fromJson[A].left.map(DMScreenError(_))
+        DMScreenError(_),
+        chunk =>
+          chunk.headOption
+            .map(_ => new String(chunk.toArray, "UTF-8"))
+            .toRight(DMScreenError(s"Could not read $resourceName, it's there, but it's empty"))
+            .flatMap(_.fromJson[A].left.map(e => DMScreenError(s"Error parsing $resourceName: $e")))
       )
       .flatMap(ZIO.fromEither)
-
   }
 
   def db: ZLayer[ConfigurationService, DMScreenError, DND5eZIORepository] =

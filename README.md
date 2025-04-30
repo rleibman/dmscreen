@@ -69,3 +69,31 @@ calibanGenClient /home/rleibman/projects/dmscreen/server/src/main/graphql/sta.gq
 ```
 //Remember to ALWAYS put keys on lists in react!
 ********
+
+# Building and installing a ubuntu package
+sbt debian:packageBin
+# uninstall the old package
+sudo apt-get purge dmscreen-server
+# install the new package
+sudo dpkg -i ./server/target/dmscreen_1.0.4-SNAPSHOT_all.deb
+# start the new service 
+sudo service dmscreen-server start
+# Monitor it:
+sudo journalctl -u dmscreen-server -f --since "10 minutes ago"
+
+# To run ollama locally
+https://ollama.com/download
+
+
+# To run qdrant locally
+docker pull qdrant/qdrant
+docker run -d -p 6333:6333 --volume /opt/databases/qdrant/storage:/qdrant/storage qdrant/qdrant
+You can set up qdrant to run with systemd, it's a bit of a pain, but not that hard.
+- Create the qdrant user and group
+- Create the qdrant directory, assign ownership to the qdrant user and group
+- Create the qdrant.service file in /etc/systemd/system
+- Enable and start the qdrant service
+- Use the journalctl command to monitor the qdrant service and make sure it ran
+- Test it with your browser: http://localhost:6333
+
+

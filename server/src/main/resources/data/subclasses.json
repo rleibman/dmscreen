@@ -1,142 +1,442 @@
 {
   "Barbarian": [
-      { "name": "Path of the Berserker", "source": "Player's Handbook" },
-      { "name": "Path of the Totem Warrior", "source": "Player's Handbook" },
-      { "name": "Path of the Battlerager", "source": "Sword Coast Adventurer's Guide" },
-      { "name": "Path of the Ancestral Guardian", "source": "Xanathar's Guide to Everything" },
-      { "name": "Path of the Storm Herald", "source": "Xanathar's Guide to Everything" },
-      { "name": "Path of the Zealot", "source": "Xanathar's Guide to Everything" },
-      { "name": "Path of the Beast", "source": "Tasha's Cauldron of Everything" },
-      { "name": "Path of Wild Magic", "source": "Tasha's Cauldron of Everything" }
-    ]
-  ,
+    {
+      "name": "Path of the Berserker",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Path of the Totem Warrior",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Path of the Battlerager",
+      "source": "Sword Coast Adventurer's Guide"
+    },
+    {
+      "name": "Path of the Ancestral Guardian",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Path of the Storm Herald",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Path of the Zealot",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Path of the Beast",
+      "source": "Tasha's Cauldron of Everything"
+    },
+    {
+      "name": "Path of Wild Magic",
+      "source": "Tasha's Cauldron of Everything"
+    }
+  ],
   "Bard": [
-      { "name": "College of Lore", "source": "Player's Handbook" },
-      { "name": "College of Valor", "source": "Player's Handbook" },
-      { "name": "College of Glamour", "source": "Xanathar's Guide to Everything" },
-      { "name": "College of Swords", "source": "Xanathar's Guide to Everything" },
-      { "name": "College of Whispers", "source": "Xanathar's Guide to Everything" },
-      { "name": "College of Creation", "source": "Tasha's Cauldron of Everything" },
-      { "name": "College of Eloquence", "source": "Tasha's Cauldron of Everything" }
-    ]
-  ,
+    {
+      "name": "College of Lore",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "College of Valor",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "College of Glamour",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "College of Swords",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "College of Whispers",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "College of Creation",
+      "source": "Tasha's Cauldron of Everything"
+    },
+    {
+      "name": "College of Eloquence",
+      "source": "Tasha's Cauldron of Everything"
+    }
+  ],
   "Cleric": [
-      { "name": "Knowledge Domain", "source": "Player's Handbook" },
-      { "name": "Life Domain", "source": "Player's Handbook" },
-      { "name": "Light Domain", "source": "Player's Handbook" },
-      { "name": "Nature Domain", "source": "Player's Handbook" },
-      { "name": "Tempest Domain", "source": "Player's Handbook" },
-      { "name": "Trickery Domain", "source": "Player's Handbook" },
-      { "name": "War Domain", "source": "Player's Handbook" },
-      { "name": "Arcana Domain", "source": "Sword Coast Adventurer's Guide" },
-      { "name": "Forge Domain", "source": "Xanathar's Guide to Everything" },
-      { "name": "Grave Domain", "source": "Xanathar's Guide to Everything" },
-      { "name": "Order Domain", "source": "Tasha's Cauldron of Everything" },
-      { "name": "Peace Domain", "source": "Tasha's Cauldron of Everything" },
-      { "name": "Twilight Domain", "source": "Tasha's Cauldron of Everything" }
-    ]
-  ,
+    {
+      "name": "Knowledge Domain",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Life Domain",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Light Domain",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Nature Domain",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Tempest Domain",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Trickery Domain",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "War Domain",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Arcana Domain",
+      "source": "Sword Coast Adventurer's Guide"
+    },
+    {
+      "name": "Forge Domain",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Grave Domain",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Order Domain",
+      "source": "Tasha's Cauldron of Everything"
+    },
+    {
+      "name": "Peace Domain",
+      "source": "Tasha's Cauldron of Everything"
+    },
+    {
+      "name": "Twilight Domain",
+      "source": "Tasha's Cauldron of Everything"
+    }
+  ],
   "Druid": [
-      { "name": "Circle of the Land", "source": "Player's Handbook" },
-      { "name": "Circle of the Moon", "source": "Player's Handbook" },
-      { "name": "Circle of Dreams", "source": "Xanathar's Guide to Everything" },
-      { "name": "Circle of the Shepherd", "source": "Xanathar's Guide to Everything" },
-      { "name": "Circle of Spores", "source": "Guildmaster's Guide to Ravnica" },
-      { "name": "Circle of Wildfire", "source": "Tasha's Cauldron of Everything" },
-      { "name": "Circle of Stars", "source": "Tasha's Cauldron of Everything" }
-    ]
-  ,
+    {
+      "name": "Circle of the Land",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Circle of the Moon",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Circle of Dreams",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Circle of the Shepherd",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Circle of Spores",
+      "source": "Guildmaster's Guide to Ravnica"
+    },
+    {
+      "name": "Circle of Wildfire",
+      "source": "Tasha's Cauldron of Everything"
+    },
+    {
+      "name": "Circle of Stars",
+      "source": "Tasha's Cauldron of Everything"
+    }
+  ],
   "Fighter": [
-      { "name": "Champion", "source": "Player's Handbook" },
-      { "name": "Battle Master", "source": "Player's Handbook" },
-      { "name": "Eldritch Knight", "source": "Player's Handbook" },
-      { "name": "Purple Dragon Knight", "source": "Sword Coast Adventurer's Guide" },
-      { "name": "Arcane Archer", "source": "Xanathar's Guide to Everything" },
-      { "name": "Cavalier", "source": "Xanathar's Guide to Everything" },
-      { "name": "Samurai", "source": "Xanathar's Guide to Everything" },
-      { "name": "Echo Knight", "source": "Explorer's Guide to Wildemount" },
-      { "name": "Psi Warrior", "source": "Tasha's Cauldron of Everything" },
-      { "name": "Rune Knight", "source": "Tasha's Cauldron of Everything" }
-    ]
-  ,
+    {
+      "name": "Champion",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Battle Master",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Eldritch Knight",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Purple Dragon Knight",
+      "source": "Sword Coast Adventurer's Guide"
+    },
+    {
+      "name": "Arcane Archer",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Cavalier",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Samurai",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Echo Knight",
+      "source": "Explorer's Guide to Wildemount"
+    },
+    {
+      "name": "Psi Warrior",
+      "source": "Tasha's Cauldron of Everything"
+    },
+    {
+      "name": "Rune Knight",
+      "source": "Tasha's Cauldron of Everything"
+    }
+  ],
   "Monk": [
-      { "name": "Way of the Open Hand", "source": "Player's Handbook" },
-      { "name": "Way of Shadow", "source": "Player's Handbook" },
-      { "name": "Way of the Four Elements", "source": "Player's Handbook" },
-      { "name": "Way of the Long Death", "source": "Sword Coast Adventurer's Guide" },
-      { "name": "Way of the Sun Soul", "source": "Sword Coast Adventurer's Guide" },
-      { "name": "Way of the Drunken Master", "source": "Xanathar's Guide to Everything" },
-      { "name": "Way of the Kensei", "source": "Xanathar's Guide to Everything" },
-      { "name": "Way of the Astral Self", "source": "Tasha's Cauldron of Everything" },
-      { "name": "Way of Mercy", "source": "Tasha's Cauldron of Everything" }
-    ]
-  ,
+    {
+      "name": "Way of the Open Hand",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Way of Shadow",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Way of the Four Elements",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Way of the Long Death",
+      "source": "Sword Coast Adventurer's Guide"
+    },
+    {
+      "name": "Way of the Sun Soul",
+      "source": "Sword Coast Adventurer's Guide"
+    },
+    {
+      "name": "Way of the Drunken Master",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Way of the Kensei",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Way of the Astral Self",
+      "source": "Tasha's Cauldron of Everything"
+    },
+    {
+      "name": "Way of Mercy",
+      "source": "Tasha's Cauldron of Everything"
+    }
+  ],
   "Paladin": [
-      { "name": "Oath of Devotion", "source": "Player's Handbook" },
-      { "name": "Oath of the Ancients", "source": "Player's Handbook" },
-      { "name": "Oath of Vengeance", "source": "Player's Handbook" },
-      { "name": "Oath of the Crown", "source": "Sword Coast Adventurer's Guide" },
-      { "name": "Oath of Conquest", "source": "Xanathar's Guide to Everything" },
-      { "name": "Oath of Redemption", "source": "Xanathar's Guide to Everything" },
-      { "name": "Oath of Glory", "source": "Tasha's Cauldron of Everything" },
-      { "name": "Oath of the Watchers", "source": "Tasha's Cauldron of Everything" }
-    ]
-  ,
+    {
+      "name": "Oath of Devotion",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Oath of the Ancients",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Oath of Vengeance",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Oath of the Crown",
+      "source": "Sword Coast Adventurer's Guide"
+    },
+    {
+      "name": "Oath of Conquest",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Oath of Redemption",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Oath of Glory",
+      "source": "Tasha's Cauldron of Everything"
+    },
+    {
+      "name": "Oath of the Watchers",
+      "source": "Tasha's Cauldron of Everything"
+    }
+  ],
   "Ranger": [
-      { "name": "Hunter", "source": "Player's Handbook" },
-      { "name": "Beast Master", "source": "Player's Handbook" },
-      { "name": "Gloom Stalker", "source": "Xanathar's Guide to Everything" },
-      { "name": "Horizon Walker", "source": "Xanathar's Guide to Everything" },
-      { "name": "Monster Slayer", "source": "Xanathar's Guide to Everything" },
-      { "name": "Fey Wanderer", "source": "Tasha's Cauldron of Everything" },
-      { "name": "Swarmkeeper", "source": "Tasha's Cauldron of Everything" }
-    ]
-  ,
+    {
+      "name": "Hunter",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Beast Master",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Gloom Stalker",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Horizon Walker",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Monster Slayer",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Fey Wanderer",
+      "source": "Tasha's Cauldron of Everything"
+    },
+    {
+      "name": "Swarmkeeper",
+      "source": "Tasha's Cauldron of Everything"
+    }
+  ],
   "Rogue": [
-      { "name": "Thief", "source": "Player's Handbook" },
-      { "name": "Assassin", "source": "Player's Handbook" },
-      { "name": "Arcane Trickster", "source": "Player's Handbook" },
-      { "name": "Mastermind", "source": "Sword Coast Adventurer's Guide" },
-      { "name": "Swashbuckler", "source": "Sword Coast Adventurer's Guide" },
-      { "name": "Inquisitive", "source": "Xanathar's Guide to Everything" },
-      { "name": "Scout", "source": "Xanathar's Guide to Everything" },
-      { "name": "Soulknife", "source": "Tasha's Cauldron of Everything" },
-      { "name": "Phantom", "source": "Tasha's Cauldron of Everything" }
-    ]
-  ,
+    {
+      "name": "Thief",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Assassin",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Arcane Trickster",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Mastermind",
+      "source": "Sword Coast Adventurer's Guide"
+    },
+    {
+      "name": "Swashbuckler",
+      "source": "Sword Coast Adventurer's Guide"
+    },
+    {
+      "name": "Inquisitive",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Scout",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Soulknife",
+      "source": "Tasha's Cauldron of Everything"
+    },
+    {
+      "name": "Phantom",
+      "source": "Tasha's Cauldron of Everything"
+    }
+  ],
   "Sorcerer": [
-      { "name": "Draconic Bloodline", "source": "Player's Handbook" },
-      { "name": "Wild Magic", "source": "Player's Handbook" },
-      { "name": "Divine Soul", "source": "Xanathar's Guide to Everything" },
-      { "name": "Shadow Magic", "source": "Xanathar's Guide to Everything" },
-      { "name": "Storm Sorcery", "source": "Sword Coast Adventurer's Guide" },
-      { "name": "Aberrant Mind", "source": "Tasha's Cauldron of Everything" },
-      { "name": "Clockwork Soul", "source": "Tasha's Cauldron of Everything" }
-    ]
-  ,
+    {
+      "name": "Draconic Bloodline",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Wild Magic",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Divine Soul",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Shadow Magic",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Storm Sorcery",
+      "source": "Sword Coast Adventurer's Guide"
+    },
+    {
+      "name": "Aberrant Mind",
+      "source": "Tasha's Cauldron of Everything"
+    },
+    {
+      "name": "Clockwork Soul",
+      "source": "Tasha's Cauldron of Everything"
+    }
+  ],
   "Warlock": [
-      { "name": "The Archfey", "source": "Player's Handbook" },
-      { "name": "The Fiend", "source": "Player's Handbook" },
-      { "name": "The Great Old One", "source": "Player's Handbook" },
-      { "name": "The Undying", "source": "Sword Coast Adventurer's Guide" },
-      { "name": "The Celestial", "source": "Xanathar's Guide to Everything" },
-      { "name": "The Hexblade", "source": "Xanathar's Guide to Everything" },
-      { "name": "The Fathomless", "source": "Tasha's Cauldron of Everything" },
-      { "name": "The Genie", "source": "Tasha's Cauldron of Everything" }
-    ]
-  ,
+    {
+      "name": "The Archfey",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "The Fiend",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "The Great Old One",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "The Undying",
+      "source": "Sword Coast Adventurer's Guide"
+    },
+    {
+      "name": "The Celestial",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "The Hexblade",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "The Fathomless",
+      "source": "Tasha's Cauldron of Everything"
+    },
+    {
+      "name": "The Genie",
+      "source": "Tasha's Cauldron of Everything"
+    }
+  ],
   "Wizard": [
-      { "name": "School of Abjuration", "source": "Player's Handbook" },
-      { "name": "School of Conjuration", "source": "Player's Handbook" },
-      { "name": "School of Divination", "source": "Player's Handbook" },
-      { "name": "School of Enchantment", "source": "Player's Handbook" },
-      { "name": "School of Evocation", "source": "Player's Handbook" },
-      { "name": "School of Illusion", "source": "Player's Handbook" },
-      { "name": "School of Necromancy", "source": "Player's Handbook" },
-      { "name": "School of Transmutation", "source": "Player's Handbook" },
-      { "name": "Bladesinging", "source": "Sword Coast Adventurer's Guide" },
-      { "name": "War Magic", "source": "Xanathar's Guide to Everything" },
-      { "name": "Order of Scribes", "source": "Tasha's Cauldron of Everything" }
-    ]
-
-  }
+    {
+      "name": "School of Abjuration",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "School of Conjuration",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "School of Divination",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "School of Enchantment",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "School of Evocation",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "School of Illusion",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "School of Necromancy",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "School of Transmutation",
+      "source": "Player's Handbook"
+    },
+    {
+      "name": "Bladesinging",
+      "source": "Sword Coast Adventurer's Guide"
+    },
+    {
+      "name": "War Magic",
+      "source": "Xanathar's Guide to Everything"
+    },
+    {
+      "name": "Order of Scribes",
+      "source": "Tasha's Cauldron of Everything"
+    }
+  ]
+}

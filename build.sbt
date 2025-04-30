@@ -11,7 +11,7 @@ lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time o
 
 ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
-lazy val SCALA = "3.7.0-RC3"
+lazy val SCALA = "3.7.0-RC4"
 Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
 Global / scalaVersion         := SCALA
@@ -117,8 +117,8 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
       "dev.zio" %%% "zio-json"                                            % zioJsonVersion withSources (),
       "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC40" withSources (),
       "io.kevinlee" %%% "just-semver-core"                                % "1.1.1" withSources (),
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.35.1",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.35.1"
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.35.2",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % "2.35.2"
     )
   )
 

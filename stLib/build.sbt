@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Global stuff
-lazy val SCALA = "3.7.0-RC3"
+lazy val SCALA = "3.7.0-RC4"
 
 val scalajsReactVersion = "2.1.1"
 val reactVersion = "^18.3.0"
