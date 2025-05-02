@@ -87,14 +87,15 @@ object DND5eAIServer {
 
     for {
       storeWrapper <- ZIO.service[EmbeddingStoreWrapper]
-      _ <- monsters.mapZIOPar(10) { monster =>
-        ZIO.attemptBlocking {
-          EmbeddingStoreIngestor.ingest(
-            monster.toDocument,
-            storeWrapper.store
-          )
-        }
-      }.runDrain
+      _ <- monsters
+        .mapZIOPar(10) { monster =>
+          ZIO.attemptBlocking {
+            EmbeddingStoreIngestor.ingest(
+              monster.toDocument,
+              storeWrapper.store
+            )
+          }
+        }.runDrain
     } yield ()
   }
 
