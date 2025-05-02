@@ -22,7 +22,7 @@
 package ai
 
 import com.dimafeng.testcontainers.*
-import io.qdrant.client.*
+import io.qdrant.client.QdrantGrpcClient
 import io.qdrant.client.grpc.Collections
 import zio.{IO, Task, TaskLayer, ZIO, ZLayer}
 
@@ -43,19 +43,6 @@ case class QdrantContainer(
   val client = QdrantClient(
     QdrantGrpcClient.newBuilder(host, rpcPort, false).build()
   )
-
-  def createCollectionAsync(
-    collectionName: String,
-    distance:       Collections.Distance = Collections.Distance.Cosine,
-    dimension:      Int = 384
-  ) = {
-    ZIO.fromFutureJava {
-      client.createCollectionAsync(
-        collectionName,
-        Collections.VectorParams.newBuilder().setDistance(distance).setSize(dimension).build()
-      )
-    }
-  }
 
 }
 

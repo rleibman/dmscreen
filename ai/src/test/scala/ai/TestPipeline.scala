@@ -25,7 +25,7 @@ object TestPipeline extends ZIOApp {
       LangChainServiceBuilder.streamingAssistantLayerWithStore,
       QdrantContainer.live.orDie,
       EmbeddingStoreWrapper.qdrantStoreLayer("monsters").orDie,
-      LangChainConfiguration.live,
+      LangChainConfig.live,
       TestEnvironmentBuilder.live,
       DMScreenSession.adminSession.toLayer
     )
@@ -80,7 +80,7 @@ object TestPipeline extends ZIOApp {
       monsters <- repo.fullBestiary(MonsterSearch(pageSize = 500)) // Bring some monsters in
       _        <- ZIO.logInfo(s"Got ${monsters.results.size} monsters")
       qdrant   <- ZIO.service[QdrantContainer]
-      _        <- qdrant.createCollectionAsync("monsters")
+      _        <- qdrant.client.createCollection("monsters")
       _        <- ingestMonsters(monsters.results)
       _        <- Console.printLine("Welcome to Llama 3! Ask me a question !")
       _ <- ZIO.iterate(true)(identity) { _ =>

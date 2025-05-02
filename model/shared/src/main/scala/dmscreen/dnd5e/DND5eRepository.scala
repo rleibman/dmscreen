@@ -112,6 +112,8 @@ trait DND5eRepository[F[_]] extends GameSystemRepository[F] {
 
   def bestiary(search: MonsterSearch): F[MonsterSearchResults]
 
+  def bestiaryCount(search: MonsterSearch): F[Long]
+
   def fullBestiary(search: MonsterSearch): F[FullMonsterSearchResults]
 
   def sources: F[Seq[Source]]

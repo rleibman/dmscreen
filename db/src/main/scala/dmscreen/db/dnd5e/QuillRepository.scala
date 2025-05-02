@@ -36,7 +36,9 @@ import java.io.IOException
 import javax.sql.DataSource
 import scala.reflect.ClassTag
 
-trait DND5eZIORepository extends DND5eRepository[DMScreenTask]
+trait DND5eZIORepository extends DND5eRepository[DMScreenTask] {
+  def fullBestiaryStream(search: MonsterSearch): ZStream[Any, RepositoryError, DBObject[Monster]]
+}
 
 object DND5eSchema {
 
@@ -376,27 +378,59 @@ object QuillRepository {
             .mapError(RepositoryError.apply)
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
 
+        override def fullBestiaryStream(search: MonsterSearch): ZStream[Any, RepositoryError, DBObject[Monster]] = {
+          val q: Quoted[EntityQuery[DBObject[Monster]]] = bestiaryFilterQuery(search)
+          val limited = quote(
+            q
+              .drop(lift(search.page * search.pageSize))
+              .take(lift(search.pageSize))
+          )
+
+          val sorted: Quoted[Query[DBObject[Monster]]] = (search.orderCol, search.orderDir) match {
+            case (MonsterSearchOrder.challengeRating, OrderDirection.asc) =>
+              quote(limited.sortBy(r => r.value.header.cr)(using Ord.asc))
+            case (MonsterSearchOrder.challengeRating, OrderDirection.desc) =>
+              quote(limited.sortBy(r => r.value.header.cr)(using Ord.desc))
+            case (MonsterSearchOrder.size, OrderDirection.asc) =>
+              quote(limited.sortBy(r => r.value.header.size)(using Ord.asc))
+            case (MonsterSearchOrder.size, OrderDirection.desc) =>
+              quote(limited.sortBy(r => r.value.header.size)(using Ord.desc))
+            case (MonsterSearchOrder.alignment, OrderDirection.asc) =>
+              quote(limited.sortBy(r => r.value.header.alignment)(using Ord.asc))
+            case (MonsterSearchOrder.alignment, OrderDirection.desc) =>
+              quote(limited.sortBy(r => r.value.header.alignment)(using Ord.desc))
+            case (MonsterSearchOrder.biome, OrderDirection.asc) =>
+              quote(limited.sortBy(r => r.value.header.biome)(using Ord.asc))
+            case (MonsterSearchOrder.biome, OrderDirection.desc) =>
+              quote(limited.sortBy(r => r.value.header.biome)(using Ord.desc))
+            case (MonsterSearchOrder.monsterType, OrderDirection.asc) =>
+              quote(limited.sortBy(r => r.value.header.monsterType)(using Ord.asc))
+            case (MonsterSearchOrder.monsterType, OrderDirection.desc) =>
+              quote(limited.sortBy(r => r.value.header.monsterType)(using Ord.desc))
+            case (MonsterSearchOrder.random, OrderDirection.asc) =>
+              quote(limited.sortBy(_ => infix"RAND()"))
+            case (_, OrderDirection.asc) =>
+              quote(limited.sortBy(r => r.value.header.name)(using Ord.asc))
+            case (_, OrderDirection.desc) =>
+              quote(limited.sortBy(r => r.value.header.name)(using Ord.desc))
+          }
+
+          val stream = ctx.stream(sorted)
+            .provideLayer(dataSourceLayer)
+            .mapError(RepositoryError.apply)
+            .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+          stream
+        }
+
         override def fullBestiary(search: MonsterSearch): IO[DMScreenError, FullMonsterSearchResults] = {
-          val q0: Quoted[EntityQuery[DBObject[Monster]]] = qMonsters.filter(v => !v.deleted)
-          val q1: Quoted[EntityQuery[DBObject[Monster]]] =
-            search.name.fold(q0)(n => q0.filter(_.value.header.name like lift(s"%$n%")))
-          val q2: Quoted[EntityQuery[DBObject[Monster]]] =
-            search.challengeRating.fold(q1)(n => q1.filter(_.value.header.cr == lift(n)))
-          val q3: Quoted[EntityQuery[DBObject[Monster]]] =
-            search.monsterType.fold(q2)(n => q2.filter(_.value.header.monsterType == lift(n)))
-          val q4: Quoted[EntityQuery[DBObject[Monster]]] =
-            search.biome.fold(q3)(n => q3.filter(_.value.header.biome.contains(lift(n))))
-          val q5: Quoted[EntityQuery[DBObject[Monster]]] =
-            search.alignment.fold(q4)(n => q4.filter(_.value.header.alignment.contains(lift(n))))
-          val q6: Quoted[EntityQuery[DBObject[Monster]]] =
-            search.size.fold(q5)(n => q5.filter(_.value.header.size == lift(n)))
+          val q: Quoted[EntityQuery[DBObject[Monster]]] = bestiaryFilterQuery(search)
 
           // If sort is random, then it's a bit more complex, for now, we do it the simple (but non-performing) way, read this
           // https://jan.kneschke.de/projects/mysql/order-by-rand/
           // ^^ use the stored procedure
 
           val limited = quote(
-            q6
+            q
               .drop(lift(search.page * search.pageSize))
               .take(lift(search.pageSize))
           )
@@ -432,7 +466,7 @@ object QuillRepository {
 
           (for {
             monsters <- ctx.run(sorted)
-            total    <- ctx.run(q6.size)
+            total    <- ctx.run(q.size)
           } yield FullMonsterSearchResults(
             results = monsters.map(_.value),
             total = total
@@ -442,7 +476,7 @@ object QuillRepository {
             .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
         }
 
-        override def bestiary(search: MonsterSearch): IO[DMScreenError, MonsterSearchResults] = {
+        private def bestiaryFilterQuery(search: MonsterSearch): Quoted[EntityQuery[DBObject[Monster]]] = {
           val q0: Quoted[EntityQuery[DBObject[Monster]]] = qMonsters.filter(v => !v.deleted)
           val q1: Quoted[EntityQuery[DBObject[Monster]]] =
             search.name.fold(q0)(n => q0.filter(_.value.header.name like lift(s"%$n%")))
@@ -456,16 +490,28 @@ object QuillRepository {
             search.alignment.fold(q4)(n => q4.filter(_.value.header.alignment.contains(lift(n))))
           val q6: Quoted[EntityQuery[DBObject[Monster]]] =
             search.size.fold(q5)(n => q5.filter(_.value.header.size == lift(n)))
+          q6
+        }
+
+        override def bestiaryCount(search: MonsterSearch): DMScreenTask[Long] = {
+          val q: Quoted[EntityQuery[DBObject[Monster]]] = bestiaryFilterQuery(search)
+          ctx.run(q.size)
+        }.provideLayer(dataSourceLayer)
+          .mapError(RepositoryError.apply)
+          .tapError(e => ZIO.logErrorCause(Cause.fail(e)))
+
+        override def bestiary(search: MonsterSearch): IO[DMScreenError, MonsterSearchResults] = {
+          val q: Quoted[EntityQuery[DBObject[Monster]]] = bestiaryFilterQuery(search)
+
+          val limited = quote(
+            q
+              .drop(lift(Math.max(0, search.page) * search.pageSize))
+              .take(lift(search.pageSize))
+          )
 
           // If sort is random, then it's a bit more complex, for now, we do it the simple (but non-performing) way, read this
           // https://jan.kneschke.de/projects/mysql/order-by-rand/
           // ^^ use the stored procedure
-
-          val limited = quote(
-            q6
-              .drop(lift(Math.max(0, search.page) * search.pageSize))
-              .take(lift(search.pageSize))
-          )
 
           val sorted: Quoted[Query[DBObject[Monster]]] = (search.orderCol, search.orderDir) match {
             case (MonsterSearchOrder.challengeRating, OrderDirection.asc) =>
@@ -498,7 +544,7 @@ object QuillRepository {
 
           (for {
             monsters <- ctx.run(sorted)
-            total    <- ctx.run(q6.size)
+            total    <- ctx.run(q.size)
           } yield MonsterSearchResults(
             results = monsters.map(_.value.header),
             total = total

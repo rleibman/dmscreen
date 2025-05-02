@@ -22,6 +22,7 @@
 package ai
 
 import dev.langchain4j.store.embedding.qdrant.QdrantEmbeddingStore
+import dmscreen.LangChainConfig
 import zio.*
 
 case class EmbeddingStoreWrapper(store: QdrantEmbeddingStore) {
@@ -32,9 +33,9 @@ case class EmbeddingStoreWrapper(store: QdrantEmbeddingStore) {
 
 object EmbeddingStoreWrapper {
 
-  def qdrantStoreLayer(collectionName: String): ZLayer[QdrantContainer, Throwable, EmbeddingStoreWrapper] =
+  def qdrantStoreLayer(collectionName: String): ZLayer[LangChainConfig, Throwable, EmbeddingStoreWrapper] =
     for {
-      container <- ZLayer.service[QdrantContainer]
+      config <- ZLayer.service[LangChainConfig]
       ret <-
         ZLayer.scoped {
           ZIO.acquireRelease(
@@ -42,8 +43,8 @@ object EmbeddingStoreWrapper {
               EmbeddingStoreWrapper(
                 QdrantEmbeddingStore
                   .builder()
-                  .host(container.get.host)
-                  .port(container.get.rpcPort)
+                  .host(config.get.qdrantHost)
+                  .port(config.get.qdrantRPCPort)
                   .collectionName(collectionName)
                   .build()
               )

@@ -4,12 +4,10 @@ import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.model.chat.request.*
 import dev.langchain4j.model.chat.request.json.*
 import dev.langchain4j.model.ollama.OllamaChatModel
+import dmscreen.LangChainConfig
 import zio.{EnvironmentTag, Scope, ULayer, ZIO, ZIOApp, ZIOAppArgs, ZLayer}
-import dmscreen.User
-import auth.Session
 
 import scala.jdk.CollectionConverters.*
-
 object TestMonsterExtractor extends ZIOApp {
 
   override type Environment = LangChainEnvironment
@@ -20,7 +18,7 @@ object TestMonsterExtractor extends ZIOApp {
       LangChainServiceBuilder.ollamaChatModelLayer,
       LangChainServiceBuilder.messageWindowChatMemoryLayer(),
       LangChainServiceBuilder.chatAssistantLayer(),
-      LangChainConfiguration.live
+      LangChainConfig.live
     )
 
   override def run: ZIO[Environment & ZIOAppArgs & Scope, Any, Any] = {

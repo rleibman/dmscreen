@@ -51,6 +51,7 @@ object EnvironmentBuilder {
         DNDBeyondImporter.live,
         DND5eAIServer.live,
         Postman.live,
+        ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.langChain)),
         ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.session)),
         ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.smtp)) // Specialize the configuration service to pass it to Postman
       ).orDie
@@ -102,9 +103,10 @@ object EnvironmentBuilder {
         FifthEditionCharacterSheetImporter.live,
         SRDImporter.live,
         containerInitializingLayer,
-        DND5eAIServer.live,
+        DND5eAIServer.withContainer,
         Postman.live,
         // We can't use zlayer on these map because _.appConfig is itself a zio.
+        ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.langChain)),
         ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.session)),
         ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.smtp)) // Specialize the configuration service to pass it to Postman
       ).orDie

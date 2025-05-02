@@ -20,7 +20,7 @@ object TestWithRAG extends ZIOApp {
       LangChainServiceBuilder.streamingAssistantLayerWithStore,
       QdrantContainer.live.orDie,
       EmbeddingStoreWrapper.qdrantStoreLayer("monsters").orDie,
-      LangChainConfiguration.live,
+      LangChainConfig.live,
       DMScreenSession.adminSession.toLayer
     )
 
@@ -40,7 +40,7 @@ object TestWithRAG extends ZIOApp {
     for {
       _      <- ZIO.logInfo("Starting MonsterRAG")
       qdrant <- ZIO.service[QdrantContainer]
-      _      <- qdrant.createCollectionAsync("monsters")
+      _      <- qdrant.client.createCollection("monsters")
       _      <- ingestMonsters
       _      <- Console.printLine("Welcome to Llama 3! Ask me a question !")
       _ <- ZIO.iterate(true)(identity) { _ =>

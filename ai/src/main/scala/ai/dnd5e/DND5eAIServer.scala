@@ -23,17 +23,18 @@ package ai.dnd5e
 
 import ai.*
 import auth.*
-import dmscreen.{Campaign, DMScreenError, DMScreenSession, User, given}
 import dev.langchain4j.data.document.{Document, Metadata}
 import dev.langchain4j.model.chat.request.json.{JsonObjectSchema, JsonSchema}
 import dev.langchain4j.model.chat.request.{ResponseFormat, ResponseFormatType}
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor
-import dmscreen.db.DMScreenZIORepository
+import dmscreen.*
 import dmscreen.db.dnd5e.DND5eZIORepository
+import dmscreen.db.{DMScreenZIORepository, RepositoryError}
 import dmscreen.dnd5e.{*, given}
 import zio.*
 import zio.json.*
 import zio.json.ast.*
+import zio.stream.ZStream
 
 trait DND5eAIServer[F[_]] {
 
@@ -42,6 +43,8 @@ trait DND5eAIServer[F[_]] {
   def generateNPCDetails(nonPlayerCharacter: NonPlayerCharacter): F[NonPlayerCharacter]
 
   def generateNPCDescription(npc: NonPlayerCharacter): F[String]
+
+  def ingestMonster(monster: Monster): F[Unit]
 
 }
 
@@ -78,19 +81,35 @@ object DND5eAIServer {
 
   }
 
-  def ingestMonsters(monsters: List[Monster]): ZIO[EmbeddingStoreWrapper, Throwable, Unit] =
-    (for {
-      storeWrapper <- ZIO.service[EmbeddingStoreWrapper]
-      res <- ZIO.foreachPar(monsters) { monster =>
-        ZIO.attemptBlocking {
+  def ingestMonsterStream(
+    monsters: ZStream[Any, Throwable, Monster]
+  ): ZIO[EmbeddingStoreWrapper, Throwable, Unit] = {
 
+    for {
+      storeWrapper <- ZIO.service[EmbeddingStoreWrapper]
+      _ <- monsters.mapZIOPar(10) { monster =>
+        ZIO.attemptBlocking {
+          EmbeddingStoreIngestor.ingest(
+            monster.toDocument,
+            storeWrapper.store
+          )
+        }
+      }.runDrain
+    } yield ()
+  }
+
+  def ingestMonsters(monsters: List[Monster]): ZIO[EmbeddingStoreWrapper, Throwable, Unit] =
+    for {
+      storeWrapper <- ZIO.service[EmbeddingStoreWrapper]
+      _ <- ZIO.foreachParDiscard(monsters) { monster =>
+        ZIO.attemptBlocking {
           EmbeddingStoreIngestor.ingest(
             monster.toDocument,
             storeWrapper.store
           )
         }
       }
-    } yield res).unit
+    } yield ()
 
   def generateEncounterDescriptionTemplate(
     campaign:  Campaign,
@@ -137,9 +156,175 @@ object DND5eAIServer {
 
   import dmscreen.toLayer
 
-  def live: ZLayer[DND5eZIORepository, Throwable, DND5eAIServer[AIIO]] = {
+  private case class DND5eAIServerImpl(
+    model:        ChatLanguageModel,
+    storeWrapper: EmbeddingStoreWrapper
+  ) extends DND5eAIServer[AIIO] {
+
+    override def ingestMonster(monster: Monster): AIIO[Unit] = {
+      ZIO
+        .attemptBlocking {
+          EmbeddingStoreIngestor.ingest(
+            monster.toDocument,
+            storeWrapper.store
+          )
+        }.mapError(DMScreenError(_)).unit
+    }
+
+    def generateEncounterDescription(encounter: Encounter)
+      : ZIO[Session[User] & DND5eZIORepository & DMScreenZIORepository, DMScreenError, String] = {
+      for {
+        campaign  <- ZIO.serviceWithZIO[DMScreenZIORepository](_.campaign(encounter.header.campaignId))
+        dnd5eRepo <- ZIO.service[DND5eZIORepository]
+        scene     <- ZIO.foreach(encounter.header.sceneId)(id => dnd5eRepo.scene(id))
+        template = generateEncounterDescriptionTemplate(campaign.get, scene.flatten, encounter)
+        res <- chat(template).provideLayer(ZLayer.succeed(model))
+      } yield res
+    }.mapError(e => DMScreenError("", Some(e)))
+
+    def npcDetailsFormat: ResponseFormat =
+      ResponseFormat
+        .builder()
+        .`type`(ResponseFormatType.JSON)
+        .jsonSchema(
+          JsonSchema
+            .builder()
+            .name("nonPlayerCharacter")
+            .rootElement(
+              JsonObjectSchema
+                .builder()
+                .required(
+                  "faith",
+                  "personalityTraits",
+                  "ideals",
+                  "bonds",
+                  "flaws",
+                  "organizations",
+                  "allies",
+                  "enemies",
+                  "backstory",
+                  "appearance"
+                )
+                .addStringProperty(
+                  "faith",
+                  "typically refers to a character's belief in a deity or a higher power, which can influence their actions and motivations, especially for classes like Clerics and Paladins, but it's primarily a narrative and roleplaying element, not a mechanical one. Faith should align with the race, class, background, etc."
+                )
+                .addStringProperty(
+                  "personalityTraits",
+                  "Personality traits are the core aspects of a character's personality. They are the defining characteristics that make a character unique. They can be positive or negative, and they can be used to help guide roleplaying decisions. For example, a character might be brave, cowardly, loyal, deceitful, etc. Personality traits are typically simple sentences. We should include 2 or 3 personality traits."
+                )
+                .addStringProperty(
+                  "ideals",
+                  """Ideals are the things that a character believes in. They are the principles that guide a character's actions and decisions. Ideals can be moral, ethical, or philosophical in nature. They can be things like "honor," "freedom," "justice," etc. Ideals are typically simple sentences. We should include 1 or 2 ideals."""
+                )
+                .addStringProperty(
+                  "bonds",
+                  """Bonds are the connections that a character has to other people, places, or things. They are the relationships that are important to a character. Bonds can be family members, friends, mentors, or even objects. They can be things like "my family," "my mentor," "my homeland," etc. Bonds are typically simple sentences. We should include 1 or 2 bonds."""
+                )
+                .addStringProperty(
+                  "flaws",
+                  """Flaws are the weaknesses or shortcomings that a character has. They are the things that can get a character into trouble or cause them to make bad decisions. Flaws can be things like "greed," "arrogance," "cowardice," etc. Flaws are typically simple sentences. We should include 1 or 2 flaws."""
+                )
+                .addStringProperty(
+                  "organizations",
+                  "Organizations are groups that a character is a part of or has a connection to. They can be guilds, factions, secret societies, or any other kind of group. Organizations can provide a character with resources, allies, and enemies."
+                )
+                .addStringProperty(
+                  "allies",
+                  "Allies are other characters that a character has a positive relationship with. They can be friends, family members, mentors, or any other kind of positive relationship. Allies can provide a character with help, support, and information."
+                )
+                .addStringProperty(
+                  "enemies",
+                  "Enemies are other characters that a character has a negative relationship with. They can be rivals, enemies, or any other kind of negative relationship. Enemies can provide a character with obstacles, challenges, and conflict."
+                )
+                .addStringProperty(
+                  "backstory",
+                  "The backstory is the history of a character's life before the start of the campaign. It includes details about the character's family, upbringing, education, training, and any significant events that have shaped the character into who they are today. The backstory can provide a character with motivation, goals, and connections to the world around them. You should draw from the character's background if it's provided"
+                )
+                .addStringProperty(
+                  "appearance",
+                  "A full and lengthy description of the appearance of the character, including physical features, clothing, and equipment. Should be informed by the race, class, background, etc."
+                )
+                .build()
+            )
+            .build()
+        )
+        .build()
+
+    extension (s: String) {
+
+      def orElse(other: Option[String]): Option[String] = {
+        if (s.trim.isEmpty) other else Some(s)
+      }
+
+    }
+
+    override def generateNPCDetails(nonPlayerCharacter: NonPlayerCharacter): AIIO[NonPlayerCharacter] = {
+      val info = nonPlayerCharacter.info
+      val template =
+        s"""You are a Dungeon Master assistant specializing in generating Non Player Characters for Dungeons & Dragons.
+             | Given the following NPC details, add the details that are not currently filled in.
+             |
+             | Notes:
+             | - The details necessary are faith, personality traits, ideals, bonds, flaws, organizations, allies, enemies, backstory and appearance.
+             | - The character's alignment is "${info.alignment.name}", this means that they are ${info.alignment.description}.
+             | - Pay particular attention to character's relation to player, to their background and their alignment to ensure that the details are consistent with the character's history and motivations.
+             | - Very important: All Fields are required.
+             | NPC Details (in JSON format):
+             | ${nonPlayerCharacter.toJsonPretty}
+             |""".stripMargin
+
+      case class NPCDetails(
+        faith:             Option[String],
+        personalityTraits: Option[String],
+        ideals:            Option[String],
+        bonds:             Option[String],
+        flaws:             Option[String],
+        organizations:     Option[String],
+        allies:            Option[String],
+        enemies:           Option[String],
+        backstory:         Option[String],
+        appearance:        Option[String]
+      )
+
+      given JsonCodec[NPCDetails] = JsonCodec.derived[NPCDetails]
+
+      for {
+        res <- chat(template, Some(npcDetailsFormat))
+          .provideLayer(ZLayer.succeed(model)).mapError(DMScreenError(_))
+        details <- ZIO.fromEither(res.fromJson[NPCDetails]).mapError(DMScreenError(_))
+      } yield {
+
+        val newInfo = info.copy(
+          faith = info.faith.filter(_.nonEmpty).orElse(details.faith),
+          traits = info.traits.copy(
+            personalityTraits = info.traits.personalityTraits.filter(_.nonEmpty).orElse(details.personalityTraits),
+            ideals = info.traits.ideals.filter(_.nonEmpty).orElse(details.ideals),
+            bonds = info.traits.bonds.filter(_.nonEmpty).orElse(details.bonds),
+            flaws = info.traits.flaws.filter(_.nonEmpty).orElse(details.flaws),
+            appearance = info.traits.appearance.filter(_.nonEmpty).orElse(details.appearance)
+          ),
+          organizations = info.organizations.orElse(details.organizations).getOrElse(""),
+          allies = info.allies.orElse(details.allies).getOrElse(""),
+          enemies = info.enemies.orElse(details.enemies).getOrElse(""),
+          backstory = info.backstory.orElse(details.backstory).getOrElse("")
+        )
+
+        NonPlayerCharacter(
+          nonPlayerCharacter.header,
+          newInfo.toJsonAST.toOption.get
+        )
+
+      }
+    }
+
+    override def generateNPCDescription(npc: NonPlayerCharacter): AIIO[String] = ???
+
+  }
+
+  def withContainer: ZLayer[DND5eZIORepository & LangChainConfig, Throwable, DND5eAIServer[AIIO]] = {
     val initLayer: ZLayer[
-      EmbeddingStoreWrapper & QdrantContainer & DND5eZIORepository & ChatLanguageModel & LangChainConfiguration &
+      EmbeddingStoreWrapper & QdrantContainer & DND5eZIORepository & ChatLanguageModel & LangChainConfig &
         ChatAssistant,
       Throwable,
       DND5eAIServer[AIIO]
@@ -147,180 +332,96 @@ object DND5eAIServer {
       ZLayer.fromZIO {
         for {
           repo   <- ZIO.service[DND5eZIORepository]
-          config <- ZIO.service[LangChainConfiguration]
+          config <- ZIO.service[LangChainConfig]
           _ <- {
             for {
               monsters <- repo
-                .fullBestiary(MonsterSearch(pageSize = config.maxDND5eMonsters)) // Bring default monsters in
+                .fullBestiary(MonsterSearch(pageSize = config.maxDND5eMonsters.getOrElse(Int.MaxValue))) // Bring default monsters in
                 .provideLayer(DMScreenSession.adminSession.toLayer)
               _      <- ZIO.logInfo(s"Got ${monsters.results.size} monsters")
               qdrant <- ZIO.service[QdrantContainer]
-              _      <- qdrant.createCollectionAsync("monsters")
+              _      <- qdrant.client.createCollection("monsters")
               _      <- ingestMonsters(monsters.results)
             } yield ()
           }
-            .when(config.maxDND5eMonsters > 0)
-          model <- ZIO.service[ChatLanguageModel]
-        } yield new DND5eAIServer[AIIO] {
-          def generateEncounterDescription(encounter: Encounter)
-            : ZIO[Session[User] & DND5eZIORepository & DMScreenZIORepository, DMScreenError, String] = {
-            for {
-              campaign  <- ZIO.serviceWithZIO[DMScreenZIORepository](_.campaign(encounter.header.campaignId))
-              dnd5eRepo <- ZIO.service[DND5eZIORepository]
-              scene     <- ZIO.foreach(encounter.header.sceneId)(id => dnd5eRepo.scene(id))
-              template = generateEncounterDescriptionTemplate(campaign.get, scene.flatten, encounter)
-              res <- chat(template).provideLayer(ZLayer.succeed(model))
-            } yield res
-          }.mapError(e => DMScreenError("", Some(e)))
-
-          def npcDetailsFormat: ResponseFormat =
-            ResponseFormat
-              .builder()
-              .`type`(ResponseFormatType.JSON)
-              .jsonSchema(
-                JsonSchema
-                  .builder()
-                  .name("nonPlayerCharacter")
-                  .rootElement(
-                    JsonObjectSchema
-                      .builder()
-                      .required(
-                        "faith",
-                        "personalityTraits",
-                        "ideals",
-                        "bonds",
-                        "flaws",
-                        "organizations",
-                        "allies",
-                        "enemies",
-                        "backstory",
-                        "appearance"
-                      )
-                      .addStringProperty(
-                        "faith",
-                        "typically refers to a character's belief in a deity or a higher power, which can influence their actions and motivations, especially for classes like Clerics and Paladins, but it's primarily a narrative and roleplaying element, not a mechanical one. Faith should align with the race, class, background, etc."
-                      )
-                      .addStringProperty(
-                        "personalityTraits",
-                        "Personality traits are the core aspects of a character's personality. They are the defining characteristics that make a character unique. They can be positive or negative, and they can be used to help guide roleplaying decisions. For example, a character might be brave, cowardly, loyal, deceitful, etc. Personality traits are typically simple sentences. We should include 2 or 3 personality traits."
-                      )
-                      .addStringProperty(
-                        "ideals",
-                        """Ideals are the things that a character believes in. They are the principles that guide a character's actions and decisions. Ideals can be moral, ethical, or philosophical in nature. They can be things like "honor," "freedom," "justice," etc. Ideals are typically simple sentences. We should include 1 or 2 ideals."""
-                      )
-                      .addStringProperty(
-                        "bonds",
-                        """Bonds are the connections that a character has to other people, places, or things. They are the relationships that are important to a character. Bonds can be family members, friends, mentors, or even objects. They can be things like "my family," "my mentor," "my homeland," etc. Bonds are typically simple sentences. We should include 1 or 2 bonds."""
-                      )
-                      .addStringProperty(
-                        "flaws",
-                        """Flaws are the weaknesses or shortcomings that a character has. They are the things that can get a character into trouble or cause them to make bad decisions. Flaws can be things like "greed," "arrogance," "cowardice," etc. Flaws are typically simple sentences. We should include 1 or 2 flaws."""
-                      )
-                      .addStringProperty(
-                        "organizations",
-                        "Organizations are groups that a character is a part of or has a connection to. They can be guilds, factions, secret societies, or any other kind of group. Organizations can provide a character with resources, allies, and enemies."
-                      )
-                      .addStringProperty(
-                        "allies",
-                        "Allies are other characters that a character has a positive relationship with. They can be friends, family members, mentors, or any other kind of positive relationship. Allies can provide a character with help, support, and information."
-                      )
-                      .addStringProperty(
-                        "enemies",
-                        "Enemies are other characters that a character has a negative relationship with. They can be rivals, enemies, or any other kind of negative relationship. Enemies can provide a character with obstacles, challenges, and conflict."
-                      )
-                      .addStringProperty(
-                        "backstory",
-                        "The backstory is the history of a character's life before the start of the campaign. It includes details about the character's family, upbringing, education, training, and any significant events that have shaped the character into who they are today. The backstory can provide a character with motivation, goals, and connections to the world around them. You should draw from the character's background if it's provided"
-                      )
-                      .addStringProperty(
-                        "appearance",
-                        "A full and lengthy description of the appearance of the character, including physical features, clothing, and equipment. Should be informed by the race, class, background, etc."
-                      )
-                      .build()
-                  )
-                  .build()
-              )
-              .build()
-
-          extension (s: String) {
-            def orElse(other: Option[String]): Option[String] = {
-              if (s.trim.isEmpty) other else Some(s)
-            }
-          }
-
-          override def generateNPCDetails(nonPlayerCharacter: NonPlayerCharacter): AIIO[NonPlayerCharacter] = {
-            val info = nonPlayerCharacter.info
-            val template =
-              s"""You are a Dungeon Master assistant specializing in generating Non Player Characters for Dungeons & Dragons.
-                | Given the following NPC details, add the details that are not currently filled in.
-                |
-                | Notes:
-                | - The details necessary are faith, personality traits, ideals, bonds, flaws, organizations, allies, enemies, backstory and appearance.
-                | - The character's alignment is "${info.alignment.name}", this means that they are ${info.alignment.description}.
-                | - Pay particular attention to character's relation to player, to their background and their alignment to ensure that the details are consistent with the character's history and motivations.
-                | - Very important: All Fields are required.
-                | NPC Details (in JSON format):
-                | ${nonPlayerCharacter.toJsonPretty}
-                |""".stripMargin
-
-            case class NPCDetails(
-              faith:             Option[String],
-              personalityTraits: Option[String],
-              ideals:            Option[String],
-              bonds:             Option[String],
-              flaws:             Option[String],
-              organizations:     Option[String],
-              allies:            Option[String],
-              enemies:           Option[String],
-              backstory:         Option[String],
-              appearance:        Option[String]
-            )
-
-            given JsonCodec[NPCDetails] = JsonCodec.derived[NPCDetails]
-
-            for {
-              res <- chat(template, Some(npcDetailsFormat))
-                .provideLayer(ZLayer.succeed(model)).mapError(DMScreenError(_))
-              details <- ZIO.fromEither(res.fromJson[NPCDetails]).mapError(DMScreenError(_))
-            } yield {
-
-              val newInfo = info.copy(
-                faith = info.faith.filter(_.nonEmpty).orElse(details.faith),
-                traits = info.traits.copy(
-                  personalityTraits =
-                    info.traits.personalityTraits.filter(_.nonEmpty).orElse(details.personalityTraits),
-                  ideals = info.traits.ideals.filter(_.nonEmpty).orElse(details.ideals),
-                  bonds = info.traits.bonds.filter(_.nonEmpty).orElse(details.bonds),
-                  flaws = info.traits.flaws.filter(_.nonEmpty).orElse(details.flaws),
-                  appearance = info.traits.appearance.filter(_.nonEmpty).orElse(details.appearance)
-                ),
-                organizations = info.organizations.orElse(details.organizations).getOrElse(""),
-                allies = info.allies.orElse(details.allies).getOrElse(""),
-                enemies = info.enemies.orElse(details.enemies).getOrElse(""),
-                backstory = info.backstory.orElse(details.backstory).getOrElse("")
-              )
-
-              NonPlayerCharacter(
-                nonPlayerCharacter.header,
-                newInfo.toJsonAST.toOption.get
-              )
-
-            }
-          }
-
-          override def generateNPCDescription(npc: NonPlayerCharacter): AIIO[String] = ???
-        }
+            .when(config.maxDND5eMonsters.getOrElse(Int.MaxValue) > 0)
+          model        <- ZIO.service[ChatLanguageModel]
+          storeWrapper <- ZIO.service[EmbeddingStoreWrapper]
+        } yield DND5eAIServerImpl(model, storeWrapper)
       }
 
-    ZLayer.makeSome[DND5eZIORepository, DND5eAIServer[AIIO]](
+    ZLayer.makeSome[DND5eZIORepository & LangChainConfig, DND5eAIServer[AIIO]](
       LangChainServiceBuilder.ollamaChatModelLayer,
       LangChainServiceBuilder.messageWindowChatMemoryLayer(),
       LangChainServiceBuilder.chatAssistantLayerWithStore,
       QdrantContainer.live.orDie,
       EmbeddingStoreWrapper.qdrantStoreLayer("monsters").orDie,
-      LangChainConfiguration.live,
+      LangChainConfig.live,
       initLayer
     )
+  }
+
+  def live: ZLayer[DND5eZIORepository & LangChainConfig, Throwable, DND5eAIServer[AIIO]] = {
+    val initLayer: ZLayer[
+      EmbeddingStoreWrapper & DND5eZIORepository & ChatLanguageModel & LangChainConfig & ChatAssistant,
+      Throwable,
+      DND5eAIServer[AIIO]
+    ] = ZLayer.fromZIO {
+      for {
+        _      <- ZIO.logInfo("Initializing DND5eAIServer")
+        repo   <- ZIO.service[DND5eZIORepository]
+        config <- ZIO.service[LangChainConfig]
+        _      <- ZIO.logInfo(s"Will ingest monsters: ${config.maxDND5eMonsters.getOrElse(Int.MaxValue) > 0}")
+        _ <- {
+          // In theory, this should ever only happen once, we check to see if the monster collection exists in qdrant
+          // and if it has some monsters. If it doesn't, we ingest the monsters from the repo.
+          for {
+            _                        <- ZIO.logInfo("Building QdrantClient")
+            client                   <- QdrantClient(config.qdrantHost, config.qdrantRPCPort)
+            _                        <- ZIO.logInfo("QdrantClient built")
+            embeddedCollectionExists <- client.collectionExists("monsters")
+            _                        <- ZIO.logInfo(s"Embedded collection exists: $embeddedCollectionExists")
+            _                        <- client.createCollection("monsters").unless(embeddedCollectionExists)
+            embeddedMonstersCount    <- client.count("monsters")
+            embeddedMonstersEmpty = embeddedMonstersCount == 0
+            _ <- ZIO.logInfo(s"Embedded monsters count: $embeddedMonstersCount")
+            // Only ingest the monsters if the collection is empty, if it isn't we assume that the monsters are already there
+            // And we are also assuming that monsters are ingested as they are created thereafter.
+            monsterCount <- repo
+              .bestiaryCount(MonsterSearch(pageSize = Int.MaxValue))
+              .provideLayer(DMScreenSession.adminSession.toLayer)
+            _ <- ZIO
+              .logWarning(
+                s"Danger Will Robinson! Repo and vector database monster count don't match: $monsterCount != $embeddedMonstersCount"
+              )
+              .when(monsterCount != embeddedMonstersCount)
+            monsterStream: ZStream[Any, RepositoryError, Monster] = repo
+              .fullBestiaryStream(MonsterSearch(pageSize = Int.MaxValue)) // Bring default monsters in
+              .map(_.value)
+              .provideLayer(DMScreenSession.adminSession.toLayer)
+              .when(embeddedMonstersEmpty)
+            _ <- ingestMonsterStream(monsterStream).when(embeddedMonstersEmpty) *> ZIO.logInfo(
+              s"Got $monsterCount monsters and ingested them into the vector database"
+            )
+          } yield ()
+        }
+          .when(config.maxDND5eMonsters.getOrElse(Int.MaxValue) > 0)
+        model        <- ZIO.service[ChatLanguageModel]
+        storeWrapper <- ZIO.service[EmbeddingStoreWrapper]
+      } yield DND5eAIServerImpl(model, storeWrapper)
+    }
+
+    ZLayer.makeSome[DND5eZIORepository & LangChainConfig, DND5eAIServer[AIIO]](
+      LangChainServiceBuilder.ollamaChatModelLayer,
+      LangChainServiceBuilder.messageWindowChatMemoryLayer(),
+      LangChainServiceBuilder.chatAssistantLayerWithStore,
+      EmbeddingStoreWrapper.qdrantStoreLayer("monsters").orDie,
+      LangChainConfig.live,
+      initLayer
+    )
+  }.tapError { e =>
+    e.printStackTrace()
+    ZIO.unit
   }
 
 }

@@ -17,6 +17,9 @@
 
     <!--    <logger name="dmscreen" level="DEBUG"/>-->
     <logger name="io.grpc.netty.shaded.io.grpc.netty" level="ERROR"/>
+    <logger name="io.grpc.netty.shaded.io.netty" level="INFO"/>
+    <logger name="io.netty" level="INFO"/>
+    <logger name="ai.djl.huggingface" level="INFO"/>
     <logger name="dev.langchain4j.store.embedding" level="ERROR"/>
     <logger name="com.github.dockerjava" level="OFF"/>
     <logger name="org.testcontainers" level="OFF"/>
@@ -24,5 +27,6 @@
     <logger name="org.mariadb.jdbc.client.impl.StandardClient" level="OFF"/>
     <!--    <logger name="org.mariadb.jdbc" level="DEBUG"/>-->
     <logger name="com.zaxxer.hikari" level="OFF"/>
+
 
 </configuration>

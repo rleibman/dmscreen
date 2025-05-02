@@ -21,6 +21,8 @@
 
 package ai
 
+import dmscreen.LangChainConfig
+
 import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.data.segment.TextSegment
 import dev.langchain4j.memory.chat.MessageWindowChatMemory
@@ -57,23 +59,13 @@ trait ChatAssistant {
   def chat(message: String): String
 
 }
-type StreamingLangChainEnvironment = ChatMemory & StreamingChatLanguageModel & StreamAssistant & LangChainConfiguration
-type LangChainEnvironment = ChatMemory & ChatLanguageModel & ChatAssistant & LangChainConfiguration
-
-case class LangChainConfiguration(
-  maxDND5eMonsters: Int = 0 // use 0 to disable, use 5000 or more for no limit
-)
-
-object LangChainConfiguration {
-
-  val live = ZLayer.succeed(LangChainConfiguration())
-
-}
+type StreamingLangChainEnvironment = ChatMemory & StreamingChatLanguageModel & StreamAssistant & LangChainConfig
+type LangChainEnvironment = ChatMemory & ChatLanguageModel & ChatAssistant & LangChainConfig
 
 object LangChainServiceBuilder {
 
   // Use configuration
-  def messageWindowChatMemoryLayer(): URLayer[LangChainConfiguration, ChatMemory] =
+  def messageWindowChatMemoryLayer(): URLayer[LangChainConfig, ChatMemory] =
     ZLayer.succeed(
       ChatMemory.fromJava(
         MessageWindowChatMemory
@@ -86,7 +78,7 @@ object LangChainServiceBuilder {
     )
 
   // Use configuration
-  def ollamaChatModelLayer: URLayer[LangChainConfiguration, ChatLanguageModel] =
+  def ollamaChatModelLayer: URLayer[LangChainConfig, ChatLanguageModel] =
     ZLayer.succeed(
       ChatLanguageModel.fromJava(
         OllamaChatModel.builder
@@ -101,7 +93,7 @@ object LangChainServiceBuilder {
     )
 
   // Use configuration
-  def ollamaStreamingChatModelLayer: URLayer[LangChainConfiguration, StreamingChatLanguageModel] =
+  def ollamaStreamingChatModelLayer: URLayer[LangChainConfig, StreamingChatLanguageModel] =
     ZLayer.succeed(
       StreamingChatLanguageModel.fromJava(
         OllamaStreamingChatModel.builder
@@ -116,7 +108,7 @@ object LangChainServiceBuilder {
     )
 
   def streamingAssistantLayerWithStore: URLayer[
-    StreamingChatLanguageModel & ChatMemory & EmbeddingStoreWrapper & LangChainConfiguration,
+    StreamingChatLanguageModel & ChatMemory & EmbeddingStoreWrapper & LangChainConfig,
     StreamAssistant
   ] =
     ZLayer.fromZIO(
@@ -150,7 +142,7 @@ object LangChainServiceBuilder {
     }
 
   val chatAssistantLayerWithStore
-    : URLayer[EmbeddingStoreWrapper & ChatLanguageModel & ChatMemory & LangChainConfiguration, ChatAssistant] =
+    : URLayer[EmbeddingStoreWrapper & ChatLanguageModel & ChatMemory & LangChainConfig, ChatAssistant] =
     ZLayer.fromZIO(
       for {
         store      <- ZIO.serviceWith[EmbeddingStoreWrapper](_.store)
@@ -168,11 +160,10 @@ object LangChainServiceBuilder {
     )
 
   def chatAssistantLayer(storeOpt: Option[EmbeddingStore[TextSegment]] = None)
-    : URLayer[ChatLanguageModel & ChatMemory & LangChainConfiguration, ChatAssistant] =
-    ZLayer.fromZIO(chatAssistant(storeOpt))
+    : URLayer[ChatLanguageModel & ChatMemory & LangChainConfig, ChatAssistant] = ZLayer.fromZIO(chatAssistant(storeOpt))
 
   def streamingAssistantLayer(storeOpt: Option[EmbeddingStore[TextSegment]] = None)
-    : URLayer[StreamingChatLanguageModel & ChatMemory & LangChainConfiguration, StreamAssistant] =
+    : URLayer[StreamingChatLanguageModel & ChatMemory & LangChainConfig, StreamAssistant] =
     ZLayer.fromZIO(
       for {
         chatMemory  <- ZIO.service[ChatMemory]

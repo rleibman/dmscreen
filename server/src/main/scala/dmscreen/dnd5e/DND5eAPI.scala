@@ -21,8 +21,8 @@
 
 package dmscreen.dnd5e
 
-import auth.*
 import ai.dnd5e.{AIIO, DND5eAIServer}
+import auth.*
 import caliban.*
 import caliban.CalibanError.ExecutionError
 import caliban.interop.zio.*
@@ -266,7 +266,11 @@ object DND5eAPI {
       DMScreenError,
       NonPlayerCharacterId
     ],
-    upsertMonster:   Monster => ZIO[DND5eZIORepository & Session[User], DMScreenError, MonsterId],
+    upsertMonster: Monster => ZIO[
+      DND5eZIORepository & Session[User] & DMScreenZIORepository & DND5eAIServer[AIIO],
+      DMScreenError,
+      MonsterId
+    ],
     upsertEncounter: Encounter => ZIO[DND5eZIORepository & Session[User], DMScreenError, EncounterId],
     deleteEntity:    EntityDeleteArgs => ZIO[DND5eZIORepository & Session[User], DMScreenError, Unit],
     importCharacterDNDBeyond: ImportCharacterRequest => ZIO[
@@ -322,10 +326,19 @@ object DND5eAPI {
             ZIO.serviceWithZIO[DND5eZIORepository](_.upsert(playerCharacter.header, playerCharacter.jsonInfo)),
           upsertNonPlayerCharacter = nonPlayerCharacter =>
             ZIO.serviceWithZIO[DND5eZIORepository](_.upsert(nonPlayerCharacter.header, nonPlayerCharacter.jsonInfo)),
-          upsertMonster = monster => ZIO.serviceWithZIO[DND5eZIORepository](_.upsert(monster.header, monster.jsonInfo)),
+          upsertMonster = monster => {
+            for {
+              inserted <- ZIO.serviceWithZIO[DND5eZIORepository](_.upsert(monster.header, monster.jsonInfo))
+              _ <- ZIO.serviceWithZIO[DND5eAIServer[AIIO]](
+                _.ingestMonster(monster.copy(header = monster.header.copy(id = inserted)))
+              )
+            } yield inserted
+
+          },
           upsertEncounter =
             encounter => ZIO.serviceWithZIO[DND5eZIORepository](_.upsert(encounter.header, encounter.jsonInfo)),
           deleteEntity = deleteArgs =>
+            // TODO if monster, delet from AI
             ZIO.serviceWithZIO[DND5eZIORepository](
               _.deleteEntity(
                 deleteArgs.entityType,

@@ -27,7 +27,6 @@ import com.zaxxer.hikari.*
 import zio.*
 import zio.config.magnolia.DeriveConfig
 import zio.config.typesafe.*
-import zio.http.Cookie.SameSite
 import zio.nio.file.Path
 
 case class ConfigurationError(
@@ -66,13 +65,26 @@ case class HttpConfig(
   staticContentDir: String
 )
 
+case class LangChainConfig(
+  qdrantHost:       String = "localhost",
+  qdrantRPCPort:    Int = 6334,
+  maxDND5eMonsters: Option[Int] = None // Some(0) will disable reading of monsters, None will be the same as no limit
+)
+
+object LangChainConfig {
+
+  val live = ZLayer.succeed(LangChainConfig())
+
+}
+
 case class DMScreenConfiguration(
   dndBeyondFileStore: Path = zio.nio.file.Path("/home/rleibman/projects/dmscreen/fileStore/dndBeyondCharacters"),
-  initialDataStore: Path = zio.nio.file.Path("/home/rleibman/projects/dmscreen/fileStore/dndBeyondCharacters"),
+  initialDataStore:   Path = zio.nio.file.Path("/home/rleibman/projects/dmscreen/fileStore/dndBeyondCharacters"),
   db:                 DatabaseConfig,
   smtp:               SmtpConfig,
   http:               HttpConfig,
-  session:            AuthConfig
+  session:            AuthConfig,
+  langChain:          LangChainConfig
 )
 
 object AppConfig {

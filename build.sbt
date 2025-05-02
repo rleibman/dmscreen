@@ -211,7 +211,6 @@ lazy val debianSettings =
   Seq(
     Compile / mainClass         := Some("dmscreen.DMScreen"),
     Debian / name               := "dmscreen",
-    Debian / normalizedName     := "dmscreen",
     Debian / packageDescription := "Dungeons & Dragons Dungeon Master Screen",
     Debian / packageSummary     := "Dungeons & Dragons Dungeon Master Screen",
     Debian / debianChangelog    := Some(file("debian/changelog")),

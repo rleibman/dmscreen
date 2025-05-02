@@ -149,6 +149,5 @@ DONE  - Allow name editing in combat editor
 - Integrate with AI graphic generator
 - Connect everything to it's source (rules, monsters, skills, classes, races, subclasses, spells, etc)
 - 
-- Make LangchainConfiguration part of the general configuration, add it to the debian template.
-- Use existing qdrant server, figure out how to query it to see what's in there and not repeat the monsters
-- Use existing ollama server, don't create a new one.
+DONE - Make LangchainConfiguration part of the general configuration, add it to the debian template.
+DONE - Use existing qdrant server, figure out how to query it to see what's in there and not repeat the monsters

@@ -100,6 +100,7 @@ object DND5eGraphQLRepository {
   }
 
   val live: ExtendedRepository = new ExtendedRepository {
+    override def bestiaryCount(search: MonsterSearch): AsyncCallback[Long] = ???
 
     private val calibanClient: ScalaJSClientAdapter = caliban.ScalaJSClientAdapter("dnd5e")
 

@@ -2,6 +2,8 @@ package ai
 
 import zio.{Console, EnvironmentTag, Scope, ULayer, ZIO, ZIOApp, ZIOAppArgs, ZLayer}
 
+import dmscreen.LangChainConfig
+
 object Test extends ZIOApp {
 
   override type Environment = StreamingLangChainEnvironment
@@ -12,7 +14,7 @@ object Test extends ZIOApp {
       LangChainServiceBuilder.ollamaStreamingChatModelLayer,
       LangChainServiceBuilder.messageWindowChatMemoryLayer(),
       LangChainServiceBuilder.streamingAssistantLayer(),
-      LangChainConfiguration.live
+      LangChainConfig.live
     )
 
   def run: ZIO[Environment & ZIOAppArgs & Scope, Throwable, Unit] =
