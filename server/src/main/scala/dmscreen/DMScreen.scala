@@ -24,7 +24,6 @@ package dmscreen
 import auth.{AuthServer, Session}
 import dmscreen.db.RepositoryError
 import dmscreen.db.dnd5e.DND5eZIORepository
-import dmscreen.dnd5e.EncounterDifficultyLevel
 import dmscreen.routes.*
 import zio.*
 import zio.http.*
@@ -54,13 +53,10 @@ object DMScreen extends ZIOApp {
         )
       )
 
-    override def unauth
-      : ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
+    override def unauth: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
       ZIO.succeed(
         Routes(
-          Method.GET / "unauth" / "unauthtest.html" -> handler((_: Request) =>
-            Handler.html(s"<html>Test Unauth Ok!</html>")
-          ).flatten
+          Method.GET / "unauth" / "unauthtest.html" -> handler((_: Request) => Handler.html(s"<html>Test Unauth Ok!</html>")).flatten
         )
       )
 
@@ -83,8 +79,7 @@ object DMScreen extends ZIOApp {
       Routes[DMScreenServerEnvironment & Session[User], DMScreenError]
     ] = ZIO.foreach(routes)(_.api).map(_.reduce(_ ++ _) @@ Middleware.debug)
 
-    override def unauth
-      : ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
+    override def unauth: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, DMScreenError]] =
       ZIO.foreach(routes)(_.unauth).map(_.reduce(_ ++ _) @@ Middleware.debug)
 
   }
@@ -117,22 +112,11 @@ object DMScreen extends ZIOApp {
       )
   }
 
-  def testEncounter: ZIO[DMScreenServerEnvironment, DMScreenError, Seq[EncounterDifficultyLevel]] = {
-    val campaignId = CampaignId(3)
-    for {
-      repo         <- ZIO.service[DND5eZIORepository]
-      encounterIds <- repo.encounters(campaignId)
-      pcs          <- repo.playerCharacters(campaignId)
-      npcs         <- repo.nonPlayerCharacters(campaignId)
-    } yield encounterIds.map(_.info.calculateDifficulty(pcs, npcs))
-  }.provideSomeLayer[DMScreenServerEnvironment](DMScreenSession.adminSession.toLayer)
-
   lazy val zapp: ZIO[DMScreenServerEnvironment, DMScreenError, Routes[DMScreenServerEnvironment, Nothing]] = for {
     _                <- ZIO.log("Initializing Routes")
     authServer       <- ZIO.service[AuthServer[User, UserId]]
     authServerApi    <- authServer.authRoutes
     authServerUnauth <- authServer.unauthRoutes
-    _                <- testEncounter
     unauth           <- AllTogether.unauth
     api              <- AllTogether.api
   } yield (

@@ -2,6 +2,7 @@
 lib_managed
 project/project
 target
+.bsp
 
 # Worksheets (Eclipse or IntelliJ)
 *.sc
@@ -55,7 +56,6 @@ dist
 /project/metals.sbt
 /project/.bloop/
 
-.bsp
 /tree.txt
 /dmscreen-stLib
 /temp

@@ -103,7 +103,7 @@ object EnvironmentBuilder {
         FifthEditionCharacterSheetImporter.live,
         SRDImporter.live,
         containerInitializingLayer,
-        DND5eAIServer.withContainer,
+        DND5eAIServer.live,
         Postman.live,
         // We can't use zlayer on these map because _.appConfig is itself a zio.
         ZLayer.fromZIO(ZIO.serviceWithZIO[ConfigurationService](_.appConfig).map(_.dmscreen.langChain)),

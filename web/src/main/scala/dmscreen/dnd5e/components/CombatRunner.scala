@@ -32,16 +32,13 @@ import japgolly.scalajs.react.component.Scala.{Component, Unmounted}
 import japgolly.scalajs.react.vdom.html_<^.*
 import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
-import net.leibman.dmscreen.semanticUiReact.components.{List as SList, Table, *}
+import net.leibman.dmscreen.semanticUiReact.components.{Table, List as SList, *}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticCOLORS, SemanticICONS, SemanticSIZES}
 import org.scalajs.dom.*
 import zio.json.*
 import zio.json.ast.Json
 
-import scala.annotation.tailrec
-import scala.concurrent.duration.Duration
 import scala.scalajs.js
-import scala.scalajs.js.JSConverters.*
 object CombatRunner {
 
   enum DialogType {
@@ -56,16 +53,16 @@ object CombatRunner {
   }
 
   case class State(
-    encounter:          Option[Encounter] = None,
-    pcs:                Seq[PlayerCharacter] = Seq.empty,
-    npcs:               Seq[NonPlayerCharacter] = Seq.empty,
-    healOrDamage:       Map[CombatantId, Int] = Map.empty,
-    dialogMode:         DialogMode = DialogMode.closed,
-    viewMonsterId:      Option[MonsterId] = None,
-    viewPCId:           Option[PlayerCharacterId] = None,
-    viewNPCId:          Option[NonPlayerCharacterId] = None,
-    filterDeadMonsters: Boolean = true,
-    dialogType:         DialogType = DialogType.none
+    encounter:     Option[Encounter] = None,
+    pcs:           Seq[PlayerCharacter] = Seq.empty,
+    npcs:          Seq[NonPlayerCharacter] = Seq.empty,
+    healOrDamage:  Map[CombatantId, Int] = Map.empty,
+    dialogMode:    DialogMode = DialogMode.closed,
+    viewMonsterId: Option[MonsterId] = None,
+    viewPCId:      Option[PlayerCharacterId] = None,
+    viewNPCId:     Option[NonPlayerCharacterId] = None,
+    filterDead:    Boolean = true,
+    dialogType:    DialogType = DialogType.none
   )
   case class Props(
     campaignId:         CampaignId,
@@ -197,8 +194,7 @@ object CombatRunner {
           def modEncounterInfo(
             f:   EncounterInfo => EncounterInfo,
             log: String
-          ): Callback =
-            modEncounter(encounter => encounter.copy(jsonInfo = f(encounter.info).toJsonAST.toOption.get), log)
+          ): Callback = modEncounter(encounter => encounter.copy(jsonInfo = f(encounter.info).toJsonAST.toOption.get), log)
 
           def modPC(
             updatedPC: PlayerCharacter,
@@ -391,14 +387,14 @@ object CombatRunner {
                     Table.HeaderCell.colSpan(8)(
                       Checkbox
                         .toggle(true)
-                        .checked(state.filterDeadMonsters)
+                        .checked(state.filterDead)
                         .onChange {
                           (
                             _,
                             changedData
                           ) =>
                             $.modState(
-                              _.copy(filterDeadMonsters = changedData.checked.getOrElse(false))
+                              _.copy(filterDead = changedData.checked.getOrElse(false))
                             )
                         }
                         .label("Filter out dead monsters")
@@ -488,21 +484,15 @@ object CombatRunner {
                                           (
                                             combatant,
                                             initiative
-                                          ) =>
-                                            combatant.copy(initiative =
-                                              scala.math.max(1, initiative + combatant.initiativeBonus)
-                                            )
+                                          ) => combatant.copy(initiative = scala.math.max(1, initiative + combatant.initiativeBonus))
                                         )
                                       val newMonsters = monsters.zip(monsterInitiatives).flatMap {
                                         (
                                           monsters,
                                           initiative
                                         ) =>
-                                          monsters._2.map(combatant =>
-                                            combatant.copy(initiative =
-                                              scala.math.max(1, initiative + combatant.initiativeBonus)
-                                            )
-                                          )
+                                          monsters._2
+                                            .map(combatant => combatant.copy(initiative = scala.math.max(1, initiative + combatant.initiativeBonus)))
                                       }
 
                                       val newCombatants = newNpcs ++ newMonsters ++ pcs
@@ -543,8 +533,7 @@ object CombatRunner {
                                             .collect {
                                               case (combatant: MonsterCombatant, initiative) =>
                                                 combatant.copy(
-                                                  initiative =
-                                                    scala.math.max(1, initiative + combatant.initiativeBonus),
+                                                  initiative = scala.math.max(1, initiative + combatant.initiativeBonus),
                                                   health = combatant.health
                                                     .copy(currentHitPoints = combatant.health.maxHitPoints),
                                                   conditions = Set.empty,
@@ -552,8 +541,7 @@ object CombatRunner {
                                                 )
                                               case (combatant: NonPlayerCharacterCombatant, initiative) =>
                                                 combatant.copy(
-                                                  initiative =
-                                                    scala.math.max(1, initiative + combatant.initiativeBonus),
+                                                  initiative = scala.math.max(1, initiative + combatant.initiativeBonus),
                                                   otherMarkers = List.empty
                                                 )
                                             } ++
@@ -565,25 +553,24 @@ object CombatRunner {
                                         .copy(currentTurnId = CombatantId.empty, round = 0, combatants = newCombatants)
                                     },
                                     "Cleared all NPC stats to beginning of combat"
-                                  ) >> Callback.traverse(encounter.info.combatants.collect {
-                                    case c: NonPlayerCharacterCombatant => c
+                                  ) >> Callback.traverse(encounter.info.combatants.collect { case c: NonPlayerCharacterCombatant =>
+                                    c
                                   }) { npcCombatant =>
                                     state.npcs
-                                      .find(_.header.id == npcCombatant.nonPlayerCharacterId).fold(Callback.empty) {
-                                        npc =>
-                                          modNPC(
-                                            npc.copy(
-                                              jsonInfo = npc.info
-                                                .copy(
-                                                  conditions = Set.empty,
-                                                  health = npc.info.health.copy(
-                                                    currentHitPoints = npc.info.health.maxHitPoints,
-                                                    deathSave = DeathSave.empty
-                                                  )
-                                                ).toJsonAST.toOption.get
-                                            ),
-                                            ""
-                                          )
+                                      .find(_.header.id == npcCombatant.nonPlayerCharacterId).fold(Callback.empty) { npc =>
+                                        modNPC(
+                                          npc.copy(
+                                            jsonInfo = npc.info
+                                              .copy(
+                                                conditions = Set.empty,
+                                                health = npc.info.health.copy(
+                                                  currentHitPoints = npc.info.health.maxHitPoints,
+                                                  deathSave = DeathSave.empty
+                                                )
+                                              ).toJsonAST.toOption.get
+                                          ),
+                                          ""
+                                        )
                                       }
                                   }
                                 }
@@ -668,12 +655,22 @@ object CombatRunner {
                 ),
                 Table.Body(
                   sortedCombatants
-                    .filter(p =>
-                      if (state.filterDeadMonsters)
-                        p match {
-                          case _: PlayerCharacterCombatant    => true
-                          case _: NonPlayerCharacterCombatant => true
-                          case m: MonsterCombatant            => !m.health.isDead
+                    .filter(combatant =>
+                      if (state.filterDead)
+                        combatant match {
+                          case pcc: PlayerCharacterCombatant =>
+                            state.pcs
+                              .find(_.id == pcc.playerCharacterId).fold(true) { pc =>
+                                println(s"${pcc.name} ${pc.info.health.currentHitPoints > (-pc.info.health.maxHitPoints)}")
+                                pc.info.health.currentHitPoints > (-pc.info.health.maxHitPoints)
+                              }
+                          case npcc: NonPlayerCharacterCombatant =>
+                            state.npcs
+                              .find(_.id == npcc.nonPlayerCharacterId).fold(true)(npc =>
+                                npc.info.health.currentHitPoints > (-npc.info.health.maxHitPoints)
+                              )
+
+                          case m: MonsterCombatant => !m.health.isDead
                         }
                       else true
                     )
@@ -747,9 +744,7 @@ object CombatRunner {
                                         else
                                           s"${pcCombatant.name} healed ${state.healOrDamage(pcCombatant.id)} points"
                                       }
-                                    ) >> $.modState(s =>
-                                      s.copy(healOrDamage = s.healOrDamage.filter(_._1 != pcCombatant.id))
-                                    )
+                                    ) >> $.modState(s => s.copy(healOrDamage = s.healOrDamage.filter(_._1 != pcCombatant.id)))
 
                                 },
                               Input
@@ -765,9 +760,7 @@ object CombatRunner {
                                     _,
                                     data
                                   ) =>
-                                    $.modState(s =>
-                                      s.copy(healOrDamage = s.healOrDamage + (pcCombatant.id -> data.value.asInt()))
-                                    )
+                                    $.modState(s => s.copy(healOrDamage = s.healOrDamage + (pcCombatant.id -> data.value.asInt())))
                                 },
                               Button("Damage")
                                 .className("damageButton")
@@ -800,9 +793,7 @@ object CombatRunner {
                                         s"${pc.header.name} got ${state.healOrDamage(pcCombatant.id)} points of damage, and is now below zero hitpoints!"
                                       else
                                         s"${pc.header.name} got ${state.healOrDamage(pcCombatant.id)} points of damage"
-                                    ) >> $.modState(s =>
-                                      s.copy(healOrDamage = s.healOrDamage.filter(_._1 != pcCombatant.id))
-                                    )
+                                    ) >> $.modState(s => s.copy(healOrDamage = s.healOrDamage.filter(_._1 != pcCombatant.id)))
                                 },
                               DeathSaveComponent(
                                 pc.info.health.deathSave,
@@ -883,8 +874,7 @@ object CombatRunner {
                                         info =>
                                           info.copy(
                                             combatants = info.combatants.map {
-                                              case pcCombatant2: PlayerCharacterCombatant
-                                                  if pcCombatant2.id == pcCombatant.id =>
+                                              case pcCombatant2: PlayerCharacterCombatant if pcCombatant2.id == pcCombatant.id =>
                                                 pcCombatant2.copy(otherMarkers = otherMarkers)
                                               case c => c
                                             }
@@ -981,9 +971,7 @@ object CombatRunner {
                                         else
                                           s"${npcCombatant.name} healed ${state.healOrDamage(npcCombatant.id)} points"
                                       }
-                                    ) >> $.modState(s =>
-                                      s.copy(healOrDamage = s.healOrDamage.filter(_._1 != npcCombatant.id))
-                                    )
+                                    ) >> $.modState(s => s.copy(healOrDamage = s.healOrDamage.filter(_._1 != npcCombatant.id)))
 
                                 },
                               Input
@@ -999,9 +987,7 @@ object CombatRunner {
                                     _,
                                     data
                                   ) =>
-                                    $.modState(s =>
-                                      s.copy(healOrDamage = s.healOrDamage + (npcCombatant.id -> data.value.asInt()))
-                                    )
+                                    $.modState(s => s.copy(healOrDamage = s.healOrDamage + (npcCombatant.id -> data.value.asInt())))
                                 },
                               Button("Damage")
                                 .className("damageButton")
@@ -1034,9 +1020,7 @@ object CombatRunner {
                                         s"${npc.header.name} got ${state.healOrDamage(npcCombatant.id)} points of damage, and is now below zero hitpoints!"
                                       else
                                         s"${npc.header.name} got ${state.healOrDamage(npcCombatant.id)} points of damage"
-                                    ) >> $.modState(s =>
-                                      s.copy(healOrDamage = s.healOrDamage.filter(_._1 != npcCombatant.id))
-                                    )
+                                    ) >> $.modState(s => s.copy(healOrDamage = s.healOrDamage.filter(_._1 != npcCombatant.id)))
                                 },
                               DeathSaveComponent(
                                 npc.info.health.deathSave,
@@ -1044,9 +1028,7 @@ object CombatRunner {
                                   modNPC(
                                     npc.copy(jsonInfo =
                                       npcInfo
-                                        .copy(health =
-                                          npcInfo.health.copy(deathSave = deathSave)
-                                        ).toJsonAST.toOption.get
+                                        .copy(health = npcInfo.health.copy(deathSave = deathSave)).toJsonAST.toOption.get
                                     ),
                                     ""
                                   )
@@ -1115,8 +1097,7 @@ object CombatRunner {
                                       info =>
                                         info.copy(
                                           combatants = info.combatants.map {
-                                            case npcCombatant2: NonPlayerCharacterCombatant
-                                                if npcCombatant2.id == npcCombatant.id =>
+                                            case npcCombatant2: NonPlayerCharacterCombatant if npcCombatant2.id == npcCombatant.id =>
                                               npcCombatant2.copy(otherMarkers = otherMarkers)
                                             case c => c
                                           }
@@ -1182,8 +1163,7 @@ object CombatRunner {
                                     info =>
                                       info.copy(
                                         combatants = info.combatants.map {
-                                          case monsterCombatant2: MonsterCombatant
-                                              if monsterCombatant2.id == monsterCombatant.id =>
+                                          case monsterCombatant2: MonsterCombatant if monsterCombatant2.id == monsterCombatant.id =>
                                             monsterCombatant2.copy(name = name)
                                           case c => c
                                         }
@@ -1212,8 +1192,7 @@ object CombatRunner {
                                     modEncounterInfo(
                                       info => {
                                         info.copy(combatants = info.combatants.map {
-                                          case monsterCombatant2: MonsterCombatant
-                                              if monsterCombatant2.id == monsterCombatant.id =>
+                                          case monsterCombatant2: MonsterCombatant if monsterCombatant2.id == monsterCombatant.id =>
                                             monsterCombatant2.copy(health =
                                               monsterCombatant2.health.copy(
                                                 deathSave = DeathSave.empty,
@@ -1224,14 +1203,11 @@ object CombatRunner {
                                           case c => c
                                         })
                                       },
-                                      log =
-                                        if (fromIsDead && !toIsDead)
-                                          s"${monsterCombatant.name} healed ${state.healOrDamage(monsterCombatant.id)} points, thus coming back to life"
-                                        else
-                                          s"${monsterCombatant.name} healed ${state.healOrDamage(monsterCombatant.id)} points"
-                                    ) >> $.modState(s =>
-                                      s.copy(healOrDamage = s.healOrDamage.filter(_._1 != monsterCombatant.id))
-                                    )
+                                      log = if (fromIsDead && !toIsDead)
+                                        s"${monsterCombatant.name} healed ${state.healOrDamage(monsterCombatant.id)} points, thus coming back to life"
+                                      else
+                                        s"${monsterCombatant.name} healed ${state.healOrDamage(monsterCombatant.id)} points"
+                                    ) >> $.modState(s => s.copy(healOrDamage = s.healOrDamage.filter(_._1 != monsterCombatant.id)))
                                 },
                               Input
                                 .id(s"combatantDamageInput${monsterCombatant.id.value}")
@@ -1246,11 +1222,7 @@ object CombatRunner {
                                     _,
                                     data
                                   ) =>
-                                    $.modState(s =>
-                                      s.copy(healOrDamage =
-                                        s.healOrDamage + (monsterCombatant.id -> data.value.asInt())
-                                      )
-                                    )
+                                    $.modState(s => s.copy(healOrDamage = s.healOrDamage + (monsterCombatant.id -> data.value.asInt())))
                                 },
                               Button("Damage")
                                 .className("damageButton")
@@ -1272,8 +1244,7 @@ object CombatRunner {
                                     modEncounterInfo(
                                       info =>
                                         info.copy(combatants = info.combatants.map {
-                                          case monsterCombatant2: MonsterCombatant
-                                              if monsterCombatant2.id == monsterCombatant.id =>
+                                          case monsterCombatant2: MonsterCombatant if monsterCombatant2.id == monsterCombatant.id =>
                                             monsterCombatant2.copy(health =
                                               monsterCombatant2.health.copy(
                                                 deathSave = monsterCombatant2.health.deathSave
@@ -1290,9 +1261,7 @@ object CombatRunner {
                                           s"${monsterCombatant.name} took ${state.healOrDamage(monsterCombatant.id)} points of damage"
 
                                       }
-                                    ) >> $.modState(s =>
-                                      s.copy(healOrDamage = s.healOrDamage.filter(_._1 != monsterCombatant.id))
-                                    )
+                                    ) >> $.modState(s => s.copy(healOrDamage = s.healOrDamage.filter(_._1 != monsterCombatant.id)))
                                 }
                             ),
                             Table.Cell
@@ -1311,8 +1280,7 @@ object CombatRunner {
                                   modEncounterInfo(
                                     info =>
                                       info.copy(combatants = info.combatants.map {
-                                        case monsterCombatant2: MonsterCombatant
-                                            if monsterCombatant2.id == monsterCombatant.id =>
+                                        case monsterCombatant2: MonsterCombatant if monsterCombatant2.id == monsterCombatant.id =>
                                           monsterCombatant2.copy(armorClass = v.toInt)
                                         case c => c
                                       }),
@@ -1332,8 +1300,7 @@ object CombatRunner {
                                       info =>
                                         info.copy(
                                           combatants = info.combatants.map {
-                                            case monsterCombatant2: MonsterCombatant
-                                                if monsterCombatant2.id == monsterCombatant.id =>
+                                            case monsterCombatant2: MonsterCombatant if monsterCombatant2.id == monsterCombatant.id =>
                                               monsterCombatant2.copy(conditions = c)
                                             case c => c
                                           }
@@ -1360,8 +1327,7 @@ object CombatRunner {
                                       info =>
                                         info.copy(
                                           combatants = info.combatants.map {
-                                            case monsterCombatant2: MonsterCombatant
-                                                if monsterCombatant2.id == monsterCombatant.id =>
+                                            case monsterCombatant2: MonsterCombatant if monsterCombatant2.id == monsterCombatant.id =>
                                               monsterCombatant2.copy(otherMarkers = otherMarkers)
                                             case c => c
                                           }
@@ -1389,10 +1355,7 @@ object CombatRunner {
                                     _
                                   ) =>
                                     modEncounterInfo(
-                                      info =>
-                                        info.copy(combatants =
-                                          info.combatants.filter(_.id.value != monsterCombatant.id.value)
-                                        ),
+                                      info => info.copy(combatants = info.combatants.filter(_.id.value != monsterCombatant.id.value)),
                                       s"${monsterCombatant.name} was removed from the encounter"
                                     )
                                 ),

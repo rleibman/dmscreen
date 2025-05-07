@@ -1,9 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////////
-// Common Stuff
+// Global / Common Stuff
 
 import com.typesafe.sbt.SbtGit.GitKeys.gitDescribedVersion
 import org.apache.commons.io.FileUtils
-
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
@@ -11,7 +10,7 @@ lazy val buildTime: SettingKey[String] = SettingKey[String]("buildTime", "time o
 
 ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
-lazy val SCALA = "3.7.0-RC4"
+lazy val SCALA = "3.7.0"
 Global / onChangedBuildSource := ReloadOnSourceChanges
 scalaVersion                  := SCALA
 Global / scalaVersion         := SCALA
@@ -21,7 +20,6 @@ Global / watchAntiEntropy := 1.second
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // Shared settings
-
 lazy val start = TaskKey[Unit]("start")
 lazy val dist = TaskKey[File]("dist")
 lazy val debugDist = TaskKey[File]("debugDist")
@@ -53,10 +51,10 @@ enablePlugins(
   GitVersioning
 )
 
-val calibanVersion = "2.10.0" //This brings in zio-http new "2.10.0"
+val calibanVersion = "2.10.0"
 val langchainVersion = "1.0.0-beta3"
 val quillVersion = "4.8.6"
-val tapirVersion = "1.10.8"
+val scalajsReactVersion = "2.1.2"
 val testContainerVersion = "0.43.0"
 val zioConfigVersion = "4.0.4"
 val zioHttpVersion = "3.2.0"
@@ -73,7 +71,7 @@ lazy val commonSettings = Seq(
 )
 
 ////////////////////////////////////////////////////////////////////////////////////
-// common (i.e. model)
+// Model
 lazy val modelJVM = model.jvm
 lazy val modelJS = model.js
 
@@ -88,7 +86,7 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
     buildInfoPackage := "dmscreen",
     commonSettings,
     libraryDependencies ++= Seq(
-      "net.leibman" % "zio-auth_3" % "1.0.0-SNAPSHOT" withSources () // I don't know why %% isn't working.
+      "net.leibman" % "zio-auth_3" % "1.0.1" withSources () // I don't know why %% isn't working.
     )
   )
   .jvmEnablePlugins(GitVersioning, BuildInfoPlugin)
@@ -112,7 +110,7 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
   .jsSettings(
     version := gitDescribedVersion.value.getOrElse("0.0.1-SNAPSHOT"),
     libraryDependencies ++= Seq(
-      "net.leibman"       % "zio-auth_sjs1_3" % "1.0.0-SNAPSHOT" withSources (), // I don't know why %% isn't working.
+      "net.leibman"       % "zio-auth_sjs1_3" % "1.0.1" withSources (), // I don't know why %% isn't working.
       "dev.zio" %%% "zio" % zioVersion withSources (),
       "dev.zio" %%% "zio-json"                                            % zioJsonVersion withSources (),
       "dev.zio" %%% "zio-prelude"                                         % "1.0.0-RC40" withSources (),
@@ -122,6 +120,8 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
     )
   )
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// Server
 lazy val db = project
   .enablePlugins(AutomateHeaderPlugin)
   .settings(commonSettings)
@@ -161,7 +161,6 @@ lazy val server = project
     AutomateHeaderPlugin,
     GitVersioning,
     LinuxPlugin,
-//    JDebPackaging,
     DebianPlugin,
     DebianDeployPlugin,
     JavaServerAppPackaging,
@@ -206,6 +205,11 @@ lazy val server = project
       "dev.zio" %% "zio-test-sbt" % zioVersion % "test" withSources ()
     )
   )
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility
+lazy val util = project
+  .settings(commonSettings)
 
 lazy val debianSettings =
   Seq(
@@ -259,8 +263,6 @@ lazy val ai = project
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Web
-val scalajsReactVersion = "2.1.2"
-
 lazy val bundlerSettings: Project => Project =
   _.enablePlugins(ScalaJSBundlerPlugin)
     .settings(
@@ -303,7 +305,7 @@ lazy val withCssLoading: Project => Project =
 lazy val commonWeb: Project => Project =
   _.settings(
     libraryDependencies ++= Seq(
-      "net.leibman" %%% "dmscreen-stlib"              % "0.9.0-SNAPSHOT" withSources (),
+      "net.leibman" %%% "dmscreen-stlib"              % "1.0.0" withSources (),
       "com.github.ghostdogpr" %%% "caliban-client"    % calibanVersion withSources (),
       "dev.zio" %%% "zio"                             % zioVersion withSources (),
       "com.softwaremill.sttp.client4" %%% "core"      % "4.0.3" withSources (),
@@ -358,8 +360,6 @@ lazy val web: Project = project
           case None          => debugFolder / artifact.data.name
           case Some(relFile) => debugFolder / relFile.toString
         }
-
-//        println(s"Trying to copy ${artifact.data.toPath} to ${target.toPath}")
         Files.copy(artifact.data.toPath, target.toPath, REPLACE_EXISTING)
       }
 
@@ -379,8 +379,6 @@ lazy val web: Project = project
           case None          => distFolder / artifact.data.name
           case Some(relFile) => distFolder / relFile.toString
         }
-
-//        println(s"Trying to copy ${artifact.data.toPath} to ${target.toPath}")
         Files.copy(artifact.data.toPath, target.toPath, REPLACE_EXISTING)
       }
 
@@ -392,7 +390,7 @@ lazy val web: Project = project
 // Root project
 lazy val root = project
   .in(file("."))
-  .aggregate(modelJVM, modelJS, server, web, ai)
+  .aggregate(modelJVM, modelJS, server, db, web, ai)
   .settings(
     name           := "dmscreen",
     publish / skip := true,

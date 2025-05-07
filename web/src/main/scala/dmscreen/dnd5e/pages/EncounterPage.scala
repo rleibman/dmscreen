@@ -21,9 +21,6 @@
 
 package dmscreen.dnd5e.pages
 
-import caliban.ScalaJSClientAdapter.*
-import caliban.client.SelectionBuilder
-import caliban.client.scalajs.given
 import dmscreen.components.*
 import dmscreen.dnd5e.components.*
 import dmscreen.dnd5e.{*, given}
@@ -31,16 +28,12 @@ import dmscreen.{CampaignId, DMScreenPage, DMScreenState, DialogMode}
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^.*
-import net.leibman.dmscreen.react.mod.CSSProperties
 import net.leibman.dmscreen.semanticUiReact.*
-import net.leibman.dmscreen.semanticUiReact.components.{Button, List as SList, Table, *}
+import net.leibman.dmscreen.semanticUiReact.components.{Button, Table, List as SList, *}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsGenericMod.{SemanticICONS, SemanticSIZES, SemanticWIDTHS}
 import net.leibman.dmscreen.semanticUiReact.distCommonjsModulesAccordionAccordionTitleMod.*
 import org.scalajs.dom.*
 import zio.json.*
-import zio.json.ast.Json
-
-import scala.scalajs.js.JSConverters.*
 
 object EncounterPage extends DMScreenPage {
 
@@ -213,7 +206,8 @@ object EncounterPage extends DMScreenPage {
                                 sceneOpt,
                                 sceneIndex
                               ) =>
-                                val encounters = allEncounters.get(sceneOpt.map(_.header.id)).toList.flatten
+                                val encountersInScene =
+                                  allEncounters.get(sceneOpt.map(_.header.id)).toList.flatten
                                 VdomArray(
                                   Accordion.Title
                                     .withKey(s"sceneTitle${sceneIndex}AccordionTitle")
@@ -246,10 +240,10 @@ object EncounterPage extends DMScreenPage {
                                                       header = EncounterHeader(
                                                         id = EncounterId.empty,
                                                         campaignId = campaign.header.id,
-                                                        name = s"Encounter ${encounters.size + 1}",
+                                                        name = s"Encounter ${encountersInScene.size + 1}",
                                                         status = EncounterStatus.planned,
                                                         sceneId = sceneOpt.map(_.header.id),
-                                                        orderCol = encounters.size
+                                                        orderCol = encountersInScene.size
                                                       ),
                                                       jsonInfo = EncounterInfo().toJsonAST.toOption.get
                                                     )
@@ -280,7 +274,7 @@ object EncounterPage extends DMScreenPage {
                                       Accordion.Accordion
                                         .fluid(true)
                                         .styled(true)(
-                                          encounters
+                                          encountersInScene
                                             .filterNot(
                                               _.header.status == EncounterStatus.archived && state.hideArchivedEncounters
                                             )
@@ -355,9 +349,7 @@ object EncounterPage extends DMScreenPage {
                                                                   )
                                                               )(
                                                                 Icon.name(
-                                                                  if (
-                                                                    encounter.header.status != EncounterStatus.archived
-                                                                  )
+                                                                  if (encounter.header.status != EncounterStatus.archived)
                                                                     SemanticICONS.`edit`
                                                                   else
                                                                     SemanticICONS.`eye`
@@ -382,20 +374,94 @@ object EncounterPage extends DMScreenPage {
                                                               .compact(true)
                                                               .size(SemanticSIZES.tiny)
                                                               .title("Move encounter up")
-                                                              .icon(true)
-                                                              // TODO Move the encounter to earlier in the list, or to the previous scene if it's at the beginning of the scene
-                                                              (
+                                                              .onClick {
+                                                                (
+                                                                  _,
+                                                                  _
+                                                                ) =>
+                                                                  val updatedEncounters = encountersInScene.zipWithIndex
+                                                                    .map {
+                                                                      case (e, idx) if idx == encounterIndex - 1 =>
+                                                                        val newE = e.copy(header = e.header.copy(orderCol = e.header.orderCol + 1))
+                                                                        (
+                                                                          newE,
+                                                                          dmScreenState.onModifyCampaignState(
+                                                                            campaignState.copy(
+                                                                              changeStack = campaignState.changeStack.logEncounterChanges(newE)
+                                                                            ),
+                                                                            ""
+                                                                          )
+                                                                        )
+                                                                      case (e, idx) if idx == encounterIndex =>
+                                                                        val newE = e.copy(header = e.header.copy(orderCol = e.header.orderCol - 1))
+                                                                        (
+                                                                          newE,
+                                                                          dmScreenState.onModifyCampaignState(
+                                                                            campaignState.copy(
+                                                                              changeStack = campaignState.changeStack.logEncounterChanges(newE)
+                                                                            ),
+                                                                            ""
+                                                                          )
+                                                                        )
+                                                                      case (e, _) => (e, Callback.empty)
+                                                                    }
+                                                                  $.modState(
+                                                                    state => state.copy(encounters = updatedEncounters.map(_._1)),
+                                                                    Callback.sequence(updatedEncounters.map(_._2))
+                                                                  )
+                                                              }
+                                                              .icon(true)(
                                                                 Icon.name(SemanticICONS.`arrow up`)
                                                               ).when(encounterIndex != 0),
                                                             Button
                                                               .compact(true)
                                                               .size(SemanticSIZES.tiny)
                                                               .title("Move encounter down")
-                                                              .icon(true)
-                                                              // TODO move the encounter to later in the list, or to the next scene if it's at the end of this scene
-                                                              (
+                                                              .onClick {
+                                                                (
+                                                                  _,
+                                                                  _
+                                                                ) =>
+                                                                  val updatedEncounters = encountersInScene.zipWithIndex
+                                                                    .map {
+                                                                      case (e, idx) if idx == encounterIndex + 1 =>
+                                                                        val newE = e.copy(header = e.header.copy(orderCol = e.header.orderCol - 1))
+                                                                        (
+                                                                          newE,
+                                                                          dmScreenState.onModifyCampaignState(
+                                                                            campaignState.copy(
+                                                                              changeStack = campaignState.changeStack.logEncounterChanges(newE)
+                                                                            ),
+                                                                            ""
+                                                                          )
+                                                                        )
+                                                                      case (e, idx) if idx == encounterIndex =>
+                                                                        val newE = e.copy(header = e.header.copy(orderCol = e.header.orderCol + 1))
+                                                                        (
+                                                                          newE,
+                                                                          dmScreenState.onModifyCampaignState(
+                                                                            campaignState.copy(
+                                                                              changeStack = campaignState.changeStack.logEncounterChanges(newE)
+                                                                            ),
+                                                                            ""
+                                                                          )
+                                                                        )
+                                                                      case (e, _) => (e, Callback.empty)
+                                                                    }
+                                                                  $.modState(
+                                                                    state => state.copy(encounters = updatedEncounters.map(_._1)),
+                                                                    Callback.sequence(updatedEncounters.map(_._2))
+                                                                  )
+                                                              }
+                                                              .icon(true) {
                                                                 Icon.name(SemanticICONS.`arrow down`)
-                                                              ) // .when(encounterIndex != campaignState.encounters.size - 1)
+                                                              }
+                                                              .when(
+                                                                encounterIndex != encountersInScene
+                                                                  .filterNot(
+                                                                    _.header.status == EncounterStatus.archived && state.hideArchivedEncounters
+                                                                  ).size - 1
+                                                              )
                                                           )
                                                         )
                                                       )
@@ -442,8 +508,7 @@ object EncounterPage extends DMScreenPage {
                 EncounterWizard(
                   campaignState.campaign,
                   onCancel = $.modState(_.copy(encounterMode = EncounterMode.edit)),
-                  onSaved = encounter =>
-                    $.modState(_.copy(encounterMode = EncounterMode.edit, encounters = state.encounters :+ encounter))
+                  onSaved = encounter => $.modState(_.copy(encounterMode = EncounterMode.edit, encounters = state.encounters :+ encounter))
                 )
             }
           )
